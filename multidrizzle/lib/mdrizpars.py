@@ -81,9 +81,50 @@ class MDrizPars (HasTraits):
                             TraitPrefixMap( {
                                     'true':1, 'yes':1,
                                     'false':0, 'no':0 } ),
-                                TraitMap({1:True,0:False} )))    
+                                TraitMap({1:True,0:False} )))   
     bit_editor = TraitEditorBoolean()
 
+
+    # The following enumerated lists are only necessary 
+    # to replace the use of TraitEnum for versions of Pmw 
+    # earlier than 1.3, versions which have a bug.
+    enum_stat  = Trait('median',TraitPrefixMap({
+                        'median': 'median',
+                        'mode': 'mode',
+                        'mean': 'mean',}) 
+                        )
+    enum_kernel = Trait('square',TraitPrefixMap({
+                        'square': 'square',
+                        'point': 'point',
+                        'gaussian': 'gaussian',
+                        'turbo': 'turbo',
+                        'tophap':'tophat',
+                        'lanczos3': 'lanczos3'}) 
+                        )
+    enum_combine = Trait('median',TraitPrefixMap({
+                        'median': 'median',
+                        'sum': 'sum',
+                        'minmed': 'minmed',}) 
+                        )
+    enum_interp = Trait('poly5',TraitPrefixMap({
+                        'nearest': 'nearest',
+                        'linear': 'linear',
+                        'poly3': 'poly3',
+                        'poly5': 'poly5',
+                        'sinc':'sinc'}) 
+                        )
+    text_editor = TraitEditorText()
+
+
+    """
+    This definition of the MDRIZPAR traits enables proper 
+    handling of integer TraitRanges and TraitEnum with the
+    Pmw widgets.  Unfortunately, due to a bug in Pmw
+    Versions 1.2 and less, these features will not work. 
+    
+    Therefore, this definition can only be activated upon updating
+    to Pmw 1.3 and greater.
+    
     __traits__ = {'input':Trait('flt.fits',TraitString()),
             'output':Trait('',TraitString()),
             'mdriztab':Trait(False, true_boolean, editor=bit_editor),
@@ -92,7 +133,7 @@ class MDrizPars (HasTraits):
             'context':Trait(True, true_boolean, editor=bit_editor), 
             'clean':Trait(True, true_boolean, editor=bit_editor),
             'group':Trait('',AnyValue),
-            'bits':Trait(0,AnyValue), 
+            'bits':Trait(0,TraitRange(0,65535)), 
             'ra':Trait('',AnyValue), 
             'dec':Trait('',AnyValue),
             'coeffs':Trait('header',TraitString()), 
@@ -104,7 +145,7 @@ class MDrizPars (HasTraits):
             'skystat':Trait('median',TraitEnum(['median','mode','mean'])), 
             'skylower':Trait(-50.,AnyValue),
             'skyupper':Trait(200.,AnyValue), 
-            'skyclip':Trait(5,AnyValue), 
+            'skyclip':Trait(5,TraitRange(0,10)), 
             'skylsigma':Trait(4.0,TraitRange(0.0,9.0)),
             'skyusigma':Trait(4.0,TraitRange(0.0,9.0)), 
             'skyuser':Trait('',TraitString()),
@@ -134,6 +175,74 @@ class MDrizPars (HasTraits):
             'driz_final_outny':Trait('',AnyValue),
             'driz_final_kernel':Trait('square',TraitEnum(['square',
                 'point','gaussian','turbo','tophat','lanczos3'])), 
+            'driz_final_pixfrac':Trait(1.0,TraitRange(0.0,2.0)),
+            'driz_final_scale':Trait('',AnyValue), 
+            'driz_final_rot':Trait(0.0,AnyValue),
+            'driz_final_fillval':Trait('INDEF',TraitString()),
+            'gain':Trait('',TraitString()), 
+            'gnkeyword':Trait('',TraitString()),
+            'rdnoise':Trait('',TraitString()), 
+            'rnkeyword':Trait('',TraitString()), 
+            'exptime':Trait('',TraitString()),
+            'expkeyword':Trait('',TraitString()), 
+            'crbit': Trait(64,TraitRange(0,65535)),
+            'static':Trait(True, true_boolean, editor=bit_editor), 
+            'skysub':Trait(True, true_boolean, editor=bit_editor), 
+            'driz_separate':Trait(True, true_boolean, editor=bit_editor),
+            'median':Trait(True, true_boolean, editor=bit_editor), 
+            'blot':Trait(True, true_boolean, editor=bit_editor), 
+            'driz_cr':Trait(True, true_boolean, editor=bit_editor), 
+            'driz_combine':Trait(True, true_boolean, editor=bit_editor),
+            'timing':Trait(True, true_boolean, editor=bit_editor)
+            }
+    """
+    __traits__ = {'input':Trait('flt.fits',TraitString()),
+            'output':Trait('',TraitString()),
+            'mdriztab':Trait(False, true_boolean, editor=bit_editor),
+            'refimage':'','runfile':'multidrizzle.run',
+            'workinplace':Trait(False, true_boolean, editor=bit_editor),
+            'context':Trait(True, true_boolean, editor=bit_editor), 
+            'clean':Trait(True, true_boolean, editor=bit_editor),
+            'group':Trait('',AnyValue),
+            'bits':Trait(0,AnyValue), 
+            'ra':Trait('',AnyValue), 
+            'dec':Trait('',AnyValue),
+            'coeffs':Trait('header',TraitString()), 
+            'build':Trait(False, true_boolean, editor=bit_editor), 
+            'shiftfile':Trait('',AnyValue),
+            'staticfile':Trait('',TraitString()), 
+            'static_sig':Trait(3.0,TraitRange(0.0,9.0)), 
+            'skywidth':Trait(0.1,TraitRange(0.0,1.0)), 
+            'skystat':Trait('median',enum_stat, editor=text_editor), 
+            'skylower':Trait(-50.,AnyValue),
+            'skyupper':Trait(200.,AnyValue), 
+            'skyclip':Trait(5,AnyValue), 
+            'skylsigma':Trait(4.0,TraitRange(0.0,9.0)),
+            'skyusigma':Trait(4.0,TraitRange(0.0,9.0)), 
+            'skyuser':Trait('',TraitString()),
+            'driz_sep_outnx':Trait('',AnyValue), 
+            'driz_sep_outny':Trait('',AnyValue),
+            'driz_sep_kernel':Trait('turbo',enum_kernel, editor=text_editor), 
+            'driz_sep_pixfrac':Trait(1.0,TraitRange(0.0,2.0)),
+            'driz_sep_scale':Trait('',AnyValue), 
+            'driz_sep_rot':Trait('',AnyValue),
+            'driz_sep_fillval':Trait('INDEF',TraitString()),
+            'median_newmasks':Trait(True, true_boolean, editor=bit_editor), 
+            'combine_type':Trait('median',enum_combine, editor=text_editor), 
+            'combine_nsigma':Trait('6 3',TraitString()),
+            'combine_nlow':Trait(0,AnyValue), 
+            'combine_nhigh':Trait(1,AnyValue), 
+            'combine_lthresh':Trait('',AnyValue), 
+            'combine_hthresh':Trait('',AnyValue), 
+            'combine_grow':Trait(1.0,TraitRange(0.0,21.0)),
+            'blot_interp':Trait('poly5',enum_interp, editor=text_editor), 
+            'blot_sinscl':Trait(1.0,TraitRange(0.0,21.0)),
+            'driz_cr_corr':Trait(False, true_boolean, editor=bit_editor),
+            'driz_cr_snr': Trait('3.0 2.5',TraitString()), 
+            'driz_cr_scale':Trait('1.2 0.7',TraitString()),
+            'driz_final_outnx':Trait('',AnyValue), 
+            'driz_final_outny':Trait('',AnyValue),
+            'driz_final_kernel':Trait('square',enum_kernel, editor=text_editor), 
             'driz_final_pixfrac':Trait(1.0,TraitRange(0.0,2.0)),
             'driz_final_scale':Trait('',AnyValue), 
             'driz_final_rot':Trait(0.0,AnyValue),
