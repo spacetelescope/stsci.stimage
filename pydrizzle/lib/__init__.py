@@ -1503,7 +1503,7 @@ class DitherProduct(Pattern):
     def __init__(self, prodlist, pars=None):
 
         # Build temporary output drizzle product name
-        output = fileutil.buildNewRootname(string.lower(prodlist['output']),extn='_drz.fits')
+        output = fileutil.buildNewRootname(prodlist['output'],extn='_drz.fits')
 
         # Setup a default exposure to contain the results
         Pattern.__init__(self, None, output=output, pars=pars)
