@@ -8,8 +8,11 @@
 #               a user cr bit input value of zero as a None.  This allows the
 #               user to turn off the DQ array update during the Driz_CR step. -- CJH
 #           Version 0.1.2 09/20/04 -- Set the default crbit value for NICMOS to 4096 -- CJH.
+#           Version 0.2.0 11/03/04 -- Modified the updateMDRIZSKY method to deal with
+#               input data with EXPTIME = 0.  For that case, MDRIZSKY will be set to a
+#               value of 0. -- CJH
            
-__version__ = '0.1.2'
+__version__ = '0.2.0'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -97,20 +100,39 @@ class NICMOSInputImage (InputImage):
         except:
             raise IOError, "Unable to open %s for sky level computation"%filename
         try:
-            try:
-                # Assume MDRIZSKY lives in primary header
-                print "Updating MDRIZSKY in %s with %f / %f / %f = %f"%(filename,
-                        self.getSubtractedSky(),
-                        self.getGain(), 
-                        self.getExpTime(),
-                        self.getSubtractedSky() / self.getGain() / self.getExpTime()
-                        )
-                _handle[0].header['MDRIZSKY'] = self.getSubtractedSky() / self.getGain() / self.getExpTime()
-            except:
-                print "Cannot find keyword MDRIZSKY in %s to update"%filename
-                print "Adding MDRIZSKY keyword to primary header with value %f"%self.getSubtractedSky()
-                _handle[0].header.update('MDRIZSKY',self.getSubtractedSky()/self.getGain()/self.getExpTime(), 
-                    comment="Sky value subtracted by Multidrizzle")
+        
+            # Get the exposure time for the image.  If the exposure time of the image
+            # is 0, set the MDRIZSKY value to 0.  Otherwise update the MDRIZSKY value
+            # in units of counts per second.
+            if (self.getExpTime() == 0.0):
+                str =  "*******************************************\n"
+                str += "*                                         *\n"
+                str += "* ERROR: Image EXPTIME = 0.               *\n"
+                str += "* MDRIZSKY header value cannot be         *\n"
+                str += "* converted to units of 'counts/s'        *\n"
+                str += "* MDRIZSKY will be set to a value of '0'  *\n"
+                str += "*                                         *\n"
+                str =  "*******************************************\n"
+                _handle[0].header['MDRIZSKY'] = 0
+                print str
+            else:
+                # Assume the MDRIZSKY keyword is in the primary header.  Try to update
+                # the header value
+                try:
+                    print "Updating MDRIZSKY in %s with %f / %f / %f = %f"%(filename,
+                            self.getSubtractedSky(),
+                            self.getGain(), 
+                            self.getExpTime(),
+                            self.getSubtractedSky() / self.getGain() / self.getExpTime()
+                            )
+                    _handle[0].header['MDRIZSKY'] = self.getSubtractedSky() / self.getGain() / self.getExpTime()
+                # The MDRIZSKY keyword was not found in the primary header.  Add the
+                # keyword to the header and populate it with the subtracted sky value.
+                except:
+                    print "Cannot find keyword MDRIZSKY in %s to update"%filename
+                    print "Adding MDRIZSKY keyword to primary header with value %f"%self.getSubtractedSky()
+                    _handle[0].header.update('MDRIZSKY',self.getSubtractedSky()/self.getGain()/self.getExpTime(), 
+                        comment="Sky value subtracted by Multidrizzle")
         finally:
             _handle.close()
 
@@ -126,6 +148,7 @@ class NICMOSInputImage (InputImage):
 
         # Multiply the values of the sci extension pixels by the gain.
         print "Converting %s from COUNTS/S to ELECTRONS"%(self.name)
+        # If the exptime is 0 the science image will be zeroed out.
         conversionFactor = (self.getExpTime() * self.getGain()) * __timext.data
         N.multiply(__sciext.data,conversionFactor,__sciext.data)        
 

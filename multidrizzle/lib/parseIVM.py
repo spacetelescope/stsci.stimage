@@ -40,8 +40,7 @@ def parseIVM(inputlist):
     errorstr += "#  for more information.              #\n"
     errorstr += "#                                     #\n"
     errorstr =  "#######################################\n"
-
-
+    
     _files = buildasn._findFiles(inputlist)
     
     if (len(_files[0]) > 2):

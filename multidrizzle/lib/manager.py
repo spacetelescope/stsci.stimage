@@ -35,6 +35,15 @@
 #                                       other instruments. CJH/WJH
 #           Version 0.1.51, 10/13/04 -- Added use of overlap to image iterator to insure that last
 #                                       returned image section has nrows >= 2*grow+1. WJH/CJH  
+#           Version 1.0.0,  11/04/04 -- Modified the createMedian step to handle images with exptime = 0
+#                                       In those cases, exptime we be set to 1 for the purposes of
+#                                       scaling in the minmed step. Also, added some warning statements
+#                                       for the case when a user tries to use an error array as the
+#                                       final wht type when no error array is in the input data.  Instead
+#                                       of crashing, the program will now issue a warning message and use
+#                                       a default weighting scheme -- CJH
+#           Version 1.1.0,  12/03/04 -- Modified the static_mask steps fix a bug in accepting a user supplied
+#                                       static mask file.
 
 # Import Numarray functionality
 import numarray.image.combine as combine
@@ -66,7 +75,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter,computeBuffRows
 
-__version__ = '0.1.51'
+__version__ = '1.1.0'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -322,8 +331,9 @@ class ImageManager:
         for p in self.assoc.parlist:
             p['image'].updateStaticMask(self.static_mask)
 
-        if (static_file != None):
-            self._applyUserStaticFile (static_file, self.static_mask)
+            # Check the input to see if a static mask file was provided.
+            if (static_file != None):
+                self._applyUserStaticFile (static_file, self.static_mask, p['image'].signature(), p['image'].extn)
 
         # For each input, we now need to update the driz_mask with the
         # values from the static mask
@@ -346,16 +356,49 @@ class ImageManager:
             del __handle
 
 
-    def _applyUserStaticFile(self, static_file, static_mask):
+    def _applyUserStaticFile(self, static_file, static_mask, signature, imageExtension):
+    
+        """
+        Method:     _applyUserStaticFile
+        Purpose:    Apply the user provided static mask file to the mask created by the
+                    static mask step.
+                    
+        Input:      static_file - user specified mask file.  The file is assumed to be 
+                    a multi extension FITS file.  Pixel values of 1 are considered "good"
+                    and 0 "bad".  There needs to be one "MASK" extension for each extension
+                    of the input science image.  This means a static mask file for WFPC2
+                    input should have 4 "MASK" extensions while a static mask file for
+                    ACS WFC dat would have 2 "MASK" extensions.
+                    
+                    static_mask - numarray object created by the static mask routine.
+                    
+                    signature - attribute of the input image indicated the chip name
+                    and size.
+                    
+                    imageExtension - extension of the inputimage currently being processed
+                    by the static_mask step.
+                    
+        Output:     None
+        
+        """
 
         try:
-            file = fileutil.openImage(static_file, memmap=1, mode='readonly')
-            input_static_mask = file[0].data
+            # Deterine what extension of the current input file is currently being processed
+            index = imageExtension.find(',') 
+            # Build the appropriate extension name to use on the static mask file
+            extn = "MASK,"+imageExtension[index+1:]
 
-            static_mask.applyStaticFile(input_static_mask, p['image'].signature())
+            # Open the static mask file and extract the approprate extension
+            file = fileutil.openImage(static_file, memmap=1, mode='readonly')
+            input_static_mask = fileutil.getExtn(file,extn)
+            
+            # Apply the user supplied static mask to the static mask created in the
+            # static mask step
+            static_mask.applyStaticFile(input_static_mask.data, signature)
 
         finally:
             file.close()
+
 
     def doSky(self, skypars, skysub):
     
@@ -612,11 +655,25 @@ class ImageManager:
                     del _weight_file[0].data
 
                 # Extract instrument specific parameters and place in lists
-                __readnoiseList.append(p['image'].getReadNoise())
-                __exposureTimeList.append(p['image'].getExpTime())
-#                __backgroundValueList.append(p['image'].getSubtractedSky())
-#                print "subtracted sky value for image ",p['image'].rootname," is ", p['image'].getSubtractedSky()
+                
+                # Check for 0 exptime values.  If an image has zero exposure time we will
+                # redefine that value as '1'.  Although this will cause inaccurate scaling
+                # of the data to occur in the 'minmed' combination algorith, this is a 
+                # necessary evil since it avoids divide by zero exceptions.  It is more
+                # important that the divide by zero exceptions not cause Multidrizzle to
+                # crash in the pipeline than it is to raise an exception for this obviously
+                # bad data even though this is not the type of data you would wish to process
+                # with Multidrizzle.
+                #
+                # Get the exposure time from the InputImage object
+                imageExpTime = p['image'].getExpTime() 
+                __exposureTimeList.append(imageExpTime)
+
+                # Extract the sky value for the chip to be used in the model
                 __backgroundValueList.append(p['image'].getreferencesky())
+                # Extract the readnoise value for the chip
+                __readnoiseList.append(p['image'].getReadNoise())
+
                 print "reference sky value for image ",p['image'].rootname," is ", p['image'].getreferencesky()
 
 
@@ -644,11 +701,6 @@ class ImageManager:
         __endWht = __startWht + len(self.weight_handles)
 
         # We only want to print this out once...
-#        if __newmasks:
-#            print('\nCreating pixel mask files for the median step...\n')
-
-  #      __medianOutput = N.zeros(self.single_handles[0][0].data.shape,self.single_handles[0][0].data.type())
-  #      __minOutput = N.zeros(self.single_handles[0][0].data.shape,self.single_handles[0][0].data.type())
 
         # Fire up the image iterator
         #
@@ -1093,22 +1145,75 @@ class ImageManager:
 
     def _applyERR(self,parlistentry):
 
-        #Parse the input file name to get the extension we are working on
+        """
+        Apply the 
+        """
+        # Not all input images will have an 'ERR' extension.  We must be prepared for the
+        # failure of the open of the err array.  
+
+        # Parse the input file name to get the extension we are working on
         sciextn = parlistentry['image'].extn
         index = sciextn.find(',')   
         extn = "ERR,"+sciextn[index+1:]
         fname,fextn = fileutil.parseFilename(parlistentry['data'])
 
-        #Open the mask image for updating and the IVM image
+        #Open the mask image for updating
         mask = fileutil.openImage(parlistentry['image'].maskname,mode='update')
-        err =  fileutil.openImage(fname,mode='readonly')
+        try:
+            # Attempt to open the ERR image.
+            err =  fileutil.openImage(fname,mode='readonly')
 
-        print "Applying ERR file ",fname+'['+extn+']'," to mask file ",parlistentry['image'].maskname
-        errfile = fileutil.getExtn(err,extn)
+            print "Applying ERR file ",fname+'['+extn+']'," to mask file ",parlistentry['image'].maskname
+            errfile = fileutil.getExtn(err,extn)
 
-        # Multiply the IVM file by the input mask in place.        
-        mask[0].data = 1/(errfile.data)**2 * mask[0].data
+            # Multiply the scaled ERR file by the input mask in place.        
+            mask[0].data = 1/(errfile.data)**2 * mask[0].data
 
 
-        mask.close()
-        err.close()
+            mask.close()
+            err.close()
+        except:
+            if (parlistentry['image'].instrument.find('WFPC2') > -1 ):
+            # If we were unable to find an 'ERR' extension to apply, one possible reason was that
+            # the input was a 'standard' WFPC2 data file that does not actually contain an error array.
+            # Test for this condition and issue a Warning to the user and continue on to the final
+            # drizzle.   
+                errstr =  "*******************************************\n"
+                errstr += "*                                         *\n"
+                errstr += "* WARNING: No ERR weighting will be       *\n"
+                errstr += "* applied to the mask used in the final   *\n"
+                errstr += "* drizzle step!  Weighting will be only   *\n"
+                errstr += "* by exposure time.                       *\n"
+                errstr += "*                                         *\n"
+                errstr += "* The WFPC2 data provided as input does   *\n"
+                errstr += "* not contain ERR arrays.  WFPC2 data is  *\n"
+                errstr += "* not supported by this weighting type.   *\n"
+                errstr += "*                                         *\n"
+                errstr += "* A workaround would be to create inverse *\n"
+                errstr += "* variance maps and use 'IVM' as the      *\n"
+                errstr += "* final_wht_type.  See the HELP file for  *\n"
+                errstr += "* more details on using inverse variance  *\n"
+                errstr += "* maps.                                   *\n" 
+                errstr += "*                                         *\n"
+                errstr =  "*******************************************\n"
+                print errstr
+                print "\n Continue with final drizzle step..."
+            else:
+            # We cannot find an 'ERR' extension and the data isn't WFPC2.  Print a generic warning message
+            # and continue on with the final drizzle step.
+                generrstr =  "*******************************************\n"
+                generrstr += "*                                         *\n"
+                generrstr += "* WARNING: No ERR weighting will be       *\n"
+                generrstr += "* applied to the mask used in the final   *\n"
+                generrstr += "* drizzle step!  Weighting will be only   *\n"
+                generrstr += "* by exposure time.                       *\n"
+                generrstr += "*                                         *\n"
+                generrstr += "* The data provided as input does not     *\n"
+                generrstr += "* contain an ERR extension.               *\n"
+                generrstr += "*                                         *\n"
+                generrstr =  "*******************************************\n"
+                print generrstr
+                print "\n Continue with final drizzle step..."
+            # Ensure that the mask file has been closed.
+            mask.close()
+            

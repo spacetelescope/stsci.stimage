@@ -6,16 +6,23 @@
 #       0.1.0 -- 12 July 2004 -- Created -- CJH
 #       0.1.1 -- 24 August 2004 -- Modified convertgeis2multifits to append
 #               a _c0h.fits extension instead of _c0f.fits -- CJH
-#
-#
-#
+#       0.2.0 -- 23 December 2004 -- Added new methods parseWFPC2
+#                to support the new MUltidrizzle interface code.
+#       0.2.1 -- 03 January 2005 -- Added support for the handling
+#                of the zero exposure time input files.  If a file
+#                has exptime = 0.0, the functions issues a message
+#                stating that the file is not valid input and returns
+#                a None to the calling program.
+
 import numarray
 import pyfits as P
 import readgeis
 from readgeis import readgeis
 import os
+import pydrizzle
+from pydrizzle import fileutil
 
-__version__ = '0.1.1'
+__version__ = '0.2.1'
 
 def convertgeis2multifits(geisfilename):
     """
@@ -52,7 +59,7 @@ def convertgeisinlist(pythonlist):
     """
     Given a python list object as input, covert all
     of the GEIS files in the list to multiextension
-    FITS format.  Also, convert at GEIS DQ files 
+    FITS format.  Also, convert any GEIS DQ files 
     as well.
     
     This method returns as output a python list containing
@@ -119,7 +126,7 @@ def findvalidgeisfile(rootname, geistype='data'):
             return (rootname+extn) 
     return None
     
-def iswaveredfits(inputname):
+def iswaiverfits(inputname):
     """
     Function that determines if the file named as input
     is in wavered fits format.
@@ -129,9 +136,83 @@ def iswaveredfits(inputname):
     
     pfobj = P.open(inputname)
     
-    if (pfobj[0].data != None) and (len(pfobj[0].data.shape) == 3):
+    if (pfobj[0].data != None):
         return True
     
     return False
 
+        
+def parseWFPC2(filename):
+    """
+    FUNCTION: parseWFPC2
+    PURPOSE : The parswWFPC2 function accepts as input a string representing a GEIS format file.
+              The function extracts the rootname of the input file.  Determines if the file is
+              a support GEIS format file.  If it is a supported file type, it is converted to
+              a multiextension FITS file.
+    INPUT   : filename - string object
+    OUTPUT  : newfilename - string representing the name of the file to be processed.
+              parseWFPC2flag -          
+
+    """
+    # Initialize variables
+    parseWFPC2flag = False
+    
+    # Check to see if the file has an EXPTIME value of zero.  If so return
+    # no new file name and a parseWFPC2flag value of False
+    if float(fileutil.getKeyword(filename,'EXPTIME')) == 0.0:
+        msgstr =  "####################################\n"
+        msgstr += "#                                  #\n"
+        msgstr += "# WARNING:                         #\n"
+        msgstr += "#  EXPTIME keyword value of 0.0 in #\n"
+        msgstr += "         " + str(filename) +"\n"
+        msgstr += "#  has been detected.  Images with #\n"
+        msgstr += "#  no exposure time will not be    #\n"
+        msgstr += "#  used during processing.  If you #\n"
+        msgstr += "#  wish this file to be used in    #\n"
+        msgstr += "#  processing please give EXPTIME  #\n"
+        msgstr += "#  a valid non-zero value.         #\n"
+        msgstr += "#                                  #\n"
+        msgstr += "####################################\n"
+        print msgstr   
+        return None,False
+    
+    # Verify that input is not Waiver FITS format.  Perform this test if the file
+    # is FITS format.
+    if (filename.rfind('.fits') != -1):
+        if (iswaiverfits(filename) == True):
+            errormsg =  "###################################\n"
+            errormsg += "#                                 #\n"
+            errormsg += "# ERROR:                          #\n"
+            errormsg += "#  Input image:                   #\n"
+            errormsg += str(filename)+"\n"
+            errormsg += "#  is a waivered FITS image       #\n"
+            errormsg += "#                                 #\n"
+            errormsg += "#  Multidrizzle does not support  #\n"
+            errormsg += "#  this file format.  Please      #\n"
+            errormsg += "#  convert this file to either    #\n"
+            errormsg += "#  GEIS format or multi extension #\n"
+            errormsg += "#  FITS format.                   #\n"
+            errormsg += "#                                 #\n"
+            errormsg += "###################################\n"
+            raise ValueError, errormsg
+    
+    # Extract the rootname of the filename.
+    rootname = filename[0:filename.rfind('.')]
+    
+    # Find a valid GEIS file on disk for the rootname provided.
+    validgeisfile = findvalidgeisfile(rootname,geistype='data')
+    
+    # if the file provided is a GEIS file convert it to a multi
+    # extension FITS format file.
+    if validgeisfile != None:
+        # Set the boolean flag 
+        parseWFPC2flag = True
+        newfilename = convertgeis2multifits(validgeisfile)
+        
+        # Check to see if there is a DQ file for the geisfile, 
+        # if so, convert it to multiextension FITS format
+        verifyDQfile(validgeisfile)
+    else:
+        newfilename = filename
+    return newfilename,parseWFPC2flag
         

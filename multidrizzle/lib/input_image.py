@@ -39,8 +39,11 @@
 #               specific-- CJH
 #           Version 0.1.39 09/30/04 -- Modified the doDrizCR method to pass the input file's primary + extension
 #               header to the cor and cr mask file creation methods for inclusion in the resulting fits file.
+#           Version 1.0.0 11/03/04 -- Removed the modificiation to getExptime that was added in version 0.1.38.
+#               This fix to this problem will now be addressed points in multidrizzle where scaling occurs.  This
+#               allows for a more accurate treatment of image weighting by pydrizzle.
 
-__version__ = '0.1.39'
+__version__ = '1.0.0'
 
 import pyfits
 
@@ -193,9 +196,6 @@ class InputImage:
         return self._rdnoise
 
     def getExpTime(self):
-        if (self._exptime == 0.0):
-            return 1
-        else:
             return self._exptime
 
     def getCRbit(self):

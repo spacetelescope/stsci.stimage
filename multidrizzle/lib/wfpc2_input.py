@@ -19,8 +19,10 @@
 #           Version 0.1.3 09/15/04 -- Modified the setInstrumentParameters to treat
 #               a user cr bit input value of zero as a None.  This allows the
 #               user to turn off the DQ array update during the Driz_CR step. -- CJH
+#           Version 0.5.0 11/03/04 -- Removed overloaded methods that were identical
+#               to the methods specified in input_image.py.  -- CJH
 
-__version__ = '0.1.3'
+__version__ = '0.5.0'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -98,7 +100,6 @@ class WFPC2InputImage (InputImage):
         # that they have actually specified both values.  In the default case, the readnoise
         # of the system depends on what the gain
         
-        print "Default Readnoise = ",usingDefaultReadnoise, " Default Gain = ",usingDefaultGain              
         if usingDefaultReadnoise and usingDefaultGain:
             self._setchippars()
         elif usingDefaultReadnoise and not usingDefaultGain:
@@ -113,37 +114,11 @@ class WFPC2InputImage (InputImage):
     def _setchippars(self):
         pass
 
-    def getEffGain(self):
-        return self._effGain
-
-    def getGain(self):
-        return self._gain
-
     def _getCalibratedGain(self):
         return self._gain
 
-    def getReadNoise(self):
-        return self._rdnoise
-
-    def getExpTime(self):
-        return self._exptime
-
-    def getCRbit(self):
-        return self._crbit
-
-    def getRootname(self,name):
-        _indx = name.rfind(self.sep)
-        if _indx < 0: _indx = len(name)
-        return name[:_indx]
-
     def getComputedSky(self):
         return (self._computedsky * (self.refplatescale / self.platescale)**2 )
-
-    def setComputedSky(self,newValue):
-        self._computedsky = newValue
-        
-    def getSubtractedSky(self):
-        return self._subtractedsky
         
     def setSubtractedSky(self,newValue):
         self._subtractedsky = (newValue / (self.refplatescale /  self.platescale)**2)

@@ -1,5 +1,15 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.4.0: 01/10/05 -- CJH
+    Major re-write of Multidrizzle interface processing code has been
+    completed.  This new interface allows for the processing of STIS
+    association files as well as WFPC2 GEIS files.  The new interface
+    now fully supports all valid forms of input with image registration
+    information.  This regestration information can be provided in either
+    the form of shiftfiles or an assocation table. 
+
+    More detail to come tomorrow...
+
 Version 2.3.7: 11/08/04 -- WJH
     Methods were added to Manager to update the header of the final
     output product to report the MDRIZSKY values in HISTORY cards.
