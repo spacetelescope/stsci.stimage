@@ -202,6 +202,8 @@ class OutputImage:
         if scihdr:
             del scihdr['OBJECT']
             if scihdr.has_key('CCDCHIP'): scihdr.update('CCDCHIP','-999')
+            if scihdr.has_key('NCOMBINE') > 0:
+                scihdr.update('NCOMBINE', self.parlist[0]['nimages'])
 
             if self.wcs:
                 # Update WCS Keywords based on PyDrizzle product's value
@@ -385,7 +387,13 @@ class OutputImage:
             hdr.update(_keyprefix+'MASK',_driz_mask_name[:64],
                 comment= 'Drizzle, input weighting image')
 
-            hdr.update(_keyprefix+'WTSC',pl['wt_scl'],
+            # Process the values of WT_SCL to be consistent with
+            # what IRAF Drizzle would output
+            if pl['wt_scl'] == 'exptime': _wtscl = pl['exptime']
+            elif pl['wt_scl'] == 'expsq': _wtscl = pl['exptime']*pl['exptime']
+            else: _wtscl = pl['wt_scl']
+
+            hdr.update(_keyprefix+'WTSC',_wtscl,
                 comment= 'Drizzle, weighting factor for input image')
 
             hdr.update(_keyprefix+'KERN',pl['kernel'],

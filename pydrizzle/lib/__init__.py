@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.2.8 (3-November-2004)"
+__version__ = "5.2.9 (8-November-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -117,6 +117,7 @@ class Pattern:
 
         # Set default value, to be reset as needed by sub-class
         self.nmembers = 1
+        self.nimages = 1
 
         # Extract bit values to be used for this instrument
         self.bitvalue = self.getBits(bits=self.pars['bits'])
@@ -921,6 +922,7 @@ class Pattern:
             # Parameters useful for header keywords
             parameters['version'] = 'PyDrizzle Version '+__version__
             parameters['driz_version'] = ''
+            parameters['nimages'] = self.nimages
 
             parlist.append(parameters)
 
@@ -1539,7 +1541,9 @@ class DitherProduct(Pattern):
         Pattern.__init__(self, None, output=output, pars=pars)
 
         self.pars = prodlist['members']
-        self.nmembers = len(prodlist['members'])
+        # Subtract 2 from len(members) to account for 'abshift' and 'dshift'
+        # entries in prodlist
+        self.nmembers = self.nimages = len(prodlist['members']) - 2
         self.offsets = None
 
         self.addMembers(prodlist,pars,output)
@@ -1731,6 +1735,11 @@ class DitherProduct(Pattern):
         parlist = []
         for member in self.members:
             parlist = parlist + member.buildPars(ref=_field)
+
+        # Set value for number of images combined by PyDrizzle
+        # based on DitherPattern attribute.
+        for pl in parlist:
+            pl['nimages'] = self.nimages
 
         return parlist
 
@@ -2179,6 +2188,9 @@ More help on SkyField objects and their parameters can be obtained using:
         # These parameters are needed for buildPars()
         self.input = input
 
+        # Set the default value for 'build'
+        self.build = yes
+
         # Extract user-specified parameters, if any have been set...
         # 'field' will be a SkyField object...
         if field != None:
@@ -2271,7 +2283,12 @@ More help on SkyField objects and their parameters can be obtained using:
     def clean(self,coeffs=no,final=no):
         """ Removes intermediate products from disk. """
         for img in self.parlist:
-            fileutil.removeFile([img['outdata'],img['outcontext'],img['outweight']])
+            # If build == no, then we do not want to delete the only
+            # products created by PyDrizzle; namely,
+            #     outdata, outcontext, outweight
+            if self.build == yes:
+                fileutil.removeFile([img['outdata'],img['outcontext'],img['outweight']])
+
             fileutil.removeFile([img['outsingle'],img['outsweight']])
             #fileutil.removeFile([img['outsingle'],img['outsweight'],img['outscontext']])
             fileutil.removeFile(img['outblot'])
@@ -2295,6 +2312,10 @@ More help on SkyField objects and their parameters can be obtained using:
 
          This method would then loop over all the entries in the
          list and run 'drizzle' for each entry. """
+
+        # Store the value of build set by the user for use, if desired,
+        # in the 'clean()' method.
+        self.build = build
 
         print 'PyDrizzle: drizzle task started at ',_ptime()
         _memmap = self.pars['memmap']

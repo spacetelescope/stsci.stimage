@@ -1,4 +1,15 @@
 ### PyDrizzle Revision Changes
+Version 5.2.9 (8-Nov-2004) WJH
+      - Added 'build' attribute to PyDrizzle class so that it can be set
+        when 'run()' method gets called, and used in the 'clean()' method.
+        This allows PyDrizzle to know that it should not delete simple FITS
+        output from drizzle if not combined into a multi-extension output.
+      - Added 'nimages' to parlist to record the number of files/images
+        combined for this product. Used only to update 'NCOMBINE' if it 
+        exists in the SCI header.
+      - Modified output to 'D0*WTSC' keywords to report value of EXPTIME
+        for wt_scl instead of the string 'exptime' or 'expsq' to be
+        consistent with IRAF 'drizzle' task output.
 Version 5.2.8 (2-Nov-2004) WJH
       - Output name building modified to eliminate '_drz_drz.fits' output
         regardless of what was specified as the output name. 
