@@ -765,11 +765,14 @@ def defaultModel():
     refpix['XREF'] = None
     refpix['YREF'] = None
     refpix['V2REF'] = 0.
+    refpix['XSIZE'] = 0.
+    refpix['YSIZE'] = 0.
     refpix['V3REF'] = 1.
     refpix['XDELTA'] = 0.
     refpix['YDELTA'] = 0.
     refpix['PSCALE'] = None
     refpix['DEFAULT_SCALE'] = no
+    refpix['THETA'] = 0.
     refpix['centered'] = yes
     return fx,fy,refpix,order
 
