@@ -1,4 +1,7 @@
 ### PyDrizzle Revision Changes
+Version 5.2.2 (21-Sept-2004) WJH
+      - Fixed offset problems when dealing with subarrays so they align with
+        full images.
 Version 5.2.0 (17-Sept-2004) WJH
       - Support for subarrays significantly revised so that multi-chip 
         images with LTV values get processed correctly, and so that subarrays

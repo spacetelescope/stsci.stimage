@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.2.1 (20-September-2004)"
+__version__ = "5.2.2 (21-September-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -579,6 +579,9 @@ class Pattern:
         cen = ((xsize/2.),(ysize/2.))
         meta_wcs.recenter()
 
+        _nref = meta_range['nref']
+        for member in self.members:
+            member.corners['corrected'] -= (_nref[0]/2.,_nref[1]/2.)
         if update:
             # Shifts position of CRPIX to reflect new size
             # Instead of being centered on (0.,0.) like the original guess.
@@ -597,9 +600,8 @@ class Pattern:
                     # uncentered output
                     _refpix['XDELTA'] -= _nref[0]/2.
                     _refpix['YDELTA'] -= _nref[1]/2.
-
                     # Update corner positions based on corrected DELTAs
-                    member.corners['corrected'] -= (_nref[0]/2.,_nref[1]/2.)
+                    #member.corners['corrected'] -= (_nref[0]/2.,_nref[1]/2.)
         #
         # TROLL computation not needed, as this get corrected for both
         # in 'recenter()' and in 'wcsfit'...
