@@ -39,7 +39,7 @@ def getF2CDirs():
     return f2c_include,f2c_lib
 
 def getExtensions(f2cdirs):
-    ext = [NumarrayExtension("arrdriz",['src/arrdrizmodule.c','src/tdriz.c','src/tblot.c',
+    ext = [NumarrayExtension("pydrizzle/arrdriz",['src/arrdrizmodule.c','src/tdriz.c','src/tblot.c',
                                 'src/drutil.c','src/doblot.c','src/drcall.c',
                                 'src/inter2d.c','src/bieval.c'],
                    include_dirs=[f2cdirs[0]],
