@@ -15,8 +15,10 @@ W.J Hack, 1 May 2001
 
 WJH, 20 Nov 2001:
     Version 0.3 - Added ROTATION column to default ASN table created.
+
 WJH, 4 Dec 2001:
     Added help() function and printing of Version number.
+
 WJH, 21 Jan 2002:
     Fixed bugs in writing out ASN table with default columns.
     Also added check to insure that files are found to build ASN table.
@@ -34,14 +36,22 @@ WJH, 20 Aug 2002 (0.6):
 WJH, 3 Dec 2002 (0.6a):
     Simplified interface to 'readShiftFile' for use with 'updateasn'; it now
     returns a dictionary without requiring it be pre-defined.
+
 WJH, 3 Dec 2002 (0.6b):
     Blank lines in shiftfiles will now work.
+
 WJH, 11 Apr 2003 (0.7):
     Support new shiftfile convention, as well as optional SCALE column.
+
 WJH, 3 Jun 2003 (0.7a):
     Added logic to ignore blank lines in shift file.
+
 WJH, 25 Aug 2003 (0.8)
     Updated to support numarray 0.6 using the new format letter codes.
+
+CJH, 13 Jul 2004 (0.9)
+    Updated to support input of simple python list as linename input.
+
 """
 
 import os, sre, types, copy
@@ -57,7 +67,7 @@ import numarray
 #EXTLIST =  ['_crj.fits','_flt.fits','_sfl.fits','_raw.fits','_drz.fits']
 EXTLIST =  ['_crj.fits','_flt.fits','_sfl.fits','_cal.fits','_raw.fits','.c0h','.hhh','.fits']
 
-__version__ = '0.8 (25-Aug-2003)'
+__version__ = '0.9 (13-Jul-2004)'
 
 _prihdr = pyfits.Header([pyfits.Card('SIMPLE', pyfits.TRUE,'Fits standard'),
                 pyfits.Card('BITPIX  ',                    16 ,' Bits per pixel'),
@@ -88,6 +98,7 @@ def buildAsnTable(asnroot,suffix=None,shiftfile=None,verbose='no'):
         as a file with a list of filenames using '@filename'
         using wild card specification of filenames, e.g. '*02t?q_flt* or '*f440w*'
         using part of a filename; such as 'f440w' or 'flt' or 'sfl'
+        using a simple python list.
 
     It would also add the columns XOFFSET, YOFFSET and ROTATION
     and populate them with values from a shiftfile if one was specified
@@ -169,15 +180,21 @@ def buildAsnTable(asnroot,suffix=None,shiftfile=None,verbose='no'):
 
 def _findFiles(inlist):
     """ Builds list of all files which contain suffix.
-        Suffix should not contain wildcards; instead, they
-        should be like 'crj.fits' or '.dat' or 'coeffs'.
+
+        If a simple python list is supplied it will already
+        be the list of files needed to build the ASN table.
     """
     _ldir = os.listdir('.')
     # Determine which form of input was provided:
     #   suffix (crj, raw,...)
     #   wild card list of files (*raw*, *02d?_raw*, ...)
     #   file with list of names (@files.list,...)
-    if inlist[0] == '@':
+    if (isinstance(inlist,list)):
+        # We have a simple Python 'list' object
+        regpatt = None
+        suffix = inlist
+
+    elif inlist[0] == '@':
         # We have a file list as input
         regpatt = None
         suffix = None
@@ -206,6 +223,10 @@ def _findFiles(inlist):
                 suffix = _findSuffix(file)
                 # Append tuple with (filename,suffix) to list
                 flist.append((file,suffix))
+    elif (suffix and not regpatt):
+        for file in inlist:
+            suffix = _findSuffix(file)
+            flist.append((file,suffix))
     else:
         f = open(inlist[1:],'r')
         while 1:
