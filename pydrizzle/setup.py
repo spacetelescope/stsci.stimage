@@ -70,7 +70,7 @@ def getExtensions(f2cdirs):
 
 def dosetup(ext):
     r = setup(name = "pydrizzle",
-              version = "5.0.17",
+              version = "5.2.6",
               description = "Geometrically correct and combine images using Drizzle",
               author = "Warren Hack",
               author_email = "help@stsci.edu",

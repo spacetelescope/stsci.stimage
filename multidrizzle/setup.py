@@ -24,7 +24,7 @@ def dolocal():
 def main():
     dolocal()
     setup(name = "multidrizzle",
-              version = "2.0.0",
+              version = "2.3.5",
               description = "Automated process for HST image combination and cosmic-ray rejection",
               author = "Warren Hack, Christopher Hanley, Ivo Busko, Robert Jedrzejewski, and Anton Koekemoer",
               author_email = "help@stsci.edu",
