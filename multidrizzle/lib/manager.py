@@ -46,7 +46,9 @@
 #                                       static mask file.
 #           Version 1.2.0,  01/13/05 -- Modified the static_mask and driz_sep steps to allow for seperate masks for
 #                                       the single and final drizzle steps.  --- CJH/WJH
-
+#           Version 1.2.1,  02/10/05 -- Modified the final drizzle step to reset the value of the context image in
+#                                       the par file.  This is to correct a bug in which the context image is created
+#                                       even if the user had requested that it not be.  -- CJH 
 
 # Import Numarray functionality
 import numarray.image.combine as combine
@@ -78,7 +80,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter,computeBuffRows
 
-__version__ = '1.2.0'
+__version__ = '1.2.1'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -1045,6 +1047,9 @@ class ImageManager:
             #p['pixfrac'] = drizpars['pixfrac']
             p['fillval'] = drizpars['fillval']
             p['wt_scl'] = drizpars['wt_scl']
+            if not self.context:
+                p['outcontext'] = ''
+
 
         print("drizzle.outnx = "+str(self.assoc.parlist[0]['outnx']))
         print("drizzle.outny = "+str(self.assoc.parlist[0]['outny']))

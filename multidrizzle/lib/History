@@ -1,5 +1,9 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.5.2: 02/10/05 -- CJH/WJH
+    Bug that resulted in a context image always being created for the final
+    drizzle step was corrected.
+
 Version 2.5.1: 02/07/05 -- CJH/WJH
     Warning messages for ACS and STIS images rejected for having EXPTIME
     values of zero have been added.
