@@ -18,8 +18,11 @@
 /* The procedure assumes that 1 <= x <= nxpix and 1 <= y <= nypix and that */
 /* coeff(1+first_point) = datain(1,1). */
 
-/* Subroutine */ int iibint_(real *coeff, integer *firstt, integer *lencof, 
-	real *x, real *y, real *zfit, integer *npts)
+/* Subroutine */ int iibint_(coeff, firstt, lencof, x, y, zfit, npts)
+real *coeff;
+integer *firstt, *lencof;
+real *x, *y, *zfit;
+integer *npts;
 {
     /* System generated locals */
     integer i__1;
@@ -45,8 +48,8 @@
     /* Function Body */
     i__1 = *npts;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	nx = x[i__] + .5f;
-	ny = y[i__] + .5f;
+	nx = x[i__] + (float).5;
+	ny = y[i__] + (float).5;
 /* 	      define pointer to data[nx,ny] */
 	index = *firstt + (ny - 1) * *lencof + nx;
 	zfit[i__] = coeff[index];
@@ -59,8 +62,11 @@
 /* The procedure assumes that 1 <= x <= nxpix and 1 <= y <= nypix */
 /* and that coeff(1+first_point) = datain(1,1). */
 
-/* Subroutine */ int iibilr_(real *coeff, integer *firstt, integer *lencof, 
-	real *x, real *y, real *zfit, integer *npts)
+/* Subroutine */ int iibilr_(coeff, firstt, lencof, x, y, zfit, npts)
+real *coeff;
+integer *firstt, *lencof;
+real *x, *y, *zfit;
+integer *npts;
 {
     /* System generated locals */
     integer i__1;
@@ -88,9 +94,9 @@
 	nx = x[i__];
 	ny = y[i__];
 	sx = x[i__] - nx;
-	tx = 1.f - sx;
+	tx = (float)1. - sx;
 	sy = y[i__] - ny;
-	ty = 1.f - sy;
+	ty = (float)1. - sy;
 	index = *firstt + (ny - 1) * *lencof + nx;
 	zfit[i__] = tx * ty * coeff[index] + sx * ty * coeff[index + 1] + sy *
 		 tx * coeff[index + *lencof] + sx * sy * coeff[index + *
@@ -104,8 +110,11 @@
 /* The procedure assumes that 1 <= x <= nxpix and  1 <= y <= nypix */
 /* and that coeff[1+first_point] = datain[1,1]. The interpolant is */
 /* evaluated using Everett's central difference formula. */
-/* Subroutine */ int iibip3_(real *coeff, integer *firstt, integer *lencof, 
-	real *x, real *y, real *zfit, integer *npts)
+/* Subroutine */ int iibip3_(coeff, firstt, lencof, x, y, zfit, npts)
+real *coeff;
+integer *firstt, *lencof;
+real *x, *y, *zfit;
+integer *npts;
 {
     /* System generated locals */
     integer i__1;
@@ -139,12 +148,12 @@
     for (i__ = 1; i__ <= i__1; ++i__) {
 	nx = x[i__];
 	sx = x[i__] - nx;
-	tx = 1.f - sx;
-	sx2m1 = sx * sx - 1.f;
-	tx2m1 = tx * tx - 1.f;
+	tx = (float)1. - sx;
+	sx2m1 = sx * sx - (float)1.;
+	tx2m1 = tx * tx - (float)1.;
 	ny = y[i__];
 	sy = y[i__] - ny;
-	ty = 1.f - sy;
+	ty = (float)1. - sy;
 /* 	         define pointer to datain[nx,ny-1] */
 	firstw = *firstt + (ny - 2) * *lencof + nx;
 /* 	         loop over the 4 surrounding rows of data */
@@ -155,10 +164,10 @@
 	index = firstw;
 	if (nx != nxold || ny != nyold) {
 	    for (j = 1; j <= 4; ++j) {
-		cd20[j - 1] = (coeff[index + 1] - coeff[index] * 2.f + coeff[
-			index - 1]) * .16666666666666666f;
-		cd21[j - 1] = (coeff[index + 2] - coeff[index + 1] * 2.f + 
-			coeff[index]) * .16666666666666666f;
+		cd20[j - 1] = (coeff[index + 1] - coeff[index] * (float)2. + 
+			coeff[index - 1]) * (float).16666666666666666;
+		cd21[j - 1] = (coeff[index + 2] - coeff[index + 1] * (float)
+			2. + coeff[index]) * (float).16666666666666666;
 		index += *lencof;
 	    }
 	}
@@ -170,11 +179,13 @@
 	    index += *lencof;
 	}
 /*  	      calculate y central differences */
-	cd20y = (ztemp[2] - ztemp[1] * 2.f + ztemp[0]) * .16666666666666666f;
-	cd21y = (ztemp[3] - ztemp[2] * 2.f + ztemp[1]) * .16666666666666666f;
+	cd20y = (ztemp[2] - ztemp[1] * (float)2. + ztemp[0]) * (float)
+		.16666666666666666;
+	cd21y = (ztemp[3] - ztemp[2] * (float)2. + ztemp[1]) * (float)
+		.16666666666666666;
 /* 	         interpolate in y */
-	zfit[i__] = sy * (ztemp[2] + (sy * sy - 1.f) * cd21y) + ty * (ztemp[1]
-		 + (ty * ty - 1.f) * cd20y);
+	zfit[i__] = sy * (ztemp[2] + (sy * sy - (float)1.) * cd21y) + ty * (
+		ztemp[1] + (ty * ty - (float)1.) * cd20y);
 	nxold = nx;
 	nyold = ny;
     }
@@ -187,8 +198,11 @@
 /* and that coeff[1+first_point] = datain[1,1]. The interpolant is evaluated */
 /* using Everett's central difference formula. */
 
-/* Subroutine */ int iibip5_(real *coeff, integer *firstt, integer *lencof, 
-	real *x, real *y, real *zfit, integer *npts)
+/* Subroutine */ int iibip5_(coeff, firstt, lencof, x, y, zfit, npts)
+real *coeff;
+integer *firstt, *lencof;
+real *x, *y, *zfit;
+integer *npts;
 {
     /* System generated locals */
     integer i__1;
@@ -223,16 +237,16 @@
 	nx = x[i__];
 	sx = x[i__] - nx;
 	sx2 = sx * sx;
-	sx2m1 = sx2 - 1.f;
-	sx2m4 = sx2 - 4.f;
-	tx = 1.f - sx;
+	sx2m1 = sx2 - (float)1.;
+	sx2m4 = sx2 - (float)4.;
+	tx = (float)1. - sx;
 	tx2 = tx * tx;
-	tx2m1 = tx2 - 1.f;
-	tx2m4 = tx2 - 4.f;
+	tx2m1 = tx2 - (float)1.;
+	tx2m4 = tx2 - (float)4.;
 	ny = y[i__];
 	sy = y[i__] - ny;
 	sy2 = sy * sy;
-	ty = 1.f - sy;
+	ty = (float)1. - sy;
 	ty2 = ty * ty;
 /* 	      calculate value of pointer to data[nx,ny-2] */
 	firstw = *firstt + (ny - 3) * *lencof + nx;
@@ -240,16 +254,18 @@
 	index = firstw;
 	if (nx != nxold || ny != nyold) {
 	    for (j = 1; j <= 6; ++j) {
-		cd20[j - 1] = (coeff[index + 1] - coeff[index] * 2.f + coeff[
-			index - 1]) * .16666666666666666f;
-		cd21[j - 1] = (coeff[index + 2] - coeff[index + 1] * 2.f + 
-			coeff[index]) * .16666666666666666f;
-		cd40[j - 1] = (coeff[index - 2] - coeff[index - 1] * 4.f + 
-			coeff[index] * 6.f - coeff[index + 1] * 4.f + coeff[
-			index + 2]) * .0083333333333333332f;
-		cd41[j - 1] = (coeff[index - 1] - coeff[index] * 4.f + coeff[
-			index + 1] * 6.f - coeff[index + 2] * 4.f + coeff[
-			index + 3]) * .0083333333333333332f;
+		cd20[j - 1] = (coeff[index + 1] - coeff[index] * (float)2. + 
+			coeff[index - 1]) * (float).16666666666666666;
+		cd21[j - 1] = (coeff[index + 2] - coeff[index + 1] * (float)
+			2. + coeff[index]) * (float).16666666666666666;
+		cd40[j - 1] = (coeff[index - 2] - coeff[index - 1] * (float)
+			4. + coeff[index] * (float)6. - coeff[index + 1] * (
+			float)4. + coeff[index + 2]) * (float)
+			.0083333333333333332;
+		cd41[j - 1] = (coeff[index - 1] - coeff[index] * (float)4. + 
+			coeff[index + 1] * (float)6. - coeff[index + 2] * (
+			float)4. + coeff[index + 3]) * (float)
+			.0083333333333333332;
 		index += *lencof;
 /* L200: */
 	    }
@@ -264,16 +280,20 @@
 /* L300: */
 	}
 /* 	      central differences in y */
-	cd20y = (ztemp[3] - ztemp[2] * 2.f + ztemp[1]) * .16666666666666666f;
-	cd21y = (ztemp[4] - ztemp[3] * 2.f + ztemp[2]) * .16666666666666666f;
-	cd40y = (ztemp[0] - ztemp[1] * 4.f + ztemp[2] * 6.f - ztemp[3] * 4.f 
-		+ ztemp[4]) * .0083333333333333332f;
-	cd41y = (ztemp[1] - ztemp[2] * 4.f + ztemp[3] * 6.f - ztemp[4] * 4.f 
-		+ ztemp[5]) * .0083333333333333332f;
+	cd20y = (ztemp[3] - ztemp[2] * (float)2. + ztemp[1]) * (float)
+		.16666666666666666;
+	cd21y = (ztemp[4] - ztemp[3] * (float)2. + ztemp[2]) * (float)
+		.16666666666666666;
+	cd40y = (ztemp[0] - ztemp[1] * (float)4. + ztemp[2] * (float)6. - 
+		ztemp[3] * (float)4. + ztemp[4]) * (float)
+		.0083333333333333332;
+	cd41y = (ztemp[1] - ztemp[2] * (float)4. + ztemp[3] * (float)6. - 
+		ztemp[4] * (float)4. + ztemp[5]) * (float)
+		.0083333333333333332;
 /* 	      interpolate in y */
-	zfit[i__] = sy * (ztemp[3] + (sy2 - 1.f) * (cd21y + (sy2 - 4.f) * 
-		cd41y)) + ty * (ztemp[2] + (ty2 - 1.f) * (cd20y + (ty2 - 4.f) 
-		* cd40y));
+	zfit[i__] = sy * (ztemp[3] + (sy2 - (float)1.) * (cd21y + (sy2 - (
+		float)4.) * cd41y)) + ty * (ztemp[2] + (ty2 - (float)1.) * (
+		cd20y + (ty2 - (float)4.) * cd40y));
 	nxold = nx;
 	nyold = ny;
 /* L110: */
@@ -286,8 +306,11 @@
 /* The procedure assumes that 1 <= x <= nxpix and 1 <= y <= nypix */
 /* and that coeff[1+first_point] = B-spline[2]. */
 
-/* Subroutine */ int iibis3_(real *coeff, integer *firstt, integer *lencof, 
-	real *x, real *y, real *zfit, integer *npts)
+/* Subroutine */ int iibis3_(coeff, firstt, lencof, x, y, zfit, npts)
+real *coeff;
+integer *firstt, *lencof;
+real *x, *y, *zfit;
+integer *npts;
 {
     /* System generated locals */
     integer i__1;
@@ -321,16 +344,18 @@
     for (i__ = 1; i__ <= i__1; ++i__) {
 	nx = x[i__];
 	sx = x[i__] - nx;
-	tx = 1.f - sx;
+	tx = (float)1. - sx;
 	ny = y[i__];
 	sy = y[i__] - ny;
-	ty = 1.f - sy;
+	ty = (float)1. - sy;
 /*        calculate the x B-splines */
 /* Computing 3rd power */
 	r__1 = tx;
 	bx[0] = r__1 * (r__1 * r__1);
-	bx[1] = tx * (tx * (3.f - tx * 3.f) + 3.f) + 1.f;
-	bx[2] = sx * (sx * (3.f - sx * 3.f) + 3.f) + 1.f;
+	bx[1] = tx * (tx * ((float)3. - tx * (float)3.) + (float)3.) + (float)
+		1.;
+	bx[2] = sx * (sx * ((float)3. - sx * (float)3.) + (float)3.) + (float)
+		1.;
 /* Computing 3rd power */
 	r__1 = sx;
 	bx[3] = r__1 * (r__1 * r__1);
@@ -338,14 +363,16 @@
 /* Computing 3rd power */
 	r__1 = ty;
 	by[0] = r__1 * (r__1 * r__1);
-	by[1] = ty * (ty * (3.f - ty * 3.f) + 3.f) + 1.f;
-	by[2] = sy * (sy * (3.f - sy * 3.f) + 3.f) + 1.f;
+	by[1] = ty * (ty * ((float)3. - ty * (float)3.) + (float)3.) + (float)
+		1.;
+	by[2] = sy * (sy * ((float)3. - sy * (float)3.) + (float)3.) + (float)
+		1.;
 /* Computing 3rd power */
 	r__1 = sy;
 	by[3] = r__1 * (r__1 * r__1);
 /* 	      calculate the pointer to data[nx,ny-1] */
 	firstw = *firstt + (ny - 2) * *lencof + nx;
-	accum = 0.f;
+	accum = (float)0.;
 	index = firstw;
 	for (j = 1; j <= 4; ++j) {
 	    sum = coeff[index - 1] * bx[0] + coeff[index] * bx[1] + coeff[
@@ -374,17 +401,20 @@
 /*   Original version dynamically allocated these arrays in the code. */
 /*  WJH, 15 June 2004 */
 
-/* Subroutine */ int iinisc_(real *coeff, integer *firstt, integer *lencof, 
-	integer *lenary, real *x, real *y, real *zfit, integer *npts, integer 
-	*nconv, real *taper, real *ac, real *ar, real *mindx, real *mindy, 
-	real *scale)
+/* Subroutine */ int iinisc_(coeff, firstt, lencof, lenary, x, y, zfit, npts, 
+	nconv, taper, ac, ar, mindx, mindy, scale)
+real *coeff;
+integer *firstt, *lencof, *lenary;
+real *x, *y, *zfit;
+integer *npts, *nconv;
+real *taper, *ac, *ar, *mindx, *mindy, *scale;
 {
     /* System generated locals */
     integer i__1, i__2, i__3;
     real r__1;
 
     /* Builtin functions */
-    integer i_nint(real *);
+    integer i_nint();
 
     /* Local variables */
     static integer offj, offk, minj, mink, maxj, maxk;
@@ -427,21 +457,21 @@
     nsinc = (*nconv - 1) / 2;
 /*     Compute the constants for the cosine bell taper. */
 /* Computing 2nd power */
-    r__1 = 1.5707963267948966192f / nsinc;
+    r__1 = (float)1.5707963267948966192 / nsinc;
     sconst = r__1 * r__1;
-    a2 = -.4967f;
-    a4 = .03705f;
+    a2 = (float)-.4967;
+    a4 = (float).03705;
 /* 	   Precompute the taper array. Incorporate the sign change portion */
 /* 	   of the sinc interpolator into the taper array. */
     if (nsinc % 2 == 0) {
-	sdx = 1.f;
+	sdx = (float)1.;
     } else {
-	sdx = -1.f;
+	sdx = (float)-1.;
 	i__1 = nsinc;
 	for (j = -nsinc; j <= i__1; ++j) {
 	    dx2 = sconst * j * j;
 /* Computing 2nd power */
-	    r__1 = a2 * dx2 + 1.f + a4 * dx2 * dx2;
+	    r__1 = a2 * dx2 + (float)1. + a4 * dx2 * dx2;
 	    taper[j + nsinc] = sdx * (r__1 * r__1);
 	    sdx = -sdx;
 	}
@@ -452,7 +482,7 @@
 	nx = i_nint(&x[i__]);
 	ny = i_nint(&y[i__]);
 	if (nx < 1 || nx > *lencof || ny < 1 || ny > *lenary) {
-	    zfit[i__] = 0.f;
+	    zfit[i__] = (float)0.;
 /*              go onto next point */
 	    goto L130;
 	}
@@ -468,23 +498,23 @@
 /* 	         Compute the x and y sinc arrays using a cosbell taper. */
 	dxn = nsinc + 1 + dx;
 	dyn = nsinc + 1 + dy;
-	sumx = 0.f;
-	sumy = 0.f;
+	sumx = (float)0.;
+	sumy = (float)0.;
 	i__2 = *nconv;
 	for (j = 1; j <= i__2; ++j) {
 	    ax = dxn - j;
 	    ay = dyn - j;
-	    if (ax == 0.f) {
-		px = 1.f;
-	    } else if (dx == 0.f) {
-		px = 0.f;
+	    if (ax == (float)0.) {
+		px = (float)1.;
+	    } else if (dx == (float)0.) {
+		px = (float)0.;
 	    } else {
 		px = taper[j - 1] / ax;
 	    }
-	    if (ay == 0.f) {
-		py = 1.f;
-	    } else if (dy == 0.f) {
-		py = 0.f;
+	    if (ay == (float)0.) {
+		py = (float)1.;
+	    } else if (dy == (float)0.) {
+		py = (float)0.;
 	    } else {
 		py = taper[j - 1] / ay;
 	    }
@@ -511,10 +541,10 @@
 /*           Get the index into ac */
 	offk = nsinc - nx;
 /* 	         Do the convolution. */
-	zfit[i__] = 0.f;
+	zfit[i__] = (float)0.;
 	i__2 = minj - 1;
 	for (j = ny - nsinc; j <= i__2; ++j) {
-	    sum = 0.f;
+	    sum = (float)0.;
 	    i__3 = mink - 1;
 	    for (k = nx - nsinc; k <= i__3; ++k) {
 		sum += ac[k + offk] * coeff[*firstt + 1];
@@ -536,7 +566,7 @@
 	i__2 = maxj;
 	for (j = minj; j <= i__2; ++j) {
 	    index = *firstt + (j - 1) * *lencof;
-	    sum = 0.f;
+	    sum = (float)0.;
 	    i__3 = mink - 1;
 	    for (k = nx - nsinc; k <= i__3; ++k) {
 		sum += ac[k + offk] * coeff[index + 1];
@@ -558,7 +588,7 @@
 	i__2 = ny + nsinc;
 	for (j = maxj + 1; j <= i__2; ++j) {
 	    lastpt = *firstt + (*lenary - 1) * *lencof;
-	    sum = 0.f;
+	    sum = (float)0.;
 	    i__3 = mink - 1;
 	    for (k = nx - nsinc; k <= i__3; ++k) {
 		sum += ac[k + offk] * coeff[lastpt + 1];
@@ -596,10 +626,15 @@ L130:
 
 /* Renamed II_NILSINC when scale was added, */
 /*  Richard Hook, ST-ECF/STScI, December 2003 */
-/* Subroutine */ int iinilc_(real *coeff, integer *firstt, integer *lencof, 
-	integer *lenary, real *x, real *y, real *zfit, integer *npts, real *
-	ltable, integer *nconv, integer *nxincr, integer *nyincr, real *mindx,
-	 real *mindy, real *scale)
+/* Subroutine */ int iinilc_(coeff, firstt, lencof, lenary, x, y, zfit, npts, 
+	ltable, nconv, nxincr, nyincr, mindx, mindy, scale)
+real *coeff;
+integer *firstt, *lencof, *lenary;
+real *x, *y, *zfit;
+integer *npts;
+real *ltable;
+integer *nconv, *nxincr, *nyincr;
+real *mindx, *mindy, *scale;
 {
     /* System generated locals */
     integer ltable_dim1, ltable_dim2, ltable_dim3, ltable_offset, i__1, i__2, 
@@ -607,7 +642,7 @@ L130:
     real r__1;
 
     /* Builtin functions */
-    integer i_nint(real *);
+    integer i_nint();
 
     /* Local variables */
     static integer offj, offk, minj, mink, maxj, maxk, lutx, luty, i__, j, k, 
@@ -651,7 +686,7 @@ L130:
 	xc = i_nint(&x[i__]);
 	yc = i_nint(&y[i__]);
 	if (xc < 1 || xc > *lencof || yc < 1 || yc > *lenary) {
-	    zfit[i__] = 0.f;
+	    zfit[i__] = (float)0.;
 	    goto L110;
 	}
 	dx = (x[i__] - xc) * *scale;
@@ -663,13 +698,13 @@ L130:
 	if (*nxincr == 1) {
 	    lutx = 1;
 	} else {
-	    r__1 = (-dx + .5f) * (*nxincr - 1);
+	    r__1 = (-dx + (float).5) * (*nxincr - 1);
 	    lutx = i_nint(&r__1) + 1;
 	}
 	if (*nyincr == 1) {
 	    luty = 1;
 	} else {
-	    r__1 = (-dy + .5f) * (*nyincr - 1);
+	    r__1 = (-dy + (float).5) * (*nyincr - 1);
 	    luty = i_nint(&r__1) + 1;
 	}
 /* 	         Compute the convolution limits. */
@@ -688,11 +723,11 @@ L130:
 	maxk = min(i__2,i__3);
 	offk = 1 - xc + nsinc;
 /* 	         Initialize */
-	zfit[i__] = 0.f;
+	zfit[i__] = (float)0.;
 /* 	         Do the convolution. */
 	i__2 = minj - 1;
 	for (j = yc - nsinc; j <= i__2; ++j) {
-	    sum = 0.f;
+	    sum = (float)0.;
 	    i__3 = mink - 1;
 	    for (k = xc - nsinc; k <= i__3; ++k) {
 		sum += ltable[k + offk + (j + offj + (lutx + luty * 
@@ -720,7 +755,7 @@ L130:
 	i__2 = maxj;
 	for (j = minj; j <= i__2; ++j) {
 	    index = *firstt + (j - 1) * *lencof;
-	    sum = 0.f;
+	    sum = (float)0.;
 	    i__3 = mink - 1;
 	    for (k = xc - nsinc; k <= i__3; ++k) {
 		sum += ltable[k + offk + (j + offj + (lutx + luty * 
@@ -748,7 +783,7 @@ L130:
 	i__2 = yc + nsinc;
 	for (j = maxj + 1; j <= i__2; ++j) {
 	    lastpt = *firstt + (*lenary - 1) * *lencof;
-	    sum = 0.f;
+	    sum = (float)0.;
 	    i__3 = mink - 1;
 	    for (k = xc - nsinc; k <= i__3; ++k) {
 		sum += ltable[k + offk + (j + offj + (lutx + luty * 

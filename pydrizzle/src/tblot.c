@@ -20,13 +20,21 @@ static integer c__0 = 0;
 static integer c__2 = 2;
 static integer c__100 = 100;
 
-/* Subroutine */ int tblot_(real *data, real *ndat, integer *xmin, integer *
-	xmax, integer *ymin, integer *ymax, integer *dnx, integer *dny, 
-	integer *onx, integer *ony, doublereal *xsh, doublereal *ysh, 
-	doublereal *drot, doublereal *scale, real *kscale, real *pxg, real *
-	pyg, integer *xgdim, integer *ygdim, char *align, char *interp, char *
-	coeffs, real *ef, real *misval, real *sinscl, integer *clen, integer *
-	vflag, ftnlen align_len, ftnlen interp_len, ftnlen coeffs_len)
+/* Subroutine */ int tblot_(data, ndat, xmin, xmax, ymin, ymax, dnx, dny, onx,
+	 ony, xsh, ysh, drot, scale, kscale, pxg, pyg, xgdim, ygdim, align, 
+	interp, coeffs, ef, misval, sinscl, clen, vflag, align_len, 
+	interp_len, coeffs_len)
+real *data, *ndat;
+integer *xmin, *xmax, *ymin, *ymax, *dnx, *dny, *onx, *ony;
+doublereal *xsh, *ysh, *drot, *scale;
+real *kscale, *pxg, *pyg;
+integer *xgdim, *ygdim;
+char *align, *interp, *coeffs;
+real *ef, *misval, *sinscl;
+integer *clen, *vflag;
+ftnlen align_len;
+ftnlen interp_len;
+ftnlen coeffs_len;
 {
     /* System generated locals */
     address a__1[2];
@@ -35,9 +43,8 @@ static integer c__100 = 100;
     char ch__1[47];
 
     /* Builtin functions */
-    /* Subroutine */ int s_copy(char *, char *, ftnlen, ftnlen), s_cat(char *,
-	     char **, integer *, integer *, ftnlen);
-    integer s_cmp(char *, char *, ftnlen, ftnlen);
+    /* Subroutine */ int s_copy(), s_cat();
+    integer s_cmp();
 
     /* Local variables */
     static char vers[45];
@@ -49,27 +56,15 @@ static integer c__100 = 100;
     static doublereal wcsin[8];
     static integer istat;
     static char geomod[8];
-    extern /* Subroutine */ int getgeo_(char *, integer *, doublereal *, 
-	    integer *, integer *, integer *, doublereal *, doublereal *, 
-	    integer *, integer *, ftnlen);
+    extern /* Subroutine */ int getgeo_();
     static logical secpar;
     static doublereal xscale, yscale;
-    extern /* Subroutine */ int doblot_(real *, real *, integer *, real *, 
-	    real *, real *, integer *, integer *, integer *, integer *, 
-	    integer *, integer *, logical *, real *, char *, integer *, 
-	    integer *, integer *, integer *, doublereal *, doublereal *, 
-	    logical *, real *, real *, integer *, integer *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, logical *, doublereal *,
-	     doublereal *, char *, logical *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, char *, logical *, 
-	    ftnlen, ftnlen, ftnlen);
+    extern /* Subroutine */ int doblot_();
     static logical rotfir;
     static integer intype;
     static logical usewcs;
     static doublereal wcsout[8];
-    extern /* Subroutine */ int umsput_(char *, integer *, integer *, integer 
-	    *, ftnlen);
+    extern /* Subroutine */ int umsput_();
     static integer idd;
     static doublereal lam, xco[100], yco[100], xin[10000], yin[10000], rot, 
 	    xsh2, ysh2, rot2;
@@ -144,9 +139,9 @@ static integer c__100 = 100;
     incps = TRUE_;
 /*      EF=1.0 */
 /* Convert the rotation to radians */
-    rot = *drot * 3.1415926536f / 180.f;
+    rot = *drot * (float)3.1415926536 / (float)180.;
 /* Check for invalid scale */
-    if (*scale == 0.f) {
+    if (*scale == (float)0.) {
 	umsput_("! Invalid scale", &c__1, &c__0, &istat, (ftnlen)15);
 	goto L99;
     }
@@ -201,6 +196,6 @@ static integer c__100 = 100;
 	    rot2, &xscale, &yscale, shfr2, &rotf2, (ftnlen)8, (ftnlen)8, (
 	    ftnlen)8);
 L99:
-    return 0;
+    ;
 } /* tblot_ */
 

@@ -25,12 +25,13 @@ static integer c__2 = 2;
 /* link without needing F77/VOS routines. */
 
 /* Richard Hook, ST-ECF/STScI, September 2002 */
-/* Subroutine */ int umsput_(char *line, integer *d1, integer *d2, integer *
-	istat, ftnlen line_len)
+/* Subroutine */ int umsput_(line, d1, d2, istat, line_len)
+char *line;
+integer *d1, *d2, *istat;
+ftnlen line_len;
 {
     /* Builtin functions */
-    integer s_cmp(char *, char *, ftnlen, ftnlen), s_wsfe(cilist *), do_fio(
-	    integer *, char *, ftnlen), e_wsfe(void);
+    integer s_cmp(), s_wsfe(), do_fio(), e_wsfe();
 
     /* Fortran I/O blocks */
     static cilist io___1 = { 1, 6, 0, "(1X,A,/)", 0 };
@@ -74,11 +75,14 @@ L100002:
     return 0;
 } /* umsput_ */
 
-/* Subroutine */ int ufglin_(integer *lun, char *line, integer *istat, ftnlen 
-	line_len)
+/* Subroutine */ int ufglin_(lun, line, istat, line_len)
+integer *lun;
+char *line;
+integer *istat;
+ftnlen line_len;
 {
     /* Builtin functions */
-    integer s_rsfe(cilist *), do_fio(integer *, char *, ftnlen), e_rsfe(void);
+    integer s_rsfe(), do_fio(), e_rsfe();
 
     /* Fortran I/O blocks */
     static cilist io___3 = { 1, 0, 1, "(A)", 0 };
@@ -101,18 +105,19 @@ L100003:
     return 0;
 } /* ufglin_ */
 
-/* Subroutine */ int ufopen_(char *file, integer *flag__, integer *lun, 
-	integer *istat, ftnlen file_len)
+/* Subroutine */ int ufopen_(file, flag__, lun, istat, file_len)
+char *file;
+integer *flag__, *lun, *istat;
+ftnlen file_len;
 {
     /* System generated locals */
     olist o__1;
 
     /* Builtin functions */
-    integer f_open(olist *);
+    integer f_open();
 
     /* Local variables */
-    extern /* Subroutine */ int umsput_(char *, integer *, integer *, integer 
-	    *, ftnlen);
+    extern /* Subroutine */ int umsput_();
 
 
 /* Open a text file. The FLAG parameter controls the iomode. */
@@ -162,13 +167,14 @@ L100003:
     return 0;
 } /* ufopen_ */
 
-/* Subroutine */ int ufclos_(integer *lun, integer *istat)
+/* Subroutine */ int ufclos_(lun, istat)
+integer *lun, *istat;
 {
     /* System generated locals */
     cllist cl__1;
 
     /* Builtin functions */
-    integer f_clos(cllist *);
+    integer f_clos();
 
 
 /* Close an open file on logical unit LUN */
@@ -180,9 +186,15 @@ L100003:
     return 0;
 } /* ufclos_ */
 
-/* Subroutine */ int getgeo_(char *coeffs, integer *idd, real *lam, integer *
-	coty, integer *comax, integer *conum, real *xco, real *yco, integer *
-	clen, integer *istat, ftnlen coeffs_len)
+/* Subroutine */ int getgeo_(coeffs, idd, lam, coty, comax, conum, xco, yco, 
+	clen, istat, coeffs_len)
+char *coeffs;
+integer *idd;
+real *lam;
+integer *coty, *comax, *conum;
+real *xco, *yco;
+integer *clen, *istat;
+ftnlen coeffs_len;
 {
     /* System generated locals */
     address a__1[2];
@@ -190,16 +202,13 @@ L100003:
     char ch__1[108];
 
     /* Builtin functions */
-    integer s_cmp(char *, char *, ftnlen, ftnlen);
-    /* Subroutine */ int s_cat(char *, char **, integer *, integer *, ftnlen);
+    integer s_cmp();
+    /* Subroutine */ int s_cat();
 
     /* Local variables */
     static logical noco;
     static integer i__;
-    extern /* Subroutine */ int getco_(integer *, real *, integer *, integer *
-	    , integer *, real *, real *, integer *), ufclos_(integer *, 
-	    integer *), ufopen_(char *, integer *, integer *, integer *, 
-	    ftnlen), umsput_(char *, integer *, integer *, integer *, ftnlen);
+    extern /* Subroutine */ int getco_(), ufclos_(), ufopen_(), umsput_();
     static integer lun;
 
 
@@ -230,8 +239,8 @@ L100003:
     if (noco) {
 	i__1 = *comax;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    xco[i__] = 0.f;
-	    yco[i__] = 0.f;
+	    xco[i__] = (float)0.;
+	    yco[i__] = (float)0.;
 	}
 	*conum = 1;
 	*coty = 0;

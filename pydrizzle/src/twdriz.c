@@ -20,13 +20,23 @@ static integer c__0 = 0;
 static integer c__100 = 100;
 static integer c__4 = 4;
 
-doublereal twdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
-	ystart, integer *nx, integer *ny, integer *dny, integer *onx, integer 
-	*ony, doublereal *wcs, doublereal *wcsout, real *pxg, real *pyg, 
-	integer *xgdim, integer *ygdim, real *pfract, char *kernel, char *
-	coeffs, char *filstr, integer *vflag, integer *clen, integer *nmiss, 
-	integer *nskip, char *vers, ftnlen kernel_len, ftnlen coeffs_len, 
-	ftnlen filstr_len, ftnlen vers_len)
+doublereal twdriz_(data, wei, ndat, ncou, ystart, nx, ny, dny, onx, ony, wcs, 
+	wcsout, pxg, pyg, xgdim, ygdim, pfract, kernel, coeffs, filstr, vflag,
+	 clen, nmiss, nskip, vers, kernel_len, coeffs_len, filstr_len, 
+	vers_len)
+real *data, *wei, *ndat, *ncou;
+integer *ystart, *nx, *ny, *dny, *onx, *ony;
+doublereal *wcs, *wcsout;
+real *pxg, *pyg;
+integer *xgdim, *ygdim;
+real *pfract;
+char *kernel, *coeffs, *filstr;
+integer *vflag, *clen, *nmiss, *nskip;
+char *vers;
+ftnlen kernel_len;
+ftnlen coeffs_len;
+ftnlen filstr_len;
+ftnlen vers_len;
 {
     /* System generated locals */
     integer pxg_dim1, pxg_offset, pyg_dim1, pyg_offset, data_dim1, 
@@ -36,9 +46,8 @@ doublereal twdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
     icilist ici__1;
 
     /* Builtin functions */
-    /* Subroutine */ int s_copy(char *, char *, ftnlen, ftnlen);
-    integer s_cmp(char *, char *, ftnlen, ftnlen), s_rsli(icilist *), do_lio(
-	    integer *, integer *, char *, ftnlen), e_rsli(void);
+    /* Subroutine */ int s_copy();
+    integer s_cmp(), s_rsli(), do_lio(), e_rsli();
 
     /* Local variables */
     static integer done[1]	/* was [1][1] */;
@@ -52,37 +61,22 @@ doublereal twdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
     static char align[8];
     static integer intab[10000]	/* was [100][100] */;
     static logical disim, incps;
-    extern /* Subroutine */ int dobox_(real *, real *, real *, real *, 
-	    integer *, integer *, integer *, integer *, integer *, integer *, 
-	    integer *, integer *, integer *, integer *, logical *, char *, 
-	    real *, real *, real *, real *, real *, real *, real *, real *, 
-	    integer *, integer *, integer *, integer *, real *, real *, 
-	    logical *, real *, real *, integer *, integer *, real *, char *, 
-	    logical *, real *, real *, real *, real *, real *, real *, 
-	    doublereal *, doublereal *, logical *, logical *, real *, real *, 
-	    real *, real *, real *, char *, logical *, logical *, logical *, 
-	    integer *, integer *, integer *, integer *, integer *, logical *, 
-	    logical *, logical *, integer *, integer *, integer *, ftnlen, 
-	    ftnlen, ftnlen);
+    extern /* Subroutine */ int dobox_();
     static integer conum;
     static real expin;
     static integer istat;
     static real wtscl, xi[400000]	/* was [100000][4] */, yi[400000]	
 	    /* was [100000][4] */, xo[400000]	/* was [100000][4] */, yo[
 	    400000]	/* was [100000][4] */;
-    extern /* Subroutine */ int getgeo_(char *, integer *, real *, integer *, 
-	    integer *, integer *, real *, real *, integer *, integer *, 
-	    ftnlen);
+    extern /* Subroutine */ int getgeo_();
     static real filval;
     static logical bitcon, secpar, update;
     static real xscale, yscale;
     static integer uniqid;
     static logical usewei;
-    extern /* Subroutine */ int putfil_(real *, real *, integer *, integer *, 
-	    real *);
+    extern /* Subroutine */ int putfil_();
     static logical rotfir, noover, usewcs;
-    extern /* Subroutine */ int umsput_(char *, integer *, integer *, integer 
-	    *, ftnlen);
+    extern /* Subroutine */ int umsput_();
     static integer idd;
     static real lam;
     static logical con;
@@ -232,13 +226,13 @@ doublereal twdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
     ymax = *ony;
     noover = FALSE_;
 /* All weighting is done by the weight array */
-    wtscl = 1.f;
+    wtscl = (float)1.;
     incps = TRUE_;
 /* Input exposure assumed to be 1.0s */
-    expin = 1.f;
+    expin = (float)1.;
     rotfir = FALSE_;
 /* Convert the rotation to radians */
-    rot = drot * 3.141592653f / 180.f;
+    rot = drot * (float)3.141592653 / (float)180.;
 /* Secondary parameters are not currently supported */
     secpar = FALSE_;
     update = TRUE_;

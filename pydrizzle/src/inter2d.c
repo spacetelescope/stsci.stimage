@@ -7,15 +7,17 @@
 
 /* Table of constant values */
 
-static real c_b2 = 2.f;
-static real c_b3 = -1.f;
+static real c_b2 = (float)2.;
+static real c_b3 = (float)-1.;
 static integer c__0 = 0;
 static integer c__1 = 1;
 static integer c__15 = 15;
-static real c_b25 = .001f;
+static real c_b25 = (float).001;
 
-doublereal nrievl_(real *x, real *y, real *datain, integer *nxpix, integer *
-	nypix, integer *lendan, integer *intere, real *scale)
+doublereal nrievl_(x, y, datain, nxpix, nypix, lendan, intere, scale)
+real *x, *y, *datain;
+integer *nxpix, *nypix, *lendan, *intere;
+real *scale;
 {
     /* System generated locals */
     integer datain_dim1, datain_offset, i__1, i__2;
@@ -26,15 +28,10 @@ doublereal nrievl_(real *x, real *y, real *datain, integer *nxpix, integer *
     static integer i__, j;
     static real coeff[361]	/* was [19][19] */, hold21, hold12, hold22, 
 	    value;
-    extern /* Subroutine */ int wsumr_(real *, real *, real *, integer *, 
-	    real *, real *), iibip3_(real *, integer *, integer *, real *, 
-	    real *, real *, integer *), iibip5_(real *, integer *, integer *, 
-	    real *, real *, real *, integer *);
+    extern /* Subroutine */ int wsumr_(), iibip3_(), iibip5_();
     static integer nx, ny;
     static real sx, sy, tx, ty;
-    extern /* Subroutine */ int iinisc_(real *, integer *, integer *, integer 
-	    *, real *, real *, real *, integer *, integer *, real *, real *, 
-	    real *);
+    extern /* Subroutine */ int iinisc_();
     static integer rowleh, xindex, yindex, nterms, lastrw, firstw;
 
 /* NRIEVAL -- Procedure to evaluate the 2D interpolant at a given value */
@@ -66,35 +63,37 @@ doublereal nrievl_(real *x, real *y, real *datain, integer *nxpix, integer *
     nx = *x;
     ny = *y;
 /* Nearest neighbour */
-    ret_val = 0.f;
+    ret_val = (float)0.;
     if (*intere == 1) {
-	ret_val = datain[(integer) (*x + .5f) + (integer) (*y + .5f) * 
-		datain_dim1];
+	ret_val = datain[(integer) (*x + (float).5) + (integer) (*y + (float)
+		.5) * datain_dim1];
 /* Bilinear */
     } else if (*intere == 2) {
 	sx = *x - nx;
-	tx = 1.f - sx;
+	tx = (float)1. - sx;
 	sy = *y - ny;
-	ty = 1.f - sy;
+	ty = (float)1. - sy;
 	if (nx >= *nxpix) {
-	    hold21 = datain[nx + ny * datain_dim1] * 2.f - datain[nx - 1 + ny 
-		    * datain_dim1];
+	    hold21 = datain[nx + ny * datain_dim1] * (float)2. - datain[nx - 
+		    1 + ny * datain_dim1];
 	} else {
 	    hold21 = datain[nx + 1 + ny * datain_dim1];
 	}
 	if (ny >= *nypix) {
-	    hold12 = datain[nx + ny * datain_dim1] * 2.f - datain[nx + (ny - 
-		    1) * datain_dim1];
+	    hold12 = datain[nx + ny * datain_dim1] * (float)2. - datain[nx + (
+		    ny - 1) * datain_dim1];
 	} else {
 	    hold12 = datain[nx + (ny + 1) * datain_dim1];
 	}
 	if (nx >= *nxpix && ny >= *nypix) {
-	    hold22 = hold21 * 2.f - (datain[nx + (ny - 1) * datain_dim1] * 
-		    2.f - datain[nx - 1 + (ny - 1) * datain_dim1]);
+	    hold22 = hold21 * (float)2. - (datain[nx + (ny - 1) * datain_dim1]
+		     * (float)2. - datain[nx - 1 + (ny - 1) * datain_dim1]);
 	} else if (nx >= *nxpix) {
-	    hold22 = hold12 * 2.f - datain[nx - 1 + (ny + 1) * datain_dim1];
+	    hold22 = hold12 * (float)2. - datain[nx - 1 + (ny + 1) * 
+		    datain_dim1];
 	} else if (ny >= *nypix) {
-	    hold22 = hold21 * 2.f - datain[nx + 1 + (ny - 1) * datain_dim1];
+	    hold22 = hold21 * (float)2. - datain[nx + 1 + (ny - 1) * 
+		    datain_dim1];
 	} else {
 	    hold22 = datain[nx + 1 + (ny + 1) * datain_dim1];
 	}
@@ -120,12 +119,12 @@ doublereal nrievl_(real *x, real *y, real *datain, integer *nxpix, integer *
 		for (i__ = nx - 1; i__ <= i__2; ++i__) {
 		    if (i__ < 1) {
 			coeff[xindex + yindex * 19 - 20] = datain[j * 
-				datain_dim1 + 1] * 2.f - datain[2 - i__ + j * 
-				datain_dim1];
+				datain_dim1 + 1] * (float)2. - datain[2 - i__ 
+				+ j * datain_dim1];
 		    } else if (i__ > *nxpix) {
 			coeff[xindex + yindex * 19 - 20] = datain[*nxpix + j *
-				 datain_dim1] * 2.f - datain[(*nxpix << 1) - 
-				i__ + j * datain_dim1];
+				 datain_dim1] * (float)2. - datain[(*nxpix << 
+				1) - i__ + j * datain_dim1];
 		    } else {
 			coeff[xindex + yindex * 19 - 20] = datain[i__ + j * 
 				datain_dim1];
@@ -139,12 +138,12 @@ doublereal nrievl_(real *x, real *y, real *datain, integer *nxpix, integer *
 		for (i__ = nx - 1; i__ <= i__2; ++i__) {
 		    if (i__ < 1) {
 			coeff[xindex + yindex * 19 - 20] = datain[(*nypix - 2)
-				 * datain_dim1 + 1] * 2.f - datain[2 - i__ + (
-				*nypix - 2) * datain_dim1];
+				 * datain_dim1 + 1] * (float)2. - datain[2 - 
+				i__ + (*nypix - 2) * datain_dim1];
 		    } else if (i__ > *nxpix) {
 			coeff[xindex + yindex * 19 - 20] = datain[*nxpix + (*
-				nypix - 2) * datain_dim1] * 2.f - datain[(*
-				nxpix << 1) - i__ + (*nypix - 2) * 
+				nypix - 2) * datain_dim1] * (float)2. - 
+				datain[(*nxpix << 1) - i__ + (*nypix - 2) * 
 				datain_dim1];
 		    } else {
 			coeff[xindex + yindex * 19 - 20] = datain[i__ + (*
@@ -209,12 +208,12 @@ doublereal nrievl_(real *x, real *y, real *datain, integer *nxpix, integer *
 		for (i__ = nx - 2; i__ <= i__2; ++i__) {
 		    if (i__ < 1) {
 			coeff[xindex + yindex * 19 - 20] = datain[j * 
-				datain_dim1 + 1] * 2.f - datain[2 - i__ + j * 
-				datain_dim1];
+				datain_dim1 + 1] * (float)2. - datain[2 - i__ 
+				+ j * datain_dim1];
 		    } else if (i__ > *nxpix) {
 			coeff[xindex + yindex * 19 - 20] = datain[*nxpix + j *
-				 datain_dim1] * 2.f - datain[(*nxpix << 1) - 
-				i__ + j * datain_dim1];
+				 datain_dim1] * (float)2. - datain[(*nxpix << 
+				1) - i__ + j * datain_dim1];
 		    } else {
 			coeff[xindex + yindex * 19 - 20] = datain[i__ + j * 
 				datain_dim1];
@@ -228,12 +227,12 @@ doublereal nrievl_(real *x, real *y, real *datain, integer *nxpix, integer *
 		for (i__ = nx - 2; i__ <= i__2; ++i__) {
 		    if (i__ < 1) {
 			coeff[xindex + yindex * 19 - 20] = datain[(*nypix - 3)
-				 * datain_dim1 + 1] * 2.f - datain[2 - i__ + (
-				*nypix - 3) * datain_dim1];
+				 * datain_dim1 + 1] * (float)2. - datain[2 - 
+				i__ + (*nypix - 3) * datain_dim1];
 		    } else if (i__ > *nxpix) {
 			coeff[xindex + yindex * 19 - 20] = datain[*nxpix + (*
-				nypix - 3) * datain_dim1] * 2.f - datain[(*
-				nxpix << 1) - i__ + (*nypix - 3) * 
+				nypix - 3) * datain_dim1] * (float)2. - 
+				datain[(*nxpix << 1) - i__ + (*nypix - 3) * 
 				datain_dim1];
 		    } else {
 			coeff[xindex + yindex * 19 - 20] = datain[i__ + (*

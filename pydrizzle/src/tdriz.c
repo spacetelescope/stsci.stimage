@@ -20,17 +20,34 @@ static integer c__0 = 0;
 static integer c__100 = 100;
 static integer c__4 = 4;
 
-doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
-	ncon, integer *uniqid, integer *ystart, integer *xmin, integer *ymin, 
-	integer *nx, integer *ny, integer *dny, integer *onx, integer *ony, 
-	doublereal *xsh, doublereal *ysh, char *shftfr, char *shftun, 
-	doublereal *drot, doublereal *scale, real *pxg, real *pyg, integer *
-	xgdim, integer *ygdim, char *align, doublereal *pfract, char *kernel, 
-	char *coeffs, char *inun, real *expin, real *wtscl, char *filstr, 
-	doublereal *wcs, integer *vflag, integer *clen, integer *nmiss, 
-	integer *nskip, char *vers, ftnlen shftfr_len, ftnlen shftun_len, 
-	ftnlen align_len, ftnlen kernel_len, ftnlen coeffs_len, ftnlen 
-	inun_len, ftnlen filstr_len, ftnlen vers_len)
+doublereal tdriz_(data, wei, ndat, ncou, ncon, uniqid, ystart, xmin, ymin, nx,
+	 ny, dny, onx, ony, xsh, ysh, shftfr, shftun, drot, scale, pxg, pyg, 
+	xgdim, ygdim, align, pfract, kernel, coeffs, inun, expin, wtscl, 
+	filstr, wcs, vflag, clen, nmiss, nskip, vers, shftfr_len, shftun_len, 
+	align_len, kernel_len, coeffs_len, inun_len, filstr_len, vers_len)
+real *data, *wei, *ndat, *ncou;
+integer *ncon, *uniqid, *ystart, *xmin, *ymin, *nx, *ny, *dny, *onx, *ony;
+doublereal *xsh, *ysh;
+char *shftfr, *shftun;
+doublereal *drot, *scale;
+real *pxg, *pyg;
+integer *xgdim, *ygdim;
+char *align;
+doublereal *pfract;
+char *kernel, *coeffs, *inun;
+real *expin, *wtscl;
+char *filstr;
+doublereal *wcs;
+integer *vflag, *clen, *nmiss, *nskip;
+char *vers;
+ftnlen shftfr_len;
+ftnlen shftun_len;
+ftnlen align_len;
+ftnlen kernel_len;
+ftnlen coeffs_len;
+ftnlen inun_len;
+ftnlen filstr_len;
+ftnlen vers_len;
 {
     /* System generated locals */
     integer data_dim1, data_offset, wei_dim1, wei_offset, ndat_dim1, 
@@ -40,9 +57,8 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
     icilist ici__1;
 
     /* Builtin functions */
-    /* Subroutine */ int s_copy(char *, char *, ftnlen, ftnlen);
-    integer s_cmp(char *, char *, ftnlen, ftnlen), s_rsli(icilist *), do_lio(
-	    integer *, integer *, char *, ftnlen), e_rsli(void);
+    /* Subroutine */ int s_copy();
+    integer s_cmp(), s_rsli(), do_lio(), e_rsli();
 
     /* Local variables */
     static integer done[1]	/* was [1][1] */;
@@ -52,44 +68,21 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
     static logical rotf2;
     static integer intab[10000]	/* was [100][100] */;
     static logical disim, incps;
-    extern /* Subroutine */ int dobox_(real *, real *, real *, real *, 
-	    integer *, integer *, integer *, integer *, integer *, integer *, 
-	    integer *, integer *, integer *, integer *, logical *, char *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
-	     integer *, integer *, integer *, doublereal *, doublereal *, 
-	    logical *, real *, real *, integer *, integer *, real *, char *, 
-	    logical *, real *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, logical *,
-	     logical *, doublereal *, doublereal *, doublereal *, doublereal *
-	    , doublereal *, char *, logical *, logical *, logical *, integer *
-	    , integer *, integer *, integer *, integer *, logical *, logical *
-	    , logical *, integer *, integer *, integer *, ftnlen, ftnlen, 
-	    ftnlen);
+    extern /* Subroutine */ int dobox_();
     static integer conum, istat;
-    extern /* Subroutine */ int upwcs_(doublereal *, doublereal *, integer *, 
-	    integer *, integer *, integer *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, char *, logical *, logical *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, char *, logical *, logical *, integer *, integer *, 
-	    doublereal *, doublereal *, logical *, real *, real *, integer *, 
-	    integer *, ftnlen, ftnlen);
+    extern /* Subroutine */ int upwcs_();
     static doublereal xi[400000]	/* was [100000][4] */, yi[400000]	
 	    /* was [100000][4] */, xo[400000]	/* was [100000][4] */, yo[
 	    400000]	/* was [100000][4] */;
-    extern /* Subroutine */ int getgeo_(char *, integer *, doublereal *, 
-	    integer *, integer *, integer *, doublereal *, doublereal *, 
-	    integer *, integer *, ftnlen);
+    extern /* Subroutine */ int getgeo_();
     static real filval;
     static logical bitcon, secpar, update;
     static doublereal xscale, yscale;
     static logical usewei;
-    extern /* Subroutine */ int putfil_(real *, real *, integer *, integer *, 
-	    real *);
+    extern /* Subroutine */ int putfil_();
     static logical rotfir, noover, usewcs;
     static doublereal wcsout[8];
-    extern /* Subroutine */ int umsput_(char *, integer *, integer *, integer 
-	    *, ftnlen);
+    extern /* Subroutine */ int umsput_();
     static integer idd;
     static doublereal lam;
     static logical con;
@@ -320,7 +313,7 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
 	*ysh *= *scale;
     }
 /* Convert the rotation to radians */
-    rot = *drot * 3.141592653f / 180.f;
+    rot = *drot * (float)3.141592653 / (float)180.;
 /* Secondary parameters are not currently supported */
     secpar = FALSE_;
     update = TRUE_;
