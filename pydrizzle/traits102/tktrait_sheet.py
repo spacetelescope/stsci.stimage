@@ -238,7 +238,7 @@ class TraitSheet ( tk.Frame ):
     def add_tabs ( self, traits ):
         # Create the notebook:
         nb = Pmw.NoteBook( self )
-        nb.grid( row = 0, col = 0, sticky = 'new' )
+        nb.grid( row = 0, column = 0, sticky = 'new' )
 
         count = 0
         for pg in traits:
@@ -272,10 +272,10 @@ class TraitSheet ( tk.Frame ):
             if isinstance( pge, TraitGroup ):
                 if pge.show_border_:
                     box = Pmw.Group( parent, tag_text = pge.label or '' )
-                    box.grid( row = row, col = col, sticky = 'new',
+                    box.grid( row = row, column = col, sticky = 'new',
                               padx = 4 )
                     frame = tk.Frame( box.interior() )
-                    frame.grid( row = 0, col = 0, sticky = 'news',
+                    frame.grid( row = 0, column = 0, sticky = 'news',
                                 padx = 4, pady = 3 )
                     box.interior().columnconfigure( 0, weight = 1 )
                     self.add_page( pge, frame, default_style )
@@ -290,7 +290,7 @@ class TraitSheet ( tk.Frame ):
 
                 if name == '-':
                     tk.Frame( parent, bg = '#A0A0A0' ).grid(
-                              row = row, col = 0, columnspan = cols, sticky = 'ew' )
+                              row = row, column = 0, columnspan = cols, sticky = 'ew' )
                     parent.rowconfigure( row, minsize = 9 )
                     row += 1
                     continue
@@ -355,7 +355,7 @@ class TraitSheet ( tk.Frame ):
         else:
             control = editor.custom_editor( object, trait_name, description,
                                             self.handler, parent )
-        control.grid( row = row, col = col, sticky = 'ew', padx = 4, pady = 2 )
+        control.grid( row = row, column = col, sticky = 'ew', padx = 4, pady = 2 )
         control.object         = object
         control.trait_name  = trait_name
         control.description    = description
@@ -627,7 +627,7 @@ class TraitEditorEnum ( tkTraitEditor ):
                                           value    = value,
                                           variable = var,
                                           command  = delegate() )
-                control.grid( row = i, col = j, sticky = 'w' )
+                control.grid( row = i, column = j, sticky = 'w' )
                 if value == cur_value:
                     var.set( value )
                 index += incr[j]
@@ -763,7 +763,7 @@ class TraitEditorImageEnum ( TraitEditorEnum ):
                          command = tkDelegate( handler,
                                       parent = parent,
                                       value  = value )() )
-            control.grid( row = i / cols, col = i % cols, sticky = 'w',
+            control.grid( row = i / cols, column = i % cols, sticky = 'w',
                           padx = 2, pady = 2 )
             i += 1
 
@@ -869,7 +869,7 @@ class TraitEditorCheckList ( tkTraitEditor ):
                                               text     = labels[ index ],
                                               variable = var,
                                               command  = delegate() )
-                    control.grid( row = i, col = j, sticky = 'w' )
+                    control.grid( row = i, column = j, sticky = 'w' )
                     var.set( value in cur_value )
                     index += incr[j]
                     n     -= 1
@@ -1320,7 +1320,7 @@ class TraitEditorColor ( tkTraitEditor ):
         panel       = tk.Frame( parent )
         panel.color = self.simple_editor( object, trait_name, description,
                                           handler, panel )
-        panel.color.grid( row = 0, col = 0, sticky = 'nesw' )
+        panel.color.grid( row = 0, column = 0, sticky = 'nesw' )
 
         # Add all of the color choice buttons:
         panel2 = tk.Frame( panel )
@@ -1331,11 +1331,11 @@ class TraitEditorColor ( tkTraitEditor ):
                        command = tkDelegate( self.on_click,
                                     panel = panel,
                                     color = color_samples[i] )() ).grid(
-                       row = i / 12, col = i % 12, sticky = 'ew' )
+                       row = i / 12, column = i % 12, sticky = 'ew' )
         for i in range( 12 ):
             panel2.columnconfigure( i, weight = 1 )
 
-        panel2.grid( row = 0, col = 1, sticky = 'nesw', padx = 4 )
+        panel2.grid( row = 0, column = 1, sticky = 'nesw', padx = 4 )
         panel.columnconfigure( 0, minsize = 70 )
         panel.columnconfigure( 1, weight  =  1 )
 
@@ -1488,7 +1488,7 @@ class TraitEditorFont ( tkTraitEditor ):
                                                 description, handler, panel )
         font.configure( anchor = 'w' )
         font.is_custom = TRUE
-        font.grid( row = 0, col = 0, columnspan = 2, sticky = 'ew', pady = 3 )
+        font.grid( row = 0, column = 0, columnspan = 2, sticky = 'ew', pady = 3 )
 
         # Add all of the font choice controls:
         delegate = tkDelegate( self.on_value_changed, panel = panel )
@@ -1498,13 +1498,13 @@ class TraitEditorFont ( tkTraitEditor ):
                          selectioncommand   = delegate(),
                          scrolledlist_items = values,
                          listheight         = min( 150, len( values ) * 24 ) )
-        control.grid( row = 1, col = 0 )
+        control.grid( row = 1, column = 0 )
 
         panel.pointsize = control = Pmw.ComboBox( panel,
                           dropdown           = TRUE,
                           selectioncommand   = delegate(),
                           scrolledlist_items = point_sizes )
-        control.grid( row = 1, col = 1, padx = 4 )
+        control.grid( row = 1, column = 1, padx = 4 )
 
         # Initialize the control's with the object's current trait value:
         self.update_font( object, trait_name, font )
