@@ -20,9 +20,30 @@ def dolocal():
                 "--install-lib="+dir,
                 ])
             sys.argv.remove(a)
-
-def getF2CDirs(args):
+            
+def setF2CLibnames():
+    """ Defines the name(s) of the F2C libraries to be used."""
+    platform = sys.platform[:5]
+    if platform.find('win') > -1:
+        #  Windows Visual C 6.0 libraries
+        f2c_libnames = ['libf77','libi77']
+    else:
+        # Unix based libraries: linux, Mac OS X, Solaris
+        f2c_libnames = ['f2c','m']
+    
+    return f2c_libnames
+    
+def getF2CDirs(args,f2clibs):
     """ Defines the location of the F2C include and library directories. """
+    platform = sys.platform[:5]
+    if platform.find('win') ==  -1:
+        f2c_libname = 'libf2c.a'
+    else:
+        f2c_libname = f2clibs[0]+'.lib'
+	
+    # Define default values for include and lib directories
+    f2c_include = f2c_lib = None
+    
     for a in args:
         if string.find(a, '--with-f2c=') != -1:
             f2cdir = string.split(a, '=')[1]
@@ -34,35 +55,42 @@ def getF2CDirs(args):
             else:
                 print "File f2c.h not found.\n"
                 sys.exit(1)
-            if os.path.isfile(os.path.join(f2cdir, 'libf2c.a')):
+            if os.path.isfile(os.path.join(f2cdir, f2c_libname)):
                 f2c_lib = f2cdir
-            elif os.path.isfile(os.path.join(f2cdir, 'include','libf2c.a')):
-                f2c_include = os.path.join(f2cdir, 'lib','libf2c.a')
+            elif os.path.isfile(os.path.join(f2cdir, 'include',f2c_libname)):
+                f2c_include = os.path.join(f2cdir, 'lib',f2c_libname)
             else:
-                print "Library libf2c.a not found.\n"
+                print "Library %s not found.\n"%(f2c_libname)
                 sys.exit(1)
 
     return f2c_include,f2c_lib
 
-def getExtensions(f2cdirs):
-    ext = [NumarrayExtension("pydrizzle/arrdriz",['src/arrdrizmodule.c','src/tdriz.c','src/tblot.c',
+def getExtensions(f2cdirs,f2clibs):
+    """ 
+    F2PY Usage:
+    Commands for compiling the arrdriz sharable using F2PY
+    can be found in the 'compile_f2py' script and run using:
+    status = os.system('pydrizzle/compile_f2py')
+    ext = [NumarrayExtension("pydrizzle/arrdriz")]
+    """
+    ext = [NumarrayExtension("arrdriz",['src/arrdrizmodule.c','src/tdriz.c','src/tblot.c',
                                 'src/drutil.c','src/doblot.c','src/drcall.c',
                                 'src/inter2d.c','src/bieval.c'],
                    include_dirs=[f2cdirs[0]],
                    library_dirs=[f2cdirs[1]],
-                   libraries=['f2c','m'])]
-
+                   libraries=f2clibs)]
+                             
     return ext
 
 
 def dosetup(ext):
     r = setup(name = "pydrizzle",
-              version = "5.2.6",
+              version = "5.0.17",
               description = "Geometrically correct and combine images using Drizzle",
               author = "Warren Hack",
               author_email = "help@stsci.edu",
               license = "http://www.stsci.edu/resources/software_hardware/pyraf/LICENSE",
-              platforms = ["Linux","Solaris"],
+              platforms = ["Linux","Solaris","Mac OS X","Win32"],
               packages=['pydrizzle','pydrizzle/traits102'],
               package_dir={'pydrizzle':'lib','pydrizzle/traits102':'traits102'},
               ext_modules=ext)
@@ -72,10 +100,12 @@ def dosetup(ext):
 def main():
     args = sys.argv
     dolocal()
-    f2cdirs = getF2CDirs(args)
-    ext = getExtensions(f2cdirs)
+    f2clibs = setF2CLibnames()
+    f2cdirs = getF2CDirs(args,f2clibs)
+    ext = getExtensions(f2cdirs,f2clibs)
     dosetup(ext)
 
 
 if __name__ == "__main__":
     main()
+
