@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.5.2 (10 February 2005)'
+__version__ = '2.5.3 (2 March 2005)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -413,6 +413,10 @@ help file.
                     raise ValueError, errorstr
 
 
+        # Check static file. Can only be done after reading MDRIZTAB.
+        if (self.staticfile != None):
+            self._checkStaticFile(self.staticfile)
+
         
         # Create copies of input files for processing
         if not self.workinplace:
@@ -433,13 +437,10 @@ help file.
 
         # Build the manager object.
 
-        self.image_manager = ImageManager(association, self.context, self.instrpars, self.workinplace)
+        self.image_manager = ImageManager(association, self.context, self.instrpars, self.workinplace, self.staticfile)
 
         # Do unit conversion of the 'sci' data if necessary
         self.image_manager.doUnitConversions()
-
-        # Check static file. Can only be done after reading MDRIZTAB.
-        self._checkStaticFile(self.staticfile)
 
         # Done with initialization.
         self.steps.markStepDone(ProcSteps.doInitialize)
@@ -989,6 +990,54 @@ help file.
                     raise ValueError, _err_str
             except IOError:
                 raise ValueError, _err_str
+                
+            # Verify that the number of sci extensions in the input is equal
+            # to the number of MASK extensions in the static file.
+
+            try:
+                # Count the number of sci extensions
+                sciimg = pyfits.open(self.files[0])
+                scicount = 0
+                for extension in sciimg:
+                    if extension.header.has_key('extname'):
+                        if (extension.header['extname'].upper() == 'SCI'):
+                            scicount += 1
+                # Count the number of mask extensions
+                maskimg = pyfits.open(static_file)
+                maskcount = 0
+                for extension in maskimg:
+                    if extension.header.has_key('extname'):
+                        if (extension.header['extname'].upper() == 'MASK'):
+                            maskcount += 1
+
+                if (scicount != maskcount):
+                    raise ValueError
+            except ValueError:
+                # If the sci and mask extension counts don't mask raise a value error
+                errorstr =  "\n############################################\n"
+                errorstr += "#                                          #\n"
+                errorstr += "#  ERROR:                                  #\n"
+                errorstr += "#      The user supplied static mask file  #\n"
+                errorstr += "          " + str(static_file) + "\n"
+                errorstr += "#      does not contain enough MASK        #\n"
+                errorstr += "#      extensions.  There needs to be 1    #\n"
+                errorstr += "#      MASK extension for every SCI        #\n"
+                errorstr += "#      extension.                          #\n"
+                errorstr += "#                                          #\n"
+                errorstr += "############################################\n"
+                raise ValueError, errorstr
+            except:
+                errorstr =  "\n############################################\n"
+                errorstr += "#                                          #\n"
+                errorstr += "#  Error:                                  #\n"
+                errorstr += "#      Unable to verify the user supplied  #\n"
+                errorstr += "#      static mask file is in the correct  #\n"
+                errorstr += "#      format.  Test could not complete.   #\n"
+                errorstr += "#                                          #\n"
+                errorstr += "############################################\n"
+                raise IOError, errorstr
+
+
 
     def _setupAssociation(self):
 
@@ -1273,14 +1322,14 @@ help file.
 #            if name.find(search_for) > -1:
 #                return name + suffix
 
-    def _preMedian(self, static_file, skysub):
+    def _preMedian(self, skysub):
         """ Perform the steps that take place before median computation:
             build static mask, subtract sky, drizzle into separate images.
         """
         # Build static mask
 
         if self.steps.doStep(ProcSteps.doBuildStatic):
-            self.image_manager.createStatic(static_file,static_sig=self.static_sig)
+            self.image_manager.createStatic(static_sig=self.static_sig)
             self.steps.markStepDone(ProcSteps.doBuildStatic)
 
         # Process sky.
@@ -1361,7 +1410,7 @@ help file.
         # Insure that if an error occurs,
         # all file handles are closed before exiting...
         try:
-            self._preMedian(self.staticfile,skysub)
+            self._preMedian(skysub)
 
             if self.steps.doStep(ProcSteps.doMedian):
                 self.image_manager.createMedian(self.medianpars)

@@ -1,5 +1,15 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.5.3: 03/02/05 -- CJH
+    The default for the runfile parameter is now the empty string ''.  If
+    no value is provided for runfile, the default behavior for multidrizzle
+    will be to create a runfile name based upon the rootname for the output
+    DRZ product.
+
+    A user supplied static mask file will now be applied even if the STATIC 
+    MASK step is turned off.  In earlier version of Multidrizzle a user
+    supplied static mask would not be applied if STATIC MASK was not run.
+
 Version 2.5.2: 02/10/05 -- CJH/WJH
     Bug that resulted in a context image always being created for the final
     drizzle step was corrected.

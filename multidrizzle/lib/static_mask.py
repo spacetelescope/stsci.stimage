@@ -1,7 +1,21 @@
+#
+#   Authors:    Ivo Busko, Christopher Hanley, Warren Hack
+#   Program:    static_mask.py
+#   Purpose:    Class that manages the creation of a global static
+#               mask which is used to mask pixels that are some
+#               sigma BELOW the mode computed for the image.
+#   History:
+#       Version 1.3.0, 02/25/05 -- Removed methods responsible for the updating
+#           of the the static mask with a user supplied static file.  The 
+#           application of the user's static file will now be handled by the
+#           ImageManager class in manager.py. -- CJH 
+
 import numarray as N
 
 import imagestats
 from imagestats import ImageStats
+
+__version__ = '1.3.0'
 
 class StaticMask:
     """
@@ -15,8 +29,7 @@ class StaticMask:
     DQ value used to mark pixels flagged as bad by this mask.
 
     The parameter 'goodval' defaults to 1.0 and represents the
-    pixel value of the good pixels in any user-supplied static
-    mask file.
+    pixel value of the good pixels.
 
     """
     def __init__ (self, badval=64, goodval=1.0, staticsig= 3.0):
@@ -73,20 +86,6 @@ class StaticMask:
         else:
             _mask = None
         return _mask
-
-    def applyStaticFile(self, static_mask, signature):
-        """
-        Applies the user-supplied static file to the StaticMask array.
-        This static mask array should correspond to the chip that
-        this object applies to.
-        """
-        #
-        # If an input static mask file has been specified, then combine it
-        # with the data quality array.
-        #
-        self.masklist[signature] = N.where( N.equal( \
-                static_mask, self.static_goodval), \
-                self.masklist[signature],self.static_badval)
 
     def delete(self):
         """ Deletes all static mask objects. """

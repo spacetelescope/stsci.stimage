@@ -49,6 +49,15 @@
 #           Version 1.2.1,  02/10/05 -- Modified the final drizzle step to reset the value of the context image in
 #                                       the par file.  This is to correct a bug in which the context image is created
 #                                       even if the user had requested that it not be.  -- CJH 
+#           Version 1.3.0,  02/25/05 -- In doFinalDrizzle changed the default behavior for the creation of the runfile log.
+#                                       Now, if no file is specified, the default is to create a file based upon the name
+#                                       of the output file.
+#
+#                                       The logic necessary to apply a user supplied static file to the masks used in the
+#                                       single and final drizzle steps has been removed from createStatic and moved into
+#                                       __init_  for ImageManager.  This is to allow for the use of a static file even if
+#                                       the createStatic step is turned off.
+#
 
 # Import Numarray functionality
 import numarray.image.combine as combine
@@ -80,7 +89,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter,computeBuffRows
 
-__version__ = '1.2.1'
+__version__ = '1.3.0'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -108,11 +117,12 @@ class ImageManager:
         same ImageManager object without worrying about opening or trying to close
         the same image more than once.
     """
-    def __init__(self, assoc, context, instrpars, workinplace):
+    def __init__(self, assoc, context, instrpars, workinplace, static_file):
         self.context = context
         self.assoc = assoc
         self.output = self.assoc.output
         self.workinplace = workinplace
+        self.static_file = static_file
 
         # Establish a default memory mapping behavior
         self.memmap = 1
@@ -151,7 +161,7 @@ class ImageManager:
             # Setup InputImage objects for this association
             p['image'] = self._getInputImage(p['data'],p)
 
-            # Setup Multidrizzle-specific arameters
+            # Setup Multidrizzle-specific parameters
             p['datafile'] = p['image'].datafile
             grp = str(p['image'].grp)
             rootname = p['image'].rootname
@@ -162,17 +172,53 @@ class ImageManager:
                 # No array has been created yet, so initialize it now...
                 _mask_array = N.ones(p['image'].image_shape,N.UInt8)
                 # We also need to create a name for the mask array file
-#                p['image'].maskname = buildmask.buildMaskName(p['image'].rootname,p['image'].grp)
                 p['image'].maskname = p['exposure'].masklist[0]
-
+                # Build the mask image
                 self._buildMaskImage(p['image'].maskname,_mask_array)
                 del _mask_array
             else:
                 p['image'].maskname = p['driz_mask']
 
             # Create the name of the single drizzle mask file if it doesn't exist.
-            p['image'].singlemaskname = p['exposure'].singlemaskname
             
+            # This is done in the default case in which the user has not provided a
+            # static mask file
+            p['image'].singlemaskname = p['exposure'].singlemaskname
+
+            # In the case of the user having provided a static mask file, we need to
+            # make certain that pydrizzle has created a mask file for the single drizzle
+            # step.  It is possible that no mask was created for single drizzle in the
+            # case that the 'driz_sep_bits' parameter was INDEF (None).
+            if (self.static_file != None):
+                # We need to apply a user supplied static mask file.  We need to make
+                # certain that pydrizzle created a mask from the data quality information.
+                # If not mask was created, we will need to make one that the user's static
+                # file can be applied to.
+                #
+                # If p['image'].singlemaskname == None at this point, no mask was created.
+                if (p['image'].singlemaskname == None):
+                    # Since Pydrizzle didn't create a mask, we need to figure out what name
+                    # the mask would have gotten if the mask had been created.
+                    p['image'].singlemaskname = p['exposure'].masklist[1]
+                    p['exposure'].singlemaskname = p['exposure'].masklist[1]
+                    
+                    # Now create the mask file on disk
+                    _mask_array = N.ones(p['image'].image_shape,N.UInt8)
+                    self._buildMaskImage(p['image'].singlemaskname,_mask_array)
+                    del _mask_array
+                    
+                # Now that we have created a mask for the single drizzle step, we will need
+                # to apply the user supplied static mask file to it and the mask for the 
+                # final drizzle step.
+                self._applyUserStaticFile(p['image'].singlemaskname, 
+                                                        static_file, 
+                                                        p['image'].grp
+                                                        )
+                self._applyUserStaticFile(p['image'].maskname, 
+                                                    static_file, 
+                                                    p['image'].grp
+                                                    )
+
             #
             # Rename some of the variables defined by pydrizzle:
             #
@@ -202,6 +248,63 @@ class ImageManager:
         # instrument parameters can also be reset from the mdriztab
         # table by an external call.
         self.setInstrumentParameters(instrpars)
+                
+
+    def _applyUserStaticFile(self, static_mask, user_static_mask, imageExtNumber):
+    
+        """
+        Method:     _applyUserStaticFile
+        Purpose:    Apply the user provided static mask file to the mask created by the
+                    static mask step.
+                    
+        Input:      user_static_file - user specified mask file.  The file is assumed to be 
+                    a multi extension FITS file.  Pixel values of 1 are considered "good"
+                    and 0 "bad".  There needs to be one "MASK" extension for each extension
+                    of the input science image.  This means a static mask file for WFPC2
+                    input should have 4 "MASK" extensions while a static mask file for
+                    ACS WFC dat would have 2 "MASK" extensions.
+                    
+                    static_mask - name of static mask file for single and final drizzle steps created
+                    by Multidrizzle/Pydrizzle.
+                                        
+                    imageExtNumber - extension of the inputimage currently being processed
+                    by the static_mask step.
+                    
+        Output:     None
+        
+        """
+
+        # Define integer values for good and bad pixels
+        
+        static_goodval = 1
+        static_badval = 0
+
+#        try:
+        # Build the appropriate extension name to use on the user static mask file
+        extn = "MASK,"+str(imageExtNumber)
+
+        # Open the user supplied static mask file and extract the approprate extension
+        file = fileutil.openImage(user_static_mask, memmap=0, mode='readonly')
+        input_user_static_mask = fileutil.getExtn(file,extn)
+
+        # Open the static mask file
+        static_mask_file = fileutil.openImage(static_mask,memmap=0, mode='update')
+        final_static_mask = fileutil.getExtn(static_mask_file,str(0))
+
+        # Apply the user supplied static mask to the static mask by Pydrizzle/Multidrizzle
+        tmpArray = N.where( N.equal(input_user_static_mask.data, static_goodval), final_static_mask.data, static_badval)
+        final_static_mask.data = tmpArray.copy()
+
+        # Clean up
+        del(tmpArray)
+
+        file.close()
+        static_mask_file.close()
+
+#        except:
+#            raise IOError, "Unable to apply STATICFILE"
+            
+        print "STATICFILE: ",user_static_mask," applied to ",static_mask             
 
     def setInstrumentParameters(self, instrpars):
         """ Sets intrument parameters into all image instances.
@@ -324,14 +427,13 @@ class ImageManager:
         del _file, _phdu
 
 
-    def createStatic(self, static_file, static_sig):
+    def createStatic(self, static_sig):
 
         """ Create the static bad-pixel mask from input images."""
         
         #Print paramater values supplied through the interface
         print "USER PARAMETERS:"
         print "static     =  True"
-        print "staticfile = ",static_file
         print "static_sig = ",static_sig
         print "\n"
                  
@@ -339,10 +441,6 @@ class ImageManager:
 
         for p in self.assoc.parlist:
             p['image'].updateStaticMask(self.static_mask)
-
-            # Check the input to see if a static mask file was provided.
-            if (static_file != None):
-                self._applyUserStaticFile (static_file, self.static_mask, p['image'].signature(), p['image'].extn)
 
         # For each input, we now need to update the driz_mask with the
         # values from the static mask
@@ -382,51 +480,6 @@ class ImageManager:
                 __handle.close()
                 del __handle
                 
-
-    def _applyUserStaticFile(self, static_file, static_mask, signature, imageExtension):
-    
-        """
-        Method:     _applyUserStaticFile
-        Purpose:    Apply the user provided static mask file to the mask created by the
-                    static mask step.
-                    
-        Input:      static_file - user specified mask file.  The file is assumed to be 
-                    a multi extension FITS file.  Pixel values of 1 are considered "good"
-                    and 0 "bad".  There needs to be one "MASK" extension for each extension
-                    of the input science image.  This means a static mask file for WFPC2
-                    input should have 4 "MASK" extensions while a static mask file for
-                    ACS WFC dat would have 2 "MASK" extensions.
-                    
-                    static_mask - numarray object created by the static mask routine.
-                    
-                    signature - attribute of the input image indicated the chip name
-                    and size.
-                    
-                    imageExtension - extension of the inputimage currently being processed
-                    by the static_mask step.
-                    
-        Output:     None
-        
-        """
-
-        try:
-            # Deterine what extension of the current input file is currently being processed
-            index = imageExtension.find(',') 
-            # Build the appropriate extension name to use on the static mask file
-            extn = "MASK,"+imageExtension[index+1:]
-
-            # Open the static mask file and extract the approprate extension
-            file = fileutil.openImage(static_file, memmap=1, mode='readonly')
-            input_static_mask = fileutil.getExtn(file,extn)
-            
-            # Apply the user supplied static mask to the static mask created in the
-            # static mask step
-            static_mask.applyStaticFile(input_static_mask.data, signature)
-
-        finally:
-            file.close()
-
-
     def doSky(self, skypars, skysub):
     
         # Print out the parameters provided by the interface
@@ -1069,7 +1122,7 @@ class ImageManager:
         if runfile != '':
             runlog = open(runfile,'w')
         else:
-            runlog = None
+            runlog = open(self.output[:self.output.find('_drz.fits')]+'.run','w')
 
         runlog.write("drizzle.outnx = "+str(self.assoc.parlist[0]['outnx'])+"\n")
         runlog.write("drizzle.outny = "+str(self.assoc.parlist[0]['outny'])+"\n")
