@@ -1,0 +1,6 @@
+origimage,f,a,"",,,Original undrizzled image
+drizimage,f,a,"",,,Drizzled image
+direction,f,a,,"forward|backward",,"Direction of transform (forward or backward)"
+x,r,a,100.0,,,X pixel position
+y,r,a,100.0,,,Y pixel position
+xylist,f,h,"",,,"Formatted list of X,Y positions"
