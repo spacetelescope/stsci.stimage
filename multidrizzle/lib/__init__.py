@@ -574,10 +574,30 @@ help file.
 #                # Not perfect, but it removes majority of errors...
 #                makewcs.run(image=p)
 
+
             if fileutil.getKeyword(p,'idctab') != None:
-                # Update the CD matrix using the new IDCTAB
-                # Not perfect, but it removes majority of errors...
-                makewcs.run(image=p)
+                if fileutil.getKeyword(p,'PA_V3') != None:
+                    # Update the CD matrix using the new IDCTAB
+                    # Not perfect, but it removes majority of errors...
+                    makewcs.run(image=p)
+                else:
+                    self.__pav3errmsg(p)
+                    raise ValueError, "Multidrizzle exiting..."
+
+    def __pav3errmsg(self,filename):
+        str =  "*******************************************\n"
+        str += "*                                         *\n"
+        str += "* Primary header keyword PA_V3 not found! *\n"
+        str += "* World Coordinate keywords cannot be     *\n"
+        str += "* recomputed without a valid PA_V3 value. *\n"
+        str += "* Please insure that PA_V3 is populated   *\n"
+        str += "* in the primary header of                *\n" 
+        str += "      %s \n"%(filename)
+        str += "*                                         *\n"
+        str += "*******************************************\n"
+        
+        print str
+        
 
     def _checkStaticFile(self, static_file):
 
