@@ -88,9 +88,9 @@ class Exposure:
             self.chip = str(_chip)
             # Keep track of any distortion correction images provided
             # for this chip
-            self.dgeoname = fileutil.getKeyword(expname,'DGEOFILE',header=_header)
+            self.dgeoname = fileutil.getKeyword(expname,'DGEOFILE')
             self.xgeoim,self.ygeoim = self.getDGEOExtn()
-            self.plam = float(fileutil.getKeyword(expname,'PHOTPLAM',header=_header)) / 10.
+            self.plam = float(fileutil.getKeyword(expname,'PHOTPLAM')) / 10.
             if self.plam == None:
                 # Setup a default value in case this keyword does not exist
                 self.plam = 555.
