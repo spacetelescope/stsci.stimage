@@ -3,22 +3,32 @@
     
     Displaying a numarray array object involves:
         1.  Opening the connection to a usable display tool (such as DS9).
+        
         2.  Setting the display parameters for the array, such as min and
             max array value to be used for min and max grey scale level,
             the offset to be applied to the array before displaying, and 
             the scaling of array values within the min/max range.
+        
         3.  Building the byte-scaled version of the array and sending it
-            to the display tool.
+            to the display tool.  The image sent to the display device 
+            will be trimmed to fit the image buffer defined by the 
+            'imtdev' device from the 'imtoolrc' or the 'stdimage' 
+            variable under IRAF. If the image is smaller than the buffer, 
+            it will be centered in the display device.  
+            
+            All pixel positions reported back will be relative to the 
+            full image size.
     
         This package provides several methods for controlling the display
         of the numarray array; namely,
         
             open(imtdev=None): 
                 open the default display device or the device specified 
-                in 'imtdev'
+                in 'imtdev'.
             
             close():
-                close the display device handle
+                close the display device defined by 'imtdev'. This must
+                be done before resetting the display buffer to a new size.
             
             set(z1=None,z2=None,scale=None,factor=None,frame=None):
                 convenience method for setting display attributes where
@@ -31,6 +41,8 @@
                 frame  -- image buffer frame number in which to display array
                             (integer)
                             
+                These attributes will apply to each array displayed.
+                
             display(pix, name=None, bufname=None):
                 display the scaled array in display tool (ds9/ximtool/...)
                 name -- optional name to pass along for identifying array
@@ -38,9 +50,13 @@
                             to best match size of array (such as 'imt1024')
                             [default: 512x512 buffer named 'imt512']
                 
-            readcursor():
+            readcursor(sample=0):
                 return a single cursor position from the image display
-            
+                By default, this operation will wait for a keystroke before
+                returning the cursor position. If 'sample' is set to 1,
+                then it will NOT wait to read the cursor.
+                This will return a string containing: x,y,frame and key.
+                
             help():
                 print Version ID and this message.
 
@@ -73,7 +89,7 @@ try:
 except ImportError:
     geotrans = None
 
-__version__ = "0.1alpha (9-Oct-2003)"
+__version__ = "0.1beta (10-Oct-2003)"
 #
 # Version 0.1-alpha: Initial release 
 #       WJH 7-Oct-2003
@@ -277,9 +293,11 @@ class NumDisplay:
             self.z1 = numarray.minimum.reduce(bpix.flat)
             self.z2 = numarray.maximum.reduce(bpix.flat)
         
-        bpix = self._transformImage(bpix,_d.fbwidth,_d.fbheight)
 
         _wcsinfo = displaydev.ImageWCS(bpix,z1=self.z1,z2=self.z2,name=name)
+
+        bpix = self._transformImage(bpix,_d.fbwidth,_d.fbheight)
+        
         # Update the WCS to match the frame buffer being used.
         _d.syncWCS(_wcsinfo)   
         
@@ -290,9 +308,9 @@ class NumDisplay:
         _d.writeImage(bpix,_wcsinfo)
         #displaydev.close()
 
-    def readcursor(self):
+    def readcursor(self,sample=0):
         """ Return the cursor position from the image display. """
-        return self.view.readCursor()
+        return self.view.readCursor(sample=sample)
     
 # Help facility
 def help():
