@@ -198,7 +198,6 @@ C Secondary geometrical parameters, added in V1.5
       CHARACTER*8 SHFR2
       LOGICAL ROTF2
       CHARACTER*50 VERS
-      CHARACTER*80 CHARS
 
 C Keep quiet
       IF(VFLAG.EQ.1) THEN

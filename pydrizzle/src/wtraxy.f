@@ -282,7 +282,7 @@ C Give a warning message if secondary parameters will have an effect
 C Get the geometric distortion coefficient information
 C Note that an input image is not always available so 
 C coeffs="header"  or coeffs="wcs" may fail
-      CALL GETGEO(COEFFS,IDD,LAM,
+      CALL GETGEO(COEFFS,IRD,LAM,
      :            COTY,COMAX,CONUM,XCO,YCO,ISTAT)
       IF(ISTAT.NE.0) THEN
          CALL UMSPUT(
@@ -361,7 +361,7 @@ C Transform a unit square to calculate the pixel area
          Y(4)=YIN+0.5D0
 
          CALL DRIVAL(X,Y,4,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
-     :            0.0,0.0,0.0,1.0D0,ALIGN,ROTFIR,
+     :            0.0D0,0.0D0,0.0D0,1.0D0,ALIGN,ROTFIR,
      :            .FALSE.,0.0D0,0.0D0,0.0D0,1.0D0,1.0D0,SHFR2,ROTF2,
      :            .FALSE.,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,

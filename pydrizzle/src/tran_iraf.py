@@ -7,7 +7,7 @@ yes = iraf.yes
 import tran
 
 # Point to default parameter file for task
-_parfile = 'mypy$tran.par'
+_parfile = 'dither$tran.par'
 _taskname= 'tran'
 ######
 # Set up Python IRAF interface here

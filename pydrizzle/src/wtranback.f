@@ -233,7 +233,7 @@ C Give a warning message if secondary parameters will have an effect
 C Get the geometric distortion coefficient information
 C Note that if no input image is available coeff="header" 
 C or coeffs='wcs' will fail
-      CALL GETGEO(COEFFS,IDD,LAM,
+      CALL GETGEO(COEFFS,IRD,LAM,
      :            COTY,COMAX,CONUM,XCO,YCO,ISTAT)
       IF(ISTAT.NE.0) THEN
          CALL UMSPUT(

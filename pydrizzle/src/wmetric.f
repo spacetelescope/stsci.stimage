@@ -124,7 +124,7 @@ C Get the dimensions and use them
       ENDIF
 
 C Get the geometric distortion coefficient information
-      CALL GETGEO(COEFFS,IDD,LAM,
+      CALL GETGEO(COEFFS,IID,LAM,
      :            COTY,COMAX,CONUM,XCO,YCO,ISTAT)
       IF(ISTAT.NE.0) THEN
          CALL UMSPUT(
