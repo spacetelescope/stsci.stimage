@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.31a (pre-release, 8 Feb 2005)"
+__version__="0.4a (pre-release, 8 Mar 2005)"
 #History:
 # Bugfix,21 Jan 05, Laidler
 #    - make all paths & filenames more robust via osfn
@@ -88,6 +88,7 @@ class Domain:
         self.name=name
         self.pixlist=pixellist
         self.range=range
+        self.npix=len(self.pixlist)
       
 
     def striplowerthan(self,factor):
@@ -159,11 +160,12 @@ class Exposure:
             print e
             print "Bad pixel image not read"
             print "Bad pixel image filename obtained from ",self.filename
+            self.badpix=None
 
     def writeto(self,outname):
         f=pyfits.open(self.filename)
         f[self.extnum].data=self.data
-#        f[1].header=self.h
+        f[0].header=self.h #update the primary header
         f.writeto(outname)
 
     def dark_subtract(self,dark):
@@ -228,10 +230,11 @@ class Exposure:
         """Computes a mask to use for pixels to omit"""
         mask=numarray.zeros((dim,dim),'Float32')
         badmask=numarray.ones((dim,dim),'Float32')
-        u=numarray.where(self.badpix != 0)
-        mask[u]=1
-        badmask[u]=0
-        # Mask out central "cross" chipgap
+        if self.badpix:
+            u=numarray.where(self.badpix != 0)
+            mask[u]=1
+            badmask[u]=0
+        # Always Mask out central "cross" chipgap
         mask[(dim/2)-1,:]=1
         mask[:,(dim/2)-1]=1
         # and the very edges
@@ -285,6 +288,7 @@ class Exposure:
 
             dom.nr=(1.0-dom.pp[1,ubest]/dom.pp[1,0])*100
             dom.scale=best
+            dom.bestloc=ubest
 
 
             #print "   zero-mode scale factor is       : ",dom.pp[0,umode]
@@ -317,6 +321,80 @@ class Exposure:
             raise ValueError,"Huh?? hi_nr, lo_nr: %f %f"%(hdom.nr,ldom.nr) 
             
         return final
+
+    def update_header(self,pars):
+        """ Update the FITS header with all this good stuff we've done"""
+
+        #Start with the last keyword, for ease of applying.
+        
+        #Describe what was applied
+        lastkey='SCNAPPLD'
+        self.h.update(lastkey,
+                      self.appstring,
+                      'to which domains was SAA cleaning applied',
+                      after='SAACRMAP')
+
+        
+        #Then work forward from the beginning of the section:
+        
+        #First put in a comment card as a separator
+        self.h.add_blank('',before=lastkey)
+        self.h.add_blank('      / SAA_CLEAN output keywords',before=lastkey)
+        self.h.add_blank('',before=lastkey)
+        
+        #Then describe the persistence image:
+        self.h.update('SAAPERS',
+                      pars.saaperfile,
+                      'SAA persistence image',
+                      before=lastkey)
+        if not pars.readsaaper:
+            self.h.update('SCNPSCL',
+                          pars.scale,
+                          'scale factor used to construct persistence image',
+                          before=lastkey)
+            self.h.update('SCNPMDN',
+                          pars.saaper_median,
+                          'median used in flatfielding persistence image',
+                          before=lastkey)
+        self.h.add_blank('',before=lastkey)
+        
+        #Describe the domains
+        self.h.update('SCNTHRSH',
+                      self.thresh,
+                      'Threshold dividing high & low signal domains',
+                      before=lastkey)
+        self.h.update('SCNHNPIX',
+                      self.domains['high'].npix,
+                      'Number of pixels in high signal domain',
+                      before=lastkey)
+        self.h.update('SCNLNPIX',
+                      self.domains['low'].npix,
+                      'Number of pixels in low signal domain',
+                      before=lastkey)
+        self.h.add_blank('',before=lastkey)
+        
+        #Describe the results in each domain
+        self.h.update('SCNGAIN',
+                      pars.gainplot,
+                      'gain used for effective noise calculations',
+                      before=lastkey)
+        for k in self.domains:
+            HorL=k[0].upper()
+            self.h.update('SCN%sSCL'%HorL,
+                          self.domains[k].scale,
+                          '%sSD scale factor for min noise'%HorL,
+                      before=lastkey)
+            bestloc=self.domains[k].bestloc
+            self.h.update('SCN%sEFFN'%HorL,
+                          self.domains[k].pp[1,bestloc]*pars.gainplot,
+                          '%sSD effective noise at SCNGAIN'%HorL,
+                          before=lastkey)
+            self.h.update('SCN%sNRED'%HorL,
+                          self.domains[k].nr,
+                          '%sSD  noise reduction (percent)'%HorL,
+                          before=lastkey)
+
+        
 #..........................................................................
 # Exception definitions
 class NoPersistError(exceptions.Exception):
@@ -442,16 +520,18 @@ def get_dark_data(imgfile,darkpath):
     return im1,im2,dark
 
 def flat_saaper(saaper,img):
+    mm=imstat(saaper,nclip=1,binwidth=0.01,fields='median').median
+    #Use median, or mode? which is better?
     if img.h['flatdone'] == 'PERFORMED':
         flatname=osfn(img.h['flatfile'])
 ##         if flatname.startswith('nref$'):
 ##             prefix,root=flatname.split('$',1)
 ##             flatname=iraf.osfn(prefix+'$')+root
         flat=Exposure(flatname)
-        mm=imstat(saaper,nclip=1,binwidth=0.01,fields='median').median #Use median, or mode? which is better?
+
         print "median used in flatfielding: ",mm
         saaper=((saaper-mm)*flat.data) + mm
-    return saaper
+    return saaper,mm
 
 
 
@@ -473,7 +553,8 @@ def clean(usr_imgfile,usr_outfile,pars=None):
 
     img=Exposure(imgfile)
     mask,badmask=img.getmask(writename=pars.maskfile)
-    saaper=flat_saaper(saaper,img)
+    saaper,mm=flat_saaper(saaper,img)
+    pars.saaper_median=mm
     
     if pars.flatsaaperfile:
         writeimage(saaper,pars.flatsaaperfile)
@@ -483,8 +564,13 @@ def clean(usr_imgfile,usr_outfile,pars=None):
     else:
         img.thresh=pars.thresh
     
-    img.domains={'high':Domain('high',numarray.where(saaper > img.thresh),pars.hirange),
-                 'low' :Domain('low',numarray.where(saaper <= img.thresh),pars.lorange)}
+    img.domains={'high':Domain('high',
+                               numarray.where(saaper > img.thresh),
+                               pars.hirange),
+                 'low' :Domain('low',
+                               numarray.where(saaper <= img.thresh),
+                               pars.lorange)
+                 }
 
     print "Threshold for hi/lo: ",img.thresh
     print "Npixels hi/lo: ",len(img.domains['high'].pixlist[0]),len(img.domains['low'].pixlist[0])
@@ -493,6 +579,7 @@ def clean(usr_imgfile,usr_outfile,pars=None):
 
     if img.update:
         img.data=final
+        img.update_header(pars)
         img.writeto(outfile)
 
     return saaper,img
