@@ -10,6 +10,9 @@ Version 2.5.1: 02/07/05 -- CJH/WJH
     The in pydrizzle's fileutil module the readASNTable has been modified to
     ignore association table entries with memprsnt keyword value of 'F'.
 
+    The bugs in the Python GUI Multidrizzle interface that prevented
+    changes to input parameters were corrected.
+
 Version 2.5.0: 01/31/05 -- CJH/WJH
     Added separate parameters for the bits parameters for single and final
     drizzle processing, while retaining backwards compatibility with existing
