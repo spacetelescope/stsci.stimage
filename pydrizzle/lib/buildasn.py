@@ -640,7 +640,7 @@ def writeAsnDict(asndict,output=None):
     and can be modified as needed before writing out the new table.
 
     SYNTAX:
-        writeAsnDict(asndict,output=None)
+        buildasn.writeAsnDict(asndict,output=None)
 
     PARAMETERS:
             asndict:    dictionary from 'readAsnTable
