@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.4.1 (18-January-2005)"
+__version__ = "5.4.2 (20-January-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -224,44 +224,25 @@ class Pattern:
             _extname = self.imtype.dq_extname
 
             # Build mask files based on input 'bits' parameter values
-            _masklist = [[None,None]]
+            _masklist = []
             #
             # If we have a valid bits value...
-            if self.bitvalue[0] != None:
-                # Creat the name of the output mask file
-                _maskname = buildmask.buildMaskName(_dqname,i+1)
-                # Add the name to the list of mask names
-                _masklist.append(_maskname)
-                # Create the actual mask file now...
-                outmask = buildmask.buildMaskImage(_dqname,self.bitvalue[0],_maskname,extname=_extname,extver=i+1)
-                if outmask != None:
-                    # We had no problem generating the mask file.
-                    _masklist[0][0] = outmask
-            else:
-                # No valid bits value set, so do not create anything
-                _masklist.append(None)
+            # Creat the name of the output mask file
+            _maskname = buildmask.buildMaskName(_dqname,i+1)
+            # Create the actual mask file now...
+            outmask = buildmask.buildMaskImage(_dqname,self.bitvalue[0],_maskname,extname=_extname,extver=i+1)
+            _masklist.append(outmask)
+
             #
             # Check to see if a bits value was provided for single drizzling...
-            if self.bitvalue[1] != None:
-                # Check to see if value is same as final drizzle bits value
-                if self.bitvalue[1] == self.bitvalue[0]:
-                    # Copy name of final drizzle mask for single drizzle step
-                    _masklist.append(_maskname)
-                else:
-                    # Different bits value specified for single drizzle step
-                    # create new filename for single_drizzle mask file
-                    _maskname = _maskname.replace('final_mask','single_mask')
+            # Different bits value specified for single drizzle step
+            # create new filename for single_drizzle mask file
+            _maskname = _maskname.replace('final_mask','single_mask')
 
-                    # Add new name to list for single drizzle step
-                    _masklist.append(_maskname)
-                    # Create new mask file with different bit value.
-                    outmask = buildmask.buildMaskImage(_dqname,self.bitvalue[1],_maskname,extname=_extname,extver=i+1)
-                    if outmask != None:
-                        _masklist[0][1] = outmask
-            else:
-                # No bits value provided for single drizzle step,
-                #   set name to None
-                _masklist.append(None)
+            # Create new mask file with different bit value.
+            outmask = buildmask.buildMaskImage(_dqname,self.bitvalue[1],_maskname,extname=_extname,extver=i+1)
+            # Add new name to list for single drizzle step
+            _masklist.append(outmask)
 
             self.members.append(Exposure(_sciname, idckey=self.idckey, dqname=_dqname,
                     mask=_masklist, pa_key=self.pa_key, parity=self.PARITY[detector],
@@ -836,9 +817,8 @@ class Pattern:
             parameters['instrument'] = self.instrument
             parameters['detector'] = self.detector
 
-
-            parameters['driz_mask'] = member.outmasks[0]
-            parameters['single_driz_mask'] = member.outmasks[1]
+            parameters['driz_mask'] = member.maskname
+            parameters['single_driz_mask'] = member.singlemaskname
 
             # Setup parameters for special cases here...
             parameters['outsingle'] = self.outsingle
@@ -2601,8 +2581,36 @@ More help on SkyField objects and their parameters can be obtained using:
                     print 'No weight or mask file specified!  Assuming all pixels are good.'
                     _inwht = N.ones((plist['blotny'],plist['blotnx']),N.Float32)
 
+                if plist['wt_scl'] != None:
+                    if isinstance(plist['wt_scl'],types.StringType):
+                        if  plist['wt_scl'].isdigit() == False :
+                            # String passed in as value, check for 'exptime' or 'expsq'
+                            _wtscl_float = None
+                            try:
+                                _wtscl_float = float(plist['wt_scl'])
+                            except ValueError:
+                                _wtscl_float = None
+                            if _wtscl_float != None:
+                                _wtscl = _wtscl_float
+                            elif plist['wt_scl'] == 'expsq':
+                                _wtscl = plist['exptime']*plist['exptime']
+                            else:
+                                # Default to the case of 'exptime', if
+                                #   not explicitly specified as 'expsq'
+                                _wtscl = plist['exptime']
+                        else:
+                            # int value passed in as a string, convert to float
+                            _wtscl = float(plist['wt_scl'])
+                    else:
+                        # We have a non-string value passed in...
+                        _wtscl = float(plist['wt_scl'])
+                else:
+                    # Default case: wt_scl = exptime
+                    _wtscl = plist['exptime']
+
+                #print 'WT_SCL: ',plist['wt_scl'],' _wtscl: ',_wtscl
                 # Set additional parameters needed by 'drizzle'
-                _expin = _wtscl = plist['exptime']
+                _expin = plist['exptime']
                 _in_un = 'counts'
                 _shift_fr = 'output'
                 _shift_un = 'output'

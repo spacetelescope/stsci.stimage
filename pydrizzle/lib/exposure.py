@@ -113,14 +113,11 @@ class Exposure:
         # and the name of the original input DQ file
         self.maskname = None
         self.singlemaskname = None
-        self.outmasks = None
         if mask != None:
-            # Specifies actual filenames for file created
-            # If None, then no file was created.
-            self.outmasks = mask[0]
             # Specifies filenames to be used if created.
-            self.maskname = mask[1]
-            self.singlemaskname = mask[2]
+            self.maskname = mask[0]
+            self.singlemaskname = mask[1]
+
         self.dqname = dqname
 
 
