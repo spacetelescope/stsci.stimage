@@ -2116,13 +2116,15 @@ class PyDrizzle:
 Program to process and/or dither-combine image(s) using (t)drizzle.
 To create an object named 'test' that corresponds to a drizzle product:
     --> test = pydrizzle.PyDrizzle(input)
-where input is the FULL filename of an ACS observation or ASN table.
-This computes all the parameters necessary for running drizzle on all
-the input images.  Once this object is created, you can run drizzle using:
+where input is the FULL filename of an ACS observation or ASN table, or
+a Python list of filenames.
+
+This class computes all the parameters necessary for running 'drizzle' on all
+the input images.  Once this object is created, you can run 'drizzle' using:
     --> test.run()
 
 The 'clean()' method can be used to remove files which would interfere with
-running Drizzle again using the 'run()' method after a product has already
+running 'drizzle' again using the 'run()' method after a product has already
 been created.
 
 Optional parameters:
@@ -2142,6 +2144,10 @@ Optional parameters:
     bits        Specify DQ values to be considered good. (Default: -1)
                 If negative, read value already set in DQPars classes.
                 If None, do not create inmask file at all.
+    fillval     Value to be used for output pixels which have no input
+                pixels contributing to them.  If None or 'INDEF', drizzled
+                pixels values will be used regardless of weights. (default: 0.)
+    shiftfile   Name of file containing shift information for input images.
 
 Optional Parameters for '.run()':
     build       create multi-extension output: yes (Default) or no
