@@ -34,6 +34,8 @@ import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
 __version__="0.3a (pre-release, 20 Jan 2005)"
 #History:
+# Bugfix,21 Jan 05, Laidler
+#    - make all paths & filenames more robust via osfn
 # Bugfix,20 Jan 05, Laidler:
 #    - correct handling of middle column/row in Exposure.pedskyish()
 # Bugfixes, 3 Aug 04, Laidler:
@@ -64,10 +66,10 @@ class params:
         self.wf2=wf2
         self.writesaaper=writesaaper
         self.readsaaper=readsaaper
-        self.saaperfile=saaperfile
+        self.saaperfile=osfn(saaperfile)
         self.flatsaaper=flatsaaper
-        self.flatsaaperfile=flatsaaperfile
-        self.maskfile=maskfile
+        self.flatsaaperfile=osfn(flatsaaperfile)
+        self.maskfile=osfn(maskfile)
         self.gainplot=gainplot
         self.stepsize=stepsize
         self.thresh=thresh
@@ -75,7 +77,7 @@ class params:
         self.lorange=lorange
         self.dofit=dofit
         self.darkpath=osfn(darkpath)
-        self.diagfile=diagfile
+        self.diagfile=osfn(diagfile)
 
         self.appstring=None   # Might be needed later.
         
@@ -117,8 +119,8 @@ class Exposure:
     
     def __init__(self,imgfile):
         
-        self.filename=imgfile
-        f=pyfits.open(imgfile)
+        self.filename=osfn(imgfile)
+        f=pyfits.open(self.filename)
         self.f=f
         h=f[0].header
         self.h=h
@@ -131,7 +133,7 @@ class Exposure:
         self.exptime=h['exptime']
         self.camera=h['camera']
         self.saa_time=h['saa_time']
-        self.badfile=h['maskfile']
+        self.badfile=osfn(h['maskfile'])
  
         self.inq1=slice(10,118),slice(10,118)              
         self.inq2=slice(10+128,118+128),slice(10,118)      
@@ -150,7 +152,7 @@ class Exposure:
 ##                 prefix,root=self.badfile.split('$',1)
 ##                 self.badfile=iraf.osfn(prefix+'$')+root
             
-            f2=pyfits.open(osfn(self.badfile))
+            f2=pyfits.open(self.badfile)
             self.badpix=f2[3].data
             f2.close()
         except IOError,e:
@@ -375,7 +377,7 @@ def get_postsaa_darks(imgfile):
     present. Otherwise raise an exception and exit. """
 
     #Get the science header
-    inpath=os.path.dirname(imgfile)
+    inpath=os.path.dirname(osfn(imgfile))
     if inpath != '':
         inpath+= '/'
     f=pyfits.open(imgfile)
@@ -452,8 +454,10 @@ def flat_saaper(saaper,img):
 #....................................................................
 # The "main" program
 #....................................................................
-def clean(imgfile,outfile,pars=None):
+def clean(usr_imgfile,usr_outfile,pars=None):
     print "saaclean version %s"%__version__
+    imgfile=osfn(usr_imgfile)
+    outfile=osfn(usr_outfile)
     if pars is None:
         pars=params()
     if pars.readsaaper:
