@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.2.5 (29-September-2004)"
+__version__ = "5.2.6 (5-October-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -2174,7 +2174,7 @@ More help on SkyField objects and their parameters can be obtained using:
             asndict = fileutil.readAsnTable(input,output=output,prodonly=prodonly)
             # Build output filename
             if output == None:
-                output = fileutil.buildNewRootname(string.lower(asndict['output']),extn='_drz.fits')
+                output = fileutil.buildNewRootname(asndict['output'],extn='_drz.fits')
                 print 'Setting up output name: ',output
 
             if len(asndict['members'].keys()) > 1:
