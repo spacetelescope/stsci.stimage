@@ -32,8 +32,10 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.2a (pre-release, 3 Aug 2004)"
+__version__="0.3a (pre-release, 20 Jan 2005)"
 #History:
+# Bugfix,20 Jan 05, Laidler:
+#    - correct handling of middle column/row in Exposure.pedskyish()
 # Bugfixes, 3 Aug 04, Laidler:
 #    - make filename construction more robust via os.path.abspath on the directory
 #    - Ensure directory specified in pars.darkpath exists
@@ -188,18 +190,36 @@ class Exposure:
         self.data[self.q4]=self.data[self.q4]-m[3]
 
 #        raise UserError,"debug entry"
-    
-        #Camera 3 is special: treat its middle column in a similar way
+
+
+        #"special handling of middle col/row"
         if self.camera < 3:
-            temp=imstat(self.data[:,127],nclip=1,binwidth=0.01,fields='median')
-        #    print "line 127 median is ",temp.median
-        #    print "line 127 mean is ",self.data[:,127].mean()
-            self.data[:,127]=self.data[:,127]-temp.median-self.data[:,126]
+            temp=imstat( (self.data[:,127]-self.data[:,126]),
+                         nclip=1,binwidth=0.01,fields='median')
+            self.data[:,127]=self.data[:,127]-temp.median
         elif self.camera==3:
-            temp=imstat(self.data[127,:],nclip=1,binwidth=0.01,fields='median')
-            self.data[127,:]=self.data[127,:]-temp.median-self.data[126,:]
+            temp=imstat( (self.data[127,:]-self.data[126,:]),
+                         nclip=1,binwidth=0.01,fields='median')
+            self.data[127,:]=self.data[127,:]-temp.median
         else:
             raise ValueError, "Bad camera value"
+
+##...................................................................................
+## Original code that I think is wrong:
+##        transcribed parens from idl code incorrectly
+##...................................................................................
+##         #Camera 3 is special: treat its middle column in a similar way
+##         if self.camera < 3:
+##             temp=imstat(self.data[:,127],nclip=1,binwidth=0.01,fields='median')
+##         #    print "line 127 median is ",temp.median
+##         #    print "line 127 mean is ",self.data[:,127].mean()
+##             self.data[:,127]=self.data[:,127]-temp.median-self.data[:,126]
+##         elif self.camera==3:
+##             temp=imstat(self.data[127,:],nclip=1,binwidth=0.01,fields='median')
+##             self.data[127,:]=self.data[127,:]-temp.median-self.data[126,:]
+##         else:
+##             raise ValueError, "Bad camera value"
+
         
     def getmask(self,dim=256,border=3,writename='mask.dat'):
         """Computes a mask to use for pixels to omit"""
