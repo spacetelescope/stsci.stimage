@@ -26,10 +26,12 @@ import tkColorChooser as cc
 import Pmw
 import tkFont
 
-from traits      import Trait, TraitError, trait_editors
-from trait_sheet import TraitEditor, TraitSheetHandler, \
-                        TraitGroup, default_trait_sheet_handler
-from types       import DictType, ListType, TupleType, ModuleType, StringType
+from traits      import Trait, HasTraits, TraitError, HasDynamicTraits, \
+                        trait_editors
+from trait_sheet import TraitEditor, TraitSheetHandler, TraitMonitor, \
+                        TraitGroup, TraitGroupList, default_trait_sheet_handler
+from types       import DictType, ListType, TupleType, ModuleType, \
+                        StringType, FloatType
 
 #-------------------------------------------------------------------------------
 #  Module initialization:
@@ -80,120 +82,11 @@ tooltips_enabled = TRUE
 # Pattern of all digits:
 all_digits = re.compile( r'\d+' )
 
-#-------------------------------------------------------------------------------
-#  'TraitSheetAppHandler' class:
-#-------------------------------------------------------------------------------
-
-class TraitSheetAppHandler ( TraitSheetHandler ):
-
-    #----------------------------------------------------------------------------
-    #  Initialize the object:
-    #----------------------------------------------------------------------------
-
-    def __init__ ( self, app ):
-        self.app      = app
-        self.modified = FALSE
-        self.dlg = None
-
-    #----------------------------------------------------------------------------
-    #  Notification that a trait sheet has been closed:
-    #----------------------------------------------------------------------------
-
-    def close ( self, trait_sheet, object ):
-        rc = TRUE
-        print 'TraitSheetHandler.close() called...'
-        print 'modified = ',self.modified
-
-        if self.modified:
-            self.dlg = Pmw.MessageDialog( trait_sheet, title="Discard changes?",
-                       message_text ='Changes have been made.\n Discard changes for %s Traits?' % object.__class__.__name__,
-                       buttons = ('Yes','No'), defaultbutton=1, command=self.discardChanges)
-            result = self.dlg.activate()
-
-            if result == 'Yes': rc = TRUE
-            else: rc = FALSE
-        return rc
-
-    def discardChanges(self, result):
-        if result == 'Yes':
-            self.save(result)
-        if self.dlg:
-            self.dlg.deactivate(result)
-
-    #----------------------------------------------------------------------------
-    #  Notification that a trait sheet has modified a trait of its
-    #  associated object:
-    #----------------------------------------------------------------------------
-
-    def changed ( self, object, trait_name, new_value, old_value, is_set ):
-        self.modified = TRUE
-        self.save_enable = tk.ACTIVE
-
-    #----------------------------------------------------------------------------
-    #  Create extra content to add to the trait sheet:
-    #     specifically, the SAVE and CANCEL buttons
-    #----------------------------------------------------------------------------
-
-    def init ( self, trait_sheet,  object ):
-        self.sheet = trait_sheet
-        vsizer = tk.Frame()
-        vsizer.pack()
-        self.save_enable = tk.DISABLED
-        #self.save_enable = tk.ACTIVE
-        save_button = tk.Button( vsizer, text='Save changes',
-                                               state= self.save_enable,
-                                               command=self.save).pack(side=tk.LEFT)
-        cancel_button = tk.Button( vsizer, text='Cancel', state = tk.ACTIVE,
-                            command=self.cancel).pack(side=tk.RIGHT)
-        return self.sheet
-
-    #----------------------------------------------------------------------------
-    #  Handle the user requesting that all changes to the object be saved:
-    #----------------------------------------------------------------------------
-
-    def save ( self):
-        event = 'Save'
-        #self.modified    = FALSE
-        self.app.save_ok = TRUE
-        self.sheet.on_close_page(event)
-
-    def cancel (self):
-        event = 'Cancel'
-        self.modified  = FALSE
-        self.sheet.on_close_page(event)
-
-#-------------------------------------------------------------------------------
-#  'TraitSheetApp' class:
-#-------------------------------------------------------------------------------
-
-class TraitSheetApp (tk.Frame):
-
-    #----------------------------------------------------------------------------
-    #  Initialize the object:
-    #----------------------------------------------------------------------------
-
-    def __init__ ( self, object, traits = None ):
-        self.object  = object
-        self.traits  = traits
-        self.save_ok = FALSE
-        tk.Frame.__init__(self)
-        self.OnInit()
-
-    #----------------------------------------------------------------------------
-    #  Handle application initialization:
-    #----------------------------------------------------------------------------
-
-    def OnInit ( self ):
-
-        self.sheet = TraitSheetDialog( self.object, self.traits,
-                          TraitSheetAppHandler( self ), self )
-        return self.sheet
-
 #--------------------------------------------------------------------------------
 #  'TraitSheetDialog' class:
 #--------------------------------------------------------------------------------
 
-class TraitSheetDialog ( tk.Frame ):
+class TraitSheetDialog ( tk.Toplevel ):
 
     #-----------------------------------------------------------------------------
     #  Initialize the object:
@@ -206,19 +99,16 @@ class TraitSheetDialog ( tk.Frame ):
                          title      = None ):
         if title is None:
             title = '%s Traits' % object.__class__.__name__
-        tk.Frame.__init__( self)
-        self.pack(expand=tk.YES, fill=tk.BOTH)
-        if not parent: parent = self
-        parent.master.title(title)
-        parent.bind( '<Destroy>', self.on_close_page )
-        parent.bind( '<Escape>',  self.on_close_key )
+        tk.Toplevel.__init__( self, parent )
+        self.title( title )
+        self.bind( '<Destroy>', self.on_close_page )
+        self.bind( '<Escape>',  self.on_close_key )
 
         self.object  = object
         self.handler = handler
 
         # Create the actual trait sheet panel:
         TraitSheet( self, object, traits, handler ).grid( row = 0 )
-        self.handler.init(self, object)
 
         # Find a nice place on the screen to display the trait sheet so
         # that it overlays the object as little as possible:
@@ -226,22 +116,21 @@ class TraitSheetDialog ( tk.Frame ):
 #???      self.Centre( wx.wxBOTH )
             pass
 
-        self.mainloop()
+        self.resizable( FALSE, FALSE )
 
     #-----------------------------------------------------------------------------
     #  Close the trait sheet window:
     #-----------------------------------------------------------------------------
 
-    def on_close_page ( self, event = None):
-        print 'Running on_close_page with event = ',event
+    def on_close_page ( self, event ):
         self.handler.close( self, self.object )
 
     #----------------------------------------------------------------------------
     #  Handle the user hitting the 'Esc'ape key:
     #----------------------------------------------------------------------------
 
-    def on_close_key ( self, event ):
-        self.on_close_page( event )
+    def on_close_key ( self ):
+        self.on_close_page()
         self.destroy()
 
 #--------------------------------------------------------------------------------
@@ -324,11 +213,15 @@ class TraitSheet ( tk.Frame ):
         if kind == StringType:
             # Convert the single trait name into a TraitGroup:
             traits = TraitGroup( traits, show_border = FALSE )
-        elif ((kind in basic_sequence_types) and (len( traits ) > 0) and
-              (not isinstance( traits[0], TraitGroup ))):
-            # Convert a simple list of trait elements into a single,
-            # TraitGroup, possibly containing multiple items:
-            traits = TraitGroup( show_border = FALSE, *traits )
+        elif ((kind in basic_sequence_types) or
+              isinstance( traits, TraitGroupList )):
+            if len( traits ) == 0:
+                # Empty trait list, leave the panel empty:
+                return
+            if not isinstance( traits[0], TraitGroup ):
+                # Convert a simple list of trait elements into a single,
+                # TraitGroup, possibly containing multiple items:
+                traits = TraitGroup( show_border = FALSE, *traits )
 
         # Create the requested style of trait sheet editor:
         if isinstance( traits, TraitGroup ):
@@ -374,6 +267,7 @@ class TraitSheet ( tk.Frame ):
         show_labels = pg.show_labels_
         row         = col = 0
         cols        = 1 + show_labels
+
         for pge in pg.values:
             if isinstance( pge, TraitGroup ):
                 if pge.show_border_:
@@ -410,11 +304,13 @@ class TraitSheet ( tk.Frame ):
 
                 editor = pge.editor
                 style  = pge.style or default_style
+                pge_object = pge.object or object
                 if editor is None:
                     try:
-                        editor = object._base_trait( name ).get_editor()
+                        editor = pge_object._base_trait( name ).get_editor()
                     except:
                         pass
+
                 if editor is None:
                     continue
                 label = None
@@ -653,13 +549,13 @@ class TraitEditorEnum ( tkTraitEditor ):
 
     def __init__ ( self, values, cols = 1 ):
         self.cols   = cols
-        self.mapped = (type( values ) == DictType)
+        self.mapped = (type( values ) is DictType)
         if self.mapped:
             sorted = values.values()
             sorted.sort()
             col = sorted[0].find( ':' ) + 1
             if col > 0:
-                self.sorted = map( lambda x, c = col: x[ col: ], sorted )
+                self.sorted = [ x[ col: ] for x in sorted ]
                 for n, v in values.items():
                     values[n] = v[ col: ]
             else:
@@ -675,7 +571,7 @@ class TraitEditorEnum ( tkTraitEditor ):
                     values.sort()
                 else:
                     values = handler.values
-            self.values = map( str, values )
+            self.values = [ str( x ) for x in values ]
 
     #-----------------------------------------------------------------------------
     #  Create an in-place simple view of the current value of the
@@ -802,7 +698,7 @@ class TraitEditorImageEnum ( TraitEditorEnum ):
         TraitEditorEnum.__init__( self, values )
         self.suffix = suffix
         self.cols   = cols
-        if type( path ) == ModuleType:
+        if type( path ) is ModuleType:
             path = os.path.join( os.path.dirname( path.__file__ ), 'images' )
         self.path = path
 
@@ -893,10 +789,10 @@ class TraitEditorImageEnum ( TraitEditorEnum ):
                   parent.handler )
 
 #--------------------------------------------------------------------------------
-#  'TraitEditorList' class:
+#  'TraitEditorCheckList' class:
 #--------------------------------------------------------------------------------
 
-class TraitEditorList ( tkTraitEditor ):
+class TraitEditorCheckList ( tkTraitEditor ):
 
     #-----------------------------------------------------------------------------
     #  Initialize the object:
@@ -905,8 +801,8 @@ class TraitEditorList ( tkTraitEditor ):
     def __init__ ( self, values, cols = 1 ):
         self.cols   = cols
         self.values = values
-        if type( values[0] ) == StringType:
-            self.values = map( lambda x: ( x, x.capitalize() ), values )
+        if type( values[0] ) is StringType:
+            self.values = [ ( x, x.capitalize() ) for x in values ]
         self.mapping = mapping = {}
         for value, key in self.values:
             mapping[ key ] = value
@@ -991,21 +887,21 @@ class TraitEditorList ( tkTraitEditor ):
     #----------------------------------------------------------------------------
 
     def all_labels ( self ):
-        return map( lambda x: x[1], self.values )
+        return [ x[1] for x in self.values ]
 
     #----------------------------------------------------------------------------
     #  Return the set of all possible values:
     #----------------------------------------------------------------------------
 
     def all_values ( self ):
-        return map( lambda x: x[0], self.values )
+        return [ x[0] for x in self.values ]
 
     #----------------------------------------------------------------------------
     #  Return whether or not the current value is a string or not:
     #----------------------------------------------------------------------------
 
     def is_string ( self, object, trait_name ):
-        return (type( getattr( object, trait_name ) ) == StringType)
+        return (type( getattr( object, trait_name ) ) is StringType)
 
     #----------------------------------------------------------------------------
     #  Return the current value of the object trait:
@@ -1015,9 +911,9 @@ class TraitEditorList ( tkTraitEditor ):
         value = getattr( object, trait_name )
         if value is None:
             return []
-        if type( value ) != StringType:
+        if type( value ) is not StringType:
             return value
-        return map( lambda x: x.strip(), value.split( ',' ) )
+        return [ x.strip() for x in value.split( ',' ) ]
 
     #-----------------------------------------------------------------------------
     #  Handle the user selecting a new value from the combo box:
@@ -1093,12 +989,14 @@ class TraitEditorRange ( TraitEditorEnum ):
     #  Initialize the object:
     #-----------------------------------------------------------------------------
 
-    def __init__ ( self, handler, cols = 1 ):
+    def __init__ ( self, handler, cols = 1 , auto_set = True):
         if isinstance( handler, Trait ):
             handler = handler.setter
         self.low  = handler.low
         self.high = handler.high
         self.cols = cols
+        self.auto_set = auto_set
+        self.is_float = (type( self.low ) is FloatType)
 
     #-----------------------------------------------------------------------------
     #  Create an in-place editable view of the current value of the
@@ -1108,9 +1006,10 @@ class TraitEditorRange ( TraitEditorEnum ):
     def simple_editor ( self, object, trait_name, description, handler,
                               parent ):
         value = self.str( object, trait_name )
-        if abs( self.high - self.low ) > 1000:
-            var = tk.StringVar()
-            var.set( value )
+        var = tk.StringVar()
+        var.set(value)
+
+        if self.is_float or abs( self.high - self.low ) > 1000:
             control       = tk.Entry( parent, textvariable = var )
             control.var   = var
             control.value = value
@@ -1123,8 +1022,10 @@ class TraitEditorRange ( TraitEditorEnum ):
                                   'counter':   self.on_value_changed,
                                   'control':   control,
                                   'min_value': self.low,
-                                  'max_value': self.high } )
+                                  'max_value': self.high }
+                              )
             control._counterEntry.setentry( str( value ) )
+
         return control
 
     #----------------------------------------------------------------------------
@@ -1145,7 +1046,7 @@ class TraitEditorRange ( TraitEditorEnum ):
     #----------------------------------------------------------------------------
 
     def all_values ( self ):
-        return map( str, range( self.low, self.high + 1 ) )
+        return [ str( x ) for x in xrange( self.low, self.high + 1 ) ]
 
     #----------------------------------------------------------------------------
     #  Return the current value of the object trait:
@@ -1185,7 +1086,7 @@ class TraitEditorRange ( TraitEditorEnum ):
             raise ValueError
 
     #-----------------------------------------------------------------------------
-    #  Handle the user pressing the 'Enter' key in the edit control:
+    #  Handle the user pressing the 'Enter' key in thfvalue = getattr( object, trait_name )e edit control:
     #-----------------------------------------------------------------------------
 
     def on_enter ( self, event ):
@@ -1366,7 +1267,7 @@ standard_colors = {
 #--------------------------------------------------------------------------------
 
 def num_to_color ( object, name, value ):
-    if type( value ) == StringType:
+    if type( value ) is StringType:
         if ((len( value ) == 7) and (value[0] == '#') and
             (eval( '0x' + value[1:] ) >= 0)):
             return value

@@ -1,4 +1,4 @@
-#--------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 #
 #  Define a 'traits' package that allows other classes to easily define
 #  'type-checked' and/or 'delegated' traits for their instances.
@@ -13,11 +13,19 @@
 #
 #  (c) Copyright 2002 by Enthought, Inc.
 #
-#--------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
-from traits import HasTraits, HasDynamicTraits, Trait, TraitDelegate
-from traits import TraitDelegateSynched, TraitHandler, TraitRange, TraitType
-from traits import TraitInstance, TraitFunction, TraitEnum, TraitMap
-from traits import TraitPrefixList, TraitPrefixMap, TraitComplex, Undefined
-from traits import AnyValue, Disallow, ReadOnly, DefaultPythonTrait, TraitError
-from traits import DelegationError, trait_editors
+from trait_base      import Undefined, Self, trait_editors
+from trait_errors    import TraitError, DelegationError
+from traits          import HasTraits, HasObjectTraits, HasDynamicTraits, \
+                            HasDynamicObjectTraits, Trait, Disallow, ReadOnly, \
+                            DefaultPythonTrait, TraitProxy
+from trait_handlers  import TraitHandler, TraitRange, TraitType, TraitString,  \
+                            TraitInstance, TraitThisClass, TraitClass, \
+                            TraitFunction, TraitEnum, TraitMap
+from trait_handlers  import TraitList, TraitPrefixList, TraitPrefixMap,        \
+                            TraitComplex, AnyValue
+from trait_delegates import TraitGetterSetter, TraitDelegate, \
+                            TraitDelegateSynched, TraitEvent, TraitProperty
+from trait_sheet     import TraitSheetHandler, TraitEditor, TraitGroup, \
+                            TraitGroupItem, TraitGroupList, merge_trait_groups
