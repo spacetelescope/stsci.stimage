@@ -2,12 +2,18 @@
 #  Author:  Christopher Hanley
 #  History:
 #   Version 0.1, 12/06/2004: Initial Creation -- CJH
-__version__ = '0.1 (12/06/2004)'
+#   Version 0.2, 01/21/2005: Completely reworked logic for parsing the input lines
+#       for supporting the parseinput function in the pytools module.  -- CJH
+
+__version__ = '0.2 (01/21/2005)'
 __author__  = 'Christopher Hanley'
 
 import pydrizzle
 from pydrizzle import buildasn
 from pydrizzle import fileutil
+
+import glob
+from glob import glob
 
 def parseIVM(inputlist):
     """
@@ -27,36 +33,57 @@ def parseIVM(inputlist):
     # Define local variables
     newinputlist = []
     ivmlist = []
-    ivmcount = 0
 
-    errorstr =  "#######################################\n"
-    errorstr += "#                                     #\n"
-    errorstr += "# ERROR:                              #\n"
-    errorstr += "#  There number of science inputs     #\n"
-    errorstr += "#  does not equal the number of IVM   #\n"
-    errorstr += "#  file inputs.  An IVM file must be  #\n"
-    errorstr += "#  provided for every science input   #\n"
-    errorstr += "#  file.  Please see the HELP file    #\n"
-    errorstr += "#  for more information.              #\n"
-    errorstr += "#                                     #\n"
-    errorstr =  "#######################################\n"
-    
-    _files = buildasn._findFiles(inputlist)
-    
-    if (len(_files[0]) > 2):
-        for f in _files:
-            if f[2] != None:
-                if fileutil.findFile(f[2]):
-                    ivmcount += 1
-                    ivmlist.append((f[0],f[2]))
-                else:
-                    raise ValueError, errorstr            
-
-    if (ivmcount == 0 or ivmcount == len(_files)):             
-        for f in _files: 
-            newinputlist.append(f[0])
-    else:
-        raise ValueError, errorstr
+    for line in inputlist:
+        entry = line.split()
+        if ( len(entry) != 2):
+            errorstr =  "#######################################\n"
+            errorstr += "#                                     #\n"
+            errorstr += "# ERROR:                              #\n"
+            errorstr += "#  There number of science inputs     #\n"
+            errorstr += "#  does not equal the number of IVM   #\n"
+            errorstr += "#  file inputs.  An IVM file must be  #\n"
+            errorstr += "#  provided for every science input   #\n"
+            errorstr += "#  file.  Please see the HELP file    #\n"
+            errorstr += "#  for more information.              #\n"
+            errorstr += "#                                     #\n"
+            errorstr =  "#######################################\n"
+            raise ValueError, errorstr
         
+        newinputlist.append(entry[0].strip())
+        ivmlist.append(entry[1].strip())
+
+    # Use the glob function to ensure that the files are on disk and
+    # not wildcards
+    for file in ivmlist:
+        namelist = glob(file)
+        if (len(namelist) != 1):
+            errorstr =  "#######################################\n"
+            errorstr += "#                                     #\n"
+            errorstr += "# IVM FILE INPUT ERROR:               #\n"
+            errorstr += "#  The following file cannot be found #\n"
+            errorstr += "#  on disk:                           #\n"
+            errorstr += "         "+str(file)+'\n'
+            errorstr += "#                                     #\n"
+            errorstr += "#######################################\n"
+            raise ValueError, errorstr
+
+    for file in newinputlist:
+        namelist = glob(file)
+        if (len(namelist) != 1):
+            errorstr =  "#######################################\n"
+            errorstr += "#                                     #\n"
+            errorstr += "# INPUT FILE INPUT ERROR:             #\n"
+            errorstr += "#  The following file cannot be found #\n"
+            errorstr += "#  on disk:                           #\n"
+            errorstr += "         "+str(file)+'\n'
+            errorstr += "#                                     #\n"
+            errorstr += "#######################################\n"
+            raise ValueError, errorstr
+    
+    message = "\nProcessing IVM files: " + str(len(newinputlist)) + " Science Images, " \
+        + str(len(ivmlist)) + " IVM files\n" 
+    print message
+    
     return newinputlist,ivmlist
     
