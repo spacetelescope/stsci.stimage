@@ -119,7 +119,7 @@ class InputImage:
         """
         if value != None and value != '':
             return self._averageFromList(value)
-        elif keyword != None and keyword != '':
+        elif keyword != None and keyword.strip() != '':
             return self._averageFromHeader(header, keyword)
         else:
             return None

@@ -170,7 +170,6 @@ class ImageManager:
         # This is done in a separate loop over the parlist so that
         # instrument parameters can also be reset from the mdriztab
         # table by an external call.
-
         self.setInstrumentParameters(instrpars)
 
     def setInstrumentParameters(self, instrpars):
@@ -392,9 +391,68 @@ class ImageManager:
                 p['image'].updateMDRIZSKY(p['orig_filename'])
                 #p['image'].updateMDRIZSKY(p['image'].datafile)
 
+    def _setOutputFrame(self, pars):
+
+        """ Set up user-specified output frame using a SkyField object."""        
+        _sky_field = None
+
+        if pars['refimage'] != '' and pars['refimage'] != None:
+            # Use the following if the refimage isn't actually going to be
+            # drizzled, we just want to set up the pydrizzle object
+            #
+            _refimg = pydrizzle.wcsutil.WCSObject(pars['refimage'])
+            refimg_wcs = _refimg.copy()
+
+            # If the user also specified a rotation to be applied,
+            # apply that as well...
+            if pars['rot']:
+                _orient = pars['rot']
+            else:
+                _orient = refimg_wcs.orientat
+
+           # Now, build output WCS using the SkyField class
+            # and default product's WCS as the initial starting point.
+            #
+            _sky_field = pydrizzle.SkyField(wcs=refimg_wcs)
+            # Update with user specified scale and rotation
+            _sky_field.set(psize=pars['scale'],orient=_orient)
+
+        elif pars['rot']   != None  or \
+             pars['scale'] != None or \
+             pars['ra']    != None:
+
+            _sky_field = pydrizzle.SkyField()
+
+            if pars['rot'] == None:
+                _orient = self.assoc.observation.product.geometry.wcslin.orient
+            else:
+                _orient = pars['rot']
+
+            print 'Default orientation for output: ',_orient,'degrees'
+
+            _sky_field.set(psize=pars['scale'], orient=_orient,
+                           ra=pars['ra'], dec=pars['dec'])
+
+        # Now that we have built the output frame, let the user know
+        # what was built...
+        if _sky_field != None:
+            print ('\n Image parameters computed from reference image WCS: \n')
+            print _sky_field.wcs
+
+        # Apply user-specified output to ASN using the resetPars method.
+        # If field==None, it will simply reset to default case.
+        #
+        self.assoc.resetPars(field=_sky_field,
+                            pixfrac=pars['pixfrac'],
+                            kernel=pars['kernel'])
+
     def doDrizSeparate(self, pars):
 
         """ Drizzle separate input images. """
+        
+        # Start by applying input parameters to redefine
+        # the output frame as necessary
+        self._setOutputFrame(pars)
 
         for p in self.assoc.parlist:
 
@@ -405,12 +463,7 @@ class ImageManager:
 
             # NB DO NOT USE "tophat" unless pixfrac is sufficiently
             # large (> sqrt(2))
-            if pars['outnx'] != None:
-                p['outnx'] = pars['outnx']
-            if pars['outny'] != None:
-                p['outny'] = pars['outny']
-            p['kernel']  = pars['kernel']
-            p['pixfrac'] = pars['pixfrac']
+            
             p['fillval'] = pars['fillval']
             # Copy out filename for 'driz_mask' and
             # replace with static_mask Numarray object
@@ -419,23 +472,6 @@ class ImageManager:
                 p['driz_mask'] = self.static_mask.getMask(p['image'].signature())
             else:
                 p['driz_mask'] = None
-
-##            print p['data']
-##            print p['outsingle']
-##            print p['outsweight']
-##            print ['outscontext']
-##            print p['kernel']
-##            print str(p['outnx'])
-##            print str(p['outny'])
-##            print str(p['xsh'])
-##            print str(p['ysh'])
-##            print str(p['scale'])
-##            print str(p['pixfrac'])
-##            print str(p['rot'])
-##            print p['coeffs']
-##            print p['wt_scl']
-##            print p['units']
-##            print p['fillval']
 
             print("\ndrizzle data='"+p['data']+"' outdata='"+p['outsingle']+"' outweig='"+p['outsweight']+
                 "' outcont='"+p['outscontext']+"' in_mask='static_mask"+"' kernel='"+p['kernel']+
@@ -779,28 +815,58 @@ class ImageManager:
             _final_shape = (drizpars['outnx'],drizpars['outny'])
         else:
             _final_shape = None
+        _new_field = None
 
         # Make sure parameters are set to original values
         self.assoc.resetPars()
 
-        if _final_shape != None or \
+        if drizpars['refimage'] != '' and drizpars['refimage'] != None:
+            # Use the following if the refimage isn't actually going to be
+            # drizzled, we just want to set up the pydrizzle object
+            #
+            _refimg = pydrizzle.wcsutil.WCSObject(drizpars['refimage'])
+            refimg_wcs = _refimg.copy()
+
+            # If the user also specified a rotation to be applied,
+            # apply that as well...
+            if drizpars['rot']:
+                _orient = drizpars['rot']
+            else:
+                _orient = refimg_wcs.orientat
+
+           # Now, build output WCS using the SkyField class
+            # and default product's WCS as the initial starting point.
+            #
+            _new_field = pydrizzle.SkyField(wcs=refimg_wcs)
+            # Update with user specified scale and rotation
+            _new_field.set(psize=drizpars['scale'],orient=_orient)
+        
+        elif _final_shape != None or \
             drizpars['scale'] != None or \
-            drizpars['rot'] != None:
+            drizpars['rot'] != None or\
+            drizpars['ra'] != None:
 
             _new_field = pydrizzle.SkyField(shape=_final_shape)
+
             #_orientat = self.assoc.observation.product.geometry.wcslin.orient
             #_new_field.set(psize=scale, orient=_orientat + rot)
-            _new_field.set(psize=drizpars['scale'], orient=drizpars['rot'])
+            _new_field.set(psize=drizpars['scale'], orient=drizpars['rot'],
+                            ra=drizpars['ra'], dec=drizpars['dec'])
 
+        if _new_field != None:
             # Before resetting the parameters, make a copy of the 'image' parameters
             # in the parlist
             _plist_orig = []
             for p in self.assoc.parlist:
                 _plist_orig.append(p['image'])
 
-            # Now, reset parameters to final values
-            self.assoc.resetPars(field=_new_field)
-
+        # Now, reset parameters to final values
+        # We always want to insure that pixfrac and kernel are reset
+        self.assoc.resetPars(field=_new_field,
+                    pixfrac=drizpars['pixfrac'], 
+                    kernel=drizpars['kernel'])
+                    
+        if _new_field != None:
             # Restore the 'image' parameters to the newly updated parlist
             for _nimg in xrange(len(self.assoc.parlist)):
                 self.assoc.parlist[_nimg]['image'] = _plist_orig[_nimg]
@@ -809,8 +875,8 @@ class ImageManager:
             # These should be taken care of with .resetPars
             #if outnx != None: p['outnx'] = final_outnx
             #if outny != None: p['outny'] = final_outny
-            p['kernel']  = drizpars['kernel']
-            p['pixfrac'] = drizpars['pixfrac']
+            #p['kernel']  = drizpars['kernel']
+            #p['pixfrac'] = drizpars['pixfrac']
             p['fillval'] = drizpars['fillval']
 
         print("drizzle.outnx = "+str(self.assoc.parlist[0]['outnx']))

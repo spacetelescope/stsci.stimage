@@ -70,8 +70,8 @@ class ACSInputImage (InputImage):
         """
         if self._isNotValid (instrpars['gain'], instrpars['gnkeyword']):
             instrpars['gnkeyword'] = 'ATODGNA,ATODGNB,ATODGNC,ATODGND'
-        if self._isNotValid (instrpars['rdnoise'], instrpars['rdnkeyword']):
-            instrpars['rdnkeyword'] = 'READNSEA,READNSEB,READNSEC,READNSED'
+        if self._isNotValid (instrpars['rdnoise'], instrpars['rnkeyword']):
+            instrpars['rnkeyword'] = 'READNSEA,READNSEB,READNSEC,READNSED'
         if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
             instrpars['expkeyword'] = 'EXPTIME'
         if instrpars['crbit'] == None or instrpars['crbit'] == 0:
@@ -80,7 +80,7 @@ class ACSInputImage (InputImage):
         self._gain      = self.getInstrParameter(instrpars['gain'], pri_header,
                                                  instrpars['gnkeyword'])
         self._rdnoise   = self.getInstrParameter(instrpars['rdnoise'], pri_header,
-                                                 instrpars['rdnkeyword'])
+                                                 instrpars['rnkeyword'])
         self._exptime   = self.getInstrParameter(instrpars['exptime'], pri_header,
                                                  instrpars['expkeyword'])
         self._crbit     = instrpars['crbit']
