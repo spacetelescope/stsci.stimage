@@ -7,8 +7,9 @@
 #           Version 0.1.1 07/29/04 -- Plate scale is now defined by the Pydrizzle
 #               exposure class by use of a plate scale variable passed in through
 #               the constructor.
+#           Version 0.2.0 08/30/04 -- Added support for NUV and FUV MAMAs.
 
-__version__ = '0.1.1'
+__version__ = '0.2.0'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -102,7 +103,7 @@ class STISInputImage (InputImage):
         del __handle
         del __sciext
 
-class CCDInputImage (STISInputImage):
+class CCDInputImage(STISInputImage):
 
     def __init__(self, input, dqname, platescale, memmap=1):
         STISInputImage.__init__(self,input,dqname,platescale,memmap=1)
@@ -110,5 +111,47 @@ class CCDInputImage (STISInputImage):
         self.full_shape = (1024,1024)
         self.platescale = platescale
 
+class NUVInputImage(STISInputImage):
+    def __init__(self, input, dqname, platescale, memmap=1):
+        STISInputImage.__init__(self,input,dqname,platescale,memmap=1)
+        self.instrument = 'STIS/NUV-MAMA'
+        self.full_shape = (1024,1024)
+        self.platescale = platescale
+
+    def setInstrumentParameters(self, instrpars, pri_header):
+        """ This method overrides the superclass to set default values into
+            the parameter dictionary, in case empty entries are provided.
+        """
+        if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
+            instrpars['expkeyword'] = 'EXPTIME'
+        if instrpars['crbit'] == None or instrpars['crbit'] == 0:
+            instrpars['crbit'] = self.cr_bits_value
+
+        self._gain      = 1
+        self._rdnoise   = 0
+        self._exptime   = self.getInstrParameter(instrpars['exptime'], pri_header,
+                                                 instrpars['expkeyword'])
+        self._crbit     = instrpars['crbit']
 
 
+class FUVInputImage(STISInputImage):
+    def __init__(self, input, dqname, platescale, memmap=1):
+        STISInputImage.__init__(self,input,dqname,platescale,memmap=1)
+        self.instrument = 'STIS/FUV-MAMA'
+        self.full_shape = (1024,1024)
+        self.platescale = platescale
+
+    def setInstrumentParameters(self, instrpars, pri_header):
+        """ This method overrides the superclass to set default values into
+            the parameter dictionary, in case empty entries are provided.
+        """
+        if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
+            instrpars['expkeyword'] = 'EXPTIME'
+        if instrpars['crbit'] == None or instrpars['crbit'] == 0:
+            instrpars['crbit'] = self.cr_bits_value
+
+        self._gain      = 1
+        self._rdnoise   = 0
+        self._exptime   = self.getInstrParameter(instrpars['exptime'], pri_header,
+                                                 instrpars['expkeyword'])
+        self._crbit     = instrpars['crbit']

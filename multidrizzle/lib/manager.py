@@ -25,7 +25,9 @@
 #               create median step now gets its' sky value with the getreferencesky method.  -- CJH
 #           Version 0.1.44, 08/02/04 -- Added support for the application of inverse variance maps in
 #               the final drizzle step.  -- CJH
+#           Version 0.1.45, 08/30/04 -- Added support for the STIS NUV and FUV MAMAs.  -- CJH
 
+ 
 # Import Numarray functionality
 import numarray.image.combine as combine
 import numarray as N
@@ -41,7 +43,7 @@ from pydrizzle import fileutil,drutil,buildmask
 # Import support for specific HST Instruments
 from acs_input import WFCInputImage, HRCInputImage, SBCInputImage
 from wfpc2_input import WFPC2InputImage, PCInputImage, WF2InputImage, WF3InputImage, WF4InputImage
-from stis_input import CCDInputImage
+from stis_input import CCDInputImage, FUVInputImage, NUVInputImage
 
 # Import general tools
 import imagestats
@@ -55,7 +57,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter
 
-__version__ = '0.1.44'
+__version__ = '0.1.45'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -253,6 +255,8 @@ class ImageManager:
             if _detector == 4: return WF4InputImage(input,_dqname,_platescale,memmap=0)
         if _instrument == 'STIS': 
             if _detector == 'CCD': return CCDInputImage(input,_dqname,_platescale,memmap=0)
+            if _detector == 'FUV-MAMA': return FUVInputImage(input,_dqname,_platescale,memmap=0)
+            if _detector == 'NUV-MAMA': return NUVInputImage(input,_dqname,_platescale,memmap=0)
 
         # If a supported instrument is not detected, print the following error message
         # and raise an exception.

@@ -22,7 +22,7 @@ from geissupport import *
 
 import makewcs
 
-__version__ = '2.2.2 (27 August 2004)'
+__version__ = '2.3.0 (31 August 2004)'
 
 def versioninfo():
     """ Print version information for packages used by Multidrizzle """
