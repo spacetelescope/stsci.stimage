@@ -20,7 +20,7 @@ from geissupport import *
 
 import makewcs
 
-__version__ = '2.1.0 (20 July 2004)'
+__version__ = '2.1.1 (23 July 2004)'
 
 def printout(text):
     print(' *** ' + text + '\n ***')
@@ -701,9 +701,6 @@ class Multidrizzle:
                 shutil.copyfile(_img,_copy)
 
     def _checkInputFiles(self, files):
-
-        """ Checks input files before they are required later. """
-
         """ Checks that MAKEWCS is run on any ACS image in 'files' list. """
         for p in files:
 
@@ -802,7 +799,7 @@ class Multidrizzle:
 
         # Run PyDrizzle; make sure there are no intermediate products
         # laying around...
-        assoc = pydrizzle.PyDrizzle(driz_asn_file,
+        assoc = pydrizzle.PyDrizzle(driz_asn_file, idckey=self.coeffs,
                                     section=self.driz_sep_pars['group'],
                                     prodonly=False)
 
