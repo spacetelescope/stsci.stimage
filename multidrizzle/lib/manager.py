@@ -57,7 +57,8 @@
 #                                       single and final drizzle steps has been removed from createStatic and moved into
 #                                       __init_  for ImageManager.  This is to allow for the use of a static file even if
 #                                       the createStatic step is turned off.
-#
+#           Version 1.4.0,  03/10/05 -- Modified the createMedian step to use imagestats to compute the mean of the 
+#                                       weight image instead of the numarray mean method.  -- CJH
 
 # Import Numarray functionality
 import numarray.image.combine as combine
@@ -737,7 +738,8 @@ class ImageManager:
                     #print 'Outsweight filename: ',p['outsweight']
                     self.weight_handles.append(_weight_file)
                     #self.weight_list.append(_weight_file[0].data)
-                    _wht_mean.append(_weight_file[0].data.mean() * 0.7)
+                    tmp_mean_value = ImageStats(_weight_file[0].data,lower=1e-8,lsig=None,usig=None,fields="mean",nclip=0)
+                    _wht_mean.append(tmp_mean_value.mean * 0.7)
                     # Clear the memory used by reading in the whole data array for
                     # computing the mean.  This requires that subsequent access to
                     # the data values happens through the 'section' attribute of the HDU.

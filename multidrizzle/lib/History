@@ -1,5 +1,13 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.5.5: 03/10/05 -- CJH
+    The createMedian method withing the ImageManager class has been modified
+    to compute the mean value of the singe weight images using imagestats
+    instead of the numarray mean method.  This allows the mean to be computed
+    ignoring the 0 pixel value buffer pixels.  This prevents those pixels
+    from biasing the mean of the weight image towards a lower value than
+    it really has.
+
 Version 2.5.4: 03/09/05 -- CJH
     The internal Multidrizzle method _checkInputFiles() has been modified
     to search for SPT files when a PA_V3 value has not been found in primary
