@@ -261,7 +261,7 @@ class MDrizPars (HasTraits):
             'rnkeyword':Trait('',None,TraitString()), 
             'exptime':Trait('',None,TraitString()),
             'expkeyword':Trait('',None,TraitString()), 
-            'crbit': Trait(64,AnyValue),
+            'crbit': Trait(0,AnyValue),
             'static':Trait(True, true_boolean, editor=bit_editor), 
             'skysub':Trait(True, true_boolean, editor=bit_editor), 
             'driz_separate':Trait(True, true_boolean, editor=bit_editor),
