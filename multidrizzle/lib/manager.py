@@ -160,7 +160,8 @@ class ImageManager:
                 # No array has been created yet, so initialize it now...
                 _mask_array = N.ones(p['image'].image_shape,N.UInt8)
                 # We also need to create a name for the mask array file
-                p['image'].maskname = buildmask.buildMaskName(p['image'].rootname,p['image'].grp)
+#                p['image'].maskname = buildmask.buildMaskName(p['image'].rootname,p['image'].grp)
+                p['image'].maskname = p['exposure'].maskname
 
                 self._buildMaskImage(p['image'].maskname,_mask_array)
                 del _mask_array
@@ -364,7 +365,7 @@ class ImageManager:
             # If there is going to be a sepearte mask for the single drizzle step and it is different
             # from the mask used for the final drizzle step it will also need to be updated with the 
             # static mask information
-            if ( (p['image'].singlemaskname != None) and (p['image'].singlemaskname != p['image'].maskname) ):
+            if ( ((p['image'].singlemaskname != None) and (p['image'].singlemaskname != '')) and (p['image'].singlemaskname != p['image'].maskname) ):
                 __handle = fileutil.openImage(p['image'].singlemaskname,mode='update')
                 __static_array = self.static_mask.getMask(p['image'].signature())
 
