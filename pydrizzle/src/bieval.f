@@ -28,7 +28,6 @@ C
       real x(npts), y(npts), zfit(npts)
       integer nx, ny
       integer index, i
-      integer i
       save
 
       do i = 1, npts 
