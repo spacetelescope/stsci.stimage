@@ -1,11 +1,27 @@
 Multidrizzle Revision History
 -----------------------------
+
+Version 2.3.6: 10/13/04 -- WJH/CJH
+    Have updated the minmed.py module to improve error handling and
+    reporting in the case when the boxcar convolution within minmed
+    fails.  
+
+    Manager was updated to use an overlap region when
+    iterating through images in the combine_median step.  This is
+    to insure that the section size used is always at least as large
+    as the kernel uxed in the boxcar for minmed.
+
+    Finally, nimageiterator was modified to apply overlap regions
+    correctly.
+
 Version 2.3.5: 10/08/04 -- CJH
     Have updated the mdrizpars.py module with new default parameter
     values as specfied by Anton Koekmoer.
+
 Version 2.3.4: 10/05/04 -- CJH/WJH
     Added logic to treat STIS sky subtraction differently than all
     other instruments. 
+
 Version 2.3.3: 09/30/04 -- CJH
     Modified the DrizCR rountines to include the input image's combined
     primary and extension headers in the primary header of the resulting 

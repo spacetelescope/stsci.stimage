@@ -8,7 +8,8 @@
 #      Version 0.1.0: Initial Development -- CJH -- 02/11/04
 #      Version 0.1.1: Cast boxsize as type int.  This should always be the case
 #       anyways but this protects against errors in the MDRIZTAB -- CJH/WJH -- 07/08/04
-
+#      Version 0.1.2: Improve error message handing in the case where the boxcar
+#       convolution step fails.  --CJH -- 10/13/04
 
 import numarray
 import imagestats
@@ -16,7 +17,7 @@ import numcombine
 from numcombine import numCombine
 import numarray.convolve as NC
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 class minmed:
     """ Create a median array, rejecting the highest pixel and computing the lowest valid pixel after mask application"""
 
@@ -192,7 +193,47 @@ class minmed:
             __boxsize = int(2 * self.__combine_grow + 1)
             __boxshape = (__boxsize,__boxsize)
             __minimum_grow_file = numarray.zeros(self.__imageList[0].shape,type=self.__imageList[0].type())
-            NC.boxcar(__minimum_flag_file,__boxshape,output=__minimum_grow_file,mode='constant',cval=0)
+            # Attempt the boxcar convolution using the boxshape based upon the user input value of "grow"
+            try:
+                NC.boxcar(__minimum_flag_file,__boxshape,output=__minimum_grow_file,mode='constant',cval=0)
+            except:
+                # If the boxcar convolution has failed it is potentially for two reasons:
+                #   1) The kernel size for the boxcar is bigger than the actual image.
+                #   2) The grow parameter was specified with a value < 0.  This would result
+                #      in an illegal boxshape kernel.  The dimensions of the kernel box *MUST*
+                #      be integer and greater than zero.
+                #
+                #   If the boxcar convolution has failed, try to give a meaningfull explanation
+                #   as to why based upon the conditionals described above.
+                
+                if (__boxsize <= 0):
+                    errormsg1 =  "############################################################\n"
+                    errormsg1 += "# The boxcar convolution in minmed has failed.  The 'grow' #\n"
+                    errormsg1 += "# parameter must be greater than or equal to zero. You     #\n"
+                    errormsg1 += "# specified an input value for the 'grow' parameter of:    #\n"
+                    errormsg1 += "        combine_grow: " + str(self.__combine_grow)+'\n'
+                    errormsg1 += "############################################################\n"
+                    raise ValueError,errormsg1
+                elif (_boxsize > self.__imageList[0].shape[0]):
+                    errormsg2 =  "############################################################\n"
+                    errormsg2 += "# The boxcar convolution in minmed has failed.  The 'grow' #\n"
+                    errormsg2 += "# parameter specified has resulted in a boxcar kernel that #\n"
+                    errormsg2 += "# has dimensions larger than the actual image.  You        #\n"
+                    errormsg2 += "# specified an input value for the 'grow' parameter of:    #\n"
+                    errormsg2 += "        combine_grow: " +str(self.__combine_grow)+'\n'
+                    errormsg2 += "############################################################\n"
+                    raise ValueError,errormsg2
+                else:
+                    errormsg3 =  "############################################################\n"
+                    errormsg3 += "# The boxcar convolution in minmed has failed.  Possilbe   #\n"
+                    errormsg3 += "# causes include an invalid convolution kernel caused by a #\n"
+                    errormsg3 += "# combine_grow parameter value that was either negative or #\n"
+                    errormsg3 += "# larger than the smallest dimension of an input image.    #\n"
+                    errormsg3 += "############################################################\n"
+                    raise ValueError,errormsg3
+
+                
+            
             del(__minimum_flag_file)
 
             __temp1 = (__median_file_weighted - (__rms_file * self.__combine_nsigma1))
