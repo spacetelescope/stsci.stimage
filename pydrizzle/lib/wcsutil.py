@@ -13,6 +13,7 @@ no = False
 DEGTORAD = fileutil.DEGTORAD
 RADTODEG = fileutil.RADTODEG
 DIVMOD = fileutil.DIVMOD
+DEFAULT_PREFIX = 'O'
 
 #
 # History
@@ -33,10 +34,17 @@ DIVMOD = fileutil.DIVMOD
 # 5-Feb-2004 WJH:  Added 'recenter' method to rigorously shift the WCS from
 #                   an off-center reference pixel position to the frame center
 #
+# 24-Jan-2005 WJH: Added methods and attributes for working with archived
+#                   versions of WCS keywords.  Archived keywords will be
+#                   treated as 'read-only' if they already exist, unless
+#                   specifically overwritten.
 #
 
+__version__ = '0.9.0 (24-Jan-2005)'
 
-
+def help():
+    print 'wcsutil Version '+str(__version__)+':\n'
+    print WCSObject.__doc__
 #################
 #
 #
@@ -161,17 +169,56 @@ class WCSObject:
             input exposure's header and provide conversion functionality
             from pixels to RA/Dec and back.
 
-        It knows how to update the CD matrix for the new solution.
+        Syntax:
+            wcs = wcsutil.WCSObject(rootname,header=None,shape=None,
+                                    pa_key='PA_V3',new=no,prefix=None)
+        Parameters:
+            rootname: filename in a format supported by IRAF, specifically:
+                filename.hhh[group] -or-
+                filename.fits[ext] -or-
+                filename.fits[extname,extver]
+            header:   PyFITS header object from which WCS keywords can be read
+            shape:    tuple giving (nx,ny,pscale)
+            pa_key:   name of keyword to read in telescopy orientation
+            new:      specify a new object rather than creating one by
+                        reading in keywords from an existing image
+            prefix:   string to use as prefix for creating archived versions
+                        of WCS keywords, if such keywords do not already exist
 
-        rootname: this needs to be in a format supported by IRAF
-        and 'hselect', specifically:
-                filename.hhh[group] or filename.fits[ext]
+            Setting 'new=yes' will create a WCSObject from scratch
+                regardless of any input rootname.  This avoids unexpected
+                filename collisions.
+        Methods:
+            print_archive(format=True) - print out archive keyword values
+            get_archiveke(keyword)     - return archived value for WCS keyword
+            set_pscale()               - set pscale attribute for object
+            compute_pscale(cd11,cd21)  - compute pscale value
+            updateWCS(pixel_scale=None,orient=None,refpos=None,refval=None,size=None)
+                                       - reset entire WCS based on given values
+            xy2rd(pos)                 - compute RA/Dec position for given (x,y) tuple
+            rd2xy(skypos,hour=no)      - compute X,Y position for given (RA,Dec)
+            rotateCD(orient)           - rotate CD matrix to new orientation
+                                            given by 'orient'
+            recenter()                 - Reset reference position to X,Y center of frame
+            write(fitsname=None,archive=True,overwrite=False,quiet=True)
+                                       - write out values of WCS to specified file
+            restore()                  - reset WCS keyword values to those from
+                                            archived values
+            read_archive(header,prepend=None)
+                                       - read any archive WCS keywords from PyFITS header
+            archive(prepend=None,overwrite=no,quiet=yes)
+                                       - create archived copies of WCS keywords.
+            write_archive(fitsname=None,overwrite=no,quiet=yes)
+                                       - write out the archived WCS values to the file
+            restoreWCS(prepend=None)   - resets WCS values in file to original values
+            createReferenceWCS(refname,overwrite=yes)
+                                       - write out values of WCS keywords to NEW FITS
+                                         file without any image data
+            copy(deep=True)            - create a copy of the WCSObject.
+            help()                     - prints out this help message
 
-        Setting 'new=yes' will create a WCSObject from scratch
-            regardless of any input rootname.  This avoids unexpected
-            filename collisions.
     """
-    def __init__(self, rootname,header=None,shape=None,pa_key='PA_V3',new=no):
+    def __init__(self, rootname,header=None,shape=None,pa_key='PA_V3',new=no,prefix=None):
         # Initialize wcs dictionaries:
         #   wcsdef - default values for new images
         #   wcstrans - translation table from header keyword to attribute
@@ -222,7 +269,8 @@ class WCSObject:
         # expanded version of the filename, plus any sections listed by
         # by the user in the original rootname.
         if not header and _exists:
-            _header = fileutil.getHeader(_filename+self.rootname[_indx:])
+            _hdr_file = _filename+self.rootname[_indx:]
+            _header = fileutil.getHeader(_hdr_file)
         else:
             # Otherwise, simply use the header already read into memory
             # for this exposure/chip.
@@ -285,7 +333,8 @@ class WCSObject:
             self.pa_obs = self.orient
 
         if shape == None:
-            self.pscale = N.sqrt(N.power(self.cd11,2)+N.power(self.cd21,2)) * 3600.
+            self.set_pscale()
+            #self.pscale = N.sqrt(N.power(self.cd11,2)+N.power(self.cd21,2)) * 3600.
             # Use Jacobian determination of pixel scale instead of X or Y separately...
             #self.pscale = N.sqrt(abs(self.cd11*self.cd22 - self.cd12*self.cd21))*3600.
 
@@ -299,8 +348,15 @@ class WCSObject:
 
         # Keep track of the keyword names used as the backup keywords
         # for the original WCS values
+        #    backup - dict relating active keywords with backup keywords
+        #    prepend - string prepended to active keywords to create backup keywords
+        #    orig_wcs - dict containing orig keywords and values
         self.backup = {}
+        self.revert = {}
         self.prepend = None
+        self.orig_wcs = {}
+        # Read in any archived WCS keyword values, if they exist
+        self.read_archive(_header,prepend=prefix)
 
     # You never know when you want to print out the WCS keywords...
     def __str__(self):
@@ -309,7 +365,9 @@ class WCSObject:
             for key in self.wcstrans.keys():
                 _dkey = self.wcstrans[key]
                 strn = string.upper(key) + " = " + repr(self.__dict__[_dkey]) + '\n'
-                block = block + strn
+                block += strn
+            block += 'PA_V3: '+repr(self.pa_obs)+'\n'
+
         else:
             block += 'CD_11  CD_12: '+repr(self.cd11)+'  '+repr(self.cd12) +'\n'
             block += 'CD_21  CD_22: '+repr(self.cd21)+'  '+repr(self.cd22) +'\n'
@@ -319,12 +377,45 @@ class WCSObject:
             block += 'Plate Scale : '+repr(self.pscale)+'\n'
             block += 'ORIENTAT    : '+repr(self.orient)+'\n'
             block += 'CTYPE       : '+repr(self.ctype1)+'  '+repr(self.ctype2)+'\n'
+            block += 'PA Telescope: '+repr(self.pa_obs)+'\n'
 
-        block += 'PA Telescope: '+repr(self.pa_obs)+'\n'
         return block
 
     def __repr__(self):
         return repr(self.__dict__)
+
+    def print_archive(self,format=True):
+        """ Prints out archived WCS keywords."""
+        if len(self.orig_wcs.keys()) > 0:
+            block  = 'Original WCS keywords for ' + self.rootname+ '\n'
+            block += '    backed up on '+repr(self.orig_wcs['WCSCDATE'])+'\n'
+            if not format:
+                for key in self.wcstrans.keys():
+                    block += string.upper(key) + " = " + repr(self.get_archivekw(key)) + '\n'
+                block = 'PA_V3: '+repr(self.pa_obs)+'\n'
+
+            else:
+                block += 'CD_11  CD_12: '+repr(self.get_archivekw('CD1_1'))+'  '+repr(self.get_archivekw('CD1_2')) +'\n'
+                block += 'CD_21  CD_22: '+repr(self.get_archivekw('CD2_1'))+'  '+repr(self.get_archivekw('CD2_2')) +'\n'
+                block += 'CRVAL       : '+repr(self.get_archivekw('CRVAL1'))+'  '+repr(self.get_archivekw('CRVAL2')) + '\n'
+                block += 'CRPIX       : '+repr(self.get_archivekw('CRPIX1'))+'  '+repr(self.get_archivekw('CRPIX2')) + '\n'
+                block += 'NAXIS       : '+repr(int(self.get_archivekw('NAXIS1')))+'  '+repr(int(self.get_archivekw('NAXIS2'))) + '\n'
+                block += 'Plate Scale : '+repr(self.get_archivekw('pixel scale'))+'\n'
+                block += 'ORIENTAT    : '+repr(self.get_archivekw('ORIENTAT'))+'\n'
+
+            print block
+
+    def get_archivekw(self,keyword):
+        """ Return an archived/backup value for the keyword. """
+        return self.orig_wcs[self.backup[keyword]]
+
+    def set_pscale(self):
+        """ Compute the pixel scale based on active WCS values. """
+        self.pscale = self.compute_pscale(self.cd11,self.cd21)
+
+    def compute_pscale(self,cd11,cd21):
+        """ Compute the pixel scale based on active WCS values. """
+        return N.sqrt(N.power(cd11,2)+N.power(cd21,2)) * 3600.
 
     def updateWCS(self, pixel_scale=None, orient=None,refpos=None,refval=None,size=None):
         """
@@ -558,7 +649,7 @@ class WCSObject:
         _cd22n = self.cd12 * _ddec_dE + self.cd22 * _ddec_dN
 
         _new_orient = RADTODEG(N.arctan2(_cd12n,_cd22n))
-        _new_pscale = N.sqrt(N.power(_cd11n,2)+N.power(_cd21n,2)) * 3600.
+        #_new_pscale = N.sqrt(N.power(_cd11n,2)+N.power(_cd21n,2)) * 3600.
 
         # Update the values now...
         self.crpix1 = _cen[0]
@@ -575,9 +666,10 @@ class WCSObject:
         self.cd12 = _cd12n
         self.cd21 = _cd21n
         self.cd22 = _cd22n
-        self.pscale = _new_pscale
+        #self.pscale = _new_pscale
+        self.set_pscale()
 
-    def write(self,fitsname=None):
+    def write(self,fitsname=None,archive=True,overwrite=False,quiet=True):
         """ Write out the values of the WCS keywords to the
             specified image.
 
@@ -586,6 +678,9 @@ class WCSObject:
             FITS copy of the GEIS and update that file. Otherwise, it
             throw an Exception if the user attempts to directly update
             a GEIS image header.
+
+            If archive=True, also write out archived WCS keyword values to file.
+            If overwrite=True, replace archived WCS values in file with new values.
         """
         image = self.rootname
         _fitsname = fitsname
@@ -611,9 +706,108 @@ class WCSObject:
         # Close the file
         fimg.close()
         del fimg
+        if archive:
+            self.write_archive(fitsname=fitsname,overwrite=overwrite,quiet=quiet)
 
+    def restore(self):
+        """ Reset the active WCS keywords to values stored in the
+            backup keywords.
+        """
+        # If there are no backup keys, do nothing...
+        if len(self.backup.keys()) == 0:
+            return
+        for key in self.backup.keys():
+            if key != 'WCSCDATE':
+                self.__dict__[self.wcstrans[key]] = self.orig_wcs[self.backup[key]]
 
-    def savecopy(self,prepend,fitsname=None):
+        self.set_pscale()
+
+    def archive(self,prepend=None,overwrite=no,quiet=yes):
+        """ Create backup copies of the WCS keywords with the given prepended
+            string.
+            If backup keywords are already present, only update them if
+            'overwrite' is set to 'yes', otherwise, do warn the user and do nothing.
+            Set the WCSDATE at this time as well.
+        """
+        # Verify that existing backup values are not overwritten accidentally.
+        if len(self.backup.keys()) > 0 and overwrite == no:
+            if not quiet:
+                print 'WARNING: Backup WCS keywords already exist! No backup made.'
+                print '         The values can only be overridden if overwrite=yes.'
+            return
+
+        # Establish what prepend string to use...
+        if prepend == None:
+            if self.prepend != None:
+                _prefix = self.prepend
+            else:
+                _prefix = DEFAULT_PREFIX
+        else:
+            _prefix = prepend
+
+        # Update backup and orig_wcs dictionaries
+        # We have archive keywords and a defined prefix
+        # Go through and append them to self.backup
+        self.prepend = _prefix
+        for key in self.wcstrans.keys():
+            if key != 'pixel scale':
+                _archive_key = self._buildNewKeyname(key,_prefix)
+            else:
+                _archive_key = self.prepend.lower()+'pscale'
+#            if key != 'pixel scale':
+            self.orig_wcs[_archive_key] = self.__dict__[self.wcstrans[key]]
+            self.backup[key] = _archive_key
+            self.revert[_archive_key] = key
+
+        # Setup keyword to record when these keywords were backed up.
+        self.orig_wcs['WCSCDATE']= fileutil.getLTime()
+        self.backup['WCSCDATE'] = 'WCSCDATE'
+        self.revert['WCSCDATE'] = 'WCSCDATE'
+
+    def read_archive(self,header,prepend=None):
+        """ Extract a copy of WCS keywords from an open file header,
+            if they have already been created and remember the prefix
+            used for those keywords. Otherwise, setup the current WCS
+            keywords as the archive values.
+        """
+        # Start by looking for the any backup WCS keywords to
+        # determine whether archived values are present and to set
+        # the prefix used.
+        # Look for 'CRVAL1'.
+        _prefix = None
+        _archive = False
+        if header != None:
+            for kw in header.items():
+                if kw[0][1:] == 'CRVAL1':
+                    _prefix = kw[0][0]
+                    _archive = True
+                    break
+        if not _archive:
+            self.archive(prepend=prepend)
+            return
+
+        # We have archive keywords and a defined prefix
+        # Go through and append them to self.backup
+        self.prepend = _prefix
+        for key in self.wcstrans.keys():
+            _archive_key = self._buildNewKeyname(key,_prefix)
+            if key != 'pixel scale':
+                self.orig_wcs[_archive_key] = header[_archive_key]
+                self.backup[key] = _archive_key
+                self.revert[_archive_key] = key
+        # Establish plate scale value
+        pscale = self.compute_pscale(self.orig_wcs['OCD1_1'],self.orig_wcs['OCD2_1'])
+        _archive_key = self.prepend.lower()+'pscale'
+        self.orig_wcs[_archive_key] = pscale
+        self.backup['pixel scale'] = _archive_key
+        self.revert[_archive_key] = 'pixel scale'
+
+        # Setup keyword to record when these keywords were backed up.
+        self.orig_wcs['WCSCDATE'] = header['WCSCDATE']
+        self.backup['WCSCDATE'] = 'WCSCDATE'
+        self.revert['WCSCDATE'] = 'WCSCDATE'
+
+    def write_archive(self,fitsname=None,overwrite=no,quiet=yes):
         """ Saves a copy of the WCS keywords from the image header
             as new keywords with the user-supplied 'prepend'
             character(s) prepended to the old keyword names.
@@ -624,17 +818,6 @@ class WCSObject:
 
         """
         _fitsname = fitsname
-
-        # Insure that the 'prepend' string is not too long: >2 chars
-        # Otherwise final modified keyword would be too long for FITS card.
-        if len(prepend) > 2:
-            _prepend = prepend[:2]
-            print 'WARNING: Trimming prepend string to: ',_prepend
-        else:
-            _prepend = prepend
-
-        # Remember this prepend string for use in 'restoreWCS'
-        self.prepend = _prepend
 
         # Open image in update mode
         #    Copying of GEIS images handled by 'openImage'.
@@ -650,41 +833,40 @@ class WCSObject:
         _extn = fileutil.getExtn(fimg,_iextn)
 
         # Write out values to header...
-        for key in self.wcstrans.keys():
-            _dkey = self.wcstrans[key]
-            if _dkey != 'pscale':
-                # Extract the value for the original keyword
-                if _extn.header.has_key(key):
-                    _value = _extn.header[key]
+        for key in self.orig_wcs.keys():
+            _comment = None
+            _dkey = self.revert[key]
 
-                    # Extract any comment string for the keyword as well
-                    _indx_key = _extn.header.ascard.index_of(key)
-                    _full_key = _extn.header.ascard[_indx_key]
-                    _indx_comment = _full_key.ascardimage().find('/')
-                    if _indx_comment < 0:
-                        _comment = None
-                    else:
-                        _comment = _full_key.ascardimage()[_indx_comment+1:].strip()
-                else:
-                    # Pull value originally read from image,
-                    # which probably means the value came from the
-                    # Primary header
-                    _value = self.__dict__[_dkey]
+            # Verify that archive keywords will not be overwritten,
+            # unless overwrite=yes.
+            _old_key = _extn.header.has_key(key)
+            if  _old_key == True and overwrite == no:
+                if not quiet:
+                    print 'Existing backup values for WCS keywords already exist!'
+                    print '   No changes will be made. '
+                break
+
+            # No archive keywords exist yet in file, or overwrite=yes...
+            # Extract the value for the original keyword
+            if _extn.header.has_key(_dkey):
+
+                # Extract any comment string for the keyword as well
+                _indx_key = _extn.header.ascard.index_of(_dkey)
+                _full_key = _extn.header.ascard[_indx_key]
+                _indx_comment = _full_key.ascardimage().find('/')
+                if _indx_comment < 0:
                     _comment = None
+                else:
+                    _comment = _full_key.ascardimage()[_indx_comment+1:].strip()
 
-                # Update header with new keyword
-                _new_key = self._buildNewKeyname(key,_prepend)
+                _extn.header.update(key,self.orig_wcs[key],comment=_comment)
 
-                # Keep a record of the new keywords and what original
-                # keywords they corresponded to...
-                self.backup[_new_key] = key
-
-                _extn.header.update(_new_key,_value,comment=_comment)
-
-                # Print out history keywords to record when these keywords
-                # were backed up.
-                _extn.header.update('WCSCDATE',fileutil.getLTime(),
-                        comment = "Time WCS keywords were copied.")
+        key = 'WCSCDATE'
+        if not _extn.header.has_key(key):
+            # Print out history keywords to record when these keywords
+            # were backed up.
+            _extn.header.update(key,self.orig_wcs[key],
+                comment = "Time WCS keywords were copied.")
 
         # Close the now updated image
         fimg.close()
@@ -775,3 +957,7 @@ class WCSObject:
             return copy.deepcopy(self)
         else:
             return copy.copy(self)
+    def help(self):
+        """ Prints out help message."""
+        print 'wcsutil Version '+str(__version__)+':\n'
+        print self.__doc__

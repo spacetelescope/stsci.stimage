@@ -225,10 +225,12 @@ class Pattern:
 
             # Build mask files based on input 'bits' parameter values
             _masklist = []
+            _masknames = []
             #
             # If we have a valid bits value...
             # Creat the name of the output mask file
             _maskname = buildmask.buildMaskName(_dqname,i+1)
+            _masknames.append(_maskname)
             # Create the actual mask file now...
             outmask = buildmask.buildMaskImage(_dqname,self.bitvalue[0],_maskname,extname=_extname,extver=i+1)
             _masklist.append(outmask)
@@ -238,11 +240,13 @@ class Pattern:
             # Different bits value specified for single drizzle step
             # create new filename for single_drizzle mask file
             _maskname = _maskname.replace('final_mask','single_mask')
+            _masknames.append(_maskname)
 
             # Create new mask file with different bit value.
             outmask = buildmask.buildMaskImage(_dqname,self.bitvalue[1],_maskname,extname=_extname,extver=i+1)
             # Add new name to list for single drizzle step
             _masklist.append(outmask)
+            _masklist.append(_masknames)
 
             self.members.append(Exposure(_sciname, idckey=self.idckey, dqname=_dqname,
                     mask=_masklist, pa_key=self.pa_key, parity=self.PARITY[detector],
@@ -1479,34 +1483,23 @@ class WFPCObservation(Pattern):
 
             # Build mask file for this member chip
             _dqname = self.imtype.makeDQName(extver=_detnum)
+            _masklist = []
+            _masknames = []
 
             if _dqname != None:
                 _maskname = buildmask.buildMaskName(fileutil.buildNewRootname(_dqname),_detnum)
             else:
                 _maskname = None
+            _masknames.append(_maskname)
 
-            _masklist = [[None,None]]
-            if self.bitvalue[0] != None:
-                outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[0])
-                _masklist.append(_maskname)
-                if outmask != None:
-                    # We had no problem generating the mask file.
-                    _masklist[0][0] = outmask
-            else:
-                _masklist.append(None)
+            outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[0])
+            _masklist.append(outmask)
 
-            if self.bitvalue[1] != None:
-                if self.bitvalue[1] == self.bitvalue[0]:
-                    _masklist.append(_maskname)
-                else:
-                    _maskname = _maskname.replace('final_mask','single_mask')
-                    _masklist.append(_maskname)
-                    outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[1])
-                    if outmask != None:
-                        # We had no problem generating the mask file.
-                        _masklist[0][1] = outmask
-            else:
-                _masklist.append(None)
+            _maskname = _maskname.replace('final_mask','single_mask')
+            _masknames.append(_maskname)
+            outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[1])
+            _masklist.append(outmask)
+            _masklist.append(_masknames)
 
 
             self.members.append(Exposure(_extname, idckey=self.idckey, dqname=_dqname,
