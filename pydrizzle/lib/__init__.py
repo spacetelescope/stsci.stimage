@@ -16,7 +16,7 @@ import pyfits
 
 #Add buildasn/updateasn to namespace for use by other programs
 import buildasn, updateasn
-import dqpars,traits102
+import traits102,dqpars
 
 yes = True  # 1
 no = False  # 0
@@ -30,12 +30,9 @@ from drutil import DEFAULT_IDCDIR
 from fileutil import RADTODEG, DEGTORAD
 from math import *
 
-# Pass along name of module which contains the DQPars classes
-DQPARS = 'dqpars'
-
 
 # Version
-__version__ = "5.3.4 (6-January-2005)"
+__version__ = "5.4 (13-January-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -76,12 +73,13 @@ class ParDict(dict):
         _str += '  Center at RA:  %0.9g      Dec:  %0.9f \n'%(self['racen'],self['deccen'])
         _str += '  Output product:  %s\n'%self['output']
         _str += '  Coeffs:          '+self['coeffs']+'    Geomode: '+self['geomode']+'\n'
-        _str += '  XGeoImage      : '+self['xgeoim']+'\n'
-        _str += '  YGeoImage      : '+self['ygeoim']+'\n'
-        _str += '  Input mask file: '+self['driz_mask']+'\n'
-        _str += '  Output science : '+self['outdata']+'\n'
-        _str += '  Output weight  : '+self['outweight']+'\n'
-        _str += '  Output context : '+self['outcontext']+'\n'
+        _str += '  XGeoImage       : '+self['xgeoim']+'\n'
+        _str += '  YGeoImage       : '+self['ygeoim']+'\n'
+        _str += '  Single mask file: '+self['single_driz_mask']+'\n'
+        _str += '  Final mask file : '+self['driz_mask']+'\n'
+        _str += '  Output science  : '+self['outdata']+'\n'
+        _str += '  Output weight   : '+self['outweight']+'\n'
+        _str += '  Output context  : '+self['outcontext']+'\n'
         _str += '  Exptime -- total: %0.4f     single: %0.4f\n'%(self['texptime'],self['exptime'])
         _str += '     start: %s         end: %s\n'%(repr(self['expstart']),repr(self['expend']))
         _str += '  Single image products--  output:  %s\n'%self['outsingle']
@@ -105,7 +103,6 @@ class Pattern:
     NUM_IMSET = 3               # Number of extensions in an IMSET
     PA_KEY = 'PA_V3'
     DETECTOR_NAME = 'detector'
-    DQCLASS = 'DQPars'
     COPY_SUFFIX = '.orig'       # suffix to use for filename of copy
 
     def __init__(self, filename, output=None, pars=None):
@@ -120,7 +117,7 @@ class Pattern:
         self.nimages = 1
 
         # Extract bit values to be used for this instrument
-        self.bitvalue = self.getBits(bits=self.pars['bits'])
+        self.bitvalue = self.pars['bits']
 
         # Set IDCKEY, if specified by user...
         if self.pars['idckey'] == '':
@@ -203,25 +200,6 @@ class Pattern:
         self.image_handle = None
 
 
-    def getBits(self,bits=None):
-        """ Method for extracting the bits value set through DQPars.
-            If bits == None, simply return None.
-            If bits < 0 and bits != None, do not update value of
-                    DQpars instance, simply read already set value.
-            If bits > 0, update DQPars and return value set by user.
-        """
-        if bits == None:
-            return None
-        if self.DQCLASS:
-            _a = eval(DQPARS+'.'+self.DQCLASS)()
-            if bits >= 0:
-                _a.update(bits)
-            _bits = _a.bits
-            del _a
-        else:
-            _bits = None
-        return _bits
-
     def addMembers(self,filename):
         """ Build rootname for each SCI extension, and
             create the mask image from the DQ extension.
@@ -237,10 +215,41 @@ class Pattern:
             _dqname = self.imtype.makeDQName(i+1)
             _extname = self.imtype.dq_extname
 
-            _maskname = buildmask.buildMaskImage(_dqname,self.bitvalue,extname=_extname,extver=i+1)
+            # Build mask files based on input 'bits' parameter values
+            _masklist = []
+            # If we have a valid bits value...
+            if self.bitvalue[0] != None:
+                # Creat the name of the output mask file
+                _maskname = buildmask.buildMaskName(_dqname,i+1)
+                # Add the name to the list of mask names
+                _masklist.append(_maskname)
+                # Create the actual mask file now...
+                buildmask.buildMaskImage(_dqname,self.bitvalue[0],_maskname,extname=_extname,extver=i+1)
+            else:
+                # No valid bits value set, so do not create anything
+                _masklist.append(None)
+            # Check to see if a bits value was provided for single drizzling...
+            if self.bitvalue[1] != None:
+                # Check to see if value is same as final drizzle bits value
+                if self.bitvalue[1] == self.bitvalue[0]:
+                    # Copy name of final drizzle mask for single drizzle step
+                    _masklist.append(_maskname)
+                else:
+                    # Different bits value specified for single drizzle step
+                    # create new filename for single_drizzle mask file
+                    _maskname = _maskname.replace('final_mask','single_mask')
+
+                    # Add new name to list for single drizzle step
+                    _masklist.append(_maskname)
+                    # Create new mask file with different bit value.
+                    buildmask.buildMaskImage(_dqname,self.bitvalue[1],_maskname,extname=_extname,extver=i+1)
+            else:
+                # No bits value provided for single drizzle step,
+                #   set name to None
+                _masklist.append(None)
 
             self.members.append(Exposure(_sciname, idckey=self.idckey, dqname=_dqname,
-                    mask=_maskname, pa_key=self.pa_key, parity=self.PARITY[detector],
+                    mask=_masklist, pa_key=self.pa_key, parity=self.PARITY[detector],
                     dateobs=self.dateobs, idcdir=self.pars['idcdir'],
                     handle=self.image_handle,extver=i+1))
 
@@ -814,9 +823,15 @@ class Pattern:
 
             # Check to see if a mask was created at all...
             # if not, set it to ''
-            if member.maskname == None: _maskname = ''
-            else: _maskname = member.maskname
+            if member.maskname[0] == None: _maskname = ''
+            else: _maskname = member.maskname[0]
             parameters['driz_mask'] = _maskname
+
+            # Check to see if a mask was created for the
+            # single-drizzle step.  If not, set it to ''.
+            if member.maskname[1] == None: _maskname = ''
+            else: _maskname = member.maskname[1]
+            parameters['single_driz_mask'] = _maskname
 
             # Setup parameters for special cases here...
             parameters['outsingle'] = self.outsingle
@@ -1165,7 +1180,6 @@ class GenericObservation(Pattern):
         i.e., only a Primary header and image without extensions.
     """
 
-    DQCLASS = None
     REFPIX = {'x':512.,'y':512.}
     DETECTOR_NAME = 'INSTRUME'
 
@@ -1214,7 +1228,6 @@ class ACSObservation(Pattern):
        to ACS WFC exposures, including knowledge of how to mosaic both
        chips."""
 
-    DQCLASS = 'ACSPars'
     # Define a class variable for the gap between the chips
     PARITY = {'WFC':[[1.0,0.0],[0.0,-1.0]],'HRC':[[-1.0,0.0],[0.0,1.0]],'SBC':[[-1.0,0.0],[0.0,1.0]]}
 
@@ -1257,8 +1270,6 @@ class STISObservation(Pattern):
 
     # Default coefficients table to use for this instrument
     IDCKEY = 'cubic'
-
-    DQCLASS = 'STISPars'
 
     __theta = 0.0
     __parity = drutil.buildRotMatrix(__theta) * N.array([[-1.,1.],[-1.,1.]])
@@ -1332,8 +1343,6 @@ class NICMOSObservation(Pattern):
     # Default coefficients table to use for this instrument
     IDCKEY = 'cubic'
 
-    DQCLASS = 'NICMOSPars'
-
     DETECTOR_NAME = 'camera'
     NUM_IMSET = 5
 
@@ -1391,7 +1400,6 @@ class WFPCObservation(Pattern):
 
     # Default coefficients table to use for this instrument
     IDCKEY = 'cubic'
-    DQCLASS = 'WFPC2Pars'
 
     # This parity is the multiplication of PC1 rotation matrix with
     # a flip in X for output image.
@@ -1485,10 +1493,31 @@ class WFPCObservation(Pattern):
             # Build mask file for this member chip
             _dqname = self.imtype.makeDQName(extver=_detnum)
 
-            _maskname = buildmask.buildShadowMaskImage(_dqname,_detnum,bitvalue=self.bitvalue)
+            if _dqname != None:
+                _maskname = buildMaskName(fileutil.buildNewRootname(_dqname),detnum)
+            else:
+                _maskname = None
+
+            _masklist = []
+            if self.bitvalue[0] != None:
+                buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[0])
+                _masklist.append(_maskname)
+            else:
+                _masklist.append(None)
+
+            if self.bitvalue[1] != None:
+                if self.bitvalue[1] == self.bitvalue[0]:
+                    _masklist.append(_maskname)
+                else:
+                    _maskname = _maskname.replace('final_mask','single_mask')
+                    _masklist.append(_maskname)
+                    buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[1])
+            else:
+                _masklist.append(None)
+
 
             self.members.append(Exposure(_extname, idckey=self.idckey, dqname=_dqname,
-                mask=_maskname, parity=self.PARITY[str(i+1)],
+                mask=_masklist, parity=self.PARITY[str(i+1)],
                 idcdir=self.pars['idcdir'], dateobs=self.dateobs,
                 rot=_chip1_rot, handle=self.image_handle, extver=_detnum))
 
@@ -2116,15 +2145,13 @@ class PyDrizzle:
 Program to process and/or dither-combine image(s) using (t)drizzle.
 To create an object named 'test' that corresponds to a drizzle product:
     --> test = pydrizzle.PyDrizzle(input)
-where input is the FULL filename of an ACS observation or ASN table, or
-a Python list of filenames.
-
-This class computes all the parameters necessary for running 'drizzle' on all
-the input images.  Once this object is created, you can run 'drizzle' using:
+where input is the FULL filename of an ACS observation or ASN table.
+This computes all the parameters necessary for running drizzle on all
+the input images.  Once this object is created, you can run drizzle using:
     --> test.run()
 
 The 'clean()' method can be used to remove files which would interfere with
-running 'drizzle' again using the 'run()' method after a product has already
+running Drizzle again using the 'run()' method after a product has already
 been created.
 
 Optional parameters:
@@ -2141,13 +2168,8 @@ Optional parameters:
                 'IDCTAB'(ACS default),'TRAUGER'(WFPC2),'CUBIC'(WFPC2)
     idcdir      User-specified directory for finding coeffs files:
                 'drizzle$coeffs' (default)
-    bits        Specify DQ values to be considered good. (Default: -1)
-                If negative, read value already set in DQPars classes.
+    bits        Specify DQ values to be considered good. (Default: 0)
                 If None, do not create inmask file at all.
-    fillval     Value to be used for output pixels which have no input
-                pixels contributing to them.  If None or 'INDEF', drizzled
-                pixels values will be used regardless of weights. (default: 0.)
-    shiftfile   Name of file containing shift information for input images.
 
 Optional Parameters for '.run()':
     build       create multi-extension output: yes (Default) or no
@@ -2218,11 +2240,11 @@ More help on SkyField objects and their parameters can be obtained using:
 
         # These can also be set by the user.
         # Minimum set needed: psize, rot, and idckey
-        # bitvalue handled by DQPars classes.
         self.pars = {'psize':psize,'units':units,'kernel':kernel,'rot':orient,
             'pixfrac':pixfrac,'idckey':idckey,'wt_scl':wt_scl,
             'fillval':fillval,'section':section, 'idcdir':idcdir+os.sep,
-            'memmap':memmap,'dqsuffix':dqsuffix, 'bits':bits}
+            'memmap':memmap,'dqsuffix':dqsuffix,
+            'bits':self._interpretBits(bits)}
 
         # Check to see if user-supplied output name is complete
         # Append .FITS suffix to output name if necessary
@@ -2299,6 +2321,40 @@ More help on SkyField objects and their parameters can be obtained using:
         # Let the user know parameters have been successfully calculated
         print 'Drizzle parameters have been calculated. Ready to .run()...'
         print 'Finished calculating parameters at ',_ptime()
+
+    def _interpretBits(self,bits):
+        """ Returns a list based on the input value of the 'bits' parameter.
+            'bits' parameter will be interpreted as:
+                None - No DQ information to be used, no mask created
+                Int or [Int] or ["Int"] - final drizzle bits value only
+                "Int,Int" or "Int Int" or [Int, Int] or ["Int","Int]
+                    - final drizzle value, single drizzle value
+            Always returns a 2-element list _bitlist, where
+                _bitlist[0] - final drizzle bits value
+                    (can be None if no single drizzle bits value provided)
+                _bitlist[1] - single drizzle bits value (can be None)
+
+        """
+        if bits == None:
+            return [None,None]
+        _bitlist = []
+        if isinstance(bits,types.StringType):
+            # convert string value of bits into a list
+            _splstr = None
+            if bits.find(',') > -1: _splstr = ','
+            _splbits = bits.split(_splstr)
+            print 'splbits = ',_splbits
+            for m in _splbits:  _bitlist.append(int(m))
+        elif isinstance(bits,types.ListType):
+            for m in bits:  _bitlist.append(int(m))
+        else:
+            _bitlist = [bits]
+
+        # Insure that there are always 2 entries, with the
+        # second entry being set to None.
+        if len(_bitlist) < 2: _bitlist.append(None)
+
+        return _bitlist
 
     def clean(self,coeffs=no,final=no):
         """ Removes intermediate products from disk. """
@@ -2503,18 +2559,24 @@ More help on SkyField objects and their parameters can be obtained using:
                 # correspond to:
                 _planeid = int(_numchips /32)
 
+                # Select which mask needs to be read in for drizzling
+                if single:
+                    _mask = plist['single_driz_mask']
+                else:
+                    _mask = plist['driz_mask']
+
                 # Check to see whether there is a mask_array at all to use...
-                if isinstance(plist['driz_mask'],types.StringType):
-                    if plist['driz_mask'] != None and plist['driz_mask'] != '':
-                        _wht_handle = fileutil.openImage(plist['driz_mask'],mode='readonly',memmap=0)
+                if isinstance(_mask,types.StringType):
+                    if _mask != None and _mask != '':
+                        _wht_handle = fileutil.openImage(_mask,mode='readonly',memmap=0)
                         _inwht = _wht_handle[0].data.astype(N.Float32)
                         _wht_handle.close()
                         del _wht_handle
                     else:
                         print 'No weight or mask file specified!  Assuming all pixels are good.'
                         _inwht = N.ones((plist['blotny'],plist['blotnx']),N.Float32)
-                elif plist['driz_mask'] != None:
-                    _inwht = plist['driz_mask'].astype(N.Float32)
+                elif _mask != None:
+                    _inwht = _mask.astype(N.Float32)
                 else:
                     print 'No weight or mask file specified!  Assuming all pixels are good.'
                     _inwht = N.ones((plist['blotny'],plist['blotnx']),N.Float32)

@@ -25,6 +25,10 @@ Functions to build mask files for PyDrizzle.
 #
 #   4-Jun-2003   - WFPC2 mask file now incorporates .c1h file if present
 #
+#  13-Jan-2005   - Simplified filename generation into one function and
+#                   added output filename as input parameter to 'buildMask'
+#                   functions. WJH
+#
 import string,os,types
 
 import fileutil
@@ -45,13 +49,13 @@ def buildMaskName(rootname,extver):
 
     _indx = rootname.rfind('.')
     if _indx > 0:
-        _maskname = rootname[:_indx]+'_inmask'+repr(extver)+'.fits'
+        _maskname = rootname[:_indx]+'_final_mask'+repr(extver)+'.fits'
     else:
-        _maskname = rootname+'_inmask'+repr(extver)+'.fits'
+        _maskname = rootname+'_final_mask'+repr(extver)+'.fits'
 
     return _maskname
 
-def buildMaskImage(rootname,bitvalue,extname='DQ',extver=1):
+def buildMaskImage(rootname,bitvalue,output,extname='DQ',extver=1):
     """ Builds mask image from rootname's DQ array
         If there is no valid 'DQ' array in image, then return
         an empty string.
@@ -64,7 +68,7 @@ def buildMaskImage(rootname,bitvalue,extname='DQ',extver=1):
         return None
 
     # build output name
-    maskname = buildMaskName(rootname, extver)
+    maskname = output
 
     # If an old version of the maskfile was present, remove it and rebuild it.
     if fileutil.findFile(maskname):
@@ -140,7 +144,8 @@ def _func_Shadow_WF4x(x,y):
 
 # Function for creating the weighting image for WFPC2 drizzling
 # from the 'wmosaic' shadow mask polynomials.
-def buildShadowMaskImage(rootname,detnum,replace=yes,bitvalue=None):
+
+def buildShadowMaskImage(rootname,detnum,maskname,replace=yes,bitvalue=None):
     """ Builds mask image from WFPC2 shadow calibrations.
       detnum - string value for 'DETECTOR' detector
     """
@@ -149,22 +154,16 @@ def buildShadowMaskImage(rootname,detnum,replace=yes,bitvalue=None):
         detnum = repr(detnum)
 
     _funcroot = '_func_Shadow_WF'
+
     # build template shadow mask's filename
     _mask = 'wfpc2_inmask'+detnum+'.fits'
 
+    """
     if rootname != None:
-        # build output name by stripping off old extension from rootname...
-        _name = fileutil.buildNewRootname(rootname)
-        #print 'found rootname of ',_name
-        # ... now add our own syntax and extension to the output name.
-        _indx = string.find(_name,'.')
-        if _indx > 0:
-            maskname = _name[:_indx]+'_inmask'+detnum+'.fits'
-        else:
-            maskname = _name+'_inmask'+detnum+'.fits'
+        maskname = buildMaskName(fileutil.buildNewRootname(rootname),detnum)
     else:
         maskname = None
-
+    """
     # If an old version of the maskfile was present, remove it and rebuild it.
     if fileutil.findFile(maskname) and replace:
         fileutil.removeFile(maskname)
