@@ -133,44 +133,18 @@ def getIDCFile(image,keyword=None,directory=None):
         # otherwise, we were provided an image header we can work with directly
         header = image
 
-    if string.lower(keyword) == 'idctab':
+    if keyword.lower() == 'header':
+        idcfile,idctype = __getIDCTAB(header)
+        if (idcfile == None):
+            idcfile,idctype = __buildIDCTAB(header,directory)
+
+    elif string.lower(keyword) == 'idctab':
         # keyword specifies header keyword with IDCTAB name
-        try:
-            idcfile = header[keyword]
-        except:
-            print 'Warning: No IDCTAB specified in header!'
-            idcfile = None
-        idctype = 'idctab'
+        idcfile,idctype = __getIDCTAB(header)
+
     else:
         # Need to build IDCTAB filename from scratch
-        instrument = header['INSTRUME']
-        detector = header['DETECTOR']
-
-        if not directory:
-            default_dir = DEFAULT_IDCDIR
-        else:
-            default_dir = directory
-
-        if instrument == 'WFPC2':
-            if detector == 1:
-                detname = 'pc'
-            else:
-                detname = 'wf'
-            idcfile = default_dir+detname+str(detector)+'-'+string.lower(keyword)
-
-        elif instrument == 'STIS':
-            idcfile = default_dir+'stis-'+string.lower(detector)
-
-        elif instrument == 'NICMOS':
-            camera = header['CAMERA']
-            if camera != None:
-                idcfile = default_dir+'nic-'+camera
-            else:
-                idcfile = None
-        else:
-            idcfile = None
-
-        idctype = getIDCFileType(fileutil.osfn(idcfile))
+        idcfile,idctype = __buildIDCTAB(header,directory,kw = keyword)
 
     # Account for possible absence of IDCTAB name in header
     if idcfile == 'N/A':
@@ -185,6 +159,56 @@ def getIDCFile(image,keyword=None,directory=None):
         print 'Using default unshifted, unscaled, unrotated model.'
 
     return idcfile,idctype
+
+
+def __buildIDCTAB(header, directory, kw = None):
+    # Need to build IDCTAB filename from scratch
+    instrument = header['INSTRUME']
+    detector = header['DETECTOR']
+
+    # Default non-IDCTAB distortion model
+    if (kw == None):
+        keyword = 'cubic'
+    else :
+        keyword = kw
+
+    if not directory:
+        default_dir = DEFAULT_IDCDIR
+    else:
+        default_dir = directory
+
+    if instrument == 'WFPC2':
+        if detector == 1:
+            detname = 'pc'
+        else:
+            detname = 'wf'
+        idcfile = default_dir+detname+str(detector)+'-'+string.lower(keyword)
+
+    elif instrument == 'STIS':
+        idcfile = default_dir+'stis-'+string.lower(detector)
+
+    elif instrument == 'NICMOS':
+        camera = header['CAMERA']
+        if camera != None:
+            idcfile = default_dir+'nic-'+camera
+        else:
+            idcfile = None
+    else:
+        idcfile = None
+
+    idctype = getIDCFileType(fileutil.osfn(idcfile))
+
+    return idcfile,idctype
+
+def __getIDCTAB(header):
+    # keyword specifies header keyword with IDCTAB name
+    try:
+        idcfile = header['idctab']
+    except:
+        print 'Warning: No IDCTAB specified in header!'
+        idcfile = None
+
+    return idcfile,'idctab'
 
 def getIDCFileType(idcfile):
     """ Open ASCII IDCFILE to determine the type: cubic,trauger,... """

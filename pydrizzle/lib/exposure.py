@@ -110,6 +110,9 @@ class Exposure:
             idcfile = None
             idctype = None
 
+        if (idckey != None)  and (idckey.lower() == 'header'):
+            idckey = idctype
+
         # Get distortion model and WCS info.
         self.geometry = ObsGeometry(expname, idcfile, idckey=idckey,
                 chip=_chip, new=new, header=self.header,
