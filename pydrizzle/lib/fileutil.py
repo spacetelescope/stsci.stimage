@@ -127,7 +127,7 @@ def getFilterNames(header,filternames=None):
     """
     # Define the keyword names for each instrument
     _keydict = {'ACS':['FILTER1','FILTER2'],'WFPC2':['FILTNAM1','FILTNAM2'],
-                'STIS':['OPT_ELEM','FILTER'], 'NICMOS':['FILTER1','FILTER2']}
+                'STIS':['OPT_ELEM','FILTER'], 'NICMOS':['FILTER','FILTER2']}
 
     # Find out what instrument the input header came from, based on the
     # 'INSTRUME' keyword
@@ -148,7 +148,10 @@ def getFilterNames(header,filternames=None):
     # blank keywords. Values containing 'CLEAR' or 'N/A' are valid.
     _filter_values = []
     for _key in _filtlist:
-        _val = header[_key]
+        if header.has_key(_key):
+            _val = header[_key]
+        else:
+            _val = ''
         if _val.strip() != '':
             _filter_values.append(header[_key])
 
@@ -818,6 +821,7 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
     # Return a default geometry model if no IDCTAB filename
     # is given.  This model will not distort the data in any way.
     if tabname == None:
+        print 'Warning: No IDCTAB specified! No distortion correction will be applied.'
         return defaultModel()
 
     # Implement default values for filters here to avoid the default
@@ -853,7 +857,10 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
     if ftab['PRIMARY'].header.has_key('DETECTOR'):
         detector = ftab['PRIMARY'].header['DETECTOR']
     else:
-        detector = str(ftab['PRIMARY'].header['CAMERA'])
+        if ftab['PRIMARY'].header.has_key('CAMERA'):
+            detector = str(ftab['PRIMARY'].header['CAMERA'])
+        else:
+            detector = 1
 
     # Set default filters for SBC
     if detector == 'SBC':
@@ -864,7 +871,11 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
             filter2 = 'N/A'
 
     # Read FITS header to determine order of fit, i.e. k
-    order = ftab['PRIMARY'].header['NORDER']
+    norder = ftab['PRIMARY'].header['NORDER']
+    if norder < 3:
+        order = 3
+    else:
+        order = norder
 
     fx = N.zeros(shape=(order+1,order+1),type=N.Float64)
     fy = N.zeros(shape=(order+1,order+1),type=N.Float64)
@@ -979,7 +990,7 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
         cxstr = 'A'
         cystr = 'B'
 
-    for i in xrange(order+1):
+    for i in xrange(norder+1):
         if i > 0:
             for j in xrange(i+1):
                 xcname = cxstr+str(i)+str(j)

@@ -116,7 +116,10 @@ class OutputImage:
                 print 'Quitting... Please remove before resuming operations.'
                 raise IOError
 
+        # Default value for NEXTEND when 'build'== True
+        nextend = 3
         if not self.build:
+            nextend = 0
             if self.outweight:
                 if overwrite:
                     if fileutil.findFile(self.outweight):
@@ -164,7 +167,7 @@ class OutputImage:
 
         # Start by updating PRIMARY header keywords...
         prihdu.header.update('EXTEND',pyfits.TRUE)
-        prihdu.header.update('NEXTEND',3)
+        prihdu.header.update('NEXTEND',nextend)
         prihdu.header.update('FILENAME', self.output)
 
         # Update the ROOTNAME with the new value as well

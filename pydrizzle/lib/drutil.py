@@ -106,6 +106,8 @@ def getChipId(header):
         chip = int(header['CCDCHIP'])
     elif header.has_key('DETECTOR') and str(header['DETECTOR']).isdigit():
         chip = int(header['DETECTOR'])
+    elif header.has_key('CAMERA') and str(header['CAMERA']).isdigit():
+        chip = int(header['CAMERA'])
     else:
         chip = 1
 
@@ -145,6 +147,9 @@ def getIDCFile(image,keyword=None,directory=None):
         # keyword specifies header keyword with IDCTAB name
         idcfile,idctype = __getIDCTAB(header)
 
+    elif keyword == '':
+        idcfile = None
+        idctype = None
     else:
         # Need to build IDCTAB filename from scratch
         idcfile,idctype = __buildIDCTAB(header,directory,kw = keyword)

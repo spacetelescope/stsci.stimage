@@ -607,7 +607,7 @@ class WCSObject:
         for key in self.wcstrans.keys():
             _dkey = self.wcstrans[key]
             if _dkey != 'pscale':
-                _extn.header[key] = self.__dict__[_dkey]
+                _extn.header.update(key,self.__dict__[_dkey])
 
         # Close the file
         fimg.close()
@@ -654,16 +654,23 @@ class WCSObject:
             _dkey = self.wcstrans[key]
             if _dkey != 'pscale':
                 # Extract the value for the original keyword
-                _value = _extn.header[key]
+                if _extn.header.has_key(key):
+                    _value = _extn.header[key]
 
-                # Extract any comment string for the keyword as well
-                _indx_key = _extn.header.ascard.index_of(key)
-                _full_key = _extn.header.ascard[_indx_key]
-                _indx_comment = _full_key.ascardimage().find('/')
-                if _indx_comment < 0:
-                    _comment = None
+                    # Extract any comment string for the keyword as well
+                    _indx_key = _extn.header.ascard.index_of(key)
+                    _full_key = _extn.header.ascard[_indx_key]
+                    _indx_comment = _full_key.ascardimage().find('/')
+                    if _indx_comment < 0:
+                        _comment = None
+                    else:
+                        _comment = _full_key.ascardimage()[_indx_comment+1:].strip()
                 else:
-                    _comment = _full_key.ascardimage()[_indx_comment+1:].strip()
+                    # Pull value originally read from image,
+                    # which probably means the value came from the
+                    # Primary header
+                    _value = self.__dict__[_dkey]
+                    _comment = None
 
                 # Update header with new keyword
                 _new_key = self._buildNewKeyname(key,_prepend)

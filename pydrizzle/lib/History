@@ -1,4 +1,16 @@
 ### PyDrizzle Revision Changes
+Version 5.3.1 (6-Dec-2004) WJH
+      - Added support for NICMOS IDCTAB usage, including support for quadratic
+        coefficients in IDCTAB.
+      - Revised WCSObject to write out copy of WCS keyword to header even if
+        it did not exist in header to start with, such as ORIENTAT for NICMOS
+        extension headers.
+      - Modified primary header output so that NEXTEND == 0 when not building
+        a multi-extension output file. 
+      - Changed behavior of 'idckey' such that a value of ''(blank) will cause
+        PyDrizzle to default to instrument-specific default cases and a value
+        of None will result in no distortion coefficients being applied.
+
 Version 5.3.0 (15-Nov-2004) WJH
       - Fixed a problem with interpreting shifts from ASN tables caused by 
         change to 'wtraxy' to support arrays.

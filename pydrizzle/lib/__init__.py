@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.3.0 (15-November-2004)"
+__version__ = "5.3.1 (6-December-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -123,7 +123,7 @@ class Pattern:
         self.bitvalue = self.getBits(bits=self.pars['bits'])
 
         # Set IDCKEY, if specified by user...
-        if self.pars['idckey'] == None:
+        if self.pars['idckey'] == '':
             self.idckey = self.IDCKEY
         else:
             self.idckey = self.pars['idckey']
@@ -1541,7 +1541,7 @@ class DitherProduct(Pattern):
         Pattern.__init__(self, None, output=output, pars=pars)
 
         self.pars = prodlist['members']
-        print 'self.pars[abshift]: ',self.pars['abshift'],'  [dshift]: ',self.pars['dshift']
+
         # Subtract 2 from len(members) to account for 'abshift' and 'dshift'
         # entries in prodlist
         self.nmembers = self.nimages = len(prodlist['members']) - 2
@@ -1603,9 +1603,6 @@ class DitherProduct(Pattern):
         # If there were any shifts to be applied, update input
         # image's WCS with the shifts, then re-build the final
         # product Metachip using corrected product WCS values.
-        print 'self.pars[abshift] = ',self.pars['abshift']
-        print 'self.pars[dshift] = ',self.pars['dshift']
-
         if self.pars['abshift'] or self.pars['dshift']:
             for prod in self.members:
                 prod.applyAsnShifts()
@@ -2174,7 +2171,7 @@ More help on SkyField objects and their parameters can be obtained using:
     --> f.help()
     """
     def __init__(self, input, output=None, field=None, units=None, section=None,
-        kernel=None,pixfrac=None,bits=-1,wt_scl='exptime',fillval=0.,idckey=None,
+        kernel=None,pixfrac=None,bits=-1,wt_scl='exptime',fillval=0.,idckey='',
         idcdir=DEFAULT_IDCDIR,memmap=1,dqsuffix=None,prodonly=yes,shiftfile=None):
 
         if idcdir == None: idcdir = DEFAULT_IDCDIR
@@ -2262,7 +2259,6 @@ More help on SkyField objects and their parameters can be obtained using:
                 output = fileutil.buildNewRootname(asndict['output'],extn='_drz.fits')
                 print 'Setting up output name: ',output
 
-            print 'asndict: ',asndict
             if len(asndict['members'].keys()) > 1:
                 self.observation = DitherProduct(asndict,pars=self.pars)
             else:

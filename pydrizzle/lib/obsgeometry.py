@@ -332,7 +332,7 @@ class ObsGeometry:
         _filt1 = None
         _filt2 = None
 
-        if self.header and idckey.lower() == 'idctab':
+        if self.header and (idckey == None or idckey.lower() == 'idctab'):
             # Try to read in filter names for use in ObsGeometry
             try:
                 _filtnames = fileutil.getFilterNames(self.header)
@@ -605,6 +605,10 @@ class ObsGeometry:
         Made this function compatible with list input, as well as single
         tuple input.
         """
+        # Insure that input wcs is centered for proper results
+        # Added 1-Dec-2004.
+        wcs.recenter()
+
         _ab,_cd = drutil.wcsfit(self,wcs)
         _orient = fileutil.RADTODEG(N.arctan2(_ab[1],_cd[0]))
         _scale = N.sqrt(abs(_ab[1]*_cd[1] - _ab[0]*_cd[0]))
