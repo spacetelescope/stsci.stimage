@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.3a (pre-release, 20 Jan 2005)"
+__version__="0.31a (pre-release, 8 Feb 2005)"
 #History:
 # Bugfix,21 Jan 05, Laidler
 #    - make all paths & filenames more robust via osfn
@@ -158,6 +158,7 @@ class Exposure:
         except IOError,e:
             print e
             print "Bad pixel image not read"
+            print "Bad pixel image filename obtained from ",self.filename
 
     def writeto(self,outname):
         f=pyfits.open(self.filename)
@@ -468,6 +469,7 @@ def clean(usr_imgfile,usr_outfile,pars=None):
     else:
         im1,im2,dark=get_dark_data(imgfile,pars.darkpath)
         saaper=make_saaper(im1,im2,dark,pars)
+        print "Using scale factor of ",pars.scale," to construct persistence image"
 
     img=Exposure(imgfile)
     mask,badmask=img.getmask(writename=pars.maskfile)
