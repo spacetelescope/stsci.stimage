@@ -6,8 +6,11 @@
 #
 # AUTHOR: CHRISTOPHER HANLEY
 #
-# VERSION: 0 -
+# VERSION: 
+#   Version 0.1.0: created -- CJH 
 #
+
+__version__ = '0.1.0'
 
 # IMPORT EXTERNAL MODULES
 import numarray
@@ -16,10 +19,11 @@ def qderiv(array): # TAKE THE ABSOLUTE DERIVATIVE OF A NUMARRY OBJECT
     """Take the absolute derivate of an image in memory."""
 
     #Create 2 empty arrays in memory of the same dimensions as 'array'
-    tmpArray = numarray.zeros(array.shape,array.type())
-    outArray = numarray.zeros(array.shape,array.type())
+    tmpArray = numarray.zeros(array.getshape())
+    outArray = numarray.zeros(array.getshape())
+
     # Get the length of an array side
-    (naxis1,naxis2) = array.shape
+    (naxis1,naxis2) = array.getshape()
     #print "The input image size is (",naxis1,",",naxis2,")."
 
 #Main derivate loop:
@@ -33,7 +37,7 @@ def qderiv(array): # TAKE THE ABSOLUTE DERIVATIVE OF A NUMARRY OBJECT
             #shift input image 1 pixel left
             tmpArray[0:(naxis1-1),0:(naxis2-2)] = array[0:(naxis1-1),1:(naxis2-1)]
             #print "Y shift = -1"
-        #print "call _absoluteSubtract()"
+	#print "call _absoluteSubtract()"
         (tmpArray,outArray) = _absoluteSubtract(array,tmpArray,outArray)
 
     #Shift images +/- 1 in X.
@@ -49,8 +53,8 @@ def qderiv(array): # TAKE THE ABSOLUTE DERIVATIVE OF A NUMARRY OBJECT
         #print "call _absoluteSubtract()"
         (tmpArray,outArray) = _absoluteSubtract(array,tmpArray,outArray)
 
-
-    del tmpArray
+    
+    
     return outArray
 
 
@@ -67,3 +71,4 @@ def _absoluteSubtract(array,tmpArray,outArray):
     return (tmpArray,outArray)
 
 # END MODULE
+

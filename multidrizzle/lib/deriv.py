@@ -1,5 +1,7 @@
 # deriv.py
 
+__version__ = '0.1.0'
+
 import numarray
 import pyfits
 import quickDeriv
