@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.4.2 (18 January 2005)'
+__version__ = '2.4.3 (21 January 2005)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -388,12 +388,27 @@ help file.
                     
 
 
+        # Extract the 'driz_final_wht_type' parameter
+        wht_type = self.pars.master_pars['driz_final_wht_type']
         # Verify that ERR extension exists if final_wht_type = ERR
-        if ( self.pars.master_pars['driz_final_wht_type'] != None and
-                self.pars.master_pars['driz_final_wht_type'].upper() == 'ERR'):
+        if ( wht_type != None and wht_type.upper() == 'ERR'):
             for file in self.files:
                 if not fileutil.findFile(file+"[err,1]"):
                     raise ValueError,"! final_wht_type = ERR, no ERR array found for %s"%(file)
+        if ( wht_type != None and wht_type.upper() == 'IVM'):
+                if len(self.ivmlist) == 0:
+                    errorstr =  "#########################################\n"
+                    errorstr += "#                                       #\n"
+                    errorstr += "# ERROR:                                #\n"
+                    errorstr += "#  The 'final_wht_type' parameter was   #\n"
+                    errorstr += "#  set to 'IVM' but no IVM files were   #\n"
+                    errorstr += "#  provided as input.  Please see the   #\n"
+                    errorstr += "#  help file for a description of IVM   #\n"
+                    errorstr += "#  file usage.                          #\n"
+                    errorstr += "#                                       #\n"
+                    errorstr += "#########################################\n"
+                    raise ValueError, errorstr
+
 
         
         # Create copies of input files for processing
@@ -575,12 +590,46 @@ help file.
                               # in their header was 0.
 
         # Examine the input to determine the number of input files and the number of 
-        # association files (in any) provided by the user.
+        # association files (in any) provided by the user.  If the input was an '@' file
+        # with IVM file input then we need to determine the numInputs value in a 
+        # special way.
         numInputs,numASNfiles = countinputs(input)
 
-        # Parse the user input into a python list object and extract the
-        # output name from the assocation table if given.
-        inputfiles,newoutput = parseinput(input,output)
+        
+        # The '@' file is a special case because it can have one or two columns depending
+        # on if 'IVM' files have been provided.
+        if input[0] == '@':
+            # Define temporary list object
+            inputfiles = []
+            
+            # Read in all the lines from the '@' file into a list.
+            file = open(input[1:]).readlines()
+            
+            
+            # Assume that if there are two entries on the first line, then we are going
+            # to be dealing with IVM files.
+            if (len(file[0].split()) == 2):
+                for line in file:
+                    inputfiles.append(line)
+                newoutput = output
+ 
+                # We now need to determine if IVM files have been included as input.
+                # If IVM files have been provided, we need to separate the list into
+                # one for the standard input images and one for the IVM files.
+                filelist,ivmlist = parseIVM(inputfiles)
+
+                # Now determine the number of input files
+                numInputs = len(filelist)
+                
+
+            # If there are not two entries on the first line we are in the default case
+            # for the parseinput function.
+            else:
+                filelist,newoutput = parseinput(input,output)
+        else:
+            # Parse the user input into a python list object and extract the
+            # output name from the assocation table if given.
+            filelist,newoutput = parseinput(input,output)
         
         # Check that input files were actually found on disk.  If not, raise an exception
         # and print an error message.  There are a number of reasons that no data could
@@ -588,7 +637,7 @@ help file.
         #   1) The user is in the wrong directory
         #   2) The user is trying to give a partial file name and not using wild-cards
         #   etc...
-        if (len(inputfiles) == 0):
+        if (len(filelist) == 0):
             errorstr =  "\n######################################################\n"
             errorstr += "#                                                    #\n"
             errorstr += "# ERROR:                                             #\n"
@@ -608,11 +657,6 @@ help file.
             errorstr += "######################################################\n\n"
             raise ValueError,errorstr
         
-        # 
-        # We now need to determine if IVM files have been included as input.
-        # If IVM files have been provided, we need to separate the list into
-        # one for the standard input images and one for the IVM files.
-        filelist,ivmlist = parseIVM(inputfiles)
         
         # Now we need to determine what type of data we are dealing with.  At this time
         # there are 4  cases that we need to be concerned about:
@@ -707,7 +751,7 @@ help file.
         newivmlist = []
 
         if (len(ivmlist) != 0):
-            if (len(excludedFileList) == 0):
+            if (len(excludedFileList) != 0):
                 errstr =  "#######################################\n"
                 errstr += "#                                     #\n"
                 errstr += "# WARNING:                            #\n"
@@ -717,7 +761,7 @@ help file.
                 errstr += "#  with EXPTIME values of 0.0         #\n"
                 errstr += "#                                     #\n"
                 errstr += "#  To use IVM files all input data    #\n"
-                errstr += "#  must by populated with non-zero    #\n"
+                errstr += "#  must be populated with non-zero    #\n"
                 errstr += "#  EXPTIME header keyword values.     #\n"
                 errstr += "#                                     #\n"
                 errstr += "#######################################\n"
@@ -1157,9 +1201,9 @@ help file.
             ivmname = None
             
             if len(self.ivmlist) > 0:
-                for file in self.ivmlist:
-                    if file[0] == fname:
-                        ivmname = file[1] 
+                for index in xrange(len(self.ivmlist)):
+                    if self.files[index] == fname:
+                        ivmname = self.ivmlist[index] 
                        
             plist['ivmname'] = ivmname
 

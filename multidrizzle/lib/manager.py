@@ -169,7 +169,7 @@ class ImageManager:
                 p['image'].maskname = p['driz_mask']
 
             # Create the name of the single drizzle mask file if it doesn't exist.
-            p['image'].singlemaskname = p['single_driz_mask']
+            p['image'].singlemaskname = p['exposure'].singlemaskname
             
             #
             # Rename some of the variables defined by pydrizzle:
@@ -581,6 +581,9 @@ class ImageManager:
             # large (> sqrt(2))
             
             p['fillval'] = pars['fillval']
+            
+            # Pass in the new wt_scale value
+            p['wt_scl'] = pars['wt_scl']
 
 
 #            # Copy out filename for 'driz_mask' and
@@ -604,11 +607,11 @@ class ImageManager:
                 " xgeoim='"+p['xgeoim']+"' ygeoim='"+p['ygeoim']+"'\n")
 
         # Perform separate drizzling now that all parameters have been setup...
-        try:
-            self.assoc.run(single=True,save=True,build=False)
-        except:
-            print 'Could not complete (drizSeparate) processing.'
-            raise RuntimeError
+#        try:
+        self.assoc.run(single=True,save=True,build=False)
+ #       except:
+ #           print 'Could not complete (drizSeparate) processing.'
+ #           raise RuntimeError
 
 #        # Restore reference to mask file
 #        for p in self.assoc.parlist:
@@ -1041,6 +1044,7 @@ class ImageManager:
             #p['kernel']  = drizpars['kernel']
             #p['pixfrac'] = drizpars['pixfrac']
             p['fillval'] = drizpars['fillval']
+            p['wt_scl'] = drizpars['wt_scl']
 
         print("drizzle.outnx = "+str(self.assoc.parlist[0]['outnx']))
         print("drizzle.outny = "+str(self.assoc.parlist[0]['outny']))
@@ -1173,7 +1177,19 @@ class ImageManager:
 
             mask.close()
             ivm.close()
-
+        else:
+            errorstr =  "#########################################\n"
+            errorstr += "#                                       #\n"
+            errorstr += "# WARNING:                              #\n"
+            errorstr += "#  The 'final_wht_type' parameter was   #\n"
+            errorstr += "#  set to 'IVM' but no IVM files were   #\n"
+            errorstr += "#  provided as input.  No additional    #\n"
+            errorstr += "#  scaling of the final 'in_mask' will  #\n"
+            errorstr += "#  be applied.                          #\n"
+            errorstr += "#                                       #\n"
+            errorstr += "#########################################\n"
+            print errorstr
+            
     def _applyERR(self,parlistentry):
 
         """
