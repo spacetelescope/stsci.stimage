@@ -19,15 +19,4 @@ shft_fr,s,h,"input","input|output",,"Frame in which shifts are applied"
 xgeoim,f,h,"",,,X-shifts geometric distortion image
 ygeoim,f,h,"",,,Y-shifts geometric distortion image
 align,s,h,"center","center|corner",,"Reference point: corner or center of pixel"
-silent,b,h,no,,,"Run silently - no output except to the CL parameters
-
-WCS parameters"
-geomode,s,h,"user","user|wcs",,"Way of specifying geometry - user or wcs"
-refim,f,h,"",,,Reference output image name to define output WCS
-inimage,f,h,,,Input image for WCS
-outscl,r,h,0.1,,,"Scale of output image, arcsecs/pix"
-raref,r,h,0.0,,,"RA of reference point on output (CRVAL1, degrees)"
-decref,r,h,0.0,,,"Dec of reference point on output image (CRVAL2, degrees)"
-xrefpix,r,h,0.0,,,Reference pixel X position on output (CRPIX1)
-yrefpix,r,h,0.0,,,Reference pixel Y position on output (CRPIX2)
-orient,r,h,0.0,,,"Orientation of output (PA of Y axis, N through E)"
+silent,b,h,no,,,Run silently - no output except to the CL parameters
