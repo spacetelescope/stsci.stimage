@@ -1,9 +1,7 @@
-from distutils.core import setup, Extension
-import numarray
-from numarray.numarrayext import NumarrayExtension
+from distutils.core import setup
 import sys
 
-if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'alpha',0):
+if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'final',0):
     raise SystemExit, "Python 2.3 or later required to build multidrizzle."
 
 def dolocal():
@@ -21,13 +19,11 @@ def dolocal():
                 ])
             sys.argv.remove(a)
 
-def getExtensions():
-    ext = None                   
-    return ext
 
 
-def dosetup(ext):
-    r = setup(name = "multidrizzle",
+def main():
+    dolocal()
+    setup(name = "multidrizzle",
               version = "2.0.0",
               description = "Automated process for HST image combination and cosmic-ray rejection",
               author = "Warren Hack, Christopher Hanley, Ivo Busko, Robert Jedrzejewski, and Anton Koekemoer",
@@ -35,16 +31,7 @@ def dosetup(ext):
               license = "http://www.stsci.edu/resources/software_hardware/pyraf/LICENSE",
               platforms = ["Linux","Solaris","Mac OS X"],
               packages=['multidrizzle'],
-              package_dir={'multidrizzle':'lib'},
-              ext_modules=ext)
-    return r
-
-
-def main():
-    args = sys.argv
-    dolocal()
-    ext = getExtensions()
-    dosetup(ext)
+              package_dir={'multidrizzle':'lib'})
 
 
 if __name__ == "__main__":
