@@ -11,6 +11,9 @@
 #
 #           0.1.2 -- Removed diagnostic print statements related to
 #                   the use of DGEO files.  --  CJH
+#           0.1.3 -- Removed expansion of DGEOFILE path to avoid reporting
+#                   pipeline directories in output drizzle keywords. -- WJH
+#
 import os
 import buildmask, fileutil, drutil
 from obsgeometry import ObsGeometry
@@ -20,7 +23,7 @@ import numarray as N
 yes = True  # 1
 no = False  # 0
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 #################
 #
@@ -200,10 +203,6 @@ class Exposure:
         # and 'drizzle' will not use any.
         if not self.dgeoname or self.dgeoname == 'N/A':
             return '',''
-
-        # Expand the filename to a full path, now that we are sure
-        # a valid filename exists.
-        self.dgeoname = fileutil.osfn(self.dgeoname)
 
         # Open file for introspection.
         fimg = fileutil.openImage(self.dgeoname)
