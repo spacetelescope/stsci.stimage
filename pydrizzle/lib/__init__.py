@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.4 (13-January-2005)"
+__version__ = "5.4.0 (13-January-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -1494,7 +1494,7 @@ class WFPCObservation(Pattern):
             _dqname = self.imtype.makeDQName(extver=_detnum)
 
             if _dqname != None:
-                _maskname = buildMaskName(fileutil.buildNewRootname(_dqname),detnum)
+                _maskname = buildmask.buildMaskName(fileutil.buildNewRootname(_dqname),_detnum)
             else:
                 _maskname = None
 
@@ -2169,7 +2169,13 @@ Optional parameters:
     idcdir      User-specified directory for finding coeffs files:
                 'drizzle$coeffs' (default)
     bits        Specify DQ values to be considered good. (Default: 0)
-                If None, do not create inmask file at all.
+                'bits' parameter will be interpreted as:
+                    None - No DQ information to be used, no mask created
+                    Int or [Int] or ["Int"] - final drizzle bits value only
+                    "Int,Int" or "Int Int" or [Int, Int] or ["Int","Int]
+                        - final drizzle value, single drizzle value
+                    where Int refers to any Integer value, and [] refers
+                    to a Python list object.
 
 Optional Parameters for '.run()':
     build       create multi-extension output: yes (Default) or no
