@@ -6,7 +6,6 @@ from distutils.sysconfig import *
 from distutils.command.install import install
 
 
-#params = string.join(sys.argv[2:])
 ver = sys.version_info
 python_exec = 'python' + str(ver[0])+ '.' + str(ver[1])
 
@@ -38,6 +37,8 @@ if __name__ == '__main__' :
         author="Warren Hack",
         maintainer_email="help@stsci.edu",
         url="",
+        license = "http://www.stsci.edu/resources/software_hardware/pyraf/LICENSE",
+     platforms = ["any"],
         packages = ['numdisplay'],
 	package_dir={'numdisplay':''},
 	data_files = [(data_dir, ['imtoolrc'])]
