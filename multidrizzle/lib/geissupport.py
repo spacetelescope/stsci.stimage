@@ -13,6 +13,8 @@
 #                has exptime = 0.0, the functions issues a message
 #                stating that the file is not valid input and returns
 #                a None to the calling program.
+#       0.3.0 -- 26 January 2005 -- Modified the EXPTIME zero check to be
+#                less than or equal to zero.
 
 import numarray
 import pyfits as P
@@ -22,7 +24,7 @@ import os
 import pydrizzle
 from pydrizzle import fileutil
 
-__version__ = '0.2.1'
+__version__ = '0.3.0'
 
 def convertgeis2multifits(geisfilename):
     """
@@ -159,7 +161,7 @@ def parseWFPC2(filename):
     
     # Check to see if the file has an EXPTIME value of zero.  If so return
     # no new file name and a parseWFPC2flag value of False
-    if float(fileutil.getKeyword(filename,'EXPTIME')) == 0.0:
+    if float(fileutil.getKeyword(filename,'EXPTIME')) <= 0.0:
         msgstr =  "####################################\n"
         msgstr += "#                                  #\n"
         msgstr += "# WARNING:                         #\n"

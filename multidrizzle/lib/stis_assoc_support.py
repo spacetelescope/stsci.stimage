@@ -7,8 +7,10 @@
 #   Version 0.3.0, 01/03/2004 -- Added check for zero exposure time input
 #       files.  Those with exposure times of zero not included in the
 #       newfilelist list. -- CJH
+#   Version 0.4.0, 01/26/05 -- Modifed the EXPTIME zero check to be less than
+#       or equal to zero.
 
-__version__ = '0.3 (01/03/2005)'
+__version__ = '0.4 (01/26/2005)'
 __author__  = 'Christopher Hanley'
 
 
@@ -164,7 +166,7 @@ def parseSTIS(inputfile):
             #
             # If the EXPTIME value for the image is zero, add it to the exclusion list.
             # Otwerwise the image should be included for processing by Multidrizzle.
-            if (fitsobj[1].header['EXPTIME'] == 0.0):
+            if (fitsobj[1].header['EXPTIME'] <= 0.0):
                 excludedList.append(newfilename)
             else:
                 newfilelist.append(newfilename)

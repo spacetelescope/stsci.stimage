@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.4.3 (21 January 2005)'
+__version__ = '2.4.3 (26 January 2005)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -734,7 +734,7 @@ help file.
             else:
                 # We currently only need to worry about the conversion of WFPC2 and STIS
                 # files as special cases so this is the current DEFAULT case.
-                if (fileutil.getKeyword(inputfile,'EXPTIME') == 0.0):
+                if (fileutil.getKeyword(inputfile,'EXPTIME') <= 0.0):
                     excludedFileList.append(inputfile)
                 else:
                     newfilelist.append(inputfile)    
