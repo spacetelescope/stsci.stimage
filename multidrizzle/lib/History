@@ -10,4 +10,7 @@ Version 2.3.1: 09/21/04 --- CJH/WJH
     support for STIS and NICMOS data and an improved version of Pydrizzle
     that better supports sub-arrays.
 
+Version 2.3.2: 09/28/04 -- CJH
+    Updated versionInfo in __init__.py file to catch the case when
+    pyraf is unable to be imported.
 

@@ -22,7 +22,7 @@ from geissupport import *
 
 import makewcs
 
-__version__ = '2.3.1 (21 September 2004)'
+__version__ = '2.3.2 (28 September 2004)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -77,12 +77,13 @@ def versioninfo():
         import pyraf
         _pyraf_version     = " PyRAF Version     "+pyraf.__version__
         print _pyraf_version
-    finally:
-        print _numarray_version
-        print _pyfits_version
-        print _pydrizzle_version
-        print _python_version
-        print "\n\n"
+    except:
+        print "PyRAF cannot be found!"
+    print _numarray_version
+    print _pyfits_version
+    print _pydrizzle_version
+    print _python_version
+    print "\n\n"
 
 def _splitNsigma(s):
 
