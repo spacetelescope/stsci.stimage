@@ -2282,7 +2282,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 # ARRDRIZ.TBLOT needs to be updated to support 'poly5' interpolation,
                 # and exptime scaling of output image.
                 #
-
+                """
                 #
                 # This call to 'arrdriz.tdriz' uses the F2PY syntax
                 #
@@ -2307,7 +2307,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 #
                 # End of F2C syntax
                 #
-                """
+
                 # Write output Numarray objects to a PyFITS file
                 # Blotting only occurs from a drizzled SCI extension
                 # to a blotted SCI extension...
@@ -2425,7 +2425,7 @@ More help on SkyField objects and their parameters can be obtained using:
                     _con = no
                     _imgctx = _numctx[plist['outsingle']]
 
-
+                """
                 #
                 # This call to 'arrdriz.tdriz' uses the F2PY syntax
                 #
@@ -2458,7 +2458,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 #
                 # End of F2C syntax
                 #
-                """
+
                 plist['driz_version'] = _vers
 
                 if nmiss > 0:
