@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.4.5 (10-February-2005)"
+__version__ = "5.4.5 (16-February-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -2583,9 +2583,17 @@ More help on SkyField objects and their parameters can be obtained using:
 
                 _con = yes
                 _imgctx = _numctx['all']
-                if single or (plist['outcontext'] == '' and single == yes):
-                    _con = no
+                if single:
                     _imgctx = _numctx[plist['outsingle']]
+                #if single or (plist['outcontext'] == '' and single == yes):
+                if _nplanes == 1:
+                    _con = no
+                    # We need to reset what gets passed to TDRIZ
+                    # when only 1 context image plane gets generated
+                    # to prevent overflow problems with trying to access
+                    # planes that weren't created for large numbers of inputs.
+                    _planeid = 0
+                    _uniqid = ((_uniqid-1) % 32) + 1
 
                 """
                 #

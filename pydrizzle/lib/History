@@ -1,7 +1,9 @@
 ### PyDrizzle Revision Changes
-Version 5.4.5 (10-Feb-2005) WJH
+Version 5.4.5 (16-Feb-2005) WJH
       - Logic for turning off context images during drizzling was
         modified to work with final drizzling as well as single drizzling.
+        This included modifying several internal variables to keep track
+        of what context image gets passed to callable-drizzle.
          
 Version 5.4.4 (7-Feb-2005) WJH
       - (OPR 52938) Modified 'wcsutil' to correctly handle archived pscale
