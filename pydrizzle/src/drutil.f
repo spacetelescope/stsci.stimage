@@ -1795,7 +1795,8 @@ C
 5       arr(l)=arr(j)
         arr(j)=a
         jstack=jstack+2
-        if(jstack.gt.NSTACK)pause 'NSTACK too small in sort'
+C        if(jstack.gt.NSTACK)pause 'NSTACK too small in sort'
+        if(jstack.gt.NSTACK) stop
         if(ir-i+1.ge.j-l)then
           istack(jstack)=ir
           istack(jstack-1)=i

@@ -274,12 +274,12 @@ C Get the other keywords we need
             RETURN
          ENDIF
 
-         CALL UHDGSR(ID,'PHOTPLAM',PLAM,ISTAT)
+         CALL UHDGSD(ID,'PHOTPLAM',PLAM,ISTAT)
          IF(ISTAT.NE.0) RETURN
 
 C We have to convert the wavelength from Angstroms to nm
          LAMBDA=PLAM/10.0D0
-
+         
 C Now we build the full "Trauger style" name for the coefficients
 C file
          IF(IDET.EQ.1) THEN
