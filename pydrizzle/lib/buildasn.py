@@ -205,7 +205,8 @@ def _findFiles(inlist):
 
     elif inlist.find('*') >= 0 or inlist.find('?') >= 0:
         # We have a wild card specification
-        regpatt = inlist.replace('?','.?')
+        regpatt = inlist.replace('.','\.')
+        regpatt = regpatt.replace('?','.?')
         regpatt = regpatt.replace('*','.*')
         suffix = None
 
@@ -589,6 +590,8 @@ def _makeTableHDU(data):
     _maxlen = 0
     for _fname in data['name']:
         if len(_fname) > _maxlen: _maxlen = len(_fname)
+    # Enforce a mimimum size of 24
+    if _maxlen < 24: _maxlen = 24
     namelen_str = str(_maxlen+2)+'A'
 
     # Column definitions use the FITS Table TFORM value for the format
