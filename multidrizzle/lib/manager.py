@@ -252,7 +252,7 @@ class ImageManager:
             if _detector == 3: return WF3InputImage(input,_dqname,_platescale,memmap=0)
             if _detector == 4: return WF4InputImage(input,_dqname,_platescale,memmap=0)
         if _instrument == 'STIS': 
-            if _detector == 'CCD': return CCDInputImage(input,_dqname_platescale,memmap=0)
+            if _detector == 'CCD': return CCDInputImage(input,_dqname,_platescale,memmap=0)
 
         # If a supported instrument is not detected, print the following error message
         # and raise an exception.

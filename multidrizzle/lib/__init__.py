@@ -22,7 +22,7 @@ from geissupport import *
 
 import makewcs
 
-__version__ = '2.2.1 (24 August 2004)'
+__version__ = '2.2.2 (27 August 2004)'
 
 def versioninfo():
     """ Print version information for packages used by Multidrizzle """
@@ -340,7 +340,7 @@ class Multidrizzle:
                 print "! Converting GEIS format files to multiextension FITS"
                 _flist = convertgeisinlist(inputlist)
                 if len(inputlist) == 1:
-                    newinput = inputlist[0]
+                    newinput = _flist[0]
                     newoutput = output
                 else:
                     # if the file you wish to create already exists, delete it
