@@ -1,10 +1,17 @@
 ### PyDrizzle Revision Changes
+Version 5.2.4 (28-Sept-2004) WJH
+      - Restored 'bits' as PyDrizzle input parameter, allowing it to update
+        the value internally, rather than forcing the user to always set it.
 Version 5.2.3 (27-Sept-2004) CJH
       - Removed diagnostic print statments relating to the use of DGEO files
         in the exposure.py module.
 Version 5.2.2 (21-Sept-2004) WJH
       - Fixed offset problems when dealing with subarrays so they align with
         full images.
+      - Subarray and WFPC2 chip-to-chip offsets correctly determined using
+        wcsfit while reproducing 'exactly' what 'wdrizzle' would produce
+        for full-frame and subarray images. Many, many changes were needed
+        to get this working.   
 Version 5.2.0 (17-Sept-2004) WJH
       - Support for subarrays significantly revised so that multi-chip 
         images with LTV values get processed correctly, and so that subarrays

@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.2.3 (27-September-2004)"
+__version__ = "5.2.4 (28-September-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -119,7 +119,7 @@ class Pattern:
         self.nmembers = 1
 
         # Extract bit values to be used for this instrument
-        self.bitvalue = self.getBits()
+        self.bitvalue = self.getBits(bits=self.pars['bits'])
 
         # Set IDCKEY, if specified by user...
         if self.pars['idckey'] == None:
@@ -202,10 +202,12 @@ class Pattern:
         self.image_handle = None
 
 
-    def getBits(self):
+    def getBits(self,bits=None):
         """ Method for extracting the bits value set through DQPars."""
         if self.DQCLASS:
             _a = eval(DQPARS+'.'+self.DQCLASS)()
+            if bits != None:
+                _a.update(bits)
             _bits = _a.bits
             del _a
         else:
@@ -2103,7 +2105,7 @@ More help on SkyField objects and their parameters can be obtained using:
     --> f.help()
     """
     def __init__(self, input, output=None, field=None, units=None, section=None,
-        kernel=None,pixfrac=None,wt_scl='exptime',fillval=0.,idckey=None,
+        kernel=None,pixfrac=None,bits=None,wt_scl='exptime',fillval=0.,idckey=None,
         idcdir=DEFAULT_IDCDIR,memmap=1,dqsuffix=None,prodonly=yes):
 
         if idcdir == None: idcdir = DEFAULT_IDCDIR
@@ -2136,7 +2138,7 @@ More help on SkyField objects and their parameters can be obtained using:
         self.pars = {'psize':psize,'units':units,'kernel':kernel,'rot':orient,
             'pixfrac':pixfrac,'idckey':idckey,'wt_scl':wt_scl,
             'fillval':fillval,'section':section, 'idcdir':idcdir+os.sep,
-            'memmap':memmap,'dqsuffix':dqsuffix}
+            'memmap':memmap,'dqsuffix':dqsuffix, 'bits':bits}
 
         # Check to see if user-supplied output name is complete
         # Append .FITS suffix to output name if necessary
