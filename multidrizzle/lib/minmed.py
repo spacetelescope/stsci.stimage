@@ -10,14 +10,15 @@
 #       anyways but this protects against errors in the MDRIZTAB -- CJH/WJH -- 07/08/04
 #      Version 0.1.2: Improve error message handing in the case where the boxcar
 #       convolution step fails.  --CJH -- 10/13/04
-
+#      Version 0.2.0: The creation of the median image will now more closesly replicate
+#       the IRAF IMCOMBINE behavior of nkeep = 1 and nhigh = 1. -- CJH -- 03/29/05
 import numarray
 import imagestats
 import numcombine
 from numcombine import numCombine
 import numarray.convolve as NC
 
-__version__ = '0.1.2'
+__version__ = '0.2.0'
 class minmed:
     """ Create a median array, rejecting the highest pixel and computing the lowest valid pixel after mask application"""
 
@@ -69,9 +70,6 @@ class minmed:
         self.__combine_nsigma2 = combine_nsigma2
         
         
-#        self.out_file1 = None
-#        self.out_file2 = None
-
         # Create a different median image based upon the number of images in the input list.
         __median_file = numarray.zeros(self.__imageList[0].shape,type=self.__imageList[0].type())
         if (self.__numberOfImages == 2):
@@ -90,11 +88,48 @@ class minmed:
                                  combinationType="median",nlow=0,nhigh=1,
                                  nkeep=1,upper=None,lower=None)
             __median_file = __tmp.combArrObj
+            
+            # The following section of code will address the problem caused by having
+            # a value of nhigh = 1.  This will behave in a way similar to the way the
+            # IRAF task IMCOMBINE behaves.  In order to accomplish this, the following
+            # procedure will be followed:
+            # 1) The input masks will be summed.
+            # 2) The science data will be summed.
+            # 3) In the locations of the summed mask where the sum is 1 less than the
+            #    the total number of images, the value of that location in the summed
+            #    sceince image will be used to replace the existing value in the
+            #    existing __median_file.
+            #
+            # This procuedure is being used to prevent too much data from being thrown
+            # out of the image.  Take for example the case of 3 input images.  In two
+            # of the images the pixel locations have been masked out.  Now, if nhigh
+            # is applied there will be no value to use for that position.  However,
+            # if this new procedure is used that value in the resulting images will
+            # be the value that was rejected by the nhigh rejection step.
+            #
+            
+            # We need to make certain that "bad" pixels in the sci data are set to 0.  That way,
+            # when the sci images are summed, the value of the sum will only come from the "good"
+            # pixels.
+            tmpList = []
+            for image in xrange(len(self.__imageList)):
+                tmp =numarray.where(self.__weightMaskList[image] == 1, 0, self.__imageList[image]) 
+                tmpList.append(tmp)
+                
+            # Sum the mask files
+            maskSum = self.__sumImages(self.__weightMaskList)
+            # Sum the science images
+            sciSum = self.__sumImages(tmpList)
+            del(tmpList)
+            # Use the summed sci image values in locations where the maskSum indicates
+            # that there is only 1 good pixel to use.  The value will be used in the
+            # __median_file image
+            __median_file = numarray.where(maskSum == self.__numberOfImages-1,sciSum,__median_file)
 
-        # Sum the weidhtMaskList elements
+        # Sum the weightMaskList elements
         __maskSum = self.__sumImages(self.__weightMaskList)
         
-        # Create the minimum image of from the stack of input image.
+        # Create the minimum image from the stack of input images.
         # Find the maximum pixel value for the image stack.
         _maxValue = -1e+9
         for image in self.__imageList:
