@@ -19,7 +19,7 @@
 #           Version 0.1.38, 06/29/04 -- Modified import of imagestats and minmed. -- CJH
 #           Version 0.1.39, 06/29/04 -- Modified imports to remove dependence on pytools package -- CJH
 #           Version 0.1.40, 07/08/04 -- Updated Dictionary key names -- CJH
-
+#           Version 0.1.41, 07/16/04 -- Modified the _getInputImage method to support WFPC2 data -- CJH
 import numarray.image.combine as combine
 
 import numarray as N
@@ -32,7 +32,7 @@ from pydrizzle import fileutil,drutil,buildmask
 
 from acs_input import WFCInputImage, HRCInputImage, SBCInputImage
 
-from wfpc2_input import WFPC2InputImage
+from wfpc2_input import WFPC2InputImage, PCInputImage, WF2InputImage, WF3InputImage, WF4InputImage
 
 import imagestats
 from imagestats import ImageStats
@@ -49,7 +49,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter
 
-__version__ = '0.1.40'
+__version__ = '0.1.41'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -178,6 +178,10 @@ class ImageManager:
         for p in self.assoc.parlist:
             p['image'].setInstrumentParameters (instrpars, p['exposure'].header)
 
+    def doUnitConversions(self):
+        for p in self.assoc.parlist:
+            p['image'].doUnitConversions()
+
     # This is called upon initialization of this class...
     def setupInputCopies(self,p,workinplace = False ):
         """ Make copies of all input science files, keeping track of
@@ -223,8 +227,8 @@ class ImageManager:
     def _getInputImage (self, input, plist):
         """ Factory function to return appropriate InputImage class type"""
 
-        _instrument = fileutil.getKeyword(input,'INSTRUME')
-        _detector = fileutil.getKeyword(input,'DETECTOR')
+        _instrument = plist['exposure'].header['INSTRUME']
+        _detector = plist['exposure'].header['DETECTOR']
 
         # Extract the dq array designation
         _dqname = plist['exposure'].dqname
@@ -232,15 +236,20 @@ class ImageManager:
         _dqname = plist['orig_filename']+'['+_dq_extn+']'
 #        print "DQ name being build: ",_dqname
 
-        if plist['instrument'] == 'ACS':
-            if plist['detector'] == 'HRC': return HRCInputImage(input,_dqname,memmap=0)
-            if plist['detector'] == 'WFC': return WFCInputImage(input,_dqname,memmap=0)
-            if plist['detector'] == 'SBC': return SBCInputImage(input,_dqname,memmap=0)
+        if _instrument == 'ACS':
+            if _detector == 'HRC': return HRCInputImage(input,_dqname,memmap=0)
+            if _detector == 'WFC': return WFCInputImage(input,_dqname,memmap=0)
+            if _detector == 'SBC': return SBCInputImage(input,_dqname,memmap=0)
+        if _instrument == 'WFPC2':
+            if _detector == 1: return PCInputImage(input,_dqname,memmap=0)
+            if _detector == 2: return WF2InputImage(input,_dqname,memmap=0)
+            if _detector == 3: return WF3InputImage(input,_dqname,memmap=0)
+            if _detector == 4: return WF4InputImage(input,_dqname,memmap=0)
+##        if _instrument == 'STIS': return STISInputImage(input,_dqname)
 
-##        if plist['instrument'] == 'STIS': return STISInputImage(input,_dqname)
-##        if plist['instrument'] == 'WFPC2': return WFPC2InputImage(input,_dqname,memmap=self.memmap)
-
-        msg = 'Instrument: ' + _instrument + '/' + _detector + ' not yet supported!'
+        # If a supported instrument is not detected, print the following error message
+        # and raise an exception.
+        msg = 'Instrument: ' + str(_instrument) + '/' + str(_detector) + ' not yet supported!'
         raise ValueError, msg
 
     def _buildMaskImage(self,maskname, mask_array):
@@ -375,6 +384,7 @@ class ImageManager:
         for p in self.assoc.parlist:
             if int(p['group']) == 1:
                 p['image'].updateMDRIZSKY(p['orig_filename'])
+                #p['image'].updateMDRIZSKY(p['image'].datafile)
 
     def doDrizSeparate(self, pars):
 

@@ -55,6 +55,9 @@ class ACSInputImage (InputImage):
         # second, the effective gain is 1.
         self._effGain = 1
 
+    def doUnitConversions(self):
+        self._effGain = 1
+        
     def _isSubArray(self):
         _subarray = False
         _ltv1 = float(fileutil.getKeyword(parlist['data'],'LTV1'))

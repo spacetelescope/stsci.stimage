@@ -17,7 +17,10 @@ import mdzhandler
 import manager
 from manager import ImageManager
 
-__version__ = '2.0.2 (8 July 2004)'
+import geissupport
+from geissupport import *
+
+__version__ = '2.1.0 (19 July 2004)'
 
 def printout(text):
     print(' *** ' + text + '\n ***')
@@ -129,6 +132,7 @@ def BuildInstrPars(gain       = '1.0',
     return pars
 
 
+
 class Multidrizzle:
 
     def __init__(self,
@@ -158,6 +162,11 @@ class Multidrizzle:
 
         # Print version information for all external python modules used
         versioninfo()
+
+        # Determine if the input to Multidrizzle are WFPC2 GEIS files.
+        # If the input is GEIS format, it will need to be converted to
+        # multiextension FITS format for processing.
+        input,output = self._convertGEIS(input,output)        
 
         # Create object that controls step execution and mark
         # initialization step.
@@ -257,12 +266,138 @@ class Multidrizzle:
         if mdriztab:
             self.image_manager.setInstrumentParameters(self.instrpars)
 
+
+        # Do unit conversion of the 'sci' data if necessary
+        self.image_manager.doUnitConversions()
+
         # Check static file. Can only be done after reading MDRIZTAB.
         self._checkStaticFile(self.staticfile)
 
         # Done with initialization.
         self.steps.markStepDone(ProcSteps.doInitialize)
 
+    def _convertGEIS(self,input,output):
+    
+        """
+        Converts GEIS input from the user into multiextension FITS input
+        
+        This method returns as output a string listing the name of the
+        new input file(s) to use in multidrizzle replacing the GEIS
+        input.
+        """
+        
+        # Define a list to hold the input files in fits format.
+        _flist = []
+                            
+        # Case 1
+        _indx = input.find('_asn.fits')
+        if  _indx > -1:
+            # Input is an ASN table, so read it and return the input filenames
+            asndict = fileutil.readAsnTable(input, None, prodonly=False)
+          
+            # Determine if the file is a GEIS file.
+            # If the input is not in GEIS format do nothing and return
+            # original input string  
+            if findvalidgeisfile(asndict['order'][0]) == None:
+                newinput = input
+                newoutput = output
+            # Otherwise we need to convert each file in the asn table
+            # to multiextension FITS format and build a new association
+            # table.
+            else:
+                # Create a list of geis images contained in the asn table
+                geislist = []
+                for name in asndict['order']:
+                    geislist.append(findvalidgeisfile(name))
+                    
+                # Convert all of the geis images to fits format
+                print "! Converting GEIS format files in ASN table to multiextension FITS"
+                _flist = convertgeisinlist(geislist)
+                
+                # Create a new association table
+                newinput = "MDZ_"+input+'_asn.fits'
+                if output == None:
+                    newoutput = "MDZ_"+input[:string.find(name,'_asn.fits')]
+                else:
+                    newoutput = output
+                    
+                print "!Creating new ASN table called ",newoutput
+
+                # if the file you wish to create already exists, delete it
+                dirfiles = os.listdir(os.curdir)
+                if (dirfiles.count(newoutput+'_asn.fits') > 0):
+                    os.remove(newoutput+'_asn.fits')
+                # Build the new association table
+                buildasn.buildAsnTable(newoutput,
+                                        suffix=_flist,
+                                        shiftfile=None,
+                                        verbose='yes')
+        # Case 2
+        elif input.find(',') > -1:
+            # We have been given a list already, so format it as necessary
+            inputlist = input.split(',')
+            
+            # Determine if the file is a GEIS file.
+            # If the input is not in GEIS format do nothing and return
+            # original input string
+            if findvalidgeisfile(inputlist[0][0:inputlist[0].rfind('.')]) == None:
+                newinput = input
+                newoutput = output
+            else:
+                print "! Converting GEIS format files in comma separated list to multiextension FITS"
+                _flist = convertgeisinlist(inputlist)
+                count = 0
+                newinput = ""
+                newoutput = output
+                for file in _flist:
+                    if count !=0:
+                        newinput = newinput+','+file
+                    else:
+                        newinput = newinput+file
+                
+                        
+        # Case 3
+        else:
+            # We are working with either a suffix pattern,
+            # a user-supplied at-file with a list of filenames or
+            # a single filename for specifying the input file(s).
+            # Parse this and build the appropriate list of filenames
+            ilist = buildasn._findFiles(input)
+            inputlist = []
+            for tupleitem in ilist:
+                inputlist.append(tupleitem[0])
+            
+            # Determine if the file is a GEIS file.
+            # If the input is not in GEIS format do nothing and return
+            # original input string  
+            if findvalidgeisfile(inputlist[0][0:inputlist[0].rfind('.')]) == None:
+                newinput = input
+                newoutput = output
+            else:
+                # Set a default value for output if None is given
+                if output == None:
+                    output = "final"
+                
+                print "! Converting GEIS format files to multiextension FITS"
+                _flist = convertgeisinlist(inputlist)
+                if len(inputlist) == 1:
+                    newinput = inputlist[0]
+                    newoutput = output
+                else:
+                    # if the file you wish to create already exists, delete it
+                    dirfiles = os.listdir(os.curdir)
+                    if (dirfiles.count("MDZ_"+output+'_asn.fits') > 0):
+                        os.remove("MDZ_"+output+'_asn.fits')
+                    # Build the new association table
+                    buildasn.buildAsnTable("MDZ_"+output,
+                                        suffix=_flist,
+                                        shiftfile=None,
+                                        verbose='yes')
+                    newinput = "MDZ_"+output+'_asn.fits'
+                    newoutput = "MDZ_"+output
+                  
+        return newinput,newoutput
+        
     def _printInputPars(self,switches):
         print "\n\n**** Multidrizzle Parameter Input ****"
 
@@ -334,6 +469,9 @@ class Multidrizzle:
         print "Initializing DQpars file..."
         if (_instrument.lower() == 'acs'):
             _parfile = dqpars.ACSPars()
+            _parfile.update(_bits)
+        elif (_instrument.lower() == 'wfpc2'):
+            _parfile = dqpars.WFPC2Pars()
             _parfile.update(_bits)
         else:
             print " "
@@ -522,15 +660,39 @@ class Multidrizzle:
         self.medianpars['grow']     = grow
 
     def _createInputCopies(self,files):
-        """ Creates copies of all input images."""
+        """ 
+        Creates copies of all input images.
+        
+        If a previous execution of multidrizzle has failed and _OrIg
+        files already exist, before removing the _OrIg files, we will
+        copy the 'sci' extensions out of those files _OrIg files and
+        use them to overwrite what is currently in the existing 
+        input files.  This protects us against crashes in the HST
+        pipeline where Multidrizzle is restarted after the sky
+        has already been subtracted from the input files.
+        """
 
         for _img in files:
             # Only make copies of files that exist
             if os.path.exists(_img):
                 # Create filename for copy
                 _copy = manager.modifyRootname(_img)
-                # Make sure we remove any previous copies first...
-                if os.path.exists(_copy): os.remove(_copy)
+                # Make sure we remove any previous copies first,
+                # after we copy 'sci' extension into the
+                # possibly corrupted input file.  This
+                # ensures that Multidrizzle restarts will
+                # always have pristine input to use.
+                if os.path.exists(_copy):
+                    fimage = fileutil.openImage(_img,mode='update')
+                    fcopy = fileutil.openImage(_copy)
+                    index = 0
+                    for extn in fcopy:
+                        if extn.name.upper() == 'SCI':
+                            fimage[index].data = fcopy[index].data
+                        index += 1
+                    fimage.close()
+                    fcopy.close()
+                    os.remove(_copy)
 
                 # Copy file into new filename
                 shutil.copyfile(_img,_copy)
@@ -588,7 +750,7 @@ class Multidrizzle:
 
         # Setup default output name if none was provided either by user or in ASN table
         if (output == None) or (len(output) == 0):
-            output = 'final_drz.fits'
+            output = 'final'
 
         return _flist,output
 
@@ -801,18 +963,6 @@ class Multidrizzle:
             driz_combine    = True,
             timing          = True):
 
-        #Create a dictornary recording the boolean step indicators for printing
-        switches = {}
-        switches['static'] = static
-        switches['skysub'] = skysub
-        switches['driz_separate'] = driz_separate
-        switches['median'] = median
-        switches['blot'] = blot
-        switches['driz_cr'] = driz_cr
-        switches['driz_combine'] = driz_combine
-
-        # Print the input parameters now that MDRIZTAB has had a chance to modify the default values
-        self._printInputPars(switches)
 
         # Update object that controls step execution. Use either user
         # interface switches, or MDRIZTAB switches.
@@ -825,9 +975,33 @@ class Multidrizzle:
                                 self.tabswitches['blot'],
                                 self.tabswitches['driz_cr'],
                                 self.tabswitches['driz_combine'])
+
+            #Create a dictornary recording the boolean step indicators for printing
+            switches = {}
+            switches['static'] = self.tabswitches['static']
+            switches['skysub'] = self.tabswitches['subsky']
+            switches['driz_separate'] = self.tabswitches['driz_separate']
+            switches['median'] = self.tabswitches['median']
+            switches['blot'] = self.tabswitches['blot']
+            switches['driz_cr'] = self.tabswitches['driz_cr']
+            switches['driz_combine'] = self.tabswitches['driz_combine']
+
         else:
             self.steps.addSteps(static, skysub, driz_separate, median,
                                 blot, driz_cr, driz_combine)
+            #Create a dictornary recording the boolean step indicators for printing
+            switches = {}
+            switches['static'] = static
+            switches['skysub'] = skysub
+            switches['driz_separate'] = driz_separate
+            switches['median'] = median
+            switches['blot'] = blot
+            switches['driz_cr'] = driz_cr
+            switches['driz_combine'] = driz_combine
+
+        # Print the input parameters now that MDRIZTAB has had a chance to modify the default values
+        self._printInputPars(switches)
+
 
         # Insure that if an error occurs,
         # all file handles are closed before exiting...

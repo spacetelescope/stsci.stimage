@@ -22,8 +22,10 @@
 #           Version 0.1.31 06/29/04 -- Modified import of imagestats. -- CJH
 #           Version 0.1.32 06/29/04 -- Modified imports to remove dependence on pytools package -- CJH
 #           Version 0.1.33 07/08/04 -- pdated Dictionary key names -- CJH
+#           Version 0.1.34 07/15/04 -- Modified the the driz_cr calls to handle the case of WFPC2 data
+#               where no DQ file was provided. -- CJH
 
-__version__ = '0.1.33'
+__version__ = '0.1.34'
 
 import pyfits
 
@@ -60,6 +62,7 @@ class InputImage:
 
         self.instrument = None
         _fname,_extn = fileutil.parseFilename(input)
+        self.dqfile_fullname = dqname
         self.dqfile_name,self.dqfile_extn = fileutil.parseFilename(dqname)
         self.extn     = _extn
         self.grp      = fileutil.parseExtn(_extn)
@@ -86,6 +89,12 @@ class InputImage:
 
     def setInstrumentParameters(self, instrpars, pri_header):
         """ Sets the instrument parameters.
+        """
+        pass
+
+    def doUnitConversions(self):
+        """
+        Convert the sci extensions pixels to electrons
         """
         pass
         
@@ -299,9 +308,7 @@ class InputImage:
             # Open input image and get pointer to SCI data
             __handle = fileutil.openImage(self.name,mode='readonly',memmap=1)
             __scihdu = fileutil.getExtn(__handle,extn=self.extn)
-            __dqhandle = fileutil.openImage(self.dqfile_name,mode='update',memmap=1)
-            __dqarray = fileutil.getExtn(__dqhandle,extn=self.dqfile_extn)
-
+            
             __tmpDriz_cr = driz_cr.DrizCR(__scihdu.data,
                             __scihdu.header,
                             blotted_array,
@@ -313,7 +320,15 @@ class InputImage:
                             backg = self.getSubtractedSky(),
                             scale = drizcrpars['driz_cr_scale'])
 
-            __tmpDriz_cr.updatedqarray(__dqarray.data,self.cr_bits_value)
+            # Update the dq information if there is a dq array to update.
+            # In the case of WFPC2 input, no DQ file may have been provided.
+            # For ACS, there will always be DQ array information in the FLT file.
+            if fileutil.findFile(self.dqfile_fullname):
+                __dqhandle = fileutil.openImage(self.dqfile_name,mode='update',memmap=1)
+                __dqarray = fileutil.getExtn(__dqhandle,extn=self.dqfile_extn)
+                __tmpDriz_cr.updatedqarray(__dqarray.data,self.cr_bits_value)
+                __dqhandle.close()
+                
 
             if  (corr_file != None):
                 __tmpDriz_cr.createcorrfile(corr_file)
