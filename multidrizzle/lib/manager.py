@@ -44,6 +44,9 @@
 #                                       a default weighting scheme -- CJH
 #           Version 1.1.0,  12/03/04 -- Modified the static_mask steps fix a bug in accepting a user supplied
 #                                       static mask file.
+#           Version 1.2.0,  01/13/05 -- Modified the static_mask and driz_sep steps to allow for seperate masks for
+#                                       the single and final drizzle steps.  --- CJH/WJH
+
 
 # Import Numarray functionality
 import numarray.image.combine as combine
@@ -75,7 +78,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter,computeBuffRows
 
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -164,6 +167,9 @@ class ImageManager:
             else:
                 p['image'].maskname = p['driz_mask']
 
+            # Create the name of the single drizzle mask file if it doesn't exist.
+            p['image'].singlemaskname = p['single_driz_mask']
+            
             #
             # Rename some of the variables defined by pydrizzle:
             #
@@ -354,7 +360,25 @@ class ImageManager:
 
             __handle.close()
             del __handle
+        
+            # If there is going to be a sepearte mask for the single drizzle step and it is different
+            # from the mask used for the final drizzle step it will also need to be updated with the 
+            # static mask information
+            if ( (p['image'].singlemaskname != None) and (p['image'].singlemaskname != p['image'].maskname) ):
+                __handle = fileutil.openImage(p['image'].singlemaskname,mode='update')
+                __static_array = self.static_mask.getMask(p['image'].signature())
 
+                # Print progress message to alert the user that the mask file
+                # is now being updated with the static mask information
+                # If verbose mode is implemented, this could be included.
+                print 'Updating mask file: ',p['image'].singlemaskname,' with static mask.'
+
+                if __static_array != None:
+                    __handle[0].data = N.bitwise_and(__handle[0].data,__static_array)
+
+                __handle.close()
+                del __handle
+                
 
     def _applyUserStaticFile(self, static_file, static_mask, signature, imageExtension):
     
@@ -556,14 +580,20 @@ class ImageManager:
             # large (> sqrt(2))
             
             p['fillval'] = pars['fillval']
-            # Copy out filename for 'driz_mask' and
-            # replace with static_mask Numarray object
-            p['full_mask'] = p['driz_mask']
-            if (self.static_mask != None):
-                p['driz_mask'] = self.static_mask.getMask(p['image'].signature())
-            else:
-                p['driz_mask'] = None
 
+
+#            # Copy out filename for 'driz_mask' and
+#            # replace with static_mask Numarray object
+#            p['full_mask'] = p['driz_mask']
+#            if (self.static_mask != None):
+#                p['driz_mask'] = self.static_mask.getMask(p['image'].signature())
+#            else:
+#                p['driz_mask'] = None
+
+            if (p['single_driz_mask'] == None and self.static_mask != None):
+                p['single_driz_mask'] = self.static_mask.getMask(p['image'].signature())
+                
+    
             print("\ndrizzle data='"+p['data']+"' outdata='"+p['outsingle']+"' outweig='"+p['outsweight']+
                 "' in_mask='static_mask"+"' kernel='"+p['kernel']+
                 "' outnx="+str(p['outnx'])+" outny="+str(p['outny'])+" xsh="+str(p['xsh'])+" ysh="+str(p['ysh'])+
@@ -579,9 +609,9 @@ class ImageManager:
             print 'Could not complete (drizSeparate) processing.'
             raise RuntimeError
 
-        # Restore reference to mask file
-        for p in self.assoc.parlist:
-            p['driz_mask'] = p['full_mask']
+#        # Restore reference to mask file
+#        for p in self.assoc.parlist:
+#            p['driz_mask'] = p['full_mask']
 
         # Now that we are done with the static mask, delete it...
         del self.static_mask
