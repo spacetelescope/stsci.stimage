@@ -50,6 +50,10 @@ no = False
 # when trying to recognize input rootnames.
 EXTLIST =  ['_crj.fits','_flt.fits','_sfl.fits','_cal.fits','_raw.fits','.c0h','.hhh','.fits']
 
+BLANK_ASNDICT = {'output':None,'order':[],'members':{'abshift':no,'dshift':no}}
+
+__version__ = '1.0.1 (15-Nov-2004)'
+
 def help():
     print __doc__
 
@@ -1163,6 +1167,215 @@ def readWCSCoeffs(header):
 
     return fx,fy,refpix,order
 
+
+def readShiftFile(filename):
+    """
+    Function which will read in either a user-supplied ASCII
+    file or 'avshift' output file and extract the best XSH and YSH
+    for each file. It returns a dictionary based on the filenames:
+    sdict = {'image1':(xsh,ysh,rot,scale),...}.  These values are absolute
+    shifts which need to have the intended offset subtracted off before
+    being written into the 'XOFFSET'/'YOFFSET' columns of the output ASN table.
+    If no values are given for ROT or SCALE, then a value of None will be used.
+    """
+    lines = []
+    sdict = {'frame':'input','refimage':None,'units':'pixels','form':'absolute'}
+
+    fshift = open(filename,'r')
+    flines = fshift.readlines()
+    fshift.close()
+
+    # Read first lines to parse out UNITS,FRAME,REFERENCE values
+    # from commentary lines.
+    for line in flines:
+        # Skip blank lines in the file...
+        if line.strip() == '': continue
+
+        ntokens = len(line.split())
+
+        # Determine what kind of shift file we are working with
+        if line.find('#') == 0:
+            if line.find('xsh_in   ysh_in') > -1:
+                # We are working with average shift file
+                xoffindx = 2
+                yoffindx = 4
+                rotindx = 9
+                scaleindx = None
+                sdict['units'] = 'pixels'
+                sdict['frame'] = 'input'
+                break
+            elif line.find('units') > -1:
+                _indx = line.find(':')
+                if _indx < 0:
+                    # Search for incidence of 'units'
+                    # add 5 to put indx at end of string
+                    _indx = line.find('units') + 5
+                sdict['units'] = line[_indx+1:].strip()
+            elif line.find('frame') > -1:
+                _indx = line.find(':')
+                if _indx < 0:
+                    # Search for incidence of 'frame'
+                    # add 5 to put indx at end of string
+                    _indx = line.find('frame') + 5
+                sdict['frame'] = line[_indx+1:].strip()
+            elif line.find('reference') > -1:
+                _indx = line.find(':')
+                if _indx < 0:
+                    # Search for incidence of 'reference'
+                    # add 9 to put indx at end of string
+                    _indx = line.find('reference') + 9
+                sdict['refimage'] = line[_indx+1:].strip()
+            elif line.find('form') > -1:
+                _indx = line.find(':')
+                if _indx < 0:
+                    _indx = line.find('form') + 4
+                sdict['form'] = line[_indx+1:].strip()
+        else:
+            # Line is not a comment, so look at number of columns
+            if  ntokens == 3:
+                # We are working with a user-supplied ASCII shifts file
+                xoffindx = 1
+                yoffindx = 2
+                rotindx = None
+                scaleindx = None
+                break
+            elif ntokens == 4:
+                # We are working with a user-supplied ASCII shifts file
+                xoffindx = 1
+                yoffindx = 2
+                rotindx = 3
+                scaleindx = None
+                break
+            elif ntokens == 5:
+                # We are working with a user-supplied ASCII shifts file
+                xoffindx = 1
+                yoffindx = 2
+                rotindx = 3
+                scaleindx = 4
+                break
+            else:
+                # We are not working with a file we understand
+                # Simply return 'None' and continue
+                xoffindx = None
+                yoffindx = None
+                rotindx = None
+                scaleindx = None
+                fshift.close()
+                return None
+
+    # Build dictionary now...
+    # Search all lines which have text
+    for line in flines:
+        # Ignore commentary lines that begin with '#'
+        if line.find("#") < 0 and line.strip() != '':
+            lsplit = line.split()
+            sdict[lsplit[0]] = [float(lsplit[xoffindx]),float(lsplit[yoffindx])]
+            # Add rotation, if present
+            if rotindx != None:
+                _val = float(lsplit[rotindx])
+            else: _val = None
+            sdict[lsplit[0]].append(_val)
+            # Add scale, if present
+            if scaleindx != None:
+                _val = float(lsplit[scaleindx])
+            else: _val = None
+            sdict[lsplit[0]].append(_val)
+
+    return sdict
+
+def buildAsnDict(inlist,output=None,shiftfile=None):
+    """
+    This function parses a Python list of filenames and
+    populates an ASN dictionary as if read from an ASN table itself.
+
+    If no output name has been provided, a default of 'final' will
+    be setup.
+
+    If a SHIFTFILE has been given, then it will be read and used to
+    populate the dictionary as well.
+
+    """
+
+    asndict = copy.deepcopy(BLANK_ASNDICT)
+    member_dict = {'delta_rot': 0.0, 'delta_x': 0.0, 'yshift': -0.0,
+                    'delta_y': 0.0, 'rot': 0.0, 'shift_frame': '',
+                    'xshift': -0.0, 'shift_units': 'pixels',
+                    'refimage': '', 'yoff': 0.0, 'delta_scale': 0.0,
+                    'xoff': 0.0, 'abshift': False, 'dshift': False, 'row': 0}
+
+    # Start with output
+    if output == None:
+        _output = 'final'
+    else:
+        _output = buildNewRootname(output)
+        # Insure that output name does not already contain
+        # _drz to avoid ending up with '_drz_drz.fits' output filenames
+        _indx = _output.find('_drz')
+        if _indx > 0:
+            _output = _output[:_indx]
+
+    asndict['output'] = _output
+
+    # Parse out shift file, if provided
+    sdict = None
+    if shiftfile != None:
+        sdict = readShiftFile(shiftfile)
+
+    # Now, setup 'order' entries
+    for fn in inlist:
+        asndict['order'].append(buildNewRootname(fn))
+
+    # Fill out remainder of dictionary for each input filename
+    _row = 0
+    abshift = False
+    dshift = False
+    for fn in asndict['order']:
+        # Start with default no-shift entry
+        mdict = member_dict.copy()
+
+        mdict['row'] = _row
+        # If shifts were provided, update values for row
+        if sdict != None:
+            # Parse out values from shiftdict and apply to ASN dictionary
+            mdict['shift_frame'] = sdict['frame']
+            mdict['shift_units'] = sdict['units']
+            if sdict['refimage'] != None:
+                mdict['refimage'] = sdict['refimage']
+
+            # Extract shifts for this image
+            for sname in sdict.keys():
+                if sname.find(fn) > -1:
+                    shifts = sdict[sname]
+                    break
+
+            if sdict['form'] == 'delta':
+                # We are working with delta shifts
+                mdict['dshift'] = True
+                dshift = True
+                mdict['delta_x'] = shifts[0]
+                mdict['delta_y'] = shifts[1]
+                if shifts[2] != None:
+                    mdict['delta_rot'] = shifts[2]
+                if shifts[3] != None:
+                    mdict['delta_scale'] = shifts[3]
+            else:
+                mdict['abshift'] = True
+                abshift = True
+                mdict['xshift'] = shifts[0]
+                mdict['yshift'] = shifts[1]
+                if shifts[2] != None:
+                    mdict['rot'] = shifts[2]
+                if shifts[3] != None:
+                    mdict['scale'] = shifts[3]
+
+        # Write out updated dictionary to ASNDict
+        asndict['members'][fn] = mdict
+        asndict['members']['abshift'] = abshift
+        asndict['members']['dshift'] = dshift
+        _row += 1
+
+    return asndict
+
 def readAsnTable(fname,output=None,prodonly=yes):
     """
      This function reads the filenames/rootnames and shifts from a FITS
@@ -1209,7 +1422,7 @@ def readAsnTable(fname,output=None,prodonly=yes):
                     as the output resulting in every input creating a separate output.
     """
     # Initialize this dictionary for output
-    asndict = {'output':None,'order':[],'members':{'abshift':no,'dshift':no}}
+    asndict = copy.deepcopy(BLANK_ASNDICT)
 
     # Insure that ASN filename is full filename with fully expanded
     # IRAF variables; i.e. 'mydir$jx001a010_asn.fits' should get

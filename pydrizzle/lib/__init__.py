@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.2.9 (8-November-2004)"
+__version__ = "5.3.0 (15-November-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -297,9 +297,9 @@ class Pattern:
             _oxy1o = _mem_geo.wtraxy((_mem_wcs.crpix1, _mem_wcs.crpix2),_geo)
 
             # Use 'xy2rd' to convert these pixel positions to RA/Dec
-            ra1,dec1 = _geo.xy2rd(_oxy1)
-            ra2,dec2 = _geo.xy2rd(_oxy2)
-            ra3,dec3 = _geo.xy2rd(_oxy3)
+            ra1,dec1 = _geo.xy2rd((_oxy1[0],_oxy1[1]))
+            ra2,dec2 = _geo.xy2rd((_oxy2[0],_oxy1[1]))
+            ra3,dec3 = _geo.xy2rd((_oxy3[0],_oxy3[1]))
 
             # Convert these numbers into a new WCS
             _mem_wcs.crval1 = ra1
@@ -1541,6 +1541,7 @@ class DitherProduct(Pattern):
         Pattern.__init__(self, None, output=output, pars=pars)
 
         self.pars = prodlist['members']
+        print 'self.pars[abshift]: ',self.pars['abshift'],'  [dshift]: ',self.pars['dshift']
         # Subtract 2 from len(members) to account for 'abshift' and 'dshift'
         # entries in prodlist
         self.nmembers = self.nimages = len(prodlist['members']) - 2
@@ -1602,6 +1603,9 @@ class DitherProduct(Pattern):
         # If there were any shifts to be applied, update input
         # image's WCS with the shifts, then re-build the final
         # product Metachip using corrected product WCS values.
+        print 'self.pars[abshift] = ',self.pars['abshift']
+        print 'self.pars[dshift] = ',self.pars['dshift']
+
         if self.pars['abshift'] or self.pars['dshift']:
             for prod in self.members:
                 prod.applyAsnShifts()
@@ -2171,7 +2175,7 @@ More help on SkyField objects and their parameters can be obtained using:
     """
     def __init__(self, input, output=None, field=None, units=None, section=None,
         kernel=None,pixfrac=None,bits=-1,wt_scl='exptime',fillval=0.,idckey=None,
-        idcdir=DEFAULT_IDCDIR,memmap=1,dqsuffix=None,prodonly=yes):
+        idcdir=DEFAULT_IDCDIR,memmap=1,dqsuffix=None,prodonly=yes,shiftfile=None):
 
         if idcdir == None: idcdir = DEFAULT_IDCDIR
 
@@ -2179,12 +2183,18 @@ More help on SkyField objects and their parameters can be obtained using:
 
         # Do a quick sanity check on the input filename
         # Can it be found in the current directory?
-        if not fileutil.findFile(input):
+        if isinstance(input,list) == False:
+            _input = input
+        else:
+            _input = input[0]
+
+        if not fileutil.findFile(_input):
             raise IOError,'Can not find input file in current directory!'
 
         # Does it have a recognizable extension
-        if string.find(input,'.') < 0:
+        if string.find(_input,'.') < 0:
             raise ValueError,"Please specify extension (i.e., .fits) for input '%s' "%input
+
         # These parameters are needed for buildPars()
         self.input = input
 
@@ -2225,7 +2235,8 @@ More help on SkyField objects and their parameters can be obtained using:
         # an ASN table or single image...
         #
         # Should this check for ASN table and
-        if input.find('_asn') < 0 and input.find('_asc') < 0:
+        if (isinstance(input, list) == False) and \
+            (input.find('_asn') < 0 and input.find('_asc') < 0) :
             # Start with single image case...
             # Check to see if an output name was provided.
             if output == None:
@@ -2242,12 +2253,16 @@ More help on SkyField objects and their parameters can be obtained using:
         else:
             # We are dealing with an ASN table...
             # 'input' - full filename for ASN table
-            asndict = fileutil.readAsnTable(input,output=output,prodonly=prodonly)
+            if isinstance(input, list):
+                asndict = fileutil.buildAsnDict(input, output=output,shiftfile=shiftfile)
+            else:
+                asndict = fileutil.readAsnTable(input,output=output,prodonly=prodonly)
             # Build output filename
             if output == None:
                 output = fileutil.buildNewRootname(asndict['output'],extn='_drz.fits')
                 print 'Setting up output name: ',output
 
+            print 'asndict: ',asndict
             if len(asndict['members'].keys()) > 1:
                 self.observation = DitherProduct(asndict,pars=self.pars)
             else:

@@ -1,4 +1,10 @@
 ### PyDrizzle Revision Changes
+Version 5.3.0 (15-Nov-2004) WJH
+      - Fixed a problem with interpreting shifts from ASN tables caused by 
+        change to 'wtraxy' to support arrays.
+      - Added 'shiftfile' parameter as input parameter.
+      - Added support for Python list of filenames as input.
+
 Version 5.2.9 (8-Nov-2004) WJH
       - Added 'build' attribute to PyDrizzle class so that it can be set
         when 'run()' method gets called, and used in the 'clean()' method.

@@ -59,6 +59,9 @@ WJH/CJH, 28 Sept 2004 (0.9.2)
     Added support to findFiles for comma separated string input.  Also corrected
     a bug in the processing of @files in which rstrip() was not being applied to
     the filenames leaving a trailing newline character.
+WJH, 15 Nov 2004 (0.9.3)
+    Moved 'readShiftFile' to 'fileutil.py' so it would not need to import
+        'buildasn'. Instead, we use 'from fileutil import readShiftFile' here
 """
 
 import os, sre, types, copy
@@ -68,13 +71,15 @@ import pyfits
 # New numarray 0.6 import mode
 import numarray
 
+from fileutil import readShiftFile
+
 # List of supported default file types
 # It will look for these file types by default
 # when trying to recognize input rootnames.
 #EXTLIST =  ['_crj.fits','_flt.fits','_sfl.fits','_raw.fits','_drz.fits']
 EXTLIST =  ['_crj.fits','_flt.fits','_sfl.fits','_cal.fits','_raw.fits','.c0h','.hhh','.fits']
 
-__version__ = '0.9.2 (28-Sept-2004)'
+__version__ = '0.9.3 (15-Nov-2004)'
 
 _prihdr = pyfits.Header([pyfits.Card('SIMPLE', pyfits.TRUE,'Fits standard'),
                 pyfits.Card('BITPIX  ',                    16 ,' Bits per pixel'),
@@ -288,121 +293,6 @@ def _updateKeyword(key,inhdr,outhdr,default='UNKNOWN'):
         _keyw = default
     outhdr[key] = _keyw
 
-
-def readShiftFile(filename):
-    """
-    Function which will read in either a user-supplied ASCII
-    file or 'avshift' output file and extract the best XSH and YSH
-    for each file. It returns a dictionary based on the filenames:
-    sdict = {'image1':(xsh,ysh,rot,scale),...}.  These values are absolute
-    shifts which need to have the intended offset subtracted off before
-    being written into the 'XOFFSET'/'YOFFSET' columns of the output ASN table.
-    If no values are given for ROT or SCALE, then a value of None will be used.
-    """
-    lines = []
-    sdict = {'frame':'input','refimage':None,'units':'pixels','form':'absolute'}
-
-    fshift = open(filename,'r')
-    flines = fshift.readlines()
-    fshift.close()
-
-    # Read first lines to parse out UNITS,FRAME,REFERENCE values
-    # from commentary lines.
-    for line in flines:
-        # Skip blank lines in the file...
-        if line.strip() == '': continue
-
-        ntokens = len(line.split())
-
-        # Determine what kind of shift file we are working with
-        if line.find('#') == 0:
-            if line.find('xsh_in   ysh_in') > -1:
-                # We are working with average shift file
-                xoffindx = 2
-                yoffindx = 4
-                rotindx = 9
-                scaleindx = None
-                sdict['units'] = 'pixels'
-                sdict['frame'] = 'input'
-                break
-            elif line.find('units') > -1:
-                _indx = line.find(':')
-                if _indx < 0:
-                    # Search for incidence of 'units'
-                    # add 5 to put indx at end of string
-                    _indx = line.find('units') + 5
-                sdict['units'] = line[_indx+1:].strip()
-            elif line.find('frame') > -1:
-                _indx = line.find(':')
-                if _indx < 0:
-                    # Search for incidence of 'frame'
-                    # add 5 to put indx at end of string
-                    _indx = line.find('frame') + 5
-                sdict['frame'] = line[_indx+1:].strip()
-            elif line.find('reference') > -1:
-                _indx = line.find(':')
-                if _indx < 0:
-                    # Search for incidence of 'reference'
-                    # add 9 to put indx at end of string
-                    _indx = line.find('reference') + 9
-                sdict['refimage'] = line[_indx+1:].strip()
-            elif line.find('form') > -1:
-                _indx = line.find(':')
-                if _indx < 0:
-                    _indx = line.find('form') + 4
-                sdict['form'] = line[_indx+1:].strip()
-        else:
-            # Line is not a comment, so look at number of columns
-            if  ntokens == 3:
-                # We are working with a user-supplied ASCII shifts file
-                xoffindx = 1
-                yoffindx = 2
-                rotindx = None
-                scaleindx = None
-                break
-            elif ntokens == 4:
-                # We are working with a user-supplied ASCII shifts file
-                xoffindx = 1
-                yoffindx = 2
-                rotindx = 3
-                scaleindx = None
-                break
-            elif ntokens == 5:
-                # We are working with a user-supplied ASCII shifts file
-                xoffindx = 1
-                yoffindx = 2
-                rotindx = 3
-                scaleindx = 4
-                break
-            else:
-                # We are not working with a file we understand
-                # Simply return 'None' and continue
-                xoffindx = None
-                yoffindx = None
-                rotindx = None
-                scaleindx = None
-                fshift.close()
-                return None
-
-    # Build dictionary now...
-    # Search all lines which have text
-    for line in flines:
-        # Ignore commentary lines that begin with '#'
-        if line.find("#") < 0 and line.strip() != '':
-            lsplit = line.split()
-            sdict[lsplit[0]] = [float(lsplit[xoffindx]),float(lsplit[yoffindx])]
-            # Add rotation, if present
-            if rotindx != None:
-                _val = float(lsplit[rotindx])
-            else: _val = None
-            sdict[lsplit[0]].append(_val)
-            # Add scale, if present
-            if scaleindx != None:
-                _val = float(lsplit[scaleindx])
-            else: _val = None
-            sdict[lsplit[0]].append(_val)
-
-    return sdict
 
 def _findRefFile(sdict,flist):
     """ Function which identifies the image from an association
