@@ -5,7 +5,7 @@ Version 2.5.1: 02/07/05 -- CJH/WJH
     values of zero have been added.
 
     MAKEWCS has been modfied to compute appropriate solutions for sub-array
-    data.
+    data.  Changes were necessary in the wcsutil module of Pydrizzle as well.
 
     The in pydrizzle's fileutil module the readASNTable has been modified to
     ignore association table entries with memprsnt keyword value of 'F'.
