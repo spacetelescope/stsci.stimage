@@ -930,10 +930,11 @@ class Pattern:
         _pscale1 = None
         for img in self.members:
             _chip = img.chip
+            _detector = str(img.header['detector'])
             # scale all chips to first chip plate scale...
             if _pscale1 == None or img.chip == '1':
-                _pscale1 = self.REFDATA[_chip]['psize']
-                _reftheta = self.REFDATA[_chip]['theta']
+                _pscale1 = self.REFDATA[_detector]['psize']
+                _reftheta = self.REFDATA[_detector]['theta']
 
         _v2ref = 0.
         _v3ref = 0.
@@ -943,7 +944,8 @@ class Pattern:
             _model = img.geometry.model
             _ikey = img.geometry.ikey
             _chip = img.chip
-            _refdata = self.REFDATA[_chip]
+            _detector = str(img.header['detector'])
+            _refdata = self.REFDATA[_detector]
 
             # ... determine the plate scale and scaling factor between chips...
             if img.chip == '1':
@@ -1230,7 +1232,6 @@ class GenericObservation(Pattern):
 
         # Now, build list of members and initialize them
         self.addMembers(filename)
-        if self.members[0].chip == '1': self.members[0].chip = 'CCD'
 
         _ikey = self.members[0].geometry.ikey
         if  _ikey != 'idctab' and _ikey != 'wcs' :
@@ -1329,7 +1330,6 @@ class STISObservation(Pattern):
 
         # Now, build list of members and initialize them
         self.addMembers(filename)
-        if self.members[0].chip == '1': self.members[0].chip = 'CCD'
 
         if self.members[0].geometry.ikey != 'idctab':
             # Correct distortion coefficients to match output pixel scale
