@@ -27,6 +27,7 @@ Dependencies:
 #that's where it shows up for the user.
 
 import os 
+import exceptions
 import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
@@ -69,6 +70,8 @@ class params:
         self.darkpath=osfn(darkpath)
         self.diagfile=diagfile
 
+        self.appstring=None   # Might be needed later.
+        
 class Domain:
     """ Stores a list of pixels for a (typically high or low) signal domain"""
     
@@ -277,6 +280,10 @@ class Exposure:
             print "Huh?? hi_nr, lo_nr: ",hdom.nr,ldom.nr
         return final
 #..........................................................................
+# Exception definitions
+class NoPersistError(Exceptions.exception):
+    pass
+#..........................................................................
 #Helper functions:
 #-............................................................................
 def osfn(filename):
@@ -333,7 +340,9 @@ def get_postsaa_darks(imgfile):
     present. Otherwise raise an exception and exit. """
 
     #Get the science header
-    inpath=os.path.dirname(imgfile)+'/'
+    inpath=os.path.dirname(imgfile)
+    if inpath != '':
+        inpath+= '/'
     f=pyfits.open(imgfile)
     h=f[0].header
     saa_asn=h['saa_dark']
