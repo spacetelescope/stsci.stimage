@@ -55,7 +55,10 @@ CJH, 13 Jul 2004 (0.9)
 CJH, 02 Aug 2004 (0.9a)
     Added support to find files for having 2 columns of filenames in an @inputlist
     file.  This is used by Multidrizzle to implement the use of IVM files.
-
+WJH/CJH, 28 Sept 2004 (0.9.2)
+    Added support to findFiles for comma separated string input.  Also corrected
+    a bug in the processing of @files in which rstrip() was not being applied to
+    the filenames leaving a trailing newline character.
 """
 
 import os, sre, types, copy
@@ -71,7 +74,7 @@ import numarray
 #EXTLIST =  ['_crj.fits','_flt.fits','_sfl.fits','_raw.fits','_drz.fits']
 EXTLIST =  ['_crj.fits','_flt.fits','_sfl.fits','_cal.fits','_raw.fits','.c0h','.hhh','.fits']
 
-__version__ = '0.9a (02-Aug-2004)'
+__version__ = '0.9.2 (28-Sept-2004)'
 
 _prihdr = pyfits.Header([pyfits.Card('SIMPLE', pyfits.TRUE,'Fits standard'),
                 pyfits.Card('BITPIX  ',                    16 ,' Bits per pixel'),
@@ -198,6 +201,12 @@ def _findFiles(inlist):
         regpatt = None
         suffix = inlist
 
+    elif inlist.find(',') >=0:
+        # We have a comma separated list
+        regpatt = None
+        inlist = inlist.split(',')
+        suffix = inlist
+
     elif inlist[0] == '@':
         # We have a file list as input
         regpatt = None
@@ -250,7 +259,7 @@ def _findFiles(inlist):
             if (len(fline) > 1):
                 ivmfile = fline[1].rstrip()
 
-            flist.append((fline[0],suffix,ivmfile))
+            flist.append((fline[0].rstrip(),suffix,ivmfile))
 
     del regpatt
     flist.sort()
