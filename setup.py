@@ -57,7 +57,7 @@ def dosetup():
         author="Science Software Branch, STScI",
         maintainer_email="help@stsci.edu",
         url="http://www.stsci.edu/resources/software_hardware/index_html?category=Data_Analysis",
-        py_modules = ['pyfits', 'readgeis', 'fitsdiff', 'imageiter', 'irafglob',  'makewcs', 'nimageiter', 'numcombine', 'versioninfo']
+        py_modules = ['pyfits', 'readgeis', 'fitsdiff', 'imageiter', 'irafglob',  'makewcs', 'nimageiter', 'numcombine', 'versioninfo', 'parseinput']
         )
     for p in packages:
         os.chdir(topdir)
