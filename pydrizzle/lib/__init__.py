@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.4.1 (17-January-2005)"
+__version__ = "5.4.1 (18-January-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -1505,10 +1505,13 @@ class WFPCObservation(Pattern):
             else:
                 _maskname = None
 
-            _masklist = []
+            _masklist = [[None,None]]
             if self.bitvalue[0] != None:
-                buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[0])
+                outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[0])
                 _masklist.append(_maskname)
+                if outmask != None:
+                    # We had no problem generating the mask file.
+                    _masklist[0][0] = outmask
             else:
                 _masklist.append(None)
 
@@ -1518,7 +1521,10 @@ class WFPCObservation(Pattern):
                 else:
                     _maskname = _maskname.replace('final_mask','single_mask')
                     _masklist.append(_maskname)
-                    buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[1])
+                    outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[1])
+                    if outmask != None:
+                        # We had no problem generating the mask file.
+                        _masklist[0][1] = outmask
             else:
                 _masklist.append(None)
 
