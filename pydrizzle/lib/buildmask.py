@@ -84,6 +84,11 @@ def buildMaskImage(rootname,bitvalue,output,extname='DQ',extver=1):
         # Read in DQ array
         #dqarr = fdq[extname,extver].data
         dqarr = fdq[_extn].data
+        # For the case where there is no DQ array,
+        # as with RAW files, explicitly exit without
+        # creating any mask image.
+        if dqarr == None:
+            raise Exception
 
         # Build mask array from DQ array
         maskarr = buildMask(dqarr,bitvalue)

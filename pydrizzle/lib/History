@@ -1,4 +1,11 @@
 ### PyDrizzle Revision Changes
+Version 5.4.6 (22-Feb-2005) WJH
+      - Forced 'buildMask' to raise an exception when no DQ array is present
+        at all (as in HRC ACQ or RAW files) so that no inmask file gets
+        written out at all.  This avoids problems with relying on numarray
+        to raise an exception when given an None as an input array for
+        creating the mask.
+        
 Version 5.4.5 (16-Feb-2005) WJH
       - Logic for turning off context images during drizzling was
         modified to work with final drizzling as well as single drizzling.
