@@ -62,6 +62,9 @@ WJH/CJH, 28 Sept 2004 (0.9.2)
 WJH, 15 Nov 2004 (0.9.3)
     Moved 'readShiftFile' to 'fileutil.py' so it would not need to import
         'buildasn'. Instead, we use 'from fileutil import readShiftFile' here
+WJH, 20 Dec 2004 (0.9.4)
+    Added 'writeAsnDict' to output the ASN table dictionary read in using
+    'readAsnTable' to a file.
 """
 
 import os, sre, types, copy
@@ -71,7 +74,7 @@ import pyfits
 # New numarray 0.6 import mode
 import numarray
 
-from fileutil import readShiftFile
+from fileutil import readShiftFile,buildRootname
 
 # List of supported default file types
 # It will look for these file types by default
@@ -79,7 +82,12 @@ from fileutil import readShiftFile
 #EXTLIST =  ['_crj.fits','_flt.fits','_sfl.fits','_raw.fits','_drz.fits']
 EXTLIST =  ['_crj.fits','_flt.fits','_sfl.fits','_cal.fits','_raw.fits','.c0h','.hhh','.fits']
 
-__version__ = '0.9.3 (15-Nov-2004)'
+# Define the format of the Table data dictionary used internally
+TABLE_DATA = {'units':None,'frame':None,'xsh':None,'ysh':None,
+            'dx':None,'dy':None,'rot':None,'scl':None,
+            'name':None,'mtype':None,'mprsnt':None}
+
+__version__ = '0.9.4 (20-Dec-2004)'
 
 _prihdr = pyfits.Header([pyfits.Card('SIMPLE', pyfits.TRUE,'Fits standard'),
                 pyfits.Card('BITPIX  ',                    16 ,' Bits per pixel'),
@@ -485,6 +493,7 @@ def _makeTableHDU(data):
     """ Create new_table object for ASN table, including definitions
         for optional Offset/Rotation columns.
     """
+
     # Compute maximum length of MEMNAME for table column definition
     _maxlen = 0
     for _fname in data['name']:
@@ -567,9 +576,120 @@ def _buildAsnPrimary(fasn,output,img1,frame=None,refimage=None):
     else: _refimg = refimage
     newhdr.update('REFIMAGE',_refimg,comment="Image shifts were measured from")
 
+def makeTableDict(asndict):
+    """
+        Read in the dictionary created by 'readAsnTable' for an existing
+        ASN table and convert it to the internal data dictionary used by
+        'makeTableHDU'.
+    """
+    # Initialize empty data dictionary
+    tbldict = copy.deepcopy(TABLE_DATA)
+
+    # Create arrays for each column
+    xsh,ysh,dx,dy,rot,scl,name,mtype,mprsnt = [],[],[],[],[],[],[],[],[]
+    ot = ord('T')
+    of = ord('F')
+
+    mem0name = asndict['order'][0]
+    # Populate arrays with data from ASN dictionary for input exposures
+    for fname in asndict['order']:
+        # extract member info
+        memdict = asndict['members'][fname]
+        name.append(fname)
+        xsh.append(memdict['xshift'])
+        ysh.append(memdict['yshift'])
+        dx.append(memdict['delta_x'])
+        dy.append(memdict['delta_y'])
+        rot.append(memdict['delta_rot'])
+        scl.append(memdict['delta_scale'])
+        mtype.append("EXP-DTH")
+        mprsnt.append(ot)
+
+    # Now, populate arrays for product...
+    name.append(asndict['output'])
+    xsh.append(0.0)
+    ysh.append(0.0)
+    dx.append(0.)
+    dy.append(0.)
+    rot.append(0.0)
+    scl.append(0.0)
+    mtype.append("PROD-DTH")
+    mprsnt.append(of)
+
+    # Update table dictionary with arrays
+    tbldict['units']  = asndict['members'][mem0name]['shift_units']
+    tbldict['frame']  = asndict['members'][mem0name]['shift_frame']
+    tbldict['xsh']    = xsh
+    tbldict['ysh']    = ysh
+    tbldict['dx']     = dx
+    tbldict['dy']     = dy
+    tbldict['rot']    = rot
+    tbldict['scl']    = scl
+    tbldict['name']   = name
+    tbldict['mtype']  = mtype
+    tbldict['mprsnt'] = mprsnt
+
+    return tbldict
+
+def writeAsnDict(asndict,output=None):
+    """
+    writeAsnDict:
+    =============
+    Write out a new ASN table using a dictionary in memory.
+    The input dictionary should be read in using 'readAsnTable',
+    and can be modified as needed before writing out the new table.
+
+    SYNTAX:
+        writeAsnDict(asndict,output=None)
+
+    PARAMETERS:
+            asndict:    dictionary from 'readAsnTable
+            output:     rootname or filename for output ASN file
+        if output == None (default), product name from asndict will be
+        used to define the output filename for the table.
+    """
+
+    # Convert the ASN dictionary from 'readAsnTable'
+    # into a format usable by 'buildasn' functions.
+    tbldict = makeTableDict(asndict)
+
+    # Extract info from table necessary for writing it out
+    if output == None:
+        outfile = asndict['output']+'_asn.fits'
+    else:
+        if output.find('_asn.fits') < 0:
+            outfile = output+'_asn.fits'
+        else:
+            outfile = output
+
+    mem0name = asndict['order'][0]
+    refimg = asndict['members'][mem0name]['refimage']
+    shframe = tbldict['frame']
+
+    # Input image to be used as template
+    fname = buildRootname(mem0name)
+
+    # Open output ASN table file
+    fasn = pyfits.HDUList()
+
+    # Build ASN file primary header
+    _buildAsnPrimary(fasn,outfile,fname,frame=shframe,refimage=refimg)
+
+    # Create an extension HDU which contains a table
+    exthdu = _makeTableHDU(tbldict)
+
+    fasn.append(exthdu)
+
+    # Close ASN table file
+    fasn.writeto(outfile)
+    fasn.close()
+    del fasn
 
 def help():
-    _str = """ Create an association table from all specified files in
+    _str = """
+    buildAsnTable:
+    ==============
+    Create an association table from all specified files in
     the current directory. It returns the filename of the final product
     for the table, created by appending '_drz.fits' to the given rootname.
 
@@ -597,3 +717,4 @@ def help():
 
     print 'Help for buildasn version '+__version__
     print _str
+    print writeAsnDict.__doc__
