@@ -773,12 +773,11 @@ class WCSObject:
         # Start by looking for the any backup WCS keywords to
         # determine whether archived values are present and to set
         # the prefix used.
-        # Look for 'CRVAL1'.
         _prefix = None
         _archive = False
         if header != None:
             for kw in header.items():
-                if kw[0][1:] == 'CRVAL1':
+                if kw[0][1:] in self.wcstrans.keys():
                     _prefix = kw[0][0]
                     _archive = True
                     break
@@ -791,10 +790,14 @@ class WCSObject:
         self.prepend = _prefix
         for key in self.wcstrans.keys():
             _archive_key = self._buildNewKeyname(key,_prefix)
-            if key != 'pixel scale':
-                self.orig_wcs[_archive_key] = header[_archive_key]
+            if key!= 'pixel scale':
+                if header.has_key(_archive_key):
+                    self.orig_wcs[_archive_key] = header[_archive_key]
+                else:
+                    self.orig_wcs[_archive_key] = header[key]
                 self.backup[key] = _archive_key
                 self.revert[_archive_key] = key
+
         # Establish plate scale value
         pscale = self.compute_pscale(self.orig_wcs['OCD1_1'],self.orig_wcs['OCD2_1'])
         _archive_key = self.prepend.lower()+'pscale'
@@ -803,7 +806,10 @@ class WCSObject:
         self.revert[_archive_key] = 'pixel scale'
 
         # Setup keyword to record when these keywords were backed up.
-        self.orig_wcs['WCSCDATE'] = header['WCSCDATE']
+        if header.has_key('WCSCDATE'):
+            self.orig_wcs['WCSCDATE'] = header['WCSCDATE']
+        else:
+            self.orig_wcs['WCSCDATE'] = fileutil.getLTime()
         self.backup['WCSCDATE'] = 'WCSCDATE'
         self.revert['WCSCDATE'] = 'WCSCDATE'
 
@@ -831,6 +837,8 @@ class WCSObject:
         # extract the extension ID being updated
         _root,_iextn = fileutil.parseFilename(self.rootname)
         _extn = fileutil.getExtn(fimg,_iextn)
+        if not quiet:
+            print 'Updating archive WCS keywords for ',_fitsname
 
         # Write out values to header...
         for key in self.orig_wcs.keys():
@@ -842,8 +850,7 @@ class WCSObject:
             _old_key = _extn.header.has_key(key)
             if  _old_key == True and overwrite == no:
                 if not quiet:
-                    print 'Existing backup values for WCS keyword',key,' already exists!'
-                    print '   No changes will be made to that archive value. '
+                    print 'WCS keyword',key,' already exists! Not overwriting.'
                 continue
 
             # No archive keywords exist yet in file, or overwrite=yes...
@@ -858,7 +865,8 @@ class WCSObject:
                     _comment = None
                 else:
                     _comment = _full_key.ascardimage()[_indx_comment+1:].strip()
-
+                if not quiet:
+                    print 'updating ',key,' with value of: ',self.orig_wcs[key]
                 _extn.header.update(key,self.orig_wcs[key],comment=_comment)
 
         key = 'WCSCDATE'
