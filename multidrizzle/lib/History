@@ -1,5 +1,12 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.3.7: 11/08/04 -- WJH
+    Methods were added to Manager to update the header of the final
+    output product to report the MDRIZSKY values in HISTORY cards.
+    
+    PyDrizzle was also updated to correct the 'build=no'/'clean=yes'
+    problem (where the output files were deleted), and to properly
+    report the EXPTIME value for the D00*WTSC keyword.
 
 Version 2.3.6: 10/13/04 -- WJH/CJH
     Have updated the minmed.py module to improve error handling and
