@@ -23,6 +23,8 @@
 #           Version 0.1.42, 07/20/04 -- Added support for Stis Images -- CJH
 #           Version 0.1.43, 07/29/04 -- Modified call to InputImage class to pass the plate scale.  The 
 #               create median step now gets its' sky value with the getreferencesky method.  -- CJH
+#           Version 0.1.44, 08/02/04 -- Added support for the application of inverse variance maps in
+#               the final drizzle step.  -- CJH
 
 # Import Numarray functionality
 import numarray.image.combine as combine
@@ -53,7 +55,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter
 
-__version__ = '0.1.43'
+__version__ = '0.1.44'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -478,7 +480,8 @@ class ImageManager:
                 "' outnx="+str(p['outnx'])+" outny="+str(p['outny'])+" xsh="+str(p['xsh'])+" ysh="+str(p['ysh'])+
                 " scale="+str(p['scale'])+" pixfrac="+str(p['pixfrac'])+" rot="+str(p['rot'])+
                 " coeffs='"+p['coeffs']+"' wt_scl='"+p['wt_scl']+"' align='center' shft_fr='output' shft_un='output'"+
-                " out_un='"+p['units']+"' expkey='"+"EXPTIME"+"' fillval='"+str(p['fillval'])+"'\n")
+                " out_un='"+p['units']+"' expkey='"+"EXPTIME"+"' fillval='"+str(p['fillval'])+"'"+
+                " xgeoim='"+p['xgeoim']+"' ygeoim='"+p['ygeoim']+"'\n")
 
         # Perform separate drizzling now that all parameters have been setup...
         try:
@@ -916,9 +919,13 @@ class ImageManager:
 
         for p in self.assoc.parlist:
             if p['image'].maskname:
+                if drizpars['wht_type'] == 'IVM':
+                    self._applyIVM(p)
+                elif drizpars['wht_type'] == 'ERR':
+                    self._applyERR(p)
+                else:
+                    continue
                 p['driz_mask'] = p['image'].maskname
-            else:
-                p['driz_mask'] = ''
 
 
             xsh_str = "%.4f"  % p['xsh']
@@ -928,11 +935,14 @@ class ImageManager:
             print("\ndrizzle "+p['data']+" "+p['outdata']+
                   " in_mask="+p['driz_mask']+" outweig="+p['outweight']+
                   " xsh="+xsh_str+" ysh="+ysh_str+" rot="+rot_str+
-                  " coeffs='"+p['coeffs']+"' wt_scl='"+p['wt_scl']+"'\n")
+                  " coeffs='"+p['coeffs']+"' wt_scl='"+p['wt_scl']+"'"+
+                  " xgeoim='"+p['xgeoim']+"' ygeoim='"+p['ygeoim']+"'\n")
             runlog.write("drizzle "+p['data']+" "+p['outdata']+
                          " in_mask="+p['driz_mask']+" outweig="+p['outweight']+
                          " xsh="+xsh_str+" ysh="+ysh_str+" rot="+rot_str+
-                         " coeffs='"+p['coeffs']+"' wt_scl='"+p['wt_scl']+"'\n")
+                         " coeffs='"+p['coeffs']+"' wt_scl='"+p['wt_scl']+"'"+
+                         " xgeoim='"+p['xgeoim']+"' ygeoim='"+p['ygeoim']+"'\n")
+
 
         # Close the "runfile" log
         if runlog != None:
@@ -943,3 +953,49 @@ class ImageManager:
         #except:
         #    print 'Error during final drizzling.'
         #    raise RuntimeError
+
+
+    def _applyIVM(self,parlistentry):
+
+        if parlistentry['ivmname'] != None:
+
+            #Parse the input file name to get the extension we are working on
+            sciextn = parlistentry['image'].extn
+            index = sciextn.find(',')   
+            extn = "IVM,"+sciextn[index+1:]
+            
+            #Open the mask image for updating and the IVM image
+            mask = fileutil.openImage(parlistentry['image'].maskname,mode='update')
+            ivm =  fileutil.openImage(parlistentry['ivmname'],mode='readonly')
+
+            print "Applying IVM file ",parlistentry['ivmname']," to mask file ",parlistentry['image'].maskname
+            ivmfile = fileutil.getExtn(ivm,extn)
+            
+            # Multiply the IVM file by the input mask in place.        
+            mask[0].data = ivmfile.data * mask[0].data
+
+
+            mask.close()
+            ivm.close()
+
+    def _applyERR(self,parlistentry):
+
+        #Parse the input file name to get the extension we are working on
+        sciextn = parlistentry['image'].extn
+        index = sciextn.find(',')   
+        extn = "ERR,"+sciextn[index+1:]
+        fname,fextn = fileutil.parseFilename(parlistentry['data'])
+
+        #Open the mask image for updating and the IVM image
+        mask = fileutil.openImage(parlistentry['image'].maskname,mode='update')
+        err =  fileutil.openImage(fname,mode='readonly')
+
+        print "Applying ERR file ",fname+'['+extn+']'," to mask file ",parlistentry['image'].maskname
+        errfile = fileutil.getExtn(err,extn)
+
+        # Multiply the IVM file by the input mask in place.        
+        mask[0].data = 1/(errfile.data)**2 * mask[0].data
+
+
+        mask.close()
+        err.close()

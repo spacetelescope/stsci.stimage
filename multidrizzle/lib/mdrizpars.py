@@ -101,6 +101,12 @@ class MDrizPars (HasTraits):
                         'tophap':'tophat',
                         'lanczos3': 'lanczos3'}) 
                         )
+    enum_wht = Trait('',TraitPrefixMap({
+                        'ERR': 'ERR',
+                        'IVM': 'IVM',
+                        'None':None}) 
+                        )
+
     enum_combine = Trait('median',TraitPrefixMap({
                         'median': 'median',
                         'sum': 'sum',
@@ -241,6 +247,7 @@ class MDrizPars (HasTraits):
             'driz_cr_corr':Trait(False, true_boolean, editor=bit_editor),
             'driz_cr_snr': Trait('3.0 2.5',TraitString()), 
             'driz_cr_scale':Trait('1.2 0.7',TraitString()),
+            'driz_final_wht_type':Trait('None',enum_wht, editor=text_editor),
             'driz_final_outnx':Trait('',AnyValue), 
             'driz_final_outny':Trait('',AnyValue),
             'driz_final_kernel':Trait('square',enum_kernel, editor=text_editor), 
@@ -300,7 +307,7 @@ class MDrizPars (HasTraits):
             TraitGroup('driz_cr',
                 'driz_cr_corr','driz_cr_snr', 'driz_cr_scale',
                 label='Driz CR'),
-            TraitGroup('driz_combine',
+            TraitGroup('driz_combine','driz_final_wht_type',
                 'driz_final_outnx', 'driz_final_outny',
                 'driz_final_kernel', 'driz_final_pixfrac',
                 'driz_final_scale', 'driz_final_rot',
@@ -332,7 +339,7 @@ class MDrizPars (HasTraits):
             'combine_nlow', 'combine_nhigh','combine_lthresh',
             'combine_hthresh', 'combine_grow',
             'blot_interp', 'blot_sinscl',
-            'driz_cr_corr','driz_cr_snr', 'driz_cr_scale',
+            'driz_cr_corr','driz_cr_snr', 'driz_cr_scale','driz_final_wht_type',
             'driz_final_outnx', 'driz_final_outny',
             'driz_final_kernel', 'driz_final_pixfrac',
             'driz_final_scale', 'driz_final_rot',

@@ -22,7 +22,7 @@ from geissupport import *
 
 import makewcs
 
-__version__ = '2.2.0 (30 July 2004)'
+__version__ = '2.2.0 (03 August 2004)'
 
 def versioninfo():
     """ Print version information for packages used by Multidrizzle """
@@ -108,7 +108,7 @@ class Multidrizzle:
         input,output = self._convertGEIS(input,output)        
 
         # Parse input to get the list of filenames to be processed.
-        self.files,self.output = self._parseInput(input,output)
+        self._parseInput(input,output)
         # Check input files.
         self._checkInputFiles(self.files)
         self._reportFileNames()
@@ -182,6 +182,14 @@ class Multidrizzle:
         # Finish massaging median pars parameters to account for 
         # special processing of input values
         self.setMedianPars()
+
+        # Verify that ERR extension exists if final_wht_type = ERR
+        if ( self.pars.master_pars['driz_final_wht_type'] != None and
+                self.pars.master_pars['driz_final_wht_type'].upper() == 'ERR'):
+            for file in self.files:
+                if not fileutil.findFile(file+"[err,1]"):
+                    raise IOError,"! final_wht_type = ERR, no ERR array found for %s"%(file)
+
         
         # Create copies of input files for processing
         if not self.workinplace:
@@ -302,8 +310,21 @@ class Multidrizzle:
             # Parse this and build the appropriate list of filenames
             ilist = buildasn._findFiles(input)
             inputlist = []
-            for tupleitem in ilist:
-                inputlist.append(tupleitem[0])
+            ivmcount = 0
+
+            if (len(ilist[0]) > 2):
+                for f in ilist:
+                    if f[2] != None:
+                        if fileutil.findFile(f[2]):
+                            ivmcount += 1
+                        else:
+                            raise ValueError, "! Not all inverse variance maps present!"
+            
+            if (ivmcount == 0 or ivmcount == len(ilist)):             
+                for f in ilist: 
+                    inputlist.append(f[0])
+            else:
+                raise ValueError, "! Not all inverse variance maps present!"
             
             # Determine if the file is a GEIS file.
             # If the input is not in GEIS format do nothing and return
@@ -509,6 +530,7 @@ class Multidrizzle:
 
         """ Interprets input from user to build list of files to process. """
 
+        self.ivmlist = []
         _flist = []
         _indx = input.find('_asn.fits')
 
@@ -530,14 +552,31 @@ class Multidrizzle:
             # a single filename for specifying the input file(s).
             # Parse this and build the appropriate list of filenames
             _files = buildasn._findFiles(input)
-            for f in _files:
-                _flist.append(f[0])
+            
+            ivmcount = 0
+            if (len(_files[0]) > 2):
+                for f in _files:
+                    if f[2] != None:
+                        if fileutil.findFile(f[2]):
+                            ivmcount += 1
+                            self.ivmlist.append((f[0],f[2]))
+                        else:
+                            raise ValueError, "! Not all inverse variance maps present!"            
+
+            if (ivmcount == 0 or ivmcount == len(_files)):             
+                for f in _files: 
+                    _flist.append(f[0])
+            else:
+                raise ValueError, "! Not all inverse variance maps present!"
 
         # Setup default output name if none was provided either by user or in ASN table
         if (output == None) or (len(output) == 0):
             output = 'final'
 
-        return _flist,output
+        self.files = _flist
+        self.output = output
+                
+#        return _flist,output
 
     def _reportFileNames(self):
         print "Input files: "
@@ -583,6 +622,19 @@ class Multidrizzle:
 
         print 'Initial parameters: '
         assoc.printPars(format=1)
+
+        # Add any specifed IVM filenames to the association object
+        for plist in assoc.parlist:
+            fname,extname = fileutil.parseFilename(plist['data'])
+            
+            ivmname = None
+            
+            if len(self.ivmlist) > 0:
+                for file in self.ivmlist:
+                    if file[0] == fname:
+                        ivmname = file[1] 
+                       
+            plist['ivmname'] = ivmname
 
         return assoc
 
