@@ -90,9 +90,8 @@ class Exposure:
             # for this chip
             self.dgeoname = fileutil.getKeyword(expname,'DGEOFILE',header=_header)
             self.xgeoim,self.ygeoim = self.getDGEOExtn()
-            try:
-                self.plam = float(fileutil.getKeyword(expname,'PHOTPLAM',header=_header)) / 10.
-            except:
+            self.plam = float(fileutil.getKeyword(expname,'PHOTPLAM',header=_header)) / 10.
+            if self.plam == None:
                 # Setup a default value in case this keyword does not exist
                 self.plam = 555.
         else:
