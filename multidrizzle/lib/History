@@ -1,5 +1,17 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.5.4: 03/09/05 -- CJH
+    The internal Multidrizzle method _checkInputFiles() has been modified
+    to search for SPT files when a PA_V3 value has not been found in primary
+    header of input files.  The process Multidrizzle now follows are:
+    1) Check the primary header for a PA_V3 value.  If found, run MAKEWCS
+    2) If the PA_V3 value not found in the primary header of the input file,
+    guess at what the name of the corresponding SPT file would be.  If the
+    SPT file can be found, extract the PA_V3 value from the SPT file and 
+    add it to the primary header of the input file.  Then run MAKEWCS.
+    3) If the PA_V3 value cannot be found anywhere.  Issue and error message
+    explaining why Multidrizzle cannot run and exit.
+
 Version 2.5.3: 03/02/05 -- CJH
     The default for the runfile parameter is now the empty string ''.  If
     no value is provided for runfile, the default behavior for multidrizzle
