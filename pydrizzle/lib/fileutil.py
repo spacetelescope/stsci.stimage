@@ -909,10 +909,11 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
             v2ref = 0.0
             v3ref = 0.0
 
-    if 'THETA' in colnames:
-        theta = ftab[1].data.field('THETA')[row]
-    else:
-        theta = 0.0
+    if theta == None:
+        if 'THETA' in colnames:
+            theta = ftab[1].data.field('THETA')[row]
+        else:
+            theta = 0.0
 
     refpix = {}
     refpix['XREF'] = ftab[1].data.field('XREF')[row]

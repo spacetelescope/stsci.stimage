@@ -197,9 +197,13 @@ class Exposure:
         # We need to identify both a DX and DY EXTNAME extension
         for hdu in fimg:
             hdr = hdu.header
-            if hdr.has_key('EXTNAME') and hdr.has_key('CCDCHIP'):
-                _extname = hdr['EXTNAME'].lower()
+            if not hdr.has_key('CCDCHIP'):
+                _chip = 1
+            else:
                 _chip = int(hdr['CCDCHIP'])
+
+            if hdr.has_key('EXTNAME'):
+                _extname = hdr['EXTNAME'].lower()
 
                 if _chip == int(self.chip):
                     if _extname == 'dx':

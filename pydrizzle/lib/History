@@ -1,4 +1,12 @@
 ### PyDrizzle Revision Changes
+Version 5.1.0 (24-August-2004) WJH
+      - (OPR 51892)
+        Corrected problem with processing HRC data where a DGEOFILE has been
+        specified.  This problem involved looking for CCDCHIP in the extension
+        header of the DGEOFILE and defaulting to a value of 1 if not found, instead of
+        'None'.
+      - WFPC2 theta values now get passed along correctly after being read in
+        an OFFTAB, instead of being overwritten with a value of 0.0.  
 Version 5.0.23 (24-August-2004) CJH
       -  The application of the VA factor is now multiplicative instead of 
          exponential in nature.
