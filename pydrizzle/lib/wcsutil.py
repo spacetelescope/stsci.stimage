@@ -457,12 +457,11 @@ class WCSObject:
             raise ArithmeticError,"singular CD matrix!"
 
         cdinv11 = self.cd22 / det
-        cdinv12 = -self.cd21 / det
-        cdinv21 = -self.cd12 / det
+        cdinv12 = -self.cd12 / det
+        cdinv21 = -self.cd21 / det
         cdinv22 = self.cd11 / det
 
         # translate (ra, dec) to (x, y)
-
 
         ra0 = DEGTORAD(self.crval1)
         dec0 = DEGTORAD(self.crval2)
