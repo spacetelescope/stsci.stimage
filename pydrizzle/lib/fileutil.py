@@ -219,11 +219,23 @@ def buildRootname(filename,ext=None):
                 _extlist.insert(0,i)
         # loop over all extensions looking for a filename that matches...
         for extn in _extlist:
-            rname = string.lower(filename) + extn
+            # Start by looking for filename with exactly
+            # the same case a provided in ASN table...
+            rname = filename + extn
             for name in flist:
                 if rname == name:
                     rootname = name
                     break
+            if rootname == None:
+                # Try looking for all lower-case filename
+                # instead of a mixed-case filename as required
+                # by the pipeline.
+                rname = filename.lower() + extn
+                for name in flist:
+                    if rname == name:
+                        rootname = name
+                        break
+
             if rootname != None:
                 break
 
