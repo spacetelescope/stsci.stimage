@@ -211,7 +211,7 @@ class MDrizPars (HasTraits):
             'context':Trait(True, true_boolean, editor=bit_editor), 
             'clean':Trait(False, true_boolean, editor=bit_editor),
             'group':Trait('',AnyValue),
-            'bits':Trait(0,AnyValue), 
+            'bits':Trait('0',TraitString()), 
             'ra':Trait('',AnyValue), 
             'dec':Trait('',AnyValue),
             'coeffs':Trait('header',TraitString()), 
