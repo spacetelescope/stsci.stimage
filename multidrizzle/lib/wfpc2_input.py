@@ -13,8 +13,11 @@
 #           Version 0.1.1 07/29/04 -- Plate scale is now defined by the Pydrizzle
 #               exposure class by use of a plate scale variable passed in through
 #               the constructor.
+#           Version 0.1.2 09/09/04 -- The setInstrumentParameters was modifed so
+#               that user input of gain and readnoise parameters would not be
+#               ignored. -- CJH
                
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -46,11 +49,12 @@ class WFPC2InputImage (InputImage):
         """ This method overrides the superclass to set default values into
             the parameter dictionary, in case empty entries are provided.
         """
+                
         if self._isNotValid (instrpars['gain'], instrpars['gnkeyword']):
             instrpars['gnkeyword'] = 'ATODGAIN'
-
-#       We will not be reading the read noise in from the header.  It is 
-#       necessary to hard code those values for each WFPC2 chip.
+    
+        if self._isNotValid (instrpars['rdnoise'], instrpars['rnkeyword']):
+            instrpars['rnkeyword'] = None
             
         if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
             instrpars['expkeyword'] = 'EXPTIME'
@@ -59,16 +63,50 @@ class WFPC2InputImage (InputImage):
             instrpars['crbit'] = self.cr_bits_value
 
         self._headergain      = self.getInstrParameter(instrpars['gain'], pri_header,
-                                                 instrpars['gnkeyword'])
+                                                 instrpars['gnkeyword'])    
         self._exptime   = self.getInstrParameter(instrpars['exptime'], pri_header,
                                                  instrpars['expkeyword'])
         self._crbit     = instrpars['crbit']
+        
+        # We need to treat Read Noise as a special case since it is 
+        # not populated in the WFPC2 primary header
+        if (instrpars['rnkeyword'] != None):
+            self._rdnoise   = self.getInstrParameter(instrpars['rdnoise'], pri_header,
+                                                     instrpars['rnkeyword'])                                                 
+        else:
+            self._rdnoise = None
 
         if self._headergain == None or self._exptime == None:
             print 'ERROR: invalid instrument task parameter'
             raise ValueError
-        self._setchippars()
+
+        # We need to determine if the user has used the default readnoise/gain value
+        # since if not, they will need to supply a gain/readnoise value as well        
         
+        usingDefaultGain = False
+        usingDefaultReadnoise = False
+        if (instrpars['gnkeyword'] == 'ATODGAIN'):
+            usingDefaultGain = True
+        if (instrpars['rnkeyword'] == None):
+            usingDefaultReadnoise = True
+
+            
+        # If the user has specified either the readnoise or the gain, we need to make sure
+        # that they have actually specified both values.  In the default case, the readnoise
+        # of the system depends on what the gain
+        
+        print "Default Readnoise = ",usingDefaultReadnoise, " Default Gain = ",usingDefaultGain              
+        if usingDefaultReadnoise and usingDefaultGain:
+            self._setchippars()
+        elif usingDefaultReadnoise and not usingDefaultGain:
+            raise ValueError, "ERROR: You need to supply readnoise information\n when not using the default gain for WFPC2."
+        elif not usingDefaultReadnoise and usingDefaultGain:
+            raise ValueError, "ERROR: You need to supply gain information when\n not using the default readnoise for WFPC2." 
+        else:
+            # In this case, the user has specified both a gain and readnoise values.  Just use them as is.
+            self._gain = self._headergain
+            print "Using user defined values for gain and readnoise"
+                    
     def _setchippars(self):
         pass
 
