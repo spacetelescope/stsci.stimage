@@ -28,7 +28,9 @@
 #           Version 0.1.45, 08/30/04 -- Added support for the STIS NUV and FUV MAMAs.  -- CJH
 #           Version 0.1.46, 09/07/04 -- Added support for the NICMOS cameras 1,2,3. -- CJH
 #           Version 0.1.47, 09/14/04 -- Modified imports to include the new NICMOSINputImage classes -- CJH
- 
+#           Version 0.1.48, 09/16/04 -- Modified  _setOutputFrame method to use the user provided outnx and outny values for 
+#               the single drizzle step. -- CJH
+
 # Import Numarray functionality
 import numarray.image.combine as combine
 import numarray as N
@@ -59,7 +61,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter
 
-__version__ = '0.1.47'
+__version__ = '0.1.48'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -443,7 +445,8 @@ class ImageManager:
 
         elif pars['rot']   != None  or \
              pars['scale'] != None or \
-             pars['ra']    != None:
+             pars['ra']    != None or \
+             pars['outnx'] != None:
 
             _sky_field = pydrizzle.SkyField()
 
@@ -455,7 +458,7 @@ class ImageManager:
             print 'Default orientation for output: ',_orient,'degrees'
 
             _sky_field.set(psize=pars['scale'], orient=_orient,
-                           ra=pars['ra'], dec=pars['dec'])
+                           ra=pars['ra'], dec=pars['dec'], shape=(pars['outnx'],pars['outny']))
 
         # Now that we have built the output frame, let the user know
         # what was built...
@@ -497,6 +500,9 @@ class ImageManager:
             else:
                 p['driz_mask'] = None
 
+            print "outnx = ",p['outnx']
+            print "outny = ",p['outny']
+            
             print("\ndrizzle data='"+p['data']+"' outdata='"+p['outsingle']+"' outweig='"+p['outsweight']+
                 "' in_mask='static_mask"+"' kernel='"+p['kernel']+
                 "' outnx="+str(p['outnx'])+" outny="+str(p['outny'])+" xsh="+str(p['xsh'])+" ysh="+str(p['ysh'])+
