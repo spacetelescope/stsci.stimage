@@ -812,7 +812,17 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
     try:
         ftab = openImage(tabname)
     except:
-        raise IOError,"IDC table '%s' not valid as specified!" % tabname
+        err_str =  "------------------------------------------------------------------------ \n"
+        err_str += "WARNING: the IDCTAB geometric distortion file specified in the image     \n"
+        err_str += "header was not found on disk. Please verify that your environment        \n"
+        err_str += "variable ('jref'/'uref'/'oref'/'nref') has been correctly defined. If    \n"
+        err_str += "you do not have the IDCTAB file, you may obtain the latest version       \n"
+        err_str += "of it from the relevant instrument page on the STScI HST website:        \n"
+        err_str += "http://www.stsci.edu/hst/ For WFPC2, STIS and NICMOS data, the           \n"
+        err_str += "present run will continue using the old coefficients provided in         \n"
+        err_str += "the Dither Package (ca. 1995-1998).                                      \n"
+        err_str += "------------------------------------------------------------------------ \n"
+        raise IOError,err_str
 
     #First thing we need, is to read in the coefficients from the IDC
     # table and populate the Fx and Fy matrices.
