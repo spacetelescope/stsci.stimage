@@ -88,7 +88,11 @@ class Domain:
         self.name=name
         self.pixlist=pixellist
         self.range=range
-        self.npix=len(self.pixlist)
+        self.npix=len(self.pixlist[0])
+        #Because the pixlist is created with a "where" statement, it's a
+        #2 element array, 1 for x & 1 for y. Thus to get the number of
+        #pixels, we need the length in one of the elements.
+
       
 
     def striplowerthan(self,factor):
@@ -230,7 +234,7 @@ class Exposure:
         """Computes a mask to use for pixels to omit"""
         mask=numarray.zeros((dim,dim),'Float32')
         badmask=numarray.ones((dim,dim),'Float32')
-        if self.badpix:
+        if self.badpix is not None:
             u=numarray.where(self.badpix != 0)
             mask[u]=1
             badmask[u]=0
