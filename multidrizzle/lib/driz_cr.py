@@ -31,7 +31,8 @@
 # 20 May 2004 -- Version 0.1.5 -- Fixed bug in the method for creating a cr mask fits file.
 # 30 Sep 2004 -- Version 0.1.6 -- Modified the cor and cr mask file creation methods to install a copy of the
 #                                   input's primary + extension header
-
+# 05 Apr 2005 -- Version 0.2.0 -- Modified the cor and cr mask file creation methods to remove extension specific
+#                                   keywords from the header it creates. -- CJH
 
 # Import external packages
 import numarray as N
@@ -40,7 +41,7 @@ import pyfits
 import os
 
 # Version
-__version__ = '0.1.6'
+__version__ = '0.2.0'
 
 class DrizCR:
     """mask blemishes in dithered data by comparison of an image
@@ -194,7 +195,20 @@ class DrizCR:
             if (header != None):
                 del(header['NAXIS1'])
                 del(header['NAXIS2'])
+                if header.has_key('XTENSION'):
+                    del(header['XTENSION'])
+                if header.has_key('EXTNAME'):
+                    del(header['EXTNAME'])
+                if header.has_key('EXTVER'):
+                    del(header['EXTVER'])
+
+                if header.has_key('NEXTEND'):
+                    header['NEXTEND'] = 0
+                
                 hdu = pyfits.PrimaryHDU(data=__corrFile,header=header)
+                del hdu.header['PCOUNT']
+                del hdu.header['GCOUNT']
+
             else:
                 hdu = pyfits.PrimaryHDU(data=__corrFile)
             fitsobj.append(hdu)
@@ -237,7 +251,19 @@ class DrizCR:
             if (header != None):
                 del(header['NAXIS1'])
                 del(header['NAXIS2'])
+                if header.has_key('XTENSION'):
+                    del(header['XTENSION'])
+                if header.has_key('EXTNAME'):
+                    del(header['EXTNAME'])
+                if header.has_key('EXTVER'):
+                    del(header['EXTVER'])
+
+                if header.has_key('NEXTEND'):
+                    header['NEXTEND'] = 0
+
                 hdu = pyfits.PrimaryHDU(data=_cr_file,header=header)
+                del hdu.header['PCOUNT']
+                del hdu.header['GCOUNT']
             else:
                 hdu = pyfits.PrimaryHDU(data=_cr_file)
             fitsobj.append(hdu)
