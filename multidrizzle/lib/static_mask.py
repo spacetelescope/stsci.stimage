@@ -1,7 +1,7 @@
 import numarray as N
 
-import pytools.imagestats
-from pytools.imagestats import ImageStats
+import imagestats
+from imagestats import ImageStats
 
 class StaticMask:
     """

@@ -19,16 +19,17 @@
 #           Version 0.1.29 05/27/04 -- Modified setInstrumentParameters inheritence in
 #               order to support ACS/SBC data.  - CJH/WJH/IB
 #           Version 0.1.30 06/07/04 -- Turned memory maping back on by default.  -- CJH
+#           Version 0.1.31 06/29/04 -- Modified import of imagestats. -- CJH
 
-__version__ = '0.1.30'
+__version__ = '0.1.31'
 
 import pyfits
 
 import pydrizzle
 from pydrizzle import fileutil
 
-import pytools.imagestats
-from pytools.imagestats import ImageStats
+import imagestats
+from imagestats import ImageStats
 
 import pytools.imageiter
 from pytools.imageiter import ImageIter

@@ -16,6 +16,7 @@
 #           Version 0.1.36, 06/23/04 -- Added support for working on input files instead of 
 #               making copies of the inputs.
 #           Version 0.1.37, 06/28/04 -- Modified some print statements in median step.  -- CJH
+#           Version 0.1.38, 06/29/04 -- Modified import of imagestats and minmed. -- CJH
 
 import numarray.image.combine as combine
 
@@ -31,24 +32,22 @@ from acs_input import WFCInputImage, HRCInputImage, SBCInputImage
 
 from wfpc2_input import WFPC2InputImage
 
-import pytools.imagestats
-from pytools.imagestats import ImageStats
+import imagestats
+from imagestats import ImageStats
 
 import pytools.numcombine
 from pytools.numcombine import numCombine
 
-import pytools.minmed
-from pytools.minmed import minmed
+import minmed
+from minmed import minmed
 
 import static_mask
 from static_mask import StaticMask
 
-#import pytools.imageiter2
-#from pytools.imageiter2 import ImageIter
 import pytools.nimageiter
 from pytools.nimageiter import ImageIter
 
-__version__ = '0.1.37'
+__version__ = '0.1.38'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
