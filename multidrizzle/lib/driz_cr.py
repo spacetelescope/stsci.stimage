@@ -28,15 +28,19 @@
 #                                 added a method for outputing the CR mask as a fits files.
 # 12 May 2004 -- Version 0.1.4 -- Fixed logic error in the update of dq arrays methods.  Instead of adding 4096 to
 #                                 the dqarray we now do a bitwise and operation.
-# 20 May 2005 -- Version 0.1.5 -- Fixed bug in the method for creating a cr mask fits file.
+# 20 May 2004 -- Version 0.1.5 -- Fixed bug in the method for creating a cr mask fits file.
+# 30 Sep 2004 -- Version 0.1.6 -- Modified the cor and cr mask file creation methods to install a copy of the
+#                                   input's primary + extension header
+
 
 # Import external packages
 import numarray as N
 import numarray.convolve as NC
 import pyfits
+import os
 
 # Version
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 class DrizCR:
     """mask blemishes in dithered data by comparison of an image
@@ -166,24 +170,40 @@ class DrizCR:
         N.bitwise_and(self.dqMask,self.crMask,self.dqMask)
 
     def createcorrfile(self,
-        corrName = None # Name of output file corr image
+        corrName = None, # Name of output file corr image
+        header = None # Optionally provided header for output image
         ):
 
         """ Create a clean image by replacing any pixel flagged as "bad" with the corresponding values from the blotted image."""
 
 #       imcalc(s1,img0//cor_suffix,"if (im2 .eq. 0) then im3 else im1", verb-)
         try:
-            # CREATE THE CORR IMAGE FILE
+            # CREATE THE CORR IMAGE
             __corrFile = N.zeros(self.__inputImage.shape,self.__inputImage.type())
-            outfile = pyfits.open(corrName,'append')
             __corrFile = N.where(N.equal(self.dqMask,0),self.__blotImg,self.__inputImage)
-            outhdu = pyfits.PrimaryHDU(data=__corrFile)
-            outfile.append(outhdu)
+            
+            # Remove the existing cor file if it exists
+            try:
+                os.remove(corrName)
+                print "Removing file:",corrName
+            except:
+                pass
 
+            # Create the output file
+            fitsobj = pyfits.HDUList()
+            if (header != None):
+                del(header['NAXIS1'])
+                del(header['NAXIS2'])
+                hdu = pyfits.PrimaryHDU(data=__corrFile,header=header)
+            else:
+                hdu = pyfits.PrimaryHDU(data=__corrFile)
+            fitsobj.append(hdu)
+            fitsobj.writeto(corrName)
+            
         finally:
             # CLOSE THE IMAGE FILES
-            outfile.close()
-            del outfile,__corrFile
+            fitsobj.close()
+            del fitsobj,__corrFile
 
     def updatedqarray(self,
         dqarray,            # The data quality array to be updated.
@@ -196,16 +216,34 @@ class DrizCR:
         N.bitwise_or(dqarray,__bitarray,dqarray)
 
     def createcrmaskfile(self,
-        crName = None # Name of outputfile cr mask image
+        crName = None, # Name of outputfile cr mask image
+        header = None # Optionally provided header for output image
         ):
 
         """ Create a fits file containing the generated cosmic ray mask. """
         try:
-            outfile = pyfits.open(crName,'append')
             _cr_file = N.zeros(self.__inputImage.shape,N.UInt8)
             _cr_file = N.where(self.crMask,1,0)
-            outhdu = pyfits.PrimaryHDU(data=_cr_file)
-            outfile.append(outhdu)
+            
+            # Remove the existing cor file if it exists
+            try:
+                os.remove(crName)
+                print "Removing file:",corrName
+            except:
+                pass
+
+            # Create the output file
+            fitsobj = pyfits.HDUList()
+            if (header != None):
+                del(header['NAXIS1'])
+                del(header['NAXIS2'])
+                hdu = pyfits.PrimaryHDU(data=_cr_file,header=header)
+            else:
+                hdu = pyfits.PrimaryHDU(data=_cr_file)
+            fitsobj.append(hdu)
+            fitsobj.writeto(crName)
+            
         finally:
-            outfile.close()
-            del outfile
+            # CLOSE THE IMAGE FILES
+            fitsobj.close()
+            del fitsobj,_cr_file

@@ -1,6 +1,15 @@
 Multidrizzle Revision History
 -----------------------------
 
+Version 2.3.3: 09/30/04 -- CJH
+    Modified the DrizCR rountines to include the input image's combined
+    primary and extension headers in the primary header of the resulting 
+    cor and cr mask files.
+
+Version 2.3.2: 09/28/04 -- CJH
+    Updated versionInfo in __init__.py file to catch the case when
+    pyraf is unable to be imported.
+
 Version 2.3.1: 09/21/04 --- CJH/WJH
     Initial release of the redesigned Multidrizzle release to the larger
     STScI user community.  Earlier version of the code were dedicated
@@ -9,8 +18,4 @@ Version 2.3.1: 09/21/04 --- CJH/WJH
     inital offereing to STScI differes from the v2.2.1 in that it has
     support for STIS and NICMOS data and an improved version of Pydrizzle
     that better supports sub-arrays.
-
-Version 2.3.2: 09/28/04 -- CJH
-    Updated versionInfo in __init__.py file to catch the case when
-    pyraf is unable to be imported.
 

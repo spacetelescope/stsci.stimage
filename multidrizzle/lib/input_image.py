@@ -37,7 +37,10 @@
 #           Version 0.1.38 09/29/04 -- Modified getExptime to return a value of 1 if exptime is 0.  This is
 #               to address an issue with ACS data that can have exptimes = 0.  This may or may not be ACS 
 #               specific-- CJH
-__version__ = '0.1.38'
+#           Version 0.1.39 09/30/04 -- Modified the doDrizCR method to pass the input file's primary + extension
+#               header to the cor and cr mask file creation methods for inclusion in the resulting fits file.
+
+__version__ = '0.1.39'
 
 import pyfits
 
@@ -94,7 +97,8 @@ class InputImage:
         __sciext = fileutil.getExtn(__handle,extn=self.extn)
         self.image_shape = __sciext.data.shape
         self.image_type = __sciext.data.type()
-        self.header = __sciext.header.copy()
+        # Retrieve a combined primary and extension header
+        self.header = fileutil.getHeader(input,handle=__handle)
         del __sciext
         __handle.close()
         del __handle
@@ -362,9 +366,9 @@ class InputImage:
                 print "  CR bit value of 0 specified.  Skipping DQ array updates."
 
             if  (corr_file != None):
-                __tmpDriz_cr.createcorrfile(corr_file)
+                __tmpDriz_cr.createcorrfile(corr_file,self.header)
             if (cr_file != None):
-                __tmpDriz_cr.createcrmaskfile(cr_file)
+                __tmpDriz_cr.createcrmaskfile(cr_file,self.header)
 
             del __tmpDriz_cr
 

@@ -22,7 +22,7 @@ from geissupport import *
 
 import makewcs
 
-__version__ = '2.3.2 (28 September 2004)'
+__version__ = '2.3.3 (30 September 2004)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
