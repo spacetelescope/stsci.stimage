@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.4.4 (7-February-2005)"
+__version__ = "5.4.5 (10-February-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -2465,12 +2465,12 @@ More help on SkyField objects and their parameters can be obtained using:
             _wcs = self.observation.product.geometry.wcs
 
             _numctx = {'all':len(self.parlist)}
-            if single:
-                # Determine how many chips make up each single image
-                for plist in self.parlist:
-                    plsingle = plist['outsingle']
-                    if _numctx.has_key(plsingle): _numctx[plsingle] += 1
-                    else: _numctx[plsingle] = 1
+#            if single:
+            # Determine how many chips make up each single image
+            for plist in self.parlist:
+                plsingle = plist['outsingle']
+                if _numctx.has_key(plsingle): _numctx[plsingle] += 1
+                else: _numctx[plsingle] = 1
             #
             # A image buffer needs to be setup for converting the input
             # arrays (sci and wht) from FITS format to native format
@@ -2583,7 +2583,7 @@ More help on SkyField objects and their parameters can be obtained using:
 
                 _con = yes
                 _imgctx = _numctx['all']
-                if single or plist['outcontext'] == '':
+                if single or (plist['outcontext'] == '' and single == yes):
                     _con = no
                     _imgctx = _numctx[plist['outsingle']]
 
