@@ -1,5 +1,17 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.4.3: 01/21/05 -- CJH 
+    Exposed the wt_scl parameter in both the single and final drizzle steps.
+    The default for this parameter is "exptime".  This was done to
+    support the drizzling of NICMOS data.
+
+    Corrected a bug in the __init__ _parseinput method that prevented the
+    use of '@' files with IVM file entries.
+
+    Corrected a bug that prevented the use of the new BITS parameter 
+    feature with identical BITS entires for the single and final drizzle
+    steps.
+
 Version 2.4.2: 01/18/05 -- CJH
     Corrected a Multidrizzle bug in the handling of NICMOS unit conversions.
     Multidrizzle can now accept NICMOS data in counts or counts per second.
