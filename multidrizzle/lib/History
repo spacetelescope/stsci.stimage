@@ -1,5 +1,8 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.3.5: 10/08/04 -- CJH
+    Have updated the mdrizpars.py module with new default parameter
+    values as specfied by Anton Koekmoer.
 Version 2.3.4: 10/05/04 -- CJH/WJH
     Added logic to treat STIS sky subtraction differently than all
     other instruments. 

@@ -104,10 +104,10 @@ class MDrizPars (HasTraits):
     enum_wht = Trait('',TraitPrefixMap({
                         'ERR': 'ERR',
                         'IVM': 'IVM',
-                        'None':None}) 
+                        'EXP': 'EXP'}) 
                         )
 
-    enum_combine = Trait('median',TraitPrefixMap({
+    enum_combine = Trait('minmed',TraitPrefixMap({
                         'median': 'median',
                         'sum': 'sum',
                         'minmed': 'minmed',}) 
@@ -146,7 +146,7 @@ class MDrizPars (HasTraits):
             'build':Trait(False, true_boolean, editor=bit_editor), 
             'shiftfile':Trait('',AnyValue),
             'staticfile':Trait('',TraitString()), 
-            'static_sig':Trait(3.0,TraitRange(0.0,9.0)), 
+            'static_sig':Trait(4.0,TraitRange(0.0,9.0)), 
             'skywidth':Trait(0.1,TraitRange(0.0,1.0)), 
             'skystat':Trait('median',TraitEnum(['median','mode','mean'])), 
             'skylower':Trait(-50.,AnyValue),
@@ -218,7 +218,7 @@ class MDrizPars (HasTraits):
             'build':Trait(False, true_boolean, editor=bit_editor), 
             'shiftfile':Trait('',AnyValue),
             'staticfile':Trait('',None,TraitString()), 
-            'static_sig':Trait(3.0,TraitRange(0.0,9.0)), 
+            'static_sig':Trait(4.0,TraitRange(0.0,9.0)), 
             'skywidth':Trait(0.1,TraitRange(0.0,1.0)), 
             'skystat':Trait('median',enum_stat, editor=text_editor), 
             'skylower':Trait(None,AnyValue),
@@ -236,7 +236,7 @@ class MDrizPars (HasTraits):
             'driz_sep_fillval':Trait('INDEF',TraitString()),
             'median_newmasks':Trait(True, true_boolean, editor=bit_editor), 
             'combine_type':Trait('median',enum_combine, editor=text_editor), 
-            'combine_nsigma':Trait('6 3',TraitString()),
+            'combine_nsigma':Trait('4 3',TraitString()),
             'combine_nlow':Trait(0,AnyValue), 
             'combine_nhigh':Trait(1,AnyValue), 
             'combine_lthresh':Trait('',AnyValue), 
@@ -245,9 +245,9 @@ class MDrizPars (HasTraits):
             'blot_interp':Trait('poly5',enum_interp, editor=text_editor), 
             'blot_sinscl':Trait(1.0,TraitRange(0.0,21.0)),
             'driz_cr_corr':Trait(False, true_boolean, editor=bit_editor),
-            'driz_cr_snr': Trait('3.0 2.5',TraitString()), 
+            'driz_cr_snr': Trait('3.5 3.0',TraitString()), 
             'driz_cr_scale':Trait('1.2 0.7',TraitString()),
-            'driz_final_wht_type':Trait('None',enum_wht, editor=text_editor),
+            'driz_final_wht_type':Trait('EXP',enum_wht, editor=text_editor),
             'driz_final_outnx':Trait('',AnyValue), 
             'driz_final_outny':Trait('',AnyValue),
             'driz_final_kernel':Trait('square',enum_kernel, editor=text_editor), 
