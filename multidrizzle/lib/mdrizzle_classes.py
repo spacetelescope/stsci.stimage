@@ -17,7 +17,7 @@ import mdzhandler
 import manager
 from manager import ImageManager
 
-__version__ = '2.0.1 (6 July 2004)'
+__version__ = '2.0.2 (8 July 2004)'
 
 def printout(text):
     print(' *** ' + text + '\n ***')
@@ -371,7 +371,7 @@ class Multidrizzle:
             nhigh      = cleanInt  (rec.field('combine_nhigh')),
             lthresh    = cleanNaN(rec.field('combine_lthresh')),
             hthresh    = cleanNaN(rec.field('combine_hthresh')),
-            grow       = cleanNaN(rec.field('combine_grow')))
+            grow       = cleanInt(rec.field('combine_grow')))
 
 ##        print self.medianpars
 
