@@ -659,7 +659,11 @@ def _remove(file):
         # Assumption: filenames end in '.??h' and '.??d'
         #
         os.remove(file)
-        os.remove(file[:-1]+'d')
+        # At this point, we may be deleting a non-image
+        # file, so only verify whether a GEIS hhd or similar
+        # file exists before trying to delete it.
+        if findFile(file[:-1]+'d'):
+            os.remove(file[:-1]+'d')
 
 def removeFile(inlist):
     """ Utility function for deleting a list of files or a single file. """
