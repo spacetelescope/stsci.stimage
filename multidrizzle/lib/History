@@ -1,0 +1,13 @@
+Multidrizzle Revision History
+-----------------------------
+
+Version 2.3.1: 09/21/04 --- CJH/WJH
+    Initial release of the redesigned Multidrizzle release to the larger
+    STScI user community.  Earlier version of the code were dedicated
+    efforts for installation in the ACS OPUS 15.4 calibration pipeline.
+    The version of Multidrizzle delivered to OPUS 15.4 is v2.2.1.  This
+    inital offereing to STScI differes from the v2.2.1 in that it has
+    support for STIS and NICMOS data and an improved version of Pydrizzle
+    that better supports sub-arrays.
+
+
