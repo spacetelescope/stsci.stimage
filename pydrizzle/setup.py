@@ -41,19 +41,6 @@ def getF2CDirs(args):
             else:
                 print "Library libf2c.a not found.\n"
                 sys.exit(1)
-        else:
-
-            platform = sys.platform[:5]
-            if platform == 'linux':
-                f2c_include  = "/usr/lib/gcc-lib/i386-redhat-linux/2.96/include/"
-                f2c_lib      = "/usr/lib/gcc-lib/i386-redhat-linux/2.96"
-            elif platform == 'sunos':
-                f2c_include  = "/usr/local/include"
-                f2c_lib      = "/usr/local/lib"
-            else:
-                print 'ERROR: Unsupported platform: ',sys.platform
-                print 'ERROR: No supported version of F2C available!'
-                raise ValueError
 
     return f2c_include,f2c_lib
 
