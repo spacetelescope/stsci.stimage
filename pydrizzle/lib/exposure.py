@@ -7,6 +7,7 @@
 #
 #   Version:
 #           0.1.0 -- Created -- Warren Hack
+#           0.1.1 -- DGEOFILE logic set to work with N/A as input
 #
 
 import buildmask, fileutil, drutil
@@ -17,7 +18,7 @@ import numarray as N
 yes = True  # 1
 no = False  # 0
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 #################
 #
@@ -178,7 +179,7 @@ class Exposure:
         """
         # If no DGEOFILE has been given, then simply return blanks
         # and 'drizzle' will not use any.
-        if not self.dgeoname and self.dgeoname != 'N/A':
+        if not self.dgeoname or self.dgeoname == 'N/A':
             return '',''
 
         # Expand the filename to a full path, now that we are sure

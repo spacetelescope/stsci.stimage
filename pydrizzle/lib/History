@@ -1,4 +1,8 @@
 ### PyDrizzle Revision Changes
+Version 5.0.20 (12-July-2004) WJH
+      - (OPR 51654)
+        Exposure class logic for recognizing DGEOFILE name of 'N/A' and passing
+        it on as blank to 'drizzle' was corrected.
 Version 5.0.19 (9-July-2004) WJH
       - 'fileutil.findFile' made more general with the ability to determine
         whether the file with a given extension exists, not just the filename
