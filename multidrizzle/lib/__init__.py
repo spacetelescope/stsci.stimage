@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.4.3 (26 January 2005)'
+__version__ = '2.5.0 (1 February 2005)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -155,7 +155,7 @@ help file.
                 'context','clean','shiftfile','staticfile',
                 'static_sig','coeffs']
 
-    driz_keys = ['refimage','group','bits','ra','dec','build']
+    driz_keys = ['refimage','group','ra','dec','build']
     
     instr_keys = ['gain','gnkeyword','rdnoise','rnkeyword',
                     'exptime', 'expkeyword','crbit']
@@ -318,13 +318,13 @@ help file.
         
         #Update master_pars dictionary, and switches dictionary
         # based on last set values.        
-        self.pars.updateMasterPars()
-        
+        #self.pars.updateMasterPars()
+
         # Use the values in the master parlist to set the values
         # for the attributes necessary for initializing this class
         for kw in self.init_keys:
             self.__dict__[kw] = self.pars.master_pars[kw]
-        
+                
         # Create object that controls step execution and mark
         # initialization step.
         self.steps = self.pars.steps
@@ -420,15 +420,11 @@ help file.
             print "WARNING:  Units of sci extensions will be electrons"
             print "WARNING:  Value of MDRIZSKY is in units of input data sci extensions."
             print "********************\n\n"
-
-
-        # Initialize the dqpar file based upon instrument type
-        #_instrument = fileutil.getKeyword(self.files[0]+'[0]','INSTRUME')
-        #self._initdqpars(_instrument,self.driz_sep_pars['bits'])
-        
+       
         # Extract bits value from master dictionary for use in setupAssociation
-        self.bits = self.driz_sep_pars['bits']
-
+        self.driz_sep_bits = self.pars.master_pars['driz_sep_bits']
+        self.final_bits = self.pars.master_pars['driz_final_bits']        
+        
         # Build association object
         association = self._setupAssociation()
 
@@ -822,15 +818,14 @@ help file.
         print "context = ", self.context
         print "clean  = ", self.clean
         print "group = ", self.driz_sep_pars['group']
-        print "bits = ", self.driz_sep_pars['bits']
         print "ra = ", self.driz_sep_pars['ra']
         print "dec = ", self.driz_sep_pars['dec']
         print "build = ", self.driz_sep_pars['build']
         print "shiftfile =  ",self.shiftfile
+        print "staticfile = ",self.staticfile
         
         print "\n** Static Mask:"
         print "static = ", switches['static']
-        print "staticfile = ",self.staticfile
         print "static_sig = ", self.static_sig
 
         print "\n** Sky Subtraction:"
@@ -865,7 +860,7 @@ help file.
 
     def _printDictEntries(self,prefix,dict):
         # Define list of items that is to be handeled as a special printing case.
-        itemlist = ['newmasks','ra','dec','build','bits','group','coeffs','nsigma1','nsigma2']
+        itemlist = ['newmasks','ra','dec','build','group','coeffs','nsigma1','nsigma2']
         
         sortedkeys = dict.keys()
         sortedkeys.sort()
@@ -997,7 +992,8 @@ help file.
                         - self.parseWFPC2flag
                         - self.shiftfile
                         - self.excludedFileList
-                        - self.bits
+                        - self.driz_sep_bits
+                        - self.final_bits
         OUTPUT      : A new ASN file used as input to Pydrizzle.  Remember, PyDrizzle is
                       invoked by Multidrizzle and used the assocation table to create the
                       assoc.par object.
@@ -1184,7 +1180,8 @@ help file.
         # laying around...        
         assoc = pydrizzle.PyDrizzle(driz_asn_file, idckey=self.coeffs,
                                     section=self.driz_sep_pars['group'],
-                                    bits=self.bits,
+                                    bits_single=self.driz_sep_bits,
+                                    bits_final=self.final_bits,
                                     prodonly=False)
 
         # Use PyDrizzle to clean up any previously produced products...

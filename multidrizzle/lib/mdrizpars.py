@@ -121,87 +121,6 @@ class MDrizPars (HasTraits):
                         )
     text_editor = TraitEditorText()
 
-
-    """
-    This definition of the MDRIZPAR traits enables proper 
-    handling of integer TraitRanges and TraitEnum with the
-    Pmw widgets.  Unfortunately, due to a bug in Pmw
-    Versions 1.2 and less, these features will not work. 
-    
-    Therefore, this definition can only be activated upon updating
-    to Pmw 1.3 and greater.
-    
-    __traits__ = {'input':Trait('flt.fits',TraitString()),
-            'output':Trait('',TraitString()),
-            'mdriztab':Trait(False, true_boolean, editor=bit_editor),
-            'refimage':'','runfile':'multidrizzle.run',
-            'workinplace':Trait(False, true_boolean, editor=bit_editor),
-            'context':Trait(True, true_boolean, editor=bit_editor), 
-            'clean':Trait(True, true_boolean, editor=bit_editor),
-            'group':Trait('',AnyValue),
-            'bits':Trait(0,TraitRange(0,65535)), 
-            'ra':Trait('',AnyValue), 
-            'dec':Trait('',AnyValue),
-            'coeffs':Trait('header',TraitString()), 
-            'build':Trait(False, true_boolean, editor=bit_editor), 
-            'shiftfile':Trait('',AnyValue),
-            'staticfile':Trait('',TraitString()), 
-            'static_sig':Trait(4.0,TraitRange(0.0,9.0)), 
-            'skywidth':Trait(0.1,TraitRange(0.0,1.0)), 
-            'skystat':Trait('median',TraitEnum(['median','mode','mean'])), 
-            'skylower':Trait(-50.,AnyValue),
-            'skyupper':Trait(200.,AnyValue), 
-            'skyclip':Trait(5,TraitRange(0,10)), 
-            'skylsigma':Trait(4.0,TraitRange(0.0,9.0)),
-            'skyusigma':Trait(4.0,TraitRange(0.0,9.0)), 
-            'skyuser':Trait('',TraitString()),
-            'driz_sep_outnx':Trait('',AnyValue), 
-            'driz_sep_outny':Trait('',AnyValue),
-            'driz_sep_kernel':Trait('turbo',TraitEnum(['square',
-                'point','gaussian','turbo','tophat','lanczos3'])), 
-            'driz_sep_pixfrac':Trait(1.0,TraitRange(0.0,2.0)),
-            'driz_sep_scale':Trait('',AnyValue), 
-            'driz_sep_rot':Trait('',AnyValue),
-            'driz_sep_fillval':Trait('INDEF',TraitString()),
-            'median_newmasks':Trait(True, true_boolean, editor=bit_editor), 
-            'combine_type':Trait('median',TraitEnum(['median','sum','minmed'])), 
-            'combine_nsigma':Trait('6 3',TraitString()),
-            'combine_nlow':Trait(0,AnyValue), 
-            'combine_nhigh':Trait(1,AnyValue), 
-            'combine_lthresh':Trait('',AnyValue), 
-            'combine_hthresh':Trait('',AnyValue), 
-            'combine_grow':Trait(1.0,TraitRange(0.0,21.0)),
-            'blot_interp':Trait('poly5',TraitEnum(['nearest','linear',
-                    'poly3','poly5','sinc'])), 
-            'blot_sinscl':Trait(1.0,TraitRange(0.0,21.0)),
-            'driz_cr_corr':Trait(False, true_boolean, editor=bit_editor),
-            'driz_cr_snr': Trait('3.0 2.5',TraitString()), 
-            'driz_cr_scale':Trait('1.2 0.7',TraitString()),
-            'driz_final_outnx':Trait('',AnyValue), 
-            'driz_final_outny':Trait('',AnyValue),
-            'driz_final_kernel':Trait('square',TraitEnum(['square',
-                'point','gaussian','turbo','tophat','lanczos3'])), 
-            'driz_final_pixfrac':Trait(1.0,TraitRange(0.0,2.0)),
-            'driz_final_scale':Trait('',AnyValue), 
-            'driz_final_rot':Trait(0.0,AnyValue),
-            'driz_final_fillval':Trait('INDEF',TraitString()),
-            'gain':Trait('',TraitString()), 
-            'gnkeyword':Trait('',TraitString()),
-            'rdnoise':Trait('',TraitString()), 
-            'rnkeyword':Trait('',TraitString()), 
-            'exptime':Trait('',TraitString()),
-            'expkeyword':Trait('',TraitString()), 
-            'crbit': Trait(64,TraitRange(0,65535)),
-            'static':Trait(True, true_boolean, editor=bit_editor), 
-            'skysub':Trait(True, true_boolean, editor=bit_editor), 
-            'driz_separate':Trait(True, true_boolean, editor=bit_editor),
-            'median':Trait(True, true_boolean, editor=bit_editor), 
-            'blot':Trait(True, true_boolean, editor=bit_editor), 
-            'driz_cr':Trait(True, true_boolean, editor=bit_editor), 
-            'driz_combine':Trait(True, true_boolean, editor=bit_editor),
-            'timing':Trait(True, true_boolean, editor=bit_editor)
-            }
-    """
     __traits__ = {'input':Trait('flt.fits',TraitString()),
             'output':Trait('',TraitString()),
             'mdriztab':Trait(False, true_boolean, editor=bit_editor),
@@ -211,7 +130,6 @@ class MDrizPars (HasTraits):
             'context':Trait(True, true_boolean, editor=bit_editor), 
             'clean':Trait(False, true_boolean, editor=bit_editor),
             'group':Trait('',AnyValue),
-            'bits':Trait('0',TraitString()), 
             'ra':Trait('',AnyValue), 
             'dec':Trait('',AnyValue),
             'coeffs':Trait('header',TraitString()), 
@@ -235,6 +153,7 @@ class MDrizPars (HasTraits):
             'driz_sep_scale':Trait('',AnyValue), 
             'driz_sep_rot':Trait('',AnyValue),
             'driz_sep_fillval':Trait('INDEF',TraitString()),
+            'driz_sep_bits':Trait(0,AnyValue), 
             'median_newmasks':Trait(True, true_boolean, editor=bit_editor), 
             'combine_type':Trait('median',enum_combine, editor=text_editor), 
             'combine_nsigma':Trait('4 3',TraitString()),
@@ -257,6 +176,7 @@ class MDrizPars (HasTraits):
             'driz_final_scale':Trait('',AnyValue), 
             'driz_final_rot':Trait(0.0,AnyValue),
             'driz_final_fillval':Trait('INDEF',TraitString()),
+            'driz_final_bits':Trait(0,AnyValue), 
             'gain':Trait('',AnyValue), 
             'gnkeyword':Trait('',AnyValue),
             'rdnoise':Trait('',AnyValue), 
@@ -278,11 +198,12 @@ class MDrizPars (HasTraits):
             TraitGroup(
             TraitGroup(
                 'input','output','mdriztab','refimage','runfile',
-                'workinplace','context', 'clean','group', 'bits', 
-                'ra', 'dec','coeffs', 'build', 'shiftfile','timing',
+                'workinplace','context', 'clean','group', 
+                'ra', 'dec','coeffs', 'build', 'shiftfile','staticfile',
+                'timing',
                 label='Init'),
             TraitGroup('static',
-                'staticfile', 'static_sig', 
+                'static_sig', 
                 label='Static Mask'),
             TraitGroup('skysub',
                 'skywidth', 'skystat', 'skylower',
@@ -294,7 +215,7 @@ class MDrizPars (HasTraits):
             TraitGroup('driz_separate',
                 'driz_sep_outnx', 'driz_sep_outny', 'driz_sep_kernel', 
                 'driz_sep_wt_scl', 'driz_sep_pixfrac', 'driz_sep_scale', 
-                'driz_sep_rot', 'driz_sep_fillval',
+                'driz_sep_rot', 'driz_sep_fillval','driz_sep_bits',
                 label='Separate Drizzle'),
             TraitGroup('median',
                 'median_newmasks', 'combine_type', 'combine_nsigma',
@@ -314,6 +235,7 @@ class MDrizPars (HasTraits):
                 'driz_final_kernel', 'driz_final_wt_scl', 
                 'driz_final_pixfrac','driz_final_scale', 
                 'driz_final_rot', 'driz_final_fillval',
+                'driz_final_bits',
                 label='Final Drizzle'),
             TraitGroup(
                 'gain', 'gnkeyword','rdnoise', 'rnkeyword', 
@@ -336,7 +258,7 @@ class MDrizPars (HasTraits):
             'skyusigma', 'skyuser',
             'driz_sep_outnx', 'driz_sep_outny', 'driz_sep_kernel', 'driz_sep_wt_scl',
             'driz_sep_pixfrac','driz_sep_scale', 'driz_sep_rot',
-            'driz_sep_fillval',
+            'driz_sep_fillval', 'driz_sep_bits',
             'median_newmasks', 'combine_type', 'combine_nsigma',
             'combine_nlow', 'combine_nhigh','combine_lthresh',
             'combine_hthresh', 'combine_grow',
@@ -345,7 +267,7 @@ class MDrizPars (HasTraits):
             'driz_final_outnx', 'driz_final_outny',
             'driz_final_kernel', 'driz_final_wt_scl', 'driz_final_pixfrac',
             'driz_final_scale', 'driz_final_rot',
-            'driz_final_fillval',
+            'driz_final_fillval', 'driz_final_bits',
             'gain', 'gnkeyword','rdnoise', 'rnkeyword', 
             'exptime','expkeyword', 'crbit']
     #
@@ -354,7 +276,8 @@ class MDrizPars (HasTraits):
     #
     clean_string_list = [ 'output', 'group', 'shiftfile', 'staticfile',
             'ra', 'dec', 'coeffs', 'combine_lthresh', 'combine_hthresh',
-            'bits', 'driz_sep_scale', 'driz_sep_rot', 'driz_final_scale',
+            'driz_sep_scale', 'driz_sep_rot', 'driz_sep_bits', 
+            'driz_final_bits', 'driz_final_scale',
             'driz_final_rot']
                
     SHELVENAME = 'mdrizpars'
@@ -404,12 +327,14 @@ class MDrizPars (HasTraits):
             self.switches[_par] = getattr(self,_par)
             
         for _par in self.master_list:
-            value = getattr(self,_par)
-            if value == 'None' or (_par in self.clean_string_list and value == ''):
-                value = None
-            self.master_pars[_par] = value
+            if _par != 'bits':
+                value = getattr(self,_par)
+                if value == 'None' or (_par in self.clean_string_list and value == ''):
+                    value = None
+                self.master_pars[_par] = value
         
     def updatePars(self,dict):
+    
         # Verify that all inputs correspond to keywords in the
         # master dictionary, otherwise, raise an exception
         self.verifyInput(dict)
@@ -421,6 +346,7 @@ class MDrizPars (HasTraits):
         # values to two places: these dictionaries and to __dict__
         #
         for k in dict.keys():
+            #print "keys updated in master dictionary: ",k
             # Update value of trait and coerce the
             # TraitType on the value in the process
             setattr(self,k,dict[k])
@@ -433,8 +359,11 @@ class MDrizPars (HasTraits):
                 # If it is not a switch, update its value
                 # in the master list.
                 self.master_pars[k] = getattr(self,k)
-                           
 
+        if 'bits' in dict.keys():
+            if 'driz_final_bits' not in dict.keys():
+                self.master_pars['driz_final_bits'] = dict['bits']
+                self.master_pars['driz_sep_bits'] = None                
     def _findShelveDir(self):
         """ Tracks down the location of the shelve files
         used for keeping the user-specified bit values. """
@@ -530,7 +459,6 @@ class MDrizPars (HasTraits):
             Additional keywords used for this dictionary are listed
             in the module parameter 'driz_keys'.
         """
-        
         _driz_dict = {}
         _prefix_len = len(prefix)+1
         for kw in self.master_pars.keys():
@@ -623,5 +551,5 @@ class MDrizPars (HasTraits):
                 if _name.find('fillval') > -1 and _val == None:
                     _val = 'INDEF'
                 tabdict[_name] = _val
-
+        
         return tabdict

@@ -1,5 +1,14 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.5.0: 01/31/05 -- CJH/WJH
+    Added separate parameters for the bits parameters for single and final
+    drizzle processing, while retaining backwards compatibility with existing
+    MDRIZTAB files.  The EPAR parameter 'bits' was removed as well.  
+    
+    Moved the location of the 'staticfile' parameter from createStatic mask
+    step to the general parameters section.  No functional changes were 
+    implemented in the code yet for 'staticfile' support. 
+
 Version 2.4.3: 01/21/05 -- CJH 
     Exposed the wt_scl parameter in both the single and final drizzle steps.
     The default for this parameter is "exptime".  This was done to
