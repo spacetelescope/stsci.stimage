@@ -1,5 +1,8 @@
 xout,r,a,400.0,,,X pixel position in output drizzled image
 yout,r,a,400.0,,,Y pixel position in output drizzled image
+xylist,f,h,"",,,"List of X,Y positions to be transformed"
+xin,r,h,,,,X pixel position in input undrizzled image
+yin,r,h,,,,Y pixel position in input undrizzled image
 coeffs,f,h,"",,,Geometrical distortion coefficients file name 
 lambda,r,h,555.0,,,"Effective Wavelength (nm), Trauger coefficients only"
 xgeoim,f,h,"",,,X-shifts geometric distortion image
@@ -19,7 +22,7 @@ align,s,h,"center","center|corner",,"Reference point: corner or center of pixel
 WCS parameters"
 geomode,s,h,"user","user|wcs",,"Way of specifying geometry - user or wcs"
 refim,f,h,"",,,Reference output image name to define output WCS
-inimage,f,h,,,Input image for WCS
+inimage,f,h,"",,,Input image for WCS
 outscl,r,h,0.1,,,"Scale of output image, arcsecs/pix"
 raref,r,h,0.0,,,"RA of reference point on output (CRVAL1, degrees)"
 decref,r,h,0.0,,,"Dec of reference point on output image (CRVAL2, degrees)"
