@@ -2207,7 +2207,7 @@ More help on SkyField objects and their parameters can be obtained using:
     --> f.help()
     """
     def __init__(self, input, output=None, field=None, units=None, section=None,
-        kernel=None,pixfrac=None,bits=-1,wt_scl='exptime',fillval=0.,idckey='',
+        kernel=None,pixfrac=None,bits=0,wt_scl='exptime',fillval=0.,idckey='',
         idcdir=DEFAULT_IDCDIR,memmap=1,dqsuffix=None,prodonly=yes,shiftfile=None):
 
         if idcdir == None: idcdir = DEFAULT_IDCDIR
