@@ -2,6 +2,7 @@
 #include <string.h>
 #include <Python.h>
 #include <arrayobject.h>
+#include <libnumarray.h>
 /*#include "numarray.h" */
 
 static PyObject *gl_Error;
