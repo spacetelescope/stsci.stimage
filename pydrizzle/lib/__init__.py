@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.2.2 (21-September-2004)"
+__version__ = "5.2.2 (24-September-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -582,6 +582,7 @@ class Pattern:
         _nref = meta_range['nref']
         for member in self.members:
             member.corners['corrected'] -= (_nref[0]/2.,_nref[1]/2.)
+
         if update:
             # Shifts position of CRPIX to reflect new size
             # Instead of being centered on (0.,0.) like the original guess.
@@ -614,9 +615,12 @@ class Pattern:
         abxt,cdyt = drutil.wcsfit(self.members[0].geometry, meta_wcs)
         #Compute the rotation between input and reference from fit coeffs.
         _delta_rot = RADTODEG(N.arctan2(abxt[1],cdyt[0]))
-        _crpix = (meta_wcs.crpix1 + abxt[2],meta_wcs.crpix2 + cdyt[2] )
+        _crpix = (meta_wcs.crpix1 + abxt[2], meta_wcs.crpix2 + cdyt[2])
         meta_wcs.crval1,meta_wcs.crval2 = meta_wcs.xy2rd(_crpix)
-        meta_wcs.rotateCD(meta_wcs.orient+_delta_rot)
+
+        # Insure output WCS has exactly orthogonal CD matrix
+        #meta_wcs.rotateCD(meta_wcs.orient+_delta_rot)
+        meta_wcs.updateWCS(orient=meta_wcs.orient+_delta_rot)
 
         return meta_wcs
 
@@ -864,8 +868,8 @@ class Pattern:
                 # Pass along the reference position assumed by Drizzle
                 # based on 'align=center' according to the conventions
                 # described in the help page for 'drizzle'.  26Mar03 WJH
-                _xref = int(in_wcs_orig.naxis1/2.)
-                _yref = int(in_wcs_orig.naxis2/2.)
+                _xref = int(in_wcs_orig.naxis1/2.) + 1.0
+                _yref = int(in_wcs_orig.naxis2/2.) + 1.0
 
             # Set up the idcfile for use by 'drizzle'
             indx = string.rfind(member.name,'.')
@@ -1044,7 +1048,8 @@ class Pattern:
             theta = refp['THETA']
             if theta == None: theta = 0.0
 
-            chipcen = (memwcs.naxis1/2. + memwcs.offset_x, memwcs.naxis2/2. + memwcs.offset_y)
+            chipcen = ( memwcs.naxis1/2. + memwcs.offset_x,
+                        memwcs.naxis2/2. + memwcs.offset_y)
             xypos = N.dot(ref_pmat,v2v3-ref_v2v3) / scale + ref_xy
             chiprot = drutil.buildRotMatrix(theta - ref_theta)
 

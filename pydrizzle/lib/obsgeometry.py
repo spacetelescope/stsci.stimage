@@ -84,7 +84,6 @@ class GeometryModel:
                         for j in _jlist:
                             _cxs[m,n] += cx[i,j]*combin(j,n)*combin((i-j),(m-n))*pow(xs,(j-n))*pow(ys,((i-j)-(m-n)))
                             _cys[m,n] += cy[i,j]*combin(j,n)*combin((i-j),(m-n))*pow(xs,(j-n))*pow(ys,((i-j)-(m-n)))
-
         return _cxs,_cys
 
     def convert(self, tmpname, xref=None,yref=None,delta=yes):
@@ -118,8 +117,8 @@ class GeometryModel:
                 # We only want to apply this shift to coeffs
                 # for subarray images.
                 if delta == no:
-                    cxs[0,0] = cxs[0,0] - _xs
-                    cys[0,0] = cys[0,0] - _ys
+                    cxs[0,0] = cxs[0,0] - _xs + 0.5
+                    cys[0,0] = cys[0,0] - _ys + 0.5
 
                 # Now, apply only the difference introduced by the distortion..
                 # i.e., (undistorted - original) shift.
@@ -553,6 +552,7 @@ class ObsGeometry:
             # removed again as well. WJH 12 Sept 2004
             # For full images, this correction will be ZERO.
             # This offset, though, has to be scaled by the relative plate-scales.
+            #
             v2 = v2 / pscale
             v3 = v3 / pscale
 

@@ -119,7 +119,8 @@ class OutputImage:
         if not self.build:
             if self.outweight:
                 if overwrite:
-                    print 'Deleting previous output WHT product: ',self.outweight
+                    if fileutil.findFile(self.outweight):
+                        print 'Deleting previous output WHT product: ',self.outweight
                     fileutil.removeFile(self.outweight)
                 else:
                     print 'WARNING:  Output file ',self.outweight,' already exists and overwrite not specified!'
@@ -129,7 +130,8 @@ class OutputImage:
 
             if self.outcontext:
                 if overwrite:
-                    print 'Deleting previous output CTX product: ',self.outcontext
+                    if fileutil.findFile(self.outcontext):
+                        print 'Deleting previous output CTX product: ',self.outcontext
                     fileutil.removeFile(self.outcontext)
                 else:
                     print 'WARNING:  Output file ',self.outcontext,' already exists and overwrite not specified!'

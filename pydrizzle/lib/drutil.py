@@ -587,14 +587,10 @@ def wcsfit(img_geom, ref):
     # Define objects that we need to use for the fit...
     img_wcs = img_geom.wcs
     in_refpix = img_geom.model.refpix
-    img_wcs.recenter()
 
     # Only work on a copy to avoid unexpected behavior in the
     # call routine...
     ref_wcs = ref.copy()
-    # Insure that reference WCS has reference pixel at
-    # center, and adjust if not centered.
-    #ref_wcs.recenter()
 
     # Convert the RA/Dec positions back to X/Y in output product image
     _cpix_xyref = N.zeros((4,2),type=N.Float64)
@@ -608,6 +604,7 @@ def wcsfit(img_geom, ref):
 
     # Convert these positions to RA/Dec
     _cpix_rd = img_wcs.xy2rd(_cpix_arr)
+
     for pix in xrange(len(_cpix_rd[0])):
         _cpix_xyref[pix,0],_cpix_xyref[pix,1] = ref_wcs.rd2xy((_cpix_rd[0][pix],_cpix_rd[1][pix]))
 
@@ -616,14 +613,17 @@ def wcsfit(img_geom, ref):
     _cpix_xyc[:,0],_cpix_xyc[:,1] = img_geom.apply(_cpix_arr)
 
     if in_refpix:
-        _cpix_xyc += (in_refpix['XDELTA'],in_refpix['YDELTA'])
+        _cpix_xyc += (in_refpix['XDELTA'], in_refpix['YDELTA'])
 
     # Perform a fit between:
     #       - undistorted, input positions: _cpix_xyc
     #       - X/Y positions in reference frame: _cpix_xyref
     abxt,cdyt = fitlin(_cpix_xyc,_cpix_xyref)
-    abxt[2] -= ref_wcs.crpix1
-    cdyt[2] -= ref_wcs.crpix2
+
+    # We need to subtract 1 from CRPIX value here to account for
+    # offset introduced in 'drizzle' with 'align=center'
+    abxt[2] -= ref_wcs.crpix1 - 1.0
+    cdyt[2] -= ref_wcs.crpix2 - 1.0
 
     return abxt,cdyt
 
