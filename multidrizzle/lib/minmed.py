@@ -6,6 +6,8 @@
 #
 #   HISTORY:
 #      Version 0.1.0: Initial Development -- CJH -- 02/11/04
+#      Version 0.1.1: Cast boxsize as type int.  This should always be the case
+#       anyways but this protects against errors in the MDRIZTAB -- CJH/WJH -- 07/08/04
 
 
 import numarray
@@ -14,7 +16,7 @@ import numcombine
 from numcombine import numCombine
 import numarray.convolve as NC
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 class minmed:
     """ Create a median array, rejecting the highest pixel and computing the lowest valid pixel after mask application"""
 
@@ -185,7 +187,9 @@ class minmed:
 
             __minimum_flag_file = numarray.where(numarray.less(__minimum_file_weighted,__median_rms_file),1,0)
 
-            __boxsize = 2 * self.__combine_grow + 1
+            # The box size value must be an integer.  This is not a problem since __combine_grow should always
+            # be an integer type.  The combine_grow column in the MDRIZTAB should also be an integer type.
+            __boxsize = int(2 * self.__combine_grow + 1)
             __boxshape = (__boxsize,__boxsize)
             __minimum_grow_file = numarray.zeros(self.__imageList[0].shape,type=self.__imageList[0].type())
             NC.boxcar(__minimum_flag_file,__boxshape,output=__minimum_grow_file,mode='constant',cval=0)
