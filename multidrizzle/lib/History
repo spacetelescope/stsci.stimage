@@ -1,5 +1,9 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.4.1: 01/17/05 -- CJH
+    Modified Multidrizzle to accept the use of different BITS values
+    for the single and final drizzle steps.
+
 Version 2.4.0: 01/10/05 -- CJH
     1) INTRODUCTION:
     ----------------
