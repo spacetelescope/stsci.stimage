@@ -1527,7 +1527,6 @@ class DitherProduct(Pattern):
     def __init__(self, prodlist, pars=None):
 
         # Build temporary output drizzle product name
-        print 'output starts with: ',prodlist['output']
         if prodlist['output'].find('.fits') < 0:
             if prodlist['output'].rfind('_drz') < 0:
                 output = fileutil.buildNewRootname(prodlist['output'],extn='_drz.fits')
@@ -1535,7 +1534,6 @@ class DitherProduct(Pattern):
                 output = prodlist['output']+'.fits'
         else:
             output = prodlist['output']
-        print 'DitherProduct built output as: ',output
 
         # Setup a default exposure to contain the results
         Pattern.__init__(self, None, output=output, pars=pars)
@@ -2441,12 +2439,12 @@ More help on SkyField objects and their parameters can be obtained using:
             # For single case, this will determine when to close
             # one product and open the next.
             _numchips = 0
-            _nimg = 0
+            _nimg = 0j8cw08n4q_raw.fits
             _hdrlist = []
 
             for plist in self.parlist:
 
-                # Read in the distortion correction arrays, if specified
+                # Read in the distortion correction arrays, if specifij8cw08n4q_raw.fitsed
                 _pxg,_pyg = plist['exposure'].getDGEOArrays()
 
                 _hdrlist.append(plist)
@@ -2579,7 +2577,6 @@ More help on SkyField objects and their parameters can be obtained using:
         #   parlist['driz_mask']
         if not save and clean:
             for img in self.parlist:
-                print 'removing coeffs file: ',img['coeffs']
                 fileutil.removeFile(img['coeffs'])
                 if img['driz_mask'] != '':
                     fileutil.removeFile(img['driz_mask'])
