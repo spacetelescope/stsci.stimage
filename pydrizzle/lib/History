@@ -1,4 +1,13 @@
 ### PyDrizzle Revision Changes
+Version 5.2.7 (1-Nov-2004) WJH
+      - Removed dependency on IRAF environment variable 'stsdas'. It will
+        now default to current working directory for default coeffs dir
+        if 'stsdas$' is not defined.
+      - Added 'getMembers' and 'getMemberNames' methods to Observation classes
+        to more readily support coordinate transformations using PyDrizzle,
+        especially for prototype tweakshifts.
+      - Modified 'wtraxy' to work with list input as well as single position
+        input to better support coordinate transformations with PyDrizzle.
 Version 5.2.6 (5-Oct-2004) WJH
       - Output product name no longer all lower-case, but rather uses the 
         exact case specified by the user in the ASN table.

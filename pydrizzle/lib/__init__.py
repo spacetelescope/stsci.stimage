@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.2.6 (5-October-2004)"
+__version__ = "5.2.7 (1-November-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -206,8 +206,7 @@ class Pattern:
         """ Method for extracting the bits value set through DQPars."""
         if self.DQCLASS:
             _a = eval(DQPARS+'.'+self.DQCLASS)()
-            if bits != None:
-                _a.update(bits)
+            _a.update(bits)
             _bits = _a.bits
             del _a
         else:
@@ -1103,6 +1102,23 @@ class Pattern:
     def getWCS(self):
         return self.members[0].getWCS()
 
+    def getMember(self,memname):
+        """ Return the class instance for the member with name memname."""
+        member = None
+        for mem in self.members:
+            if mem.name == memname:
+                member = mem
+        return member
+
+    def getMemberNames(self):
+        """ Return the names of all members for this Class.
+            Output: [{self.name:[list of member names]}]
+        """
+        memlist = []
+        for member in self.members:
+            memlist.append(member.name)
+        return [{self.name:memlist}]
+
     def getExptime(self):
         _exptime = float(self.header['EXPTIME'])
         if _exptime == 0.: _exptime = 1.0
@@ -1656,6 +1672,26 @@ class DitherProduct(Pattern):
             else:
                 print 'No recognizable input! Not building parameters for ',memname
 
+    def getMember(self,memname):
+        """ Return the class instance for the member with name memname."""
+        member = None
+        for mem in self.members:
+            member = mem.getMember(memname)
+            if member != None:
+                break
+        return member
+
+    def getMemberNames(self):
+        """ Returns a dictionary with one key for each member.
+            The value for each key is a list of all the extension/chip
+            names that make up each member.
+            Output: {member1:[extname1,extname2,...],...}
+        """
+        memlist = []
+        for member in self.members:
+            memlist.extend(member.getMemberNames())
+
+        return memlist
 
     def buildPars(self,ref=None):
 
@@ -2519,6 +2555,7 @@ More help on SkyField objects and their parameters can be obtained using:
         #   parlist['driz_mask']
         if not save and clean:
             for img in self.parlist:
+                print 'removing coeffs file: ',img['coeffs']
                 fileutil.removeFile(img['coeffs'])
                 if img['driz_mask'] != '':
                     fileutil.removeFile(img['driz_mask'])
@@ -2581,6 +2618,11 @@ More help on SkyField objects and their parameters can be obtained using:
         for pl in self.parlist:
             for _p in _pars: print pl[_p],
             print ''
+
+    def getMember(self,memname):
+        """ Returns the class instance for the specified member name."""
+        return self.observation.getMember(memname)
+
 
 def _buildOutputFits(sci,wht,fname,ctx=None,extlist=['SCI','ERR','DQ']):
 

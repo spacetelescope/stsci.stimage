@@ -602,21 +602,33 @@ class ObsGeometry:
     def wtraxy(self,pixpos,wcs):
         """
         Converts input pixel position 'pixpos' into an X,Y position in WCS.
+        Made this function compatible with list input, as well as single
+        tuple input.
         """
         _ab,_cd = drutil.wcsfit(self,wcs)
         _orient = fileutil.RADTODEG(N.arctan2(_ab[1],_cd[0]))
         _scale = N.sqrt(abs(_ab[1]*_cd[1] - _ab[0]*_cd[0]))
         _rot_mat = drutil.buildRotMatrix(_orient)
 
-        _delta_x,_delta_y = self.apply([pixpos])
+        if isinstance(pixpos, types.TupleType):
+            pixpos = [pixpos]
+
+        _delta_x,_delta_y = self.apply(pixpos)
         _delta_x += self.model.refpix['XDELTA']
         _delta_y += self.model.refpix['YDELTA']
+        _delta = N.zeros((len(pixpos),2),N.Float32)
+        _delta[:,0] = _delta_x
+        _delta[:,1] = _delta_y
 
-        _xy_corr = N.dot((_delta_x[0],_delta_y[0]),_rot_mat) * _scale
-        _x_out = _xy_corr[0] + _ab[2] + wcs.naxis1/2.
-        _y_out = _xy_corr[1] + _cd[2] + wcs.naxis2/2.
+        _xy_corr = N.dot(_delta,_rot_mat) * _scale
+        _delta[:,0] = _xy_corr[:,0] + _ab[2] + wcs.naxis1/2.
+        _delta[:,1] = _xy_corr[:,1] + _cd[2] + wcs.naxis2/2.
 
-        return (_x_out,_y_out)
+        if len(pixpos) == 1:
+            return _delta[0]
+        else:
+            return _delta
+        #return (_x_out,_y_out)
 
     def invert(self,pixpos,error=None,maxiter=None):
         """

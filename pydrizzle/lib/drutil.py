@@ -35,8 +35,11 @@ IDCTAB  = 1
 DRIZZLE = 2
 TRAUGER = 3
 
+try:
+    DEFAULT_IDCDIR = fileutil.osfn('stsdas$pkg/analysis/dither/drizzle/coeffs/')
+except:
+    DEFAULT_IDCDIR = os.getcwd()
 
-DEFAULT_IDCDIR = fileutil.osfn('stsdas$pkg/analysis/dither/drizzle/coeffs/')
 
 def factorial(n):
     """ Compute a factorial for integer n. """
