@@ -3,15 +3,19 @@
 #   MODULE:     geissupport.py
 #   AUTHOR:     Christopher Hanley
 #   HISTORY:    
-#       0.1.0 -- 12 July 20004 -- Created -- CJH
-
+#       0.1.0 -- 12 July 2004 -- Created -- CJH
+#       0.1.1 -- 24 August 2004 -- Modified convertgeis2multifits to append
+#               a _c0h.fits extension instead of _c0f.fits -- CJH
+#
+#
+#
 import numarray
 import pyfits as P
 import readgeis
 from readgeis import readgeis
 import os
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 def convertgeis2multifits(geisfilename):
     """
@@ -29,7 +33,7 @@ def convertgeis2multifits(geisfilename):
 
     # Extract all the letters, except the last, from the
     #file extension and append the letter 'f'.
-    extn=geisfilename[geisfilename.rfind('.')+1:-1]+"f"
+    extn=geisfilename[geisfilename.rfind('.')+1:-1]+"h"
     
     # if the file you wish to create already exists, delete it
     dirfiles = os.listdir(os.curdir)
