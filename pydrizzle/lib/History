@@ -1,4 +1,17 @@
 ### PyDrizzle Revision Changes
+Version 5.4.4 (7-Feb-2005) WJH
+      - (OPR 52938) Modified 'wcsutil' to correctly handle archived pscale
+        values and to insure that all WCS keywords get archived regardless 
+        of whether archived values were already present for some keywords.
+         
+      - (OPR 52970) readAsnTable needed to be modified to ignore rows for
+        members which are missing, as noted by MEMPRSNT == False and 
+        MEMTYPE == *EXP*. 
+        
+      - Archiving keywords in wcsutil needed to be fixed so that all keywords
+        get written out to archive keywords regardless of whether some were 
+        archived already or not.  
+
 Version 5.4.3 (27-Jan-2005) WJH
         ###
         # Interface change

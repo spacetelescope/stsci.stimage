@@ -52,7 +52,7 @@ EXTLIST =  ['_crj.fits','_flt.fits','_sfl.fits','_cal.fits','_raw.fits','.c0h','
 
 BLANK_ASNDICT = {'output':None,'order':[],'members':{'abshift':no,'dshift':no}}
 
-__version__ = '1.0.1 (15-Nov-2004)'
+__version__ = '1.0.2 (7-Feb-2005)'
 
 def help():
     print __doc__
@@ -1462,6 +1462,7 @@ def readAsnTable(fname,output=None,prodonly=yes):
             # the strings we read out...
             mname = string.split(ftab[1].data.field('MEMNAME')[row],'\0',1)[0]
             mtype = string.split(ftab[1].data.field('MEMTYPE')[row],'\0',1)[0]
+            mpresent = ftab[1].data.field('MEMPRSNT')[row]
             memname = string.strip(mname)
             memtype = string.strip(mtype)
             memrow = row
@@ -1472,6 +1473,9 @@ def readAsnTable(fname,output=None,prodonly=yes):
         # Do we care about this entry?
         # Entries that should be used to build DTH product are:
         #  PROD-RPT, PROD-CRJ, EXP-DTH, or EXP-TARG
+        if mpresent == False and memtype.find('EXP') > -1:
+            print 'Association member: ',mname,' NOT present as indicated by MEMPRSNT value!'
+            continue
         if memtype.find('PROD') < 0 and memtype.find('EXP-DTH') < 0 and memtype.find('EXP-TARG') < 0:
             if prodonly:
                 # We are looking at an EXP* entry we don't want...

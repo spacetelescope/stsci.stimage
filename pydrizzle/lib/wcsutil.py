@@ -842,9 +842,9 @@ class WCSObject:
             _old_key = _extn.header.has_key(key)
             if  _old_key == True and overwrite == no:
                 if not quiet:
-                    print 'Existing backup values for WCS keywords already exist!'
-                    print '   No changes will be made. '
-                break
+                    print 'Existing backup values for WCS keyword',key,' already exists!'
+                    print '   No changes will be made to that archive value. '
+                continue
 
             # No archive keywords exist yet in file, or overwrite=yes...
             # Extract the value for the original keyword
@@ -892,9 +892,10 @@ class WCSObject:
         if len(self.backup) > 0:
             # If it knows about the backup keywords already,
             # use this to restore the original values to the original keywords
-            for newkey in self.backup.keys():
-                _orig_key = self.backup[newkey]
-                _extn.header[_orig_key] = _extn.header[newkey]
+            for newkey in self.revert.keys():
+                if newkey != 'opscale':
+                    _orig_key = self.revert[newkey]
+                    _extn.header[_orig_key] = _extn.header[newkey]
             fimg.close()
             del fimg
         elif _prepend:
