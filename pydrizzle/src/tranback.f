@@ -1,7 +1,7 @@
       SUBROUTINE TRANBK 
 C++
 C
-C TRANBACK.F V1.9 Convert X,Y positions in drizzle output frames
+C TRANBACK.F V1.93 Convert X,Y positions in drizzle output frames
 C                 back to input positions in the initial frames
 C
 C This is a version of tranback which also supports WCS control.
@@ -45,6 +45,12 @@ C
 C V1.91, revised to use common callable version of code.
 C         Warren Hack, STScI, 25th June 2004
 C
+C V1.92, added check to avoid looking out of bounds of distortion
+C        correction images, Richard Hook, ST-ECF/STScI, 10th February 2005
+C
+C V1.93, bug fix for calls to DRIVAL, Richard Hook, ST-ECF/STScI, 
+C        25th February 2005
+C
 C--
       IMPLICIT NONE
 
@@ -87,7 +93,7 @@ C Geometrical parameters, the standard set
       LOGICAL SECPAR
 
 C-- Start of executable code
-      VERS='TRANBACK Version 1.91 (25th June 2004)'
+      VERS='TRANBACK Version 1.93 (25th February 2005)'
 
 C First announce the version
       CALL UMSPUT('+ '//VERS,1,0,ISTAT)
@@ -282,12 +288,25 @@ C Loop around until we are close enough
 
 C Transform the position
 C Note that this is exactly the same as that in Drizzle
-         CALL DRIVAL(X,Y,3,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
+C Check that the pixel is in the image (v1.92 addition)
+         IF(NINT(X(1)).GT.1 .AND. NINT(X(1)).LT.NXIN-1 .AND.
+     :      NINT(Y(1)).GT.1 .AND. NINT(Y(1)).LT.NYIN-1) THEN
+
+           CALL DRIVAL(X,Y,3,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
      :         XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :         SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :         USEWCS,WCSIN,WCSOUT,
-     :         COTY,CONUM,XCO,YCO,
-     :         DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XO,YO)
+     :         COTY,CONUM,XCO,YCO,DISIM,MEMR(PXG),MEMR(PYG),
+     :         XGDIM,YGDIM,XO,YO)
+
+         ELSE
+            CALL DRIVAL(X,Y,3,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
+     :         XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
+     :         SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
+     :         USEWCS,WCSIN,WCSOUT,
+     :         COTY,CONUM,XCO,YCO,.FALSE.,MEMR(PXG),MEMR(PYG),
+     :         XGDIM,YGDIM,XO,YO)
+         ENDIF
 
          DX1=XO(2)-XO(1)
          DY1=YO(2)-YO(1)

@@ -1,7 +1,7 @@
       SUBROUTINE TRAXY  
 C++
 C
-C TRAXY.F V1.9 Convert X,Y pixel position to drizzle output position
+C TRAXY.F V1.92 Convert X,Y pixel position to drizzle output position
 C
 C This task uses coefficients held in a text file to define
 C geometrical distortions.
@@ -103,7 +103,7 @@ C Geometrical parameters, the standard set
       LOGICAL SILENT
 
 C-- Start of executable code
-      VERS='TRAXY Version 1.91 (25th June 2004)'
+      VERS='TRAXY Version 1.92 (10th February 2005)'
 
 C Get the noise flag
       CALL UCLGSB('silent',SILENT,ISTAT)
@@ -293,12 +293,23 @@ C Convert to radians
 C Transform the position
 C Note that this is exactly the same as that in Drizzle
 C Double precision version
-      CALL DRIVAL(XIN,YIN,1,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
+      IF(NINT(XIN) .GT. 1 .AND. NINT(XIN) .LT. NXIN-1 .AND.
+     :   NINT(YIN) .GT. 1 .AND. NINT(YIN) .LT. NYIN-1) THEN
+
+         CALL DRIVAL(XIN,YIN,1,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,
      :            DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOUT,YOUT)
+      ELSE
+         CALL DRIVAL(XIN,YIN,1,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
+     :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
+     :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
+     :            USEWCS,WCSIN,WCSOUT,
+     :            COTY,CONUM,XCO,YCO,
+     :            .FALSE.,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOUT,YOUT)
+      ENDIF
 
 C Write out the result
       IF(.NOT.SILENT) THEN

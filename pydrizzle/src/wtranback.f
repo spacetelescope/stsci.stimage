@@ -1,7 +1,7 @@
       SUBROUTINE WTRANK 
 C++
 C
-C WTRANBACK.F V2.2 Convert X,Y positions in drizzle output frames
+C WTRANBACK.F V2.22 Convert X,Y positions in drizzle output frames
 C                 back to input positions in the initial frames
 C
 C This is a version of tranback which also supports WCS control.
@@ -87,7 +87,7 @@ C Geometrical parameters, the standard set
       LOGICAL SECPAR
 
 C-- Start of executable code
-      VERS='WTRANBACK Version 2.2 (29th March 2004)'
+      VERS='WTRANBACK Version 2.22 (25th February 2005)'
 
 C First announce the version
       CALL UMSPUT('+ '//VERS,1,0,ISTAT)
@@ -316,12 +316,25 @@ C Loop around until we are close enough
 
 C Transform the position
 C Note that this is exactly the same as that in Drizzle
-            CALL DRIVAL(X,Y,3,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
+C First check that the point is within the bounds
+            IF(NINT(X(1)).GT.1 .AND. NINT(X(1)).LT.NXIN-1 .AND.
+     :         NINT(Y(1)).GT.1 .AND. NINT(Y(1)).LT.NYIN-1) THEN
+
+              CALL DRIVAL(X,Y,3,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
      :         XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :         SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :         USEWCS,WCSIN,WCSOUT,
-     :         COTY,CONUM,XCO,YCO,
-     :         DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XO,YO)
+     :         COTY,CONUM,XCO,YCO,DISIM,MEMR(PXG),MEMR(PYG),
+     :         XGDIM,YGDIM,XO,YO)
+
+            ELSE
+              CALL DRIVAL(X,Y,3,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
+     :         XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
+     :         SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
+     :         USEWCS,WCSIN,WCSOUT,
+     :         COTY,CONUM,XCO,YCO,.FALSE.,MEMR(PXG),MEMR(PYG),
+     :         XGDIM,YGDIM,XO,YO)
+            ENDIF
 
             DX1=XO(2)-XO(1)
             DY1=YO(2)-YO(1)

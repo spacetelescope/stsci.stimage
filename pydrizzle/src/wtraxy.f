@@ -1,7 +1,7 @@
       SUBROUTINE WTRAXY  
 C++
 C
-C WTRAXY.F V2.4 Convert X,Y pixel position to drizzle output position
+C WTRAXY.F V2.41 Convert X,Y pixel position to drizzle output position
 C
 C This task uses coefficients held in a text file to define
 C geometrical distortions.
@@ -123,7 +123,7 @@ C Geometrical parameters, the standard set
       LOGICAL SILENT
 
 C-- Start of executable code
-      VERS='WTRAXY Version 2.3 (12th April 2004)'
+      VERS='WTRAXY Version 2.41 (10th February 2005)'
 
 C Get the noise flag
       CALL UCLGSB('silent',SILENT,ISTAT)
@@ -343,12 +343,23 @@ C Double precision version
             READ(LINE,*) XIN,YIN
          ENDIF
          
-         CALL DRIVAL(XIN,YIN,1,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
+         IF(NINT(XIN).GT.1 .AND. NINT(XIN).LT.NXIN-1 .AND.
+     :         NINT(YIN).GT.1 .AND. NINT(YIN).LT.NYIN-1) THEN
+
+            CALL DRIVAL(XIN,YIN,1,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,
      :            DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOUT,YOUT)
+         ELSE 
+            CALL DRIVAL(XIN,YIN,1,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
+     :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
+     :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
+     :            USEWCS,WCSIN,WCSOUT,
+     :            COTY,CONUM,XCO,YCO,
+     :            .FALSE.,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOUT,YOUT)
+         ENDIF
 
 C Transform a unit square to calculate the pixel area
          X(1)=XIN-0.5D0
