@@ -106,8 +106,8 @@ def parseSTIS(inputfile):
             # Write out the new file
             fitsobj.writeto(newfilename)
             # Clean up
-            delete fitsobj
-            delete hdu
+            delete(fitsobj)
+            delete(hdu)
         
     # Return the list of file names to be processed
     return newfilelist, specialparse
