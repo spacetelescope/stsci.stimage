@@ -32,8 +32,13 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.1a (pre-release, 15 Dec 2003)"
+__version__="0.2a (pre-release, 3 Aug 2004)"
 #History:
+# Bugfixes, 3 Aug 04, Laidler:
+#    - make filename construction more robust via os.path.abspath on the directory
+#    - Ensure directory specified in pars.darkpath exists
+#    - Fall back to extension 0 if extension 1 doesn't exist (Exposure class)
+#    - Support noise reduction in high domain only
 # Initial python implementation: Dec 2003, Laidler
 # Based on IDL implementation by Bergeron
 
@@ -115,7 +120,12 @@ class Exposure:
         self.f=f
         h=f[0].header
         self.h=h
-        self.data=f[1].data   #.astype('Float32')
+        try: #Assume data is in extension 1. if not, fall back to extension 0.
+            self.data=f[1].data   #.astype('Float32')
+            self.extnum=1
+        except IndexError:
+            self.data=f[0].data
+            self.extnum=0
         self.exptime=h['exptime']
         self.camera=h['camera']
         self.saa_time=h['saa_time']
@@ -147,7 +157,7 @@ class Exposure:
 
     def writeto(self,outname):
         f=pyfits.open(self.filename)
-        f[1].data=self.data
+        f[self.extnum].data=self.data
 #        f[1].header=self.h
         f.writeto(outname)
 
@@ -268,6 +278,10 @@ class Exposure:
             self.appstring='both'
             final[ldom.pixlist]= self.data[ldom.pixlist]-(saaper[ldom.pixlist]*ldom.scale*badmask[ldom.pixlist])
             final[hdom.pixlist]= self.data[hdom.pixlist]-(saaper[hdom.pixlist]*hdom.scale*badmask[hdom.pixlist])
+        elif hdom.nr > 1.0 and ldom.nr < 1.0:
+            print "\n Applying noise reduction in high domain only "
+            self.appstring='high only'
+            final[hdom.pixlist]= self.data[hdom.pixlist]-(saaper[hdom.pixlist]*hdom.scale*badmask[hdom.pixlist])
         elif hdom.nr < 1.0 and ldom.nr >= 1.0:
             print "\n...Noise reduction in high domain < 1%: applying low scale everywhere"
             self.appstring='low everywhere'
@@ -277,11 +291,12 @@ class Exposure:
             self.appstring='none'
             self.update=0
         else:
-            print "Huh?? hi_nr, lo_nr: ",hdom.nr,ldom.nr
+            raise ValueError,"Huh?? hi_nr, lo_nr: %f %f"%(hdom.nr,ldom.nr) 
+            
         return final
 #..........................................................................
 # Exception definitions
-class NoPersistError(Exceptions.exception):
+class NoPersistError(exceptions.Exception):
     pass
 #..........................................................................
 #Helper functions:
@@ -366,7 +381,7 @@ def getdark(camera,darkpath):
     dfile={1:'c1_saadarkref_drk.fits',
            2:'c2_saadarkref_drk.fits',
            3:'c3_saadarkref_drk.fits'}
-    thefile=darkpath+'/'+dfile[camera]
+    thefile=os.path.abspath(darkpath)+'/'+dfile[camera]
     f=pyfits.open(thefile)
     ans= f[1].data
     f.close()
@@ -418,6 +433,7 @@ def flat_saaper(saaper,img):
 # The "main" program
 #....................................................................
 def clean(imgfile,outfile,pars=None):
+    print "saaclean version %s"%__version__
     if pars is None:
         pars=params()
     if pars.readsaaper:
