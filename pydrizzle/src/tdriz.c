@@ -1,6 +1,13 @@
-/* tdriz.f -- translated by f2c (version 19991025).
-   You must link the resulting object file with the libraries:
-	-lf2c -lm   (in that order)
+/* tdriz.f -- translated by f2c (version 20031025).
+   You must link the resulting object file with libf2c:
+	on Microsoft Windows system, link with libf2c.lib;
+	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+	or, if you install libf2c.a in a standard place, with -lf2c -lm
+	-- in that order, at the end of the command line, as in
+		cc *.o -lf2c -lm
+	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+
+		http://www.netlib.org/f2c/libf2c.zip
 */
 
 #include "f2c.h"
@@ -20,34 +27,17 @@ static integer c__0 = 0;
 static integer c__100 = 100;
 static integer c__4 = 4;
 
-doublereal tdriz_(data, wei, ndat, ncou, ncon, uniqid, ystart, xmin, ymin, nx,
-	 ny, dny, onx, ony, xsh, ysh, shftfr, shftun, drot, scale, pxg, pyg, 
-	xgdim, ygdim, align, pfract, kernel, coeffs, inun, expin, wtscl, 
-	filstr, wcs, vflag, clen, nmiss, nskip, vers, shftfr_len, shftun_len, 
-	align_len, kernel_len, coeffs_len, inun_len, filstr_len, vers_len)
-real *data, *wei, *ndat, *ncou;
-integer *ncon, *uniqid, *ystart, *xmin, *ymin, *nx, *ny, *dny, *onx, *ony;
-doublereal *xsh, *ysh;
-char *shftfr, *shftun;
-doublereal *drot, *scale;
-real *pxg, *pyg;
-integer *xgdim, *ygdim;
-char *align;
-doublereal *pfract;
-char *kernel, *coeffs, *inun;
-real *expin, *wtscl;
-char *filstr;
-doublereal *wcs;
-integer *vflag, *clen, *nmiss, *nskip;
-char *vers;
-ftnlen shftfr_len;
-ftnlen shftun_len;
-ftnlen align_len;
-ftnlen kernel_len;
-ftnlen coeffs_len;
-ftnlen inun_len;
-ftnlen filstr_len;
-ftnlen vers_len;
+doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
+	ncon, integer *uniqid, integer *ystart, integer *xmin, integer *ymin, 
+	integer *nx, integer *ny, integer *dny, integer *onx, integer *ony, 
+	doublereal *xsh, doublereal *ysh, char *shftfr, char *shftun, 
+	doublereal *drot, doublereal *scale, real *pxg, real *pyg, integer *
+	xgdim, integer *ygdim, char *align, doublereal *pfract, char *kernel, 
+	char *coeffs, char *inun, real *expin, real *wtscl, char *filstr, 
+	doublereal *wcs, integer *vflag, integer *clen, integer *nmiss, 
+	integer *nskip, char *vers, ftnlen shftfr_len, ftnlen shftun_len, 
+	ftnlen align_len, ftnlen kernel_len, ftnlen coeffs_len, ftnlen 
+	inun_len, ftnlen filstr_len, ftnlen vers_len)
 {
     /* System generated locals */
     integer data_dim1, data_offset, wei_dim1, wei_offset, ndat_dim1, 
@@ -57,10 +47,20 @@ ftnlen vers_len;
     icilist ici__1;
 
     /* Builtin functions */
-    /* Subroutine */ int s_copy();
-    integer s_cmp(), s_rsli(), do_lio(), e_rsli();
+    /* Subroutine */ int s_copy(char *, char *, ftnlen, ftnlen);
+    integer s_cmp(char *, char *, ftnlen, ftnlen), s_rsli(icilist *), do_lio(
+	    integer *, integer *, char *, ftnlen), e_rsli(void);
 
     /* Local variables */
+    static doublereal xi[400000]	/* was [100000][4] */, yi[400000]	
+	    /* was [100000][4] */, xo[400000]	/* was [100000][4] */, yo[
+	    400000]	/* was [100000][4] */;
+    static integer idd;
+    static doublereal lam;
+    static logical con;
+    static integer nen;
+    static doublereal xib[100000], yib[100000], xob[100000], xco[100], yco[
+	    100], yob[100000], rot, xsh2, ysh2, rot2;
     static integer done[1]	/* was [1][1] */;
     static logical fill;
     static integer xmax, ymax, coty;
@@ -68,27 +68,40 @@ ftnlen vers_len;
     static logical rotf2;
     static integer intab[10000]	/* was [100][100] */;
     static logical disim, incps;
-    extern /* Subroutine */ int dobox_();
+    extern /* Subroutine */ int dobox_(real *, real *, real *, real *, 
+	    integer *, integer *, integer *, integer *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *, logical *, char *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
+	     integer *, integer *, integer *, doublereal *, doublereal *, 
+	    logical *, real *, real *, integer *, integer *, real *, char *, 
+	    logical *, real *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, logical *,
+	     logical *, doublereal *, doublereal *, doublereal *, doublereal *
+	    , doublereal *, char *, logical *, logical *, logical *, integer *
+	    , integer *, integer *, integer *, integer *, logical *, logical *
+	    , logical *, integer *, integer *, integer *, ftnlen, ftnlen, 
+	    ftnlen);
     static integer conum, istat;
-    extern /* Subroutine */ int upwcs_();
-    static doublereal xi[400000]	/* was [100000][4] */, yi[400000]	
-	    /* was [100000][4] */, xo[400000]	/* was [100000][4] */, yo[
-	    400000]	/* was [100000][4] */;
-    extern /* Subroutine */ int getgeo_();
+    extern /* Subroutine */ int upwcs_(doublereal *, doublereal *, integer *, 
+	    integer *, integer *, integer *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, char *, logical *, logical *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, char *, logical *, logical *, integer *, integer *, 
+	    doublereal *, doublereal *, logical *, real *, real *, integer *, 
+	    integer *, ftnlen, ftnlen), getgeo_(char *, integer *, doublereal 
+	    *, integer *, integer *, integer *, doublereal *, doublereal *, 
+	    integer *, integer *, ftnlen);
     static real filval;
     static logical bitcon, secpar, update;
     static doublereal xscale, yscale;
     static logical usewei;
-    extern /* Subroutine */ int putfil_();
+    extern /* Subroutine */ int putfil_(real *, real *, integer *, integer *, 
+	    real *);
     static logical rotfir, noover, usewcs;
     static doublereal wcsout[8];
-    extern /* Subroutine */ int umsput_();
-    static integer idd;
-    static doublereal lam;
-    static logical con;
-    static integer nen;
-    static doublereal xib[100000], yib[100000], xob[100000], xco[100], yco[
-	    100], yob[100000], rot, xsh2, ysh2, rot2;
+    extern /* Subroutine */ int umsput_(char *, integer *, integer *, integer 
+	    *, ftnlen);
 
 
 /* Call Drizzle without use of IRAF interfaces. */
@@ -234,25 +247,25 @@ ftnlen vers_len;
 /* Keep quiet */
     /* Parameter adjustments */
     wei_dim1 = *nx;
-    wei_offset = 1 + wei_dim1 * 1;
+    wei_offset = 1 + wei_dim1;
     wei -= wei_offset;
     data_dim1 = *nx;
-    data_offset = 1 + data_dim1 * 1;
+    data_offset = 1 + data_dim1;
     data -= data_offset;
     ncon_dim1 = *onx;
-    ncon_offset = 1 + ncon_dim1 * 1;
+    ncon_offset = 1 + ncon_dim1;
     ncon -= ncon_offset;
     ncou_dim1 = *onx;
-    ncou_offset = 1 + ncou_dim1 * 1;
+    ncou_offset = 1 + ncou_dim1;
     ncou -= ncou_offset;
     ndat_dim1 = *onx;
-    ndat_offset = 1 + ndat_dim1 * 1;
+    ndat_offset = 1 + ndat_dim1;
     ndat -= ndat_offset;
     pyg_dim1 = *xgdim;
-    pyg_offset = 1 + pyg_dim1 * 1;
+    pyg_offset = 1 + pyg_dim1;
     pyg -= pyg_offset;
     pxg_dim1 = *xgdim;
-    pxg_offset = 1 + pxg_dim1 * 1;
+    pxg_offset = 1 + pxg_dim1;
     pxg -= pxg_offset;
     --wcs;
 
@@ -313,14 +326,14 @@ ftnlen vers_len;
 	*ysh *= *scale;
     }
 /* Convert the rotation to radians */
-    rot = *drot * (float)3.141592653 / (float)180.;
+    rot = *drot * 3.141592653f / 180.f;
 /* Secondary parameters are not currently supported */
     secpar = FALSE_;
     update = TRUE_;
     usewei = TRUE_;
     usewcs = FALSE_;
     con = TRUE_;
-    bitcon = TRUE_;
+    bitcon = TRUE_;  
 /* Do the drizzling */
     dobox_(&data[data_offset], &wei[wei_offset], &ndat[ndat_offset], &ncou[
 	    ncou_offset], &ncon[ncon_offset], done, nx, ny, dny, ystart, xmin,

@@ -4,6 +4,7 @@
 #include <arrayobject.h>
 #include <libnumarray.h>
 /*#include "numarray.h" */
+#include "f2c.h"
 
 static PyObject *gl_Error;
  
@@ -22,21 +23,21 @@ tdriz(PyObject *obj, PyObject *args)
     PyObject *opxg, *opyg;
     PyArrayObject *pxg, *pyg;
     double xsh, ysh, rot, scale, pfract;
-    int xmin, ymin, uniqid, ystart;
-    int nmiss, nskip;
+    long xmin, ymin, uniqid, ystart;
+    long nmiss, nskip;
     char *align, *kernel;
     char *coeffs, *shiftfr, *shiftun, *inun;
-    char vers[47];
-    int vflag;
+    char vers[80];
+    long vflag;
     float istat;
-    int nx,ny,onx,ony,dny;
-    int xgdim, ygdim;
+    long nx,ny,onx,ony,dny;
+    long xgdim, ygdim;
     float expin, wtscl;
     char *fillstr;
-    int align_len, kernel_len, coeffs_len;
-    int shiftfr_len, shiftun_len, inun_len;
-    int vers_len, fillstr_len;
-    
+    long align_len, kernel_len, coeffs_len;
+    long shiftfr_len, shiftun_len, inun_len;
+    long vers_len, fillstr_len;
+/*    
     extern float tdriz_(float *, float *, float *, float *, int *,
     int *, int *, int *, int *, int *, int *, int *, int *, int *, 
     double *, double *, char *, char *, double *, double *, 
@@ -45,8 +46,20 @@ tdriz(PyObject *obj, PyObject *args)
     char *, float *, float *, char *, double *, int *, int *, 
     int *, int *, char *,
     int *, int *, int *, int *, int *, int *, int *, int *);
-
-    if (!PyArg_ParseTuple(args,"OOOOOiiiiiddssddOOsdsssffsOiii",
+*/
+	extern doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
+	ncon, integer *uniqid, integer *ystart, integer *xmin, integer *ymin, 
+	integer *nx, integer *ny, integer *dny, integer *onx, integer *ony, 
+	doublereal *xsh, doublereal *ysh, char *shftfr, char *shftun, 
+	doublereal *drot, doublereal *scale, real *pxg, real *pyg, integer *
+	xgdim, integer *ygdim, char *align, doublereal *pfract, char *kernel, 
+	char *coeffs, char *inun, real *expin, real *wtscl, char *filstr, 
+	doublereal *wcs, integer *vflag, integer *clen, integer *nmiss, 
+	integer *nskip, char *vers, ftnlen shftfr_len, ftnlen shftun_len, 
+	ftnlen align_len, ftnlen kernel_len, ftnlen coeffs_len, ftnlen 
+	inun_len, ftnlen filstr_len, ftnlen vers_len);
+	
+    if (!PyArg_ParseTuple(args,"OOOOOlllllddssddOOsdsssffsOlll",
             &oimg,&owei,&oout,&owht,&ocon,&uniqid, &ystart,&xmin,&ymin,&dny,
             &xsh,&ysh, &shiftfr,&shiftun, &rot,&scale, &opxg, &opyg, 
             &align,&pfract, &kernel,&coeffs, &inun, &expin,&wtscl, &fillstr,
@@ -78,20 +91,20 @@ tdriz(PyObject *obj, PyObject *args)
     inun_len = 8;
     vers_len = 47;
     fillstr_len = strlen(fillstr) + 1;
-    
+        
     istat = tdriz_(NA_OFFSETDATA(img), NA_OFFSETDATA(wei), 
                     NA_OFFSETDATA(out),NA_OFFSETDATA(wht),
                     NA_OFFSETDATA(con), &uniqid, &ystart,
-                    &xmin, &ymin, &nx,&dny, &ny, &onx,&ony, 
+                    &xmin, &ymin, &nx,&ny, &dny, &onx,&ony, 
                     &xsh,&ysh, shiftfr, shiftun, &rot,&scale,
                     NA_OFFSETDATA(pxg),NA_OFFSETDATA(pyg),&xgdim, &ygdim,
                     align, &pfract, kernel, coeffs, inun, 
                     &expin, &wtscl, fillstr, 
                     NA_OFFSETDATA(wcsin), &vflag, &coeffs_len, 
                     &nmiss, &nskip, vers, 
-                    &shiftfr_len, &shiftun_len, &align_len, 
-                    &kernel_len, &coeffs_len, &inun_len, 
-                    &fillstr_len, &vers_len); 
+                    shiftfr_len, shiftun_len, align_len, 
+                    kernel_len, coeffs_len, inun_len, 
+                    fillstr_len, vers_len); 
     
     Py_DECREF(img);
     Py_DECREF(wei);
@@ -112,24 +125,33 @@ tblot(PyObject *obj, PyObject *args)
     PyObject *oimg, *oout, *opxg, *opyg;
     PyArrayObject *img, *out, *pxg, *pyg;
     double xsh, ysh, rot, scale;
-    int xmin,xmax,ymin,ymax; 
+    long xmin,xmax,ymin,ymax; 
     float ef;
     char *align, *interp;
     char *coeffs;
-    int vflag,istat;
+    long vflag,istat;
     float misval, sinscl, kscale;
-    int nx,ny,onx,ony;
-    int xgdim, ygdim;
-    int align_len, interp_len, coeffs_len;
-    
+    long nx,ny,onx,ony;
+    long xgdim, ygdim;
+    long align_len, interp_len, coeffs_len;
+
+    /*
     extern float tblot_(float *, float *, int *, int *, int *, int *, 
     int *, int *, int *, int *, 
     double *, double *, double *, double *, float *,
     float *, float*, int *, int*, 
     char *, char *, char *, float *,
     float *, float *, int *, int *, int *, int *, int *);
-
-    if (!PyArg_ParseTuple(args,"OOiiiiddddfOOsssfffi",&oimg,&oout,
+	*/
+	extern int tblot_(real *data, real *ndat, integer *xmin, integer *
+	xmax, integer *ymin, integer *ymax, integer *dnx, integer *dny, 
+	integer *onx, integer *ony, doublereal *xsh, doublereal *ysh, 
+	doublereal *drot, doublereal *scale, real *kscale, real *pxg, real *
+	pyg, integer *xgdim, integer *ygdim, char *align, char *interp, char *
+	coeffs, real *ef, real *misval, real *sinscl, integer *clen, integer *
+	vflag, ftnlen align_len, ftnlen interp_len, ftnlen coeffs_len);
+    
+	if (!PyArg_ParseTuple(args,"OOllllddddfOOsssfffl",&oimg,&oout,
            &xmin,&xmax,&ymin,&ymax,
            &xsh,&ysh,&rot,&scale,&kscale,&opxg,&opyg,
            &align,&interp,&coeffs,&ef,&misval,
@@ -160,7 +182,7 @@ tblot(PyObject *obj, PyObject *args)
                     &xgdim,&ygdim,
                     align, interp, coeffs, &ef, &misval, &sinscl, 
                     &coeffs_len, &vflag, 
-                    &align_len, &interp_len, &coeffs_len); 
+                    align_len, interp_len, coeffs_len); 
     
     Py_DECREF(img);
     Py_DECREF(pxg);

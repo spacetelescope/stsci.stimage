@@ -1,6 +1,13 @@
-/* tblot.f -- translated by f2c (version 19991025).
-   You must link the resulting object file with the libraries:
-	-lf2c -lm   (in that order)
+/* tblot.f -- translated by f2c (version 20031025).
+   You must link the resulting object file with libf2c:
+	on Microsoft Windows system, link with libf2c.lib;
+	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+	or, if you install libf2c.a in a standard place, with -lf2c -lm
+	-- in that order, at the end of the command line, as in
+		cc *.o -lf2c -lm
+	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+
+		http://www.netlib.org/f2c/libf2c.zip
 */
 
 #include "f2c.h"
@@ -20,21 +27,13 @@ static integer c__0 = 0;
 static integer c__2 = 2;
 static integer c__100 = 100;
 
-/* Subroutine */ int tblot_(data, ndat, xmin, xmax, ymin, ymax, dnx, dny, onx,
-	 ony, xsh, ysh, drot, scale, kscale, pxg, pyg, xgdim, ygdim, align, 
-	interp, coeffs, ef, misval, sinscl, clen, vflag, align_len, 
-	interp_len, coeffs_len)
-real *data, *ndat;
-integer *xmin, *xmax, *ymin, *ymax, *dnx, *dny, *onx, *ony;
-doublereal *xsh, *ysh, *drot, *scale;
-real *kscale, *pxg, *pyg;
-integer *xgdim, *ygdim;
-char *align, *interp, *coeffs;
-real *ef, *misval, *sinscl;
-integer *clen, *vflag;
-ftnlen align_len;
-ftnlen interp_len;
-ftnlen coeffs_len;
+/* Subroutine */ int tblot_(real *data, real *ndat, integer *xmin, integer *
+	xmax, integer *ymin, integer *ymax, integer *dnx, integer *dny, 
+	integer *onx, integer *ony, doublereal *xsh, doublereal *ysh, 
+	doublereal *drot, doublereal *scale, real *kscale, real *pxg, real *
+	pyg, integer *xgdim, integer *ygdim, char *align, char *interp, char *
+	coeffs, real *ef, real *misval, real *sinscl, integer *clen, integer *
+	vflag, ftnlen align_len, ftnlen interp_len, ftnlen coeffs_len)
 {
     /* System generated locals */
     address a__1[2];
@@ -43,10 +42,14 @@ ftnlen coeffs_len;
     char ch__1[47];
 
     /* Builtin functions */
-    /* Subroutine */ int s_copy(), s_cat();
-    integer s_cmp();
+    /* Subroutine */ int s_copy(char *, char *, ftnlen, ftnlen), s_cat(char *,
+	     char **, integer *, integer *, ftnlen);
+    integer s_cmp(char *, char *, ftnlen, ftnlen);
 
     /* Local variables */
+    static integer idd;
+    static doublereal lam, xco[100], yco[100], xin[10000], yin[10000], rot, 
+	    xsh2, ysh2, rot2;
     static char vers[45];
     static integer coty;
     static doublereal xout[10000], yout[10000];
@@ -56,18 +59,27 @@ ftnlen coeffs_len;
     static doublereal wcsin[8];
     static integer istat;
     static char geomod[8];
-    extern /* Subroutine */ int getgeo_();
+    extern /* Subroutine */ int getgeo_(char *, integer *, doublereal *, 
+	    integer *, integer *, integer *, doublereal *, doublereal *, 
+	    integer *, integer *, ftnlen);
     static logical secpar;
     static doublereal xscale, yscale;
-    extern /* Subroutine */ int doblot_();
+    extern /* Subroutine */ int doblot_(real *, real *, integer *, real *, 
+	    real *, real *, integer *, integer *, integer *, integer *, 
+	    integer *, integer *, logical *, real *, char *, integer *, 
+	    integer *, integer *, integer *, doublereal *, doublereal *, 
+	    logical *, real *, real *, integer *, integer *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, logical *, doublereal *,
+	     doublereal *, char *, logical *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, char *, logical *, 
+	    ftnlen, ftnlen, ftnlen);
     static logical rotfir;
     static integer intype;
     static logical usewcs;
     static doublereal wcsout[8];
-    extern /* Subroutine */ int umsput_();
-    static integer idd;
-    static doublereal lam, xco[100], yco[100], xin[10000], yin[10000], rot, 
-	    xsh2, ysh2, rot2;
+    extern /* Subroutine */ int umsput_(char *, integer *, integer *, integer 
+	    *, ftnlen);
 
 /* ++ */
 
@@ -106,16 +118,16 @@ ftnlen coeffs_len;
 /* Keep quiet */
     /* Parameter adjustments */
     data_dim1 = *xmax - *xmin + 1;
-    data_offset = 1 + data_dim1 * 1;
+    data_offset = 1 + data_dim1;
     data -= data_offset;
     ndat_dim1 = *onx;
-    ndat_offset = 1 + ndat_dim1 * 1;
+    ndat_offset = 1 + ndat_dim1;
     ndat -= ndat_offset;
     pyg_dim1 = *xgdim;
-    pyg_offset = 1 + pyg_dim1 * 1;
+    pyg_offset = 1 + pyg_dim1;
     pyg -= pyg_offset;
     pxg_dim1 = *xgdim;
-    pxg_offset = 1 + pxg_dim1 * 1;
+    pxg_offset = 1 + pxg_dim1;
     pxg -= pxg_offset;
 
     /* Function Body */
@@ -139,9 +151,9 @@ ftnlen coeffs_len;
     incps = TRUE_;
 /*      EF=1.0 */
 /* Convert the rotation to radians */
-    rot = *drot * (float)3.1415926536 / (float)180.;
+    rot = *drot * 3.1415926536f / 180.f;
 /* Check for invalid scale */
-    if (*scale == (float)0.) {
+    if (*scale == 0.f) {
 	umsput_("! Invalid scale", &c__1, &c__0, &istat, (ftnlen)15);
 	goto L99;
     }
@@ -196,6 +208,6 @@ ftnlen coeffs_len;
 	    rot2, &xscale, &yscale, shfr2, &rotf2, (ftnlen)8, (ftnlen)8, (
 	    ftnlen)8);
 L99:
-    ;
+    return 0;
 } /* tblot_ */
 

@@ -1,37 +1,43 @@
-/* inter2d.f -- translated by f2c (version 19991025).
-   You must link the resulting object file with the libraries:
-	-lf2c -lm   (in that order)
+/* inter2d.f -- translated by f2c (version 20031025).
+   You must link the resulting object file with libf2c:
+	on Microsoft Windows system, link with libf2c.lib;
+	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+	or, if you install libf2c.a in a standard place, with -lf2c -lm
+	-- in that order, at the end of the command line, as in
+		cc *.o -lf2c -lm
+	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+
+		http://www.netlib.org/f2c/libf2c.zip
 */
 
 #include "f2c.h"
 
 /* Table of constant values */
 
-static real c_b2 = (float)2.;
-static real c_b3 = (float)-1.;
+static real c_b2 = 2.f;
+static real c_b3 = -1.f;
 static integer c__0 = 0;
 static integer c__1 = 1;
 static integer c__15 = 15;
-static real c_b25 = (float).001;
+static real c_b25 = .001f;
 
-doublereal nrievl_(x, y, datain, nxpix, nypix, lendan, intere, scale)
-real *x, *y, *datain;
-integer *nxpix, *nypix, *lendan, *intere;
-real *scale;
+doublereal nrievl_(real *x, real *y, real *datain, integer *nxpix, integer *
+	nypix, integer *lendan, integer *intere, real *scale)
 {
     /* System generated locals */
     integer datain_dim1, datain_offset, i__1, i__2;
     real ret_val;
 
     /* Local variables */
-    static real xval, yval;
-    static integer i__, j;
-    static real coeff[361]	/* was [19][19] */, hold21, hold12, hold22, 
-	    value;
-    extern /* Subroutine */ int wsumr_(), iibip3_(), iibip5_();
-    static integer nx, ny;
-    static real sx, sy, tx, ty;
-    extern /* Subroutine */ int iinisc_();
+    static integer i__, j, nx, ny;
+    static real sx, sy, tx, ty, xval, yval, coeff[361]	/* was [19][19] */, 
+	    hold21, hold12, hold22, value;
+    extern /* Subroutine */ int wsumr_(real *, real *, real *, integer *, 
+	    real *, real *), iibip3_(real *, integer *, integer *, real *, 
+	    real *, real *, integer *), iibip5_(real *, integer *, integer *, 
+	    real *, real *, real *, integer *), iinisc_(real *, integer *, 
+	    integer *, integer *, real *, real *, real *, integer *, integer *
+	    , real *, real *, real *);
     static integer rowleh, xindex, yindex, nterms, lastrw, firstw;
 
 /* NRIEVAL -- Procedure to evaluate the 2D interpolant at a given value */
@@ -56,44 +62,42 @@ real *scale;
 /* Define common terms */
     /* Parameter adjustments */
     datain_dim1 = *lendan;
-    datain_offset = 1 + datain_dim1 * 1;
+    datain_offset = 1 + datain_dim1;
     datain -= datain_offset;
 
     /* Function Body */
     nx = (integer) (*x);
     ny = (integer) (*y);
 /* Nearest neighbour */
-    ret_val = (float)0.;
+    ret_val = 0.f;
     if (*intere == 1) {
-	ret_val = datain[(integer) (*x + (float).5) + (integer) (*y + (float)
-		.5) * datain_dim1];
+	ret_val = datain[(integer) (*x + .5f) + (integer) (*y + .5f) * 
+		datain_dim1];
 /* Bilinear */
     } else if (*intere == 2) {
 	sx = *x - nx;
-	tx = (float)1. - sx;
+	tx = 1.f - sx;
 	sy = *y - ny;
-	ty = (float)1. - sy;
+	ty = 1.f - sy;
 	if (nx >= *nxpix) {
-	    hold21 = datain[nx + ny * datain_dim1] * (float)2. - datain[nx - 
-		    1 + ny * datain_dim1];
+	    hold21 = datain[nx + ny * datain_dim1] * 2.f - datain[nx - 1 + ny 
+		    * datain_dim1];
 	} else {
 	    hold21 = datain[nx + 1 + ny * datain_dim1];
 	}
 	if (ny >= *nypix) {
-	    hold12 = datain[nx + ny * datain_dim1] * (float)2. - datain[nx + (
-		    ny - 1) * datain_dim1];
+	    hold12 = datain[nx + ny * datain_dim1] * 2.f - datain[nx + (ny - 
+		    1) * datain_dim1];
 	} else {
 	    hold12 = datain[nx + (ny + 1) * datain_dim1];
 	}
 	if (nx >= *nxpix && ny >= *nypix) {
-	    hold22 = hold21 * (float)2. - (datain[nx + (ny - 1) * datain_dim1]
-		     * (float)2. - datain[nx - 1 + (ny - 1) * datain_dim1]);
+	    hold22 = hold21 * 2.f - (datain[nx + (ny - 1) * datain_dim1] * 
+		    2.f - datain[nx - 1 + (ny - 1) * datain_dim1]);
 	} else if (nx >= *nxpix) {
-	    hold22 = hold12 * (float)2. - datain[nx - 1 + (ny + 1) * 
-		    datain_dim1];
+	    hold22 = hold12 * 2.f - datain[nx - 1 + (ny + 1) * datain_dim1];
 	} else if (ny >= *nypix) {
-	    hold22 = hold21 * (float)2. - datain[nx + 1 + (ny - 1) * 
-		    datain_dim1];
+	    hold22 = hold21 * 2.f - datain[nx + 1 + (ny - 1) * datain_dim1];
 	} else {
 	    hold22 = datain[nx + 1 + (ny + 1) * datain_dim1];
 	}
@@ -119,12 +123,12 @@ real *scale;
 		for (i__ = nx - 1; i__ <= i__2; ++i__) {
 		    if (i__ < 1) {
 			coeff[xindex + yindex * 19 - 20] = datain[j * 
-				datain_dim1 + 1] * (float)2. - datain[2 - i__ 
-				+ j * datain_dim1];
+				datain_dim1 + 1] * 2.f - datain[2 - i__ + j * 
+				datain_dim1];
 		    } else if (i__ > *nxpix) {
 			coeff[xindex + yindex * 19 - 20] = datain[*nxpix + j *
-				 datain_dim1] * (float)2. - datain[(*nxpix << 
-				1) - i__ + j * datain_dim1];
+				 datain_dim1] * 2.f - datain[(*nxpix << 1) - 
+				i__ + j * datain_dim1];
 		    } else {
 			coeff[xindex + yindex * 19 - 20] = datain[i__ + j * 
 				datain_dim1];
@@ -138,12 +142,12 @@ real *scale;
 		for (i__ = nx - 1; i__ <= i__2; ++i__) {
 		    if (i__ < 1) {
 			coeff[xindex + yindex * 19 - 20] = datain[(*nypix - 2)
-				 * datain_dim1 + 1] * (float)2. - datain[2 - 
-				i__ + (*nypix - 2) * datain_dim1];
+				 * datain_dim1 + 1] * 2.f - datain[2 - i__ + (
+				*nypix - 2) * datain_dim1];
 		    } else if (i__ > *nxpix) {
 			coeff[xindex + yindex * 19 - 20] = datain[*nxpix + (*
-				nypix - 2) * datain_dim1] * (float)2. - 
-				datain[(*nxpix << 1) - i__ + (*nypix - 2) * 
+				nypix - 2) * datain_dim1] * 2.f - datain[(*
+				nxpix << 1) - i__ + (*nypix - 2) * 
 				datain_dim1];
 		    } else {
 			coeff[xindex + yindex * 19 - 20] = datain[i__ + (*
@@ -208,12 +212,12 @@ real *scale;
 		for (i__ = nx - 2; i__ <= i__2; ++i__) {
 		    if (i__ < 1) {
 			coeff[xindex + yindex * 19 - 20] = datain[j * 
-				datain_dim1 + 1] * (float)2. - datain[2 - i__ 
-				+ j * datain_dim1];
+				datain_dim1 + 1] * 2.f - datain[2 - i__ + j * 
+				datain_dim1];
 		    } else if (i__ > *nxpix) {
 			coeff[xindex + yindex * 19 - 20] = datain[*nxpix + j *
-				 datain_dim1] * (float)2. - datain[(*nxpix << 
-				1) - i__ + j * datain_dim1];
+				 datain_dim1] * 2.f - datain[(*nxpix << 1) - 
+				i__ + j * datain_dim1];
 		    } else {
 			coeff[xindex + yindex * 19 - 20] = datain[i__ + j * 
 				datain_dim1];
@@ -227,12 +231,12 @@ real *scale;
 		for (i__ = nx - 2; i__ <= i__2; ++i__) {
 		    if (i__ < 1) {
 			coeff[xindex + yindex * 19 - 20] = datain[(*nypix - 3)
-				 * datain_dim1 + 1] * (float)2. - datain[2 - 
-				i__ + (*nypix - 3) * datain_dim1];
+				 * datain_dim1 + 1] * 2.f - datain[2 - i__ + (
+				*nypix - 3) * datain_dim1];
 		    } else if (i__ > *nxpix) {
 			coeff[xindex + yindex * 19 - 20] = datain[*nxpix + (*
-				nypix - 3) * datain_dim1] * (float)2. - 
-				datain[(*nxpix << 1) - i__ + (*nypix - 3) * 
+				nypix - 3) * datain_dim1] * 2.f - datain[(*
+				nxpix << 1) - i__ + (*nypix - 3) * 
 				datain_dim1];
 		    } else {
 			coeff[xindex + yindex * 19 - 20] = datain[i__ + (*

@@ -1,6 +1,13 @@
-/* drutil.f -- translated by f2c (version 19991025).
-   You must link the resulting object file with the libraries:
-	-lf2c -lm   (in that order)
+/* drutil.f -- translated by f2c (version 20031025).
+   You must link the resulting object file with libf2c:
+	on Microsoft Windows system, link with libf2c.lib;
+	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+	or, if you install libf2c.a in a standard place, with -lf2c -lm
+	-- in that order, at the end of the command line, as in
+		cc *.o -lf2c -lm
+	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+
+		http://www.netlib.org/f2c/libf2c.zip
 */
 
 #include "f2c.h"
@@ -24,7 +31,7 @@ static logical c_false = FALSE_;
 static integer c__16 = 16;
 static integer c__2 = 2;
 static integer c__512 = 512;
-static real c_b231 = (float).01;
+static real c_b231 = .01f;
 static logical c_true = TRUE_;
 
 /* DRUTIL.F */
@@ -79,10 +86,7 @@ static logical c_true = TRUE_;
 /* Modifications to support "refpix" contruct in distortion files */
 /*   Richard Hook, ST-ECF/ESO/STScI, December 2003 */
 
-/* Subroutine */ int setim_(a, nx, ny, v)
-real *a;
-integer *nx, *ny;
-real *v;
+/* Subroutine */ int setim_(real *a, integer *nx, integer *ny, real *v)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2;
@@ -97,7 +101,7 @@ real *v;
 
     /* Parameter adjustments */
     a_dim1 = *nx;
-    a_offset = 1 + a_dim1 * 1;
+    a_offset = 1 + a_dim1;
     a -= a_offset;
 
     /* Function Body */
@@ -111,10 +115,7 @@ real *v;
     return 0;
 } /* setim_ */
 
-/* Subroutine */ int mulc_(a, nx, ny, v)
-real *a;
-integer *nx, *ny;
-real *v;
+/* Subroutine */ int mulc_(real *a, integer *nx, integer *ny, real *v)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2;
@@ -129,7 +130,7 @@ real *v;
 
     /* Parameter adjustments */
     a_dim1 = *nx;
-    a_offset = 1 + a_dim1 * 1;
+    a_offset = 1 + a_dim1;
     a -= a_offset;
 
     /* Function Body */
@@ -143,9 +144,7 @@ real *v;
     return 0;
 } /* mulc_ */
 
-/* Subroutine */ int copyim_(in, out, nx, ny)
-real *in, *out;
-integer *nx, *ny;
+/* Subroutine */ int copyim_(real *in, real *out, integer *nx, integer *ny)
 {
     /* System generated locals */
     integer in_dim1, in_offset, out_dim1, out_offset, i__1, i__2;
@@ -160,10 +159,10 @@ integer *nx, *ny;
 
     /* Parameter adjustments */
     out_dim1 = *nx;
-    out_offset = 1 + out_dim1 * 1;
+    out_offset = 1 + out_dim1;
     out -= out_offset;
     in_dim1 = *nx;
-    in_offset = 1 + in_dim1 * 1;
+    in_offset = 1 + in_dim1;
     in -= in_offset;
 
     /* Function Body */
@@ -177,8 +176,7 @@ integer *nx, *ny;
     return 0;
 } /* copyim_ */
 
-doublereal eval3_(x, y, co)
-doublereal *x, *y, *co;
+doublereal eval3_(doublereal *x, doublereal *y, doublereal *co)
 {
     /* System generated locals */
     doublereal ret_val;
@@ -196,8 +194,7 @@ doublereal *x, *y, *co;
     return ret_val;
 } /* eval3_ */
 
-doublereal eval4_(x, y, co)
-doublereal *x, *y, *co;
+doublereal eval4_(doublereal *x, doublereal *y, doublereal *co)
 {
     /* System generated locals */
     doublereal ret_val;
@@ -217,8 +214,7 @@ doublereal *x, *y, *co;
     return ret_val;
 } /* eval4_ */
 
-doublereal eval5_(x, y, co)
-doublereal *x, *y, *co;
+doublereal eval5_(doublereal *x, doublereal *y, doublereal *co)
 {
     /* System generated locals */
     doublereal ret_val;
@@ -242,16 +238,15 @@ doublereal *x, *y, *co;
     return ret_val;
 } /* eval5_ */
 
-doublereal evaln_(x, y, co, order)
-doublereal *x, *y, *co;
-integer *order;
+doublereal evaln_(doublereal *x, doublereal *y, doublereal *co, integer *
+	order)
 {
     /* System generated locals */
     integer i__1, i__2, i__3, i__4;
     doublereal ret_val;
 
     /* Builtin functions */
-    double pow_di();
+    double pow_di(doublereal *, integer *);
 
     /* Local variables */
     static integer m, n;
@@ -271,7 +266,7 @@ integer *order;
     --co;
 
     /* Function Body */
-    t = (float)0.;
+    t = 0.f;
     nc = 1;
     i__1 = *order + 1;
     for (n = 1; n <= i__1; ++n) {
@@ -287,11 +282,11 @@ integer *order;
     return ret_val;
 } /* evaln_ */
 
-/* Subroutine */ int rad3_(x, y, co, xo, yo)
-doublereal *x, *y, *co, *xo, *yo;
+/* Subroutine */ int rad3_(doublereal *x, doublereal *y, doublereal *co, 
+	doublereal *xo, doublereal *yo)
 {
     /* Builtin functions */
-    double sqrt();
+    double sqrt(doublereal);
 
     /* Local variables */
     static doublereal f, r__;
@@ -312,34 +307,33 @@ doublereal *x, *y, *co, *xo, *yo;
     return 0;
 } /* rad3_ */
 
-/* Subroutine */ int getco_(lun, lam, coty, comax, conum, xco, yco, istat)
-integer *lun;
-doublereal *lam;
-integer *coty, *comax, *conum;
-doublereal *xco, *yco;
-integer *istat;
+/* Subroutine */ int getco_(integer *lun, doublereal *lam, integer *coty, 
+	integer *comax, integer *conum, doublereal *xco, doublereal *yco, 
+	integer *istat)
 {
     /* System generated locals */
     integer i__1, i__2;
     doublereal d__1;
 
     /* Builtin functions */
-    integer s_cmp(), s_rsli(), do_lio(), e_rsli(), s_wsfi(), do_fio(), e_wsfi(
-	    );
+    integer s_cmp(char *, char *, ftnlen, ftnlen), s_rsli(icilist *), do_lio(
+	    integer *, integer *, char *, ftnlen), e_rsli(void), s_wsfi(
+	    icilist *), do_fio(integer *, char *, ftnlen), e_wsfi(void);
 
     /* Local variables */
-    static char line[80];
     static doublereal a, b, c__;
     static integer i__, j;
     static doublereal n;
-    extern /* Subroutine */ int bfill_();
+    extern doublereal mgf2_(doublereal *);
+    static char line[80];
+    extern /* Subroutine */ int bfill_(integer *, char *, integer *, ftnlen);
     static char chars[80];
     static doublereal xdref, ydref;
     static char buffer[1024];
-    extern /* Subroutine */ int ufglin_();
+    extern /* Subroutine */ int ufglin_(integer *, char *, integer *, ftnlen);
     static logical newref;
-    extern /* Subroutine */ int umsput_();
-    extern doublereal mgf2_();
+    extern /* Subroutine */ int umsput_(char *, integer *, integer *, integer 
+	    *, ftnlen);
 
     /* Fortran I/O blocks */
     static icilist io___17 = { 1, line, 1, 0, 80, 1 };
@@ -350,8 +344,8 @@ integer *istat;
     static icilist io___27 = { 1, buffer, 1, 0, 1024, 1 };
     static icilist io___28 = { 1, buffer, 1, 0, 1024, 1 };
     static icilist io___29 = { 1, line+6, 1, 0, 74, 1 };
-    static icilist io___33 = { 0, chars, 0, "('-Using distortion reference p\
-oint: [',                       F10.4,',',F10.4,']')", 80, 1 };
+    static icilist io___33 = { 0, chars, 0, "('-Using distortion reference p"
+	    "oint: [',                       F10.4,',',F10.4,']')", 80, 1 };
 
 
 
@@ -430,14 +424,13 @@ L100001:
 			}
 			if (j <= 10) {
 /* Computing 2nd power */
-			    d__1 = n - (float)1.5;
-			    xco[j] = a + b * (n - (float)1.5) + c__ * (d__1 * 
-				    d__1);
+			    d__1 = n - 1.5f;
+			    xco[j] = a + b * (n - 1.5f) + c__ * (d__1 * d__1);
 			} else {
 /* Computing 2nd power */
-			    d__1 = n - (float)1.5;
-			    yco[j - 10] = a + b * (n - (float)1.5) + c__ * (
-				    d__1 * d__1);
+			    d__1 = n - 1.5f;
+			    yco[j - 10] = a + b * (n - 1.5f) + c__ * (d__1 * 
+				    d__1);
 			}
 			++j;
 		    }
@@ -644,8 +637,8 @@ L100006:
 		*istat = e_rsli();
 L100007:
 		if (*istat != 0) {
-		    umsput_("! Invalid reference pixel specification in coef\
-ficients file", &c__1, &c__0, istat, (ftnlen)60);
+		    umsput_("! Invalid reference pixel specification in coef"
+			    "ficients file", &c__1, &c__0, istat, (ftnlen)60);
 		    *istat = 1;
 		    goto L99;
 		} else {
@@ -677,14 +670,13 @@ L99:
     return 0;
 } /* getco_ */
 
-doublereal mgf2_(lam)
-doublereal *lam;
+doublereal mgf2_(doublereal *lam)
 {
     /* System generated locals */
     doublereal ret_val;
 
     /* Builtin functions */
-    double sqrt();
+    double sqrt(doublereal);
 
     /* Local variables */
     static doublereal sig;
@@ -694,16 +686,14 @@ doublereal *lam;
 /* wavelength (in nm) using the formula given by Trauger (1995) */
 
     sig = 1e7 / *lam;
-    ret_val = sqrt(2.590355e10 / (5.312993e10 - sig * sig) + (float)1. + 
+    ret_val = sqrt(2.590355e10 / (5.312993e10 - sig * sig) + 1.f + 
 	    4454370800. / (1.117083e10 - sig * sig) + 408388.97 / (176636.1 - 
 	    sig * sig));
     return ret_val;
 } /* mgf2_ */
 
-/* Subroutine */ int putfil_(dat, cou, onx, ony, filval)
-real *dat, *cou;
-integer *onx, *ony;
-real *filval;
+/* Subroutine */ int putfil_(real *dat, real *cou, integer *onx, integer *ony,
+	 real *filval)
 {
     /* System generated locals */
     integer dat_dim1, dat_offset, cou_dim1, cou_offset, i__1, i__2;
@@ -719,10 +709,10 @@ real *filval;
 
     /* Parameter adjustments */
     cou_dim1 = *onx;
-    cou_offset = 1 + cou_dim1 * 1;
+    cou_offset = 1 + cou_dim1;
     cou -= cou_offset;
     dat_dim1 = *onx;
-    dat_offset = 1 + dat_dim1 * 1;
+    dat_offset = 1 + dat_dim1;
     dat -= dat_offset;
 
     /* Function Body */
@@ -730,7 +720,7 @@ real *filval;
     for (j = 1; j <= i__1; ++j) {
 	i__2 = *onx;
 	for (i__ = 1; i__ <= i__2; ++i__) {
-	    if (cou[i__ + j * cou_dim1] == (float)0.) {
+	    if (cou[i__ + j * cou_dim1] == 0.f) {
 		dat[i__ + j * dat_dim1] = *filval;
 	    }
 	}
@@ -738,8 +728,8 @@ real *filval;
     return 0;
 } /* putfil_ */
 
-/* Subroutine */ int inmat_(p, q, r__, s)
-doublereal *p, *q, *r__, *s;
+/* Subroutine */ int inmat_(doublereal *p, doublereal *q, doublereal *r__, 
+	doublereal *s)
 {
     static doublereal a, b, c__, d__, det;
 
@@ -760,14 +750,15 @@ doublereal *p, *q, *r__, *s;
     return 0;
 } /* inmat_ */
 
-/* Subroutine */ int xy2rd_(x, y, r__, d__, wcs)
-doublereal *x, *y, *r__, *d__, *wcs;
+/* Subroutine */ int xy2rd_(doublereal *x, doublereal *y, doublereal *r__, 
+	doublereal *d__, doublereal *wcs)
 {
     /* System generated locals */
     doublereal d__1, d__2;
 
     /* Builtin functions */
-    double sin(), cos(), atan2(), sqrt();
+    double sin(doublereal), cos(doublereal), atan2(doublereal, doublereal), 
+	    sqrt(doublereal);
 
     /* Local variables */
     static doublereal xi, ra0, eta, dec0;
@@ -806,22 +797,21 @@ doublereal *x, *y, *r__, *d__, *wcs;
 /* Convert back to degrees and check the range */
     *r__ /= .017453292519943295;
     *d__ /= .017453292519943295;
-    if (*r__ < (float)0.) {
-	*r__ += (float)360.;
+    if (*r__ < 0.f) {
+	*r__ += 360.f;
     }
     return 0;
 } /* xy2rd_ */
 
-/* Subroutine */ int rd2xy_(r__, d__, x, y, wcs, istat)
-doublereal *r__, *d__, *x, *y, *wcs;
-integer *istat;
+/* Subroutine */ int rd2xy_(doublereal *r__, doublereal *d__, doublereal *x, 
+	doublereal *y, doublereal *wcs, integer *istat)
 {
     /* Builtin functions */
-    double sin(), cos();
+    double sin(doublereal), cos(doublereal);
 
     /* Local variables */
-    static doublereal cdinv[4]	/* was [2][2] */, ra, xi, ra0, bottom, dec, 
-	    eta, det, dec0;
+    static doublereal ra, xi, ra0, dec, eta, det, dec0, cdinv[4]	/* 
+	    was [2][2] */, bottom;
 
 
 /* RD2XY - convert an equatorial (RA,DEC) position to a pixel position */
@@ -840,7 +830,7 @@ integer *istat;
 
     /* Function Body */
     det = wcs[5] * wcs[8] - wcs[7] * wcs[6];
-    if (det == (float)0.) {
+    if (det == 0.f) {
 	*istat = 1;
 	return 0;
     }
@@ -869,36 +859,40 @@ integer *istat;
     return 0;
 } /* rd2xy_ */
 
-/* Subroutine */ int wcslin_(wcsin, wcsout, xcen, ycen, coty, conum, xco, yco,
-	 disim, xg, yg, nx, ny, xc, yc, xs, ys, xt, yt)
-doublereal *wcsin, *wcsout, *xcen, *ycen;
-integer *coty, *conum;
-doublereal *xco, *yco;
-logical *disim;
-real *xg, *yg;
-integer *nx, *ny;
-doublereal *xc, *yc, *xs, *ys, *xt, *yt;
+/* Subroutine */ int wcslin_(doublereal *wcsin, doublereal *wcsout, 
+	doublereal *xcen, doublereal *ycen, integer *coty, integer *conum, 
+	doublereal *xco, doublereal *yco, logical *disim, real *xg, real *yg, 
+	integer *nx, integer *ny, doublereal *xc, doublereal *yc, doublereal *
+	xs, doublereal *ys, doublereal *xt, doublereal *yt)
 {
     /* System generated locals */
     integer xg_dim1, xg_offset, yg_dim1, yg_offset;
     doublereal d__1, d__2;
 
     /* Local variables */
-    static doublereal xout[4], yout[4];
-    extern doublereal eval3_(), eval4_(), eval5_();
     static doublereal a, b, c__, d__;
-    extern /* Subroutine */ int xy2rd_();
     static integer i__;
-    extern /* Subroutine */ int rd2xy_();
-    static doublereal x[4], y[4], xdoff, ydoff, xdref, ydref;
-    extern doublereal evaln_();
+    static doublereal x[4], y[4], x0, y0, ra, dec, xin[4], yin[4];
+    extern /* Subroutine */ int rad3_(doublereal *, doublereal *, doublereal *
+	    , doublereal *, doublereal *);
+    static doublereal xout[4], yout[4];
+    extern doublereal eval3_(doublereal *, doublereal *, doublereal *), 
+	    eval4_(doublereal *, doublereal *, doublereal *), eval5_(
+	    doublereal *, doublereal *, doublereal *);
+    extern /* Subroutine */ int xy2rd_(doublereal *, doublereal *, doublereal 
+	    *, doublereal *, doublereal *), rd2xy_(doublereal *, doublereal *,
+	     doublereal *, doublereal *, doublereal *, integer *);
+    static doublereal xdoff, ydoff, xdref, ydref;
+    extern doublereal evaln_(doublereal *, doublereal *, doublereal *, 
+	    integer *);
     static integer istat, scoty;
-    static doublereal x0, y0, ra;
-    extern /* Subroutine */ int fitlin_();
+    extern /* Subroutine */ int fitlin_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, integer *, doublereal *, doublereal *,
+	     doublereal *, doublereal *, doublereal *, doublereal *, integer *
+	    );
     static logical newref;
-    extern /* Subroutine */ int umsput_();
-    static doublereal dec, xin[4], yin[4];
-    extern /* Subroutine */ int rad3_();
+    extern /* Subroutine */ int umsput_(char *, integer *, integer *, integer 
+	    *, ftnlen);
 
 
 /* WCSLIN - derive best linear transformation coefficients to map */
@@ -957,10 +951,10 @@ doublereal *xc, *yc, *xs, *ys, *xt, *yt;
     --yco;
     --xco;
     yg_dim1 = *nx;
-    yg_offset = 1 + yg_dim1 * 1;
+    yg_offset = 1 + yg_dim1;
     yg -= yg_offset;
     xg_dim1 = *nx;
-    xg_offset = 1 + xg_dim1 * 1;
+    xg_offset = 1 + xg_dim1;
     xg -= xg_offset;
 
     /* Function Body */
@@ -1076,12 +1070,12 @@ doublereal *xc, *yc, *xs, *ys, *xt, *yt;
     return 0;
 } /* wcslin_ */
 
-/* Subroutine */ int setwcs_(outscl, orient, crpix1, crval1, crpix2, crval2, 
-	wcs)
-doublereal *outscl, *orient, *crpix1, *crval1, *crpix2, *crval2, *wcs;
+/* Subroutine */ int setwcs_(doublereal *outscl, doublereal *orient, 
+	doublereal *crpix1, doublereal *crval1, doublereal *crpix2, 
+	doublereal *crval2, doublereal *wcs)
 {
     /* Builtin functions */
-    double cos(), sin();
+    double cos(doublereal), sin(doublereal);
 
     /* Local variables */
     static doublereal dsc, ror;
@@ -1122,9 +1116,7 @@ doublereal *outscl, *orient, *crpix1, *crval1, *crpix2, *crval2, *wcs;
     return 0;
 } /* setwcs_ */
 
-/* Subroutine */ int copy1d_(in, out, n)
-real *in, *out;
-integer *n;
+/* Subroutine */ int copy1d_(real *in, real *out, integer *n)
 {
     /* System generated locals */
     integer i__1;
@@ -1149,38 +1141,36 @@ integer *n;
     return 0;
 } /* copy1d_ */
 
-/* Subroutine */ int lcorn_(dnx, dny, onx, ony, xsh, ysh, rot, scale, align, 
-	rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, shfr2, rotf2, 
-	usewcs, wcsin, wcsout, coty, conum, xco, yco, disim, pxg, pyg, xgdim, 
-	ygdim, xmin, xmax, ymin, ymax, istat, align_len, shfr2_len)
-integer *dnx, *dny, *onx, *ony;
-doublereal *xsh, *ysh, *rot, *scale;
-char *align;
-logical *rotfir, *secpar;
-doublereal *xsh2, *ysh2, *rot2, *xscale, *yscale;
-char *shfr2;
-logical *rotf2, *usewcs;
-doublereal *wcsin, *wcsout;
-integer *coty, *conum;
-doublereal *xco, *yco;
-logical *disim;
-real *pxg, *pyg;
-integer *xgdim, *ygdim, *xmin, *xmax, *ymin, *ymax, *istat;
-ftnlen align_len;
-ftnlen shfr2_len;
+/* Subroutine */ int lcorn_(integer *dnx, integer *dny, integer *onx, integer 
+	*ony, doublereal *xsh, doublereal *ysh, doublereal *rot, doublereal *
+	scale, char *align, logical *rotfir, logical *secpar, doublereal *
+	xsh2, doublereal *ysh2, doublereal *rot2, doublereal *xscale, 
+	doublereal *yscale, char *shfr2, logical *rotf2, logical *usewcs, 
+	doublereal *wcsin, doublereal *wcsout, integer *coty, integer *conum, 
+	doublereal *xco, doublereal *yco, logical *disim, real *pxg, real *
+	pyg, integer *xgdim, integer *ygdim, integer *xmin, integer *xmax, 
+	integer *ymin, integer *ymax, integer *istat, ftnlen align_len, 
+	ftnlen shfr2_len)
 {
     /* System generated locals */
     integer pxg_dim1, pxg_offset, pyg_dim1, pyg_offset;
     doublereal d__1;
 
     /* Builtin functions */
-    integer i_dnnt();
+    integer i_dnnt(doublereal *);
 
     /* Local variables */
-    static doublereal xout[16], yout[16];
     static integer i__;
-    extern /* Subroutine */ int drival_();
-    static doublereal xma, yma, xmi, xin[16], yin[16], ymi;
+    static doublereal xma, yma, xmi, xin[16], yin[16], ymi, xout[16], yout[16]
+	    ;
+    extern /* Subroutine */ int drival_(doublereal *, doublereal *, integer *,
+	     integer *, integer *, integer *, integer *, logical *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, char *, 
+	    logical *, logical *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, char *, logical *, logical *, 
+	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
+	    doublereal *, logical *, real *, real *, integer *, integer *, 
+	    doublereal *, doublereal *, ftnlen, ftnlen);
 
 
 /* LCORN - transform the range of input pixel coordinates covered */
@@ -1202,21 +1192,21 @@ ftnlen shfr2_len;
     --yco;
     --xco;
     pyg_dim1 = *xgdim;
-    pyg_offset = 1 + pyg_dim1 * 1;
+    pyg_offset = 1 + pyg_dim1;
     pyg -= pyg_offset;
     pxg_dim1 = *xgdim;
-    pxg_offset = 1 + pxg_dim1 * 1;
+    pxg_offset = 1 + pxg_dim1;
     pxg -= pxg_offset;
 
     /* Function Body */
-    xin[0] = (float)1.;
-    xin[1] = (float)1.;
+    xin[0] = 1.f;
+    xin[1] = 1.f;
     xin[2] = (doublereal) (*dnx);
     xin[3] = (doublereal) (*dnx);
-    yin[0] = (float)1.;
+    yin[0] = 1.f;
     yin[1] = (doublereal) (*dny);
     yin[2] = (doublereal) (*dny);
-    yin[3] = (float)1.;
+    yin[3] = 1.f;
 /* Transform onto output coordinate system */
     drival_(xin, yin, &c__4, dnx, dny, onx, ony, &c_false, xsh, ysh, rot, 
 	    scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 
@@ -1242,7 +1232,7 @@ ftnlen shfr2_len;
 	yin[i__ - 1] = 1.;
 	xin[i__ + 3] = xin[i__ - 1];
 	yin[i__ + 3] = (doublereal) (*dny);
-	xin[i__ + 7] = (float)1.;
+	xin[i__ + 7] = 1.f;
 	yin[i__ + 7] = (doublereal) i__ * (doublereal) (*dny) / 5.;
 	xin[i__ + 11] = (doublereal) (*dnx);
 	yin[i__ + 11] = yin[i__ + 7];
@@ -1279,51 +1269,48 @@ ftnlen shfr2_len;
     return 0;
 } /* lcorn_ */
 
-/* Subroutine */ int drival_(xin, yin, n, dnx, dny, onx, ony, reg, xsh, ysh, 
-	rot, scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 
-	shfr2, rotf2, usewcs, wcsin, wcsout, coty, conum, xco, yco, disim, xg,
-	 yg, xgdim, ygdim, xout, yout, align_len, shfr2_len)
-doublereal *xin, *yin;
-integer *n, *dnx, *dny, *onx, *ony;
-logical *reg;
-doublereal *xsh, *ysh, *rot, *scale;
-char *align;
-logical *rotfir, *secpar;
-doublereal *xsh2, *ysh2, *rot2, *xscale, *yscale;
-char *shfr2;
-logical *rotf2, *usewcs;
-doublereal *wcsin, *wcsout;
-integer *coty, *conum;
-doublereal *xco, *yco;
-logical *disim;
-real *xg, *yg;
-integer *xgdim, *ygdim;
-doublereal *xout, *yout;
-ftnlen align_len;
-ftnlen shfr2_len;
+/* Subroutine */ int drival_(doublereal *xin, doublereal *yin, integer *n, 
+	integer *dnx, integer *dny, integer *onx, integer *ony, logical *reg, 
+	doublereal *xsh, doublereal *ysh, doublereal *rot, doublereal *scale, 
+	char *align, logical *rotfir, logical *secpar, doublereal *xsh2, 
+	doublereal *ysh2, doublereal *rot2, doublereal *xscale, doublereal *
+	yscale, char *shfr2, logical *rotf2, logical *usewcs, doublereal *
+	wcsin, doublereal *wcsout, integer *coty, integer *conum, doublereal *
+	xco, doublereal *yco, logical *disim, real *xg, real *yg, integer *
+	xgdim, integer *ygdim, doublereal *xout, doublereal *yout, ftnlen 
+	align_len, ftnlen shfr2_len)
 {
     /* System generated locals */
     integer xg_dim1, xg_offset, yg_dim1, yg_offset, i__1;
     doublereal d__1, d__2;
 
     /* Builtin functions */
-    integer s_cmp();
-    double sin(), cos();
+    integer s_cmp(char *, char *, ftnlen, ftnlen);
+    double sin(doublereal), cos(doublereal);
 
     /* Local variables */
-    static doublereal xcen, ycen, xoff, yoff;
-    extern doublereal eval3_(), eval4_(), eval5_();
     static integer i__;
-    static doublereal x, y, xdoff, ydoff;
-    extern doublereal evaln_();
-    static doublereal xdref, ydref, costh, sinth, xcorn, ycorn, costh2, 
-	    sinth2, xc, yc, xd, xf, yf;
+    static doublereal x, y, xc, yc, xd, xf, yf;
     static integer ix, iy;
-    static doublereal yd, xp, yp, xs, ys, xt, yt;
+    static doublereal yd, xp, yp, xs, ys, xt, yt, xc2, yc2, xp2, yp2, xs2, 
+	    ys2, xt2, yt2, xut, yut;
+    extern /* Subroutine */ int rad3_(doublereal *, doublereal *, doublereal *
+	    , doublereal *, doublereal *);
+    static doublereal xcen, ycen, xoff, yoff;
+    extern doublereal eval3_(doublereal *, doublereal *, doublereal *), 
+	    eval4_(doublereal *, doublereal *, doublereal *), eval5_(
+	    doublereal *, doublereal *, doublereal *);
+    static doublereal xdoff, ydoff;
+    extern doublereal evaln_(doublereal *, doublereal *, doublereal *, 
+	    integer *);
+    static doublereal xdref, ydref, costh, sinth, xcorn, ycorn, costh2, 
+	    sinth2;
     static logical newref;
-    extern /* Subroutine */ int wcslin_();
-    static doublereal xc2, yc2, xp2, yp2, xs2, ys2, xt2, yt2, xut, yut;
-    extern /* Subroutine */ int rad3_();
+    extern /* Subroutine */ int wcslin_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
+	    doublereal *, logical *, real *, real *, integer *, integer *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *);
 
 
 /* DRIVAL - apply the standard Drizzle transformation */
@@ -1369,19 +1356,19 @@ ftnlen shfr2_len;
     --yco;
     --xco;
     yg_dim1 = *xgdim;
-    yg_offset = 1 + yg_dim1 * 1;
+    yg_offset = 1 + yg_dim1;
     yg -= yg_offset;
     xg_dim1 = *xgdim;
-    xg_offset = 1 + xg_dim1 * 1;
+    xg_offset = 1 + xg_dim1;
     xg -= xg_offset;
 
     /* Function Body */
     if (s_cmp(align, "corner", (ftnlen)8, (ftnlen)6) == 0) {
-	xcen = (doublereal) (*dnx / 2) + (float).5;
-	ycen = (doublereal) (*dny / 2) + (float).5;
+	xcen = (doublereal) (*dnx / 2) + .5f;
+	ycen = (doublereal) (*dny / 2) + .5f;
     } else {
-	xcen = (doublereal) (*dnx / 2) + (float)1.;
-	ycen = (doublereal) (*dny / 2) + (float)1.;
+	xcen = (doublereal) (*dnx / 2) + 1.f;
+	ycen = (doublereal) (*dny / 2) + 1.f;
     }
 /* Calculate some numbers to simplify things later */
     sinth = sin(*rot);
@@ -1443,8 +1430,8 @@ ftnlen shfr2_len;
 	--(*conum);
     } else {
 	newref = FALSE_;
-	xdoff = (float)0.;
-	ydoff = (float)0.;
+	xdoff = 0.f;
+	ydoff = 0.f;
     }
 /* We consider the case of "regular" and not-regular separately. */
 /* Regular means that the X positions are spaced at intervals of */
@@ -1752,8 +1739,8 @@ ftnlen shfr2_len;
     return 0;
 } /* drival_ */
 
-/* Subroutine */ int dericu_(x, y, co, dx, dy)
-doublereal *x, *y, *co, *dx, *dy;
+/* Subroutine */ int dericu_(doublereal *x, doublereal *y, doublereal *co, 
+	doublereal *dx, doublereal *dy)
 {
 
 /* Evaluate the derivatives of a cubic polynomial distortion with */
@@ -1773,17 +1760,18 @@ doublereal *x, *y, *co, *dx, *dy;
     return 0;
 } /* dericu_ */
 
-/* Subroutine */ int invecu_(xout, yout, xco, yco, err, xin, yin)
-doublereal *xout, *yout, *xco, *yco, *err, *xin, *yin;
+/* Subroutine */ int invecu_(doublereal *xout, doublereal *yout, doublereal *
+	xco, doublereal *yco, doublereal *err, doublereal *xin, doublereal *
+	yin)
 {
     /* System generated locals */
     doublereal d__1, d__2;
 
     /* Local variables */
-    extern doublereal eval3_();
-    static doublereal d__, x, y, xo, yo;
-    extern /* Subroutine */ int dericu_();
-    static doublereal dxx, dxy, dyx, dyy;
+    static doublereal d__, x, y, xo, yo, dxx, dxy, dyx, dyy;
+    extern doublereal eval3_(doublereal *, doublereal *, doublereal *);
+    extern /* Subroutine */ int dericu_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *);
 
 
 /* Invert a cubic distortion in 2d using Newton-Raphson */
@@ -1838,9 +1826,8 @@ L999:
     return 0;
 } /* invecu_ */
 
-doublereal over_(i__, j, xmin, xmax, ymin, ymax)
-integer *i__, *j;
-doublereal *xmin, *xmax, *ymin, *ymax;
+doublereal over_(integer *i__, integer *j, doublereal *xmin, doublereal *xmax,
+	 doublereal *ymin, doublereal *ymax)
 {
     /* System generated locals */
     doublereal ret_val, d__1, d__2, d__3, d__4;
@@ -1874,8 +1861,7 @@ doublereal *xmin, *xmax, *ymin, *ymax;
     return ret_val;
 } /* over_ */
 
-/* Subroutine */ int copy1i_(in, out, n)
-integer *in, *out, *n;
+/* Subroutine */ int copy1i_(integer *in, integer *out, integer *n)
 {
     /* System generated locals */
     integer i__1;
@@ -1898,34 +1884,34 @@ integer *in, *out, *n;
     return 0;
 } /* copy1i_ */
 
-/* Subroutine */ int upcon_(ncon, ii, jj, oldcon, newcon, done, lx, ly, intab,
-	 nen, maxim, maxen, uniqid, istat)
-integer *ncon, *ii, *jj, *oldcon, *newcon, *done, *lx, *ly, *intab, *nen, *
-	maxim, *maxen, *uniqid, *istat;
+/* Subroutine */ int upcon_(integer *ncon, integer *ii, integer *jj, integer *
+	oldcon, integer *newcon, integer *done, integer *lx, integer *ly, 
+	integer *intab, integer *nen, integer *maxim, integer *maxen, integer 
+	*uniqid, integer *istat)
 {
     /* System generated locals */
     integer intab_dim1, intab_offset, ncon_dim1, ncon_offset, done_dim1, 
 	    done_offset, i__1;
 
     /* Builtin functions */
-    integer s_wsfi(), do_fio(), e_wsfi();
+    integer s_wsfi(icilist *), do_fio(integer *, char *, ftnlen), e_wsfi(void)
+	    ;
 
     /* Local variables */
-    static integer icon, k;
-    extern logical match_();
+    static integer k, nn, icon;
+    extern logical match_(integer *, integer *, integer *);
     static char chars[80];
     static integer newma[100];
-    extern /* Subroutine */ int csort_();
-    static integer nn;
-    extern /* Subroutine */ int umsput_();
+    extern /* Subroutine */ int csort_(integer *, integer *), umsput_(char *, 
+	    integer *, integer *, integer *, ftnlen);
 
     /* Fortran I/O blocks */
-    static icilist io___148 = { 0, chars, 0, "('--New context #',I5,        \
-                              ' | ',I4,' images: ',                         \
-                       5I7)", 80, 1 };
-    static icilist io___149 = { 0, chars, 0, "('--New context #',I5,        \
-                              ' | ',I4,' images: ',                         \
-                       5I7,'...')", 80, 1 };
+    static icilist io___148 = { 0, chars, 0, "('--New context #',I5,        "
+	    "                              ' | ',I4,' images: ',             "
+	    "                                   5I7)", 80, 1 };
+    static icilist io___149 = { 0, chars, 0, "('--New context #',I5,        "
+	    "                              ' | ',I4,' images: ',             "
+	    "                                   5I7,'...')", 80, 1 };
 
 
 
@@ -1941,13 +1927,13 @@ integer *ncon, *ii, *jj, *oldcon, *newcon, *done, *lx, *ly, *intab, *nen, *
 /* Look up the current context value */
     /* Parameter adjustments */
     done_dim1 = *lx;
-    done_offset = 1 + done_dim1 * 1;
+    done_offset = 1 + done_dim1;
     done -= done_offset;
     ncon_dim1 = *lx;
-    ncon_offset = 1 + ncon_dim1 * 1;
+    ncon_offset = 1 + ncon_dim1;
     ncon -= ncon_offset;
     intab_dim1 = *maxim;
-    intab_offset = 1 + intab_dim1 * 1;
+    intab_offset = 1 + intab_dim1;
     intab -= intab_offset;
 
     /* Function Body */
@@ -2052,16 +2038,14 @@ L88:
     return 0;
 } /* upcon_ */
 
-/* Subroutine */ int lenstr_(string, i1, i2, string_len)
-char *string;
-integer *i1, *i2;
-ftnlen string_len;
+/* Subroutine */ int lenstr_(char *string, integer *i1, integer *i2, ftnlen 
+	string_len)
 {
     /* System generated locals */
     integer i__1;
 
     /* Builtin functions */
-    integer i_len();
+    integer i_len(char *, ftnlen);
 
     /* Local variables */
     static integer i__;
@@ -2086,8 +2070,7 @@ L99:
     return 0;
 } /* lenstr_ */
 
-/* Subroutine */ int setimi_(a, nx, ny, v)
-integer *a, *nx, *ny, *v;
+/* Subroutine */ int setimi_(integer *a, integer *nx, integer *ny, integer *v)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2;
@@ -2100,7 +2083,7 @@ integer *a, *nx, *ny, *v;
 
     /* Parameter adjustments */
     a_dim1 = *nx;
-    a_offset = 1 + a_dim1 * 1;
+    a_offset = 1 + a_dim1;
     a -= a_offset;
 
     /* Function Body */
@@ -2114,8 +2097,7 @@ integer *a, *nx, *ny, *v;
     return 0;
 } /* setimi_ */
 
-logical match_(a, b, n)
-integer *a, *b, *n;
+logical match_(integer *a, integer *b, integer *n)
 {
     /* System generated locals */
     integer i__1;
@@ -2153,17 +2135,16 @@ integer *a, *b, *n;
     return ret_val;
 } /* match_ */
 
-/* Subroutine */ int csort_(n, arr)
-integer *n, *arr;
+/* Subroutine */ int csort_(integer *n, integer *arr)
 {
     /* System generated locals */
     integer i__1;
 
     /* Builtin functions */
-    /* Subroutine */ int s_stop();
+    /* Subroutine */ int s_stop(char *, ftnlen);
 
     /* Local variables */
-    static integer temp, a, i__, j, k, l, ir, istack[50], jstack;
+    static integer a, i__, j, k, l, ir, temp, istack[50], jstack;
 
 
 /* This routine is modified from the Numerical Recipes one */
@@ -2262,11 +2243,8 @@ L5:
     goto L1;
 } /* csort_ */
 
-/* Subroutine */ int gtglco_(contab, intab, maxim, maxen, nen, istat, 
-	contab_len)
-char *contab;
-integer *intab, *maxim, *maxen, *nen, *istat;
-ftnlen contab_len;
+/* Subroutine */ int gtglco_(char *contab, integer *intab, integer *maxim, 
+	integer *maxen, integer *nen, integer *istat, ftnlen contab_len)
 {
     /* System generated locals */
     integer intab_dim1, intab_offset, i__1, i__2;
@@ -2274,11 +2252,13 @@ ftnlen contab_len;
     cllist cl__1;
 
     /* Builtin functions */
-    integer f_open(), s_rsfe(), do_fio(), e_rsfe(), s_cmp(), s_rsli(), do_lio(
-	    ), e_rsli(), f_clos();
+    integer f_open(olist *), s_rsfe(cilist *), do_fio(integer *, char *, 
+	    ftnlen), e_rsfe(void), s_cmp(char *, char *, ftnlen, ftnlen), 
+	    s_rsli(icilist *), do_lio(integer *, integer *, char *, ftnlen), 
+	    e_rsli(void), f_clos(cllist *);
 
     /* Local variables */
-    static integer nval, i__, j, k, cn;
+    static integer i__, j, k, cn, nval;
     static char buffer[1024];
 
     /* Fortran I/O blocks */
@@ -2296,7 +2276,7 @@ ftnlen contab_len;
 /* Try to open the context file */
     /* Parameter adjustments */
     intab_dim1 = *maxim;
-    intab_offset = 1 + intab_dim1 * 1;
+    intab_offset = 1 + intab_dim1;
     intab -= intab_offset;
 
     /* Function Body */
@@ -2395,11 +2375,8 @@ L100:
     return 0;
 } /* gtglco_ */
 
-/* Subroutine */ int ptglco_(contab, intab, maxim, maxen, nen, istat, 
-	contab_len)
-char *contab;
-integer *intab, *maxim, *maxen, *nen, *istat;
-ftnlen contab_len;
+/* Subroutine */ int ptglco_(char *contab, integer *intab, integer *maxim, 
+	integer *maxen, integer *nen, integer *istat, ftnlen contab_len)
 {
     /* System generated locals */
     integer intab_dim1, intab_offset, i__1, i__2;
@@ -2407,7 +2384,8 @@ ftnlen contab_len;
     cllist cl__1;
 
     /* Builtin functions */
-    integer f_open(), s_wsfe(), e_wsfe(), do_fio(), f_clos();
+    integer f_open(olist *), s_wsfe(cilist *), e_wsfe(void), do_fio(integer *,
+	     char *, ftnlen), f_clos(cllist *);
 
     /* Local variables */
     static integer i__, k;
@@ -2415,8 +2393,8 @@ ftnlen contab_len;
     /* Fortran I/O blocks */
     static cilist io___175 = { 0, 12, 0, "('# GLOBAL context table')", 0 };
     static cilist io___176 = { 0, 12, 0, "('#')", 0 };
-    static cilist io___177 = { 0, 12, 0, "('# Context | Nima | Npix | Unique\
- image ids...')", 0 };
+    static cilist io___177 = { 0, 12, 0, "('# Context | Nima | Npix | Unique"
+	    " image ids...')", 0 };
     static cilist io___179 = { 0, 12, 0, "(I7,I6,I10,3X,200I7)", 0 };
 
 
@@ -2430,7 +2408,7 @@ ftnlen contab_len;
 /* whether or not it exists */
     /* Parameter adjustments */
     intab_dim1 = *maxim;
-    intab_offset = 1 + intab_dim1 * 1;
+    intab_offset = 1 + intab_dim1;
     intab -= intab_offset;
 
     /* Function Body */
@@ -2474,21 +2452,18 @@ ftnlen contab_len;
     return 0;
 } /* ptglco_ */
 
-/* Subroutine */ int bfill_(lun, buffer, istat, buffer_len)
-integer *lun;
-char *buffer;
-integer *istat;
-ftnlen buffer_len;
+/* Subroutine */ int bfill_(integer *lun, char *buffer, integer *istat, 
+	ftnlen buffer_len)
 {
     /* Builtin functions */
-    /* Subroutine */ int s_copy();
-    integer s_cmp(), i_len();
+    /* Subroutine */ int s_copy(char *, char *, ftnlen, ftnlen);
+    integer s_cmp(char *, char *, ftnlen, ftnlen), i_len(char *, ftnlen);
 
     /* Local variables */
-    static char line[256];
-    extern /* Subroutine */ int ends_();
     static integer i1, i2, is;
-    extern /* Subroutine */ int ufglin_();
+    static char line[256];
+    extern /* Subroutine */ int ends_(char *, integer *, integer *, ftnlen), 
+	    ufglin_(integer *, char *, integer *, ftnlen);
 
 
 /* Read free-format numbers from an open text file and */
@@ -2524,16 +2499,14 @@ L88:
     return 0;
 } /* bfill_ */
 
-/* Subroutine */ int ends_(string, i1, i2, string_len)
-char *string;
-integer *i1, *i2;
-ftnlen string_len;
+/* Subroutine */ int ends_(char *string, integer *i1, integer *i2, ftnlen 
+	string_len)
 {
     /* System generated locals */
     integer i__1;
 
     /* Builtin functions */
-    integer i_len();
+    integer i_len(char *, ftnlen);
 
     /* Local variables */
     static integer i__;
@@ -2564,8 +2537,7 @@ L99:
     return 0;
 } /* ends_ */
 
-/* Subroutine */ int set1i_(a, n, v)
-integer *a, *n, *v;
+/* Subroutine */ int set1i_(integer *a, integer *n, integer *v)
 {
     /* System generated locals */
     integer i__1;
@@ -2587,24 +2559,23 @@ integer *a, *n, *v;
     return 0;
 } /* set1i_ */
 
-/* Subroutine */ int fitlin_(xo, yo, x, y, n, x0, y0, a, b, c__, d__, istat)
-doublereal *xo, *yo, *x, *y;
-integer *n;
-doublereal *x0, *y0, *a, *b, *c__, *d__;
-integer *istat;
+/* Subroutine */ int fitlin_(doublereal *xo, doublereal *yo, doublereal *x, 
+	doublereal *y, integer *n, doublereal *x0, doublereal *y0, doublereal 
+	*a, doublereal *b, doublereal *c__, doublereal *d__, integer *istat)
 {
     /* System generated locals */
     integer i__1;
     doublereal d__1;
 
     /* Local variables */
-    static doublereal xorg, yorg;
     static integer i__, j;
-    static doublereal sigxo, sigyo, xoorg, yoorg;
-    extern /* Subroutine */ int matinv_();
+    static doublereal det, mat[100]	/* was [10][10] */, xorg, yorg, sigxo,
+	     sigyo, xoorg, yoorg;
+    extern /* Subroutine */ int matinv_(doublereal *, integer *, doublereal *)
+	    ;
     static doublereal sigxox, sigxoy, sigyox, sigyoy;
-    extern /* Subroutine */ int umsput_();
-    static doublereal det, mat[100]	/* was [10][10] */;
+    extern /* Subroutine */ int umsput_(char *, integer *, integer *, integer 
+	    *, ftnlen);
 
 
 /* Fit a linear transformation (with six parameters, equivalent */
@@ -2710,18 +2681,16 @@ integer *istat;
 
 /* This version all double precision. */
 
-/* Subroutine */ int matinv_(array, norder, det)
-doublereal *array;
-integer *norder;
-doublereal *det;
+/* Subroutine */ int matinv_(doublereal *array, integer *norder, doublereal *
+	det)
 {
     /* System generated locals */
     integer i__1, i__2, i__3;
     doublereal d__1;
 
     /* Local variables */
-    static doublereal amax, save;
     static integer i__, j, k, l, ik[10], jk[10];
+    static doublereal amax, save;
 
 
 
@@ -2856,7 +2825,7 @@ L83:
 L90:
 	    ;
 	}
-	array[k + k * 10] = (float)1. / amax;
+	array[k + k * 10] = 1.f / amax;
 /* L100: */
 	*det *= amax;
     }
@@ -2903,38 +2872,24 @@ L140:
     return 0;
 } /* matinv_ */
 
-/* Subroutine */ int dobox_(data, wei, ndat, ncou, ncon, done, dnx, dny, ny, 
-	ystart, xmin, xmax, ymin, ymax, noover, kernel, xi, xo, yi, yo, xib, 
-	xob, yib, yob, onx, ony, coty, conum, xco, yco, disim, pxg, pyg, 
-	xgdim, ygdim, wtscl, align, incps, expin, pfract, scale, rot, xsh, 
-	ysh, wcs, wcsout, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 
-	shfr2, rotf2, con, bitcon, intab, maxim, maxen, nen, uniqid, update, 
-	usewei, usewcs, istat, nmiss, nskip, kernel_len, align_len, shfr2_len)
-real *data, *wei, *ndat, *ncou;
-integer *ncon, *done, *dnx, *dny, *ny, *ystart, *xmin, *xmax, *ymin, *ymax;
-logical *noover;
-char *kernel;
-doublereal *xi, *xo, *yi, *yo, *xib, *xob, *yib, *yob;
-integer *onx, *ony, *coty, *conum;
-doublereal *xco, *yco;
-logical *disim;
-real *pxg, *pyg;
-integer *xgdim, *ygdim;
-real *wtscl;
-char *align;
-logical *incps;
-real *expin;
-doublereal *pfract, *scale, *rot, *xsh, *ysh, *wcs, *wcsout;
-logical *rotfir, *secpar;
-doublereal *xsh2, *ysh2, *rot2, *xscale, *yscale;
-char *shfr2;
-logical *rotf2, *con, *bitcon;
-integer *intab, *maxim, *maxen, *nen, *uniqid;
-logical *update, *usewei, *usewcs;
-integer *istat, *nmiss, *nskip;
-ftnlen kernel_len;
-ftnlen align_len;
-ftnlen shfr2_len;
+/* Subroutine */ int dobox_(real *data, real *wei, real *ndat, real *ncou, 
+	integer *ncon, integer *done, integer *dnx, integer *dny, integer *ny,
+	 integer *ystart, integer *xmin, integer *xmax, integer *ymin, 
+	integer *ymax, logical *noover, char *kernel, doublereal *xi, 
+	doublereal *xo, doublereal *yi, doublereal *yo, doublereal *xib, 
+	doublereal *xob, doublereal *yib, doublereal *yob, integer *onx, 
+	integer *ony, integer *coty, integer *conum, doublereal *xco, 
+	doublereal *yco, logical *disim, real *pxg, real *pyg, integer *xgdim,
+	 integer *ygdim, real *wtscl, char *align, logical *incps, real *
+	expin, doublereal *pfract, doublereal *scale, doublereal *rot, 
+	doublereal *xsh, doublereal *ysh, doublereal *wcs, doublereal *wcsout,
+	 logical *rotfir, logical *secpar, doublereal *xsh2, doublereal *ysh2,
+	 doublereal *rot2, doublereal *xscale, doublereal *yscale, char *
+	shfr2, logical *rotf2, logical *con, logical *bitcon, integer *intab, 
+	integer *maxim, integer *maxen, integer *nen, integer *uniqid, 
+	logical *update, logical *usewei, logical *usewcs, integer *istat, 
+	integer *nmiss, integer *nskip, ftnlen kernel_len, ftnlen align_len, 
+	ftnlen shfr2_len)
 {
     /* System generated locals */
     integer data_dim1, data_offset, wei_dim1, wei_offset, ndat_dim1, 
@@ -2948,23 +2903,18 @@ ftnlen shfr2_len;
     icilist ici__1;
 
     /* Builtin functions */
-    integer pow_ii(), s_cmp();
-    double sqrt();
-    integer s_rsfi(), do_fio(), e_rsfi(), i_dnnt();
-    double exp();
+    integer pow_ii(integer *, integer *), s_cmp(char *, char *, ftnlen, 
+	    ftnlen);
+    double sqrt(doublereal);
+    integer s_rsfi(icilist *), do_fio(integer *, char *, ftnlen), e_rsfi(void)
+	    , i_dnnt(doublereal *);
+    double exp(doublereal);
 
     /* Local variables */
-    static doublereal jaco, xcen, ycen;
-    extern /* Subroutine */ int mulc_();
-    static integer nhit;
-    extern doublereal over_();
-    static doublereal xout[4], yout[4];
     static real d__;
     static integer i__, j;
     static real w;
-    static doublereal y, ofrac, scall, scdis, dover;
-    extern /* Subroutine */ int boxer_(), upcon_();
-    static doublereal r2, s2;
+    static doublereal y, r2, s2;
     static integer x1, x2;
     static doublereal ac;
     static real dd;
@@ -2977,18 +2927,39 @@ ftnlen shfr2_len;
     static integer np;
     static doublereal xf, yf;
     static integer ix, lx, ly, iy;
-    extern /* Subroutine */ int filalu_();
-    static doublereal xx, yy;
-    static integer oldcon, lanord;
-    extern /* Subroutine */ int drival_();
-    static integer newcon;
-    extern /* Subroutine */ int chover_();
-    static real lanlut[512];
-    static doublereal pfo;
+    static doublereal xx, yy, pfo;
     static integer nxa, nya, nxi, nyi;
     static doublereal xin[4], yin[4], xxi, xxa, yyi, yya;
     static real dow;
-    static doublereal sdp, pfo2, efac;
+    static doublereal sdp, pfo2, efac, jaco, xcen, ycen;
+    extern /* Subroutine */ int mulc_(real *, integer *, integer *, real *);
+    static integer nhit;
+    extern doublereal over_(integer *, integer *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *);
+    static doublereal xout[4], yout[4], ofrac, scall, scdis, dover;
+    extern /* Subroutine */ int boxer_(integer *, integer *, doublereal *, 
+	    doublereal *, doublereal *), upcon_(integer *, integer *, integer 
+	    *, integer *, integer *, integer *, integer *, integer *, integer 
+	    *, integer *, integer *, integer *, integer *, integer *), 
+	    filalu_(integer *, integer *, real *, real *);
+    static integer oldcon, lanord;
+    extern /* Subroutine */ int drival_(doublereal *, doublereal *, integer *,
+	     integer *, integer *, integer *, integer *, logical *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, char *, 
+	    logical *, logical *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, char *, logical *, logical *, 
+	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
+	    doublereal *, logical *, real *, real *, integer *, integer *, 
+	    doublereal *, doublereal *, ftnlen, ftnlen), chover_(doublereal *,
+	     integer *, integer *, integer *, integer *, integer *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, char *, 
+	    logical *, logical *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, char *, logical *, logical *, 
+	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
+	    doublereal *, logical *, real *, real *, integer *, integer *, 
+	    doublereal *, integer *, integer *, ftnlen, ftnlen);
+    static integer newcon;
+    static real lanlut[512];
 
 
 /* This module does the actual mapping of input flux to output images using */
@@ -3017,47 +2988,47 @@ ftnlen shfr2_len;
     --xob;
     --xib;
     yo_dim1 = *dnx;
-    yo_offset = 1 + yo_dim1 * 1;
+    yo_offset = 1 + yo_dim1;
     yo -= yo_offset;
     yi_dim1 = *dnx;
-    yi_offset = 1 + yi_dim1 * 1;
+    yi_offset = 1 + yi_dim1;
     yi -= yi_offset;
     xo_dim1 = *dnx;
-    xo_offset = 1 + xo_dim1 * 1;
+    xo_offset = 1 + xo_dim1;
     xo -= xo_offset;
     xi_dim1 = *dnx;
-    xi_offset = 1 + xi_dim1 * 1;
+    xi_offset = 1 + xi_dim1;
     xi -= xi_offset;
     wei_dim1 = *dnx;
-    wei_offset = 1 + wei_dim1 * 1;
+    wei_offset = 1 + wei_dim1;
     wei -= wei_offset;
     data_dim1 = *dnx;
-    data_offset = 1 + data_dim1 * 1;
+    data_offset = 1 + data_dim1;
     data -= data_offset;
     done_dim1 = *xmax - *xmin + 1;
-    done_offset = 1 + done_dim1 * 1;
+    done_offset = 1 + done_dim1;
     done -= done_offset;
     ncon_dim1 = *xmax - *xmin + 1;
-    ncon_offset = 1 + ncon_dim1 * 1;
+    ncon_offset = 1 + ncon_dim1;
     ncon -= ncon_offset;
     ncou_dim1 = *xmax - *xmin + 1;
-    ncou_offset = 1 + ncou_dim1 * 1;
+    ncou_offset = 1 + ncou_dim1;
     ncou -= ncou_offset;
     ndat_dim1 = *xmax - *xmin + 1;
-    ndat_offset = 1 + ndat_dim1 * 1;
+    ndat_offset = 1 + ndat_dim1;
     ndat -= ndat_offset;
     --yco;
     --xco;
     pyg_dim1 = *xgdim;
-    pyg_offset = 1 + pyg_dim1 * 1;
+    pyg_offset = 1 + pyg_dim1;
     pyg -= pyg_offset;
     pxg_dim1 = *xgdim;
-    pxg_offset = 1 + pxg_dim1 * 1;
+    pxg_offset = 1 + pxg_dim1;
     pxg -= pxg_offset;
     --wcs;
     --wcsout;
     intab_dim1 = *maxim;
-    intab_offset = 1 + intab_dim1 * 1;
+    intab_offset = 1 + intab_dim1;
     intab -= intab_offset;
 
     /* Function Body */
@@ -3073,11 +3044,11 @@ ftnlen shfr2_len;
 /* reference pixel as the reference here */
     if (*usewcs) {
 	if (s_cmp(align, "corner", (ftnlen)8, (ftnlen)6) == 0) {
-	    xcen = (doublereal) (*dnx / 2) + (float).5;
-	    ycen = (doublereal) (*dny / 2) + (float).5;
+	    xcen = (doublereal) (*dnx / 2) + .5f;
+	    ycen = (doublereal) (*dny / 2) + .5f;
 	} else {
-	    xcen = (doublereal) (*dnx / 2) + (float)1.;
-	    ycen = (doublereal) (*dny / 2) + (float)1.;
+	    xcen = (doublereal) (*dnx / 2) + 1.f;
+	    ycen = (doublereal) (*dny / 2) + 1.f;
 	}
 	xin[0] = xcen;
 	xin[1] = xcen;
@@ -3092,9 +3063,9 @@ ftnlen shfr2_len;
 		yscale, shfr2, rotf2, usewcs, &wcs[1], &wcsout[1], coty, 
 		conum, &xco[1], &yco[1], disim, &pxg[pxg_offset], &pyg[
 		pyg_offset], xgdim, ygdim, xout, yout, (ftnlen)8, (ftnlen)8);
-	scall = sqrt((float)1. / (d__1 = ((xout[1] - xout[3]) * (yout[0] - 
-		yout[2]) - (xout[0] - xout[2]) * (yout[1] - yout[3])) * (
-		float).5, abs(d__1)));
+	scall = sqrt(1.f / (d__1 = ((xout[1] - xout[3]) * (yout[0] - yout[2]) 
+		- (xout[0] - xout[2]) * (yout[1] - yout[3])) * .5f, abs(d__1))
+		);
 /* Now calculate how much of this is from the geometric distortion */
 	*xsh = 0.;
 	*ysh = 0.;
@@ -3107,17 +3078,17 @@ ftnlen shfr2_len;
 		yscale, shfr2, rotf2, usewcs, &wcs[1], &wcsout[1], coty, 
 		conum, &xco[1], &yco[1], disim, &pxg[pxg_offset], &pyg[
 		pyg_offset], xgdim, ygdim, xout, yout, (ftnlen)8, (ftnlen)8);
-	scdis = sqrt((float)1. / (d__1 = ((xout[1] - xout[3]) * (yout[0] - 
-		yout[2]) - (xout[0] - xout[2]) * (yout[1] - yout[3])) * (
-		float).5, abs(d__1)));
+	scdis = sqrt(1.f / (d__1 = ((xout[1] - xout[3]) * (yout[0] - yout[2]) 
+		- (xout[0] - xout[2]) * (yout[1] - yout[3])) * .5f, abs(d__1))
+		);
 	*usewcs = TRUE_;
 	*scale = scall / scdis;
     }
 /* Image subset size */
     lx = *xmax - *xmin + 1;
     ly = *ymax - *ymin + 1;
-    xf = (float)1. / *scale;
-    yf = (float)1. / *scale;
+    xf = 1.f / *scale;
+    yf = 1.f / *scale;
     dh = *pfract * .5;
     ac = 1. / (*pfract * *pfract);
 /* Recalculate the area scaling factor */
@@ -3132,13 +3103,13 @@ ftnlen shfr2_len;
     pfo2 = d__1 * d__1;
 /* Some Gaussian related numbers */
     if (s_cmp(kernel, "gaussian", (ftnlen)8, (ftnlen)8) == 0) {
-	efac = s2 * (float)5.5450830399999997 * ac / 2.;
-	es = efac / (float)3.1415926;
-	pfo = *pfract * 2.5 / (float)2.3548 / *scale;
+	efac = s2 * 5.5450830399999997f * ac / 2.;
+	es = efac / 3.1415926f;
+	pfo = *pfract * 2.5 / 2.3548f / *scale;
 /* Added in V2.9 - make sure this doesn't get less than 1.2 */
 /* divided by the scale so that there are never holes in the output */
-	if (pfo < (float)1.2 / *scale) {
-	    pfo = (float)1.2 / *scale;
+	if (pfo < 1.2f / *scale) {
+	    pfo = 1.2f / *scale;
 	}
     }
 /* Set up a look-up-table for Lanczos-style interpolation kernels */
@@ -3156,7 +3127,7 @@ ftnlen shfr2_len;
 	filalu_(&lanord, &c__512, &c_b231, lanlut);
 /* Note - removed the +1 here (RNH, 21/11/2002) */
 	pfo = (doublereal) lanord * *pfract / *scale;
-	sdp = *scale / (float).01 / *pfract;
+	sdp = *scale / .01f / *pfract;
     }
 /* We skip all this if there is no overlap */
     if (! (*noover)) {
@@ -3174,7 +3145,7 @@ ftnlen shfr2_len;
 /* If the input image is not in CPS we need to divide by */
 /* the exposure */
 	if (! (*incps)) {
-	    r__1 = (float)1. / *expin;
+	    r__1 = 1.f / *expin;
 	    mulc_(&data[data_offset], dnx, ny, &r__1);
 	}
 /* Loop over input lines */
@@ -3237,7 +3208,7 @@ ftnlen shfr2_len;
 				dow = wei[i__ + j * wei_dim1] * *wtscl;
 /* If we are creating or modifying the context image we */
 /* do so here */
-				if (*con && dow > (float)0.) {
+				if (*con && dow > 0.f) {
 				    if (*bitcon) {
 					ncon[ii + jj * ncon_dim1] |= bv;
 				    } else {
@@ -3252,7 +3223,7 @@ ftnlen shfr2_len;
 				    }
 				}
 /* Just a simple calculation without logical tests */
-				if (vc == (float)0.) {
+				if (vc == 0.f) {
 				    ndat[ii + jj * ndat_dim1] = d__;
 				} else {
 				    ndat[ii + jj * ndat_dim1] = (ndat[ii + jj 
@@ -3311,7 +3282,7 @@ ftnlen shfr2_len;
 					    vc = ncou[ii + jj * ncou_dim1];
 /* If we are creating or modifying the context image we */
 /* do so here */
-					    if (*con && dow > (float)0.) {
+					    if (*con && dow > 0.f) {
 			  if (*bitcon) {
 			      ncon[ii + jj * ncon_dim1] |= bv;
 			  } else {
@@ -3324,7 +3295,7 @@ ftnlen shfr2_len;
 			  }
 					    }
 /* Just a simple calculation without logical tests */
-					    if (vc == (float)0.) {
+					    if (vc == 0.f) {
 			  ndat[ii + jj * ndat_dim1] = d__;
 					    } else {
 			  ndat[ii + jj * ndat_dim1] = (ndat[ii + jj * 
@@ -3386,7 +3357,7 @@ ftnlen shfr2_len;
 					dow = (real) (dover * w);
 /* If we are creating or modifying the context image we */
 /* do so here */
-					if (*con && dow > (float)0.) {
+					if (*con && dow > 0.f) {
 					    if (*bitcon) {
 			  ncon[ii + jj * ncon_dim1] |= bv;
 					    } else {
@@ -3399,7 +3370,7 @@ ftnlen shfr2_len;
 					    }
 					}
 /* Just a simple calculation without logical tests */
-					if (vc == (float)0.) {
+					if (vc == 0.f) {
 					    ndat[ii + jj * ndat_dim1] = d__;
 					} else {
 					    ndat[ii + jj * ndat_dim1] = (ndat[
@@ -3462,7 +3433,7 @@ ftnlen shfr2_len;
 					dow = (real) (dover * w);
 /* If we are creating or modifying the context image we */
 /* do so here */
-					if (*con && dow > (float)0.) {
+					if (*con && dow > 0.f) {
 					    if (*bitcon) {
 			  ncon[ii + jj * ncon_dim1] |= bv;
 					    } else {
@@ -3475,13 +3446,13 @@ ftnlen shfr2_len;
 					    }
 					}
 /* Just a simple calculation without logical tests */
-					if (vc == (float)0.) {
+					if (vc == 0.f) {
 					    ndat[ii + jj * ndat_dim1] = d__;
 					} else {
 /* There is an extra check here in the Lanczos case because the weight can */
 /* be negative which means that, just occasionally, the new and existing */
 /* weights at a given position can be have opposite signs and zero sum... */
-					    if (vc + dow == (float)0.) {
+					    if (vc + dow == 0.f) {
 			  ndat[ii + jj * ndat_dim1] = d__;
 					    } else {
 			  ndat[ii + jj * ndat_dim1] = (ndat[ii + jj * 
@@ -3529,7 +3500,7 @@ ftnlen shfr2_len;
 /* Calculate the overlap using the simpler "aligned" box routine */
 					dover = over_(&ii, &jj, &xxi, &xxa, &
 						yyi, &yya);
-					if (dover > (float)0.) {
+					if (dover > 0.f) {
 /* Correct for pixfrac area factor */
 					    dover = dover * s2 * ac;
 /* Count the hits */
@@ -3538,7 +3509,7 @@ ftnlen shfr2_len;
 					    dow = (real) (dover * w);
 /* If we are creating or modifying the context image we */
 /* do so here */
-					    if (*con && dow > (float)0.) {
+					    if (*con && dow > 0.f) {
 			  if (*bitcon) {
 			      ncon[ii + jj * ncon_dim1] |= bv;
 			  } else {
@@ -3551,7 +3522,7 @@ ftnlen shfr2_len;
 			  }
 					    }
 /* Just a simple calculation without logical tests */
-					    if (vc == (float)0.) {
+					    if (vc == 0.f) {
 			  ndat[ii + jj * ndat_dim1] = d__;
 					    } else {
 			  ndat[ii + jj * ndat_dim1] = (ndat[ii + jj * 
@@ -3636,8 +3607,8 @@ ftnlen shfr2_len;
 /* Note that this expression expects the points to be in */
 /* clockwise order */
 			jaco = ((xout[1] - xout[3]) * (yout[0] - yout[2]) - (
-				xout[0] - xout[2]) * (yout[1] - yout[3])) * (
-				float).5;
+				xout[0] - xout[2]) * (yout[1] - yout[3])) * 
+				.5f;
 			nhit = 0;
 /* Allow for stretching because of scale change */
 			d__ = data[i__ + j * data_dim1] * (real) s2;
@@ -3669,7 +3640,7 @@ ftnlen shfr2_len;
 					ly) {
 /* Call boxer to calculate overlap */
 				    boxer_(&ii, &jj, xout, yout, &dover);
-				    if (dover > (float)0.) {
+				    if (dover > 0.f) {
 /* Re-normalise the area overlap using the Jacobian */
 					dover /= jaco;
 /* Count the hits */
@@ -3678,7 +3649,7 @@ ftnlen shfr2_len;
 					dow = (real) (dover * w);
 /* If we are creating or modifying the context image we */
 /* do so here */
-					if (*con && dow > (float)0.) {
+					if (*con && dow > 0.f) {
 					    if (*bitcon) {
 			  ncon[ii + jj * ncon_dim1] |= bv;
 					    } else {
@@ -3691,7 +3662,7 @@ ftnlen shfr2_len;
 					    }
 					}
 /* Just a simple calculation without logical tests */
-					if (vc == (float)0.) {
+					if (vc == 0.f) {
 					    ndat[ii + jj * ndat_dim1] = d__;
 					} else {
 					    ndat[ii + jj * ndat_dim1] = (ndat[
@@ -3726,36 +3697,34 @@ ftnlen shfr2_len;
     return 0;
 } /* dobox_ */
 
-/* Subroutine */ int upwcs_(wcsin, wcsout, dnx, dny, onx, ony, xsh, ysh, rot, 
-	scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, shfr2,
-	 rotf2, usewcs, coty, conum, xco, yco, disim, pxg, pyg, xgdim, ygdim, 
-	align_len, shfr2_len)
-doublereal *wcsin, *wcsout;
-integer *dnx, *dny, *onx, *ony;
-doublereal *xsh, *ysh, *rot, *scale;
-char *align;
-logical *rotfir, *secpar;
-doublereal *xsh2, *ysh2, *rot2, *xscale, *yscale;
-char *shfr2;
-logical *rotf2, *usewcs;
-integer *coty, *conum;
-doublereal *xco, *yco;
-logical *disim;
-real *pxg, *pyg;
-integer *xgdim, *ygdim;
-ftnlen align_len;
-ftnlen shfr2_len;
+/* Subroutine */ int upwcs_(doublereal *wcsin, doublereal *wcsout, integer *
+	dnx, integer *dny, integer *onx, integer *ony, doublereal *xsh, 
+	doublereal *ysh, doublereal *rot, doublereal *scale, char *align, 
+	logical *rotfir, logical *secpar, doublereal *xsh2, doublereal *ysh2, 
+	doublereal *rot2, doublereal *xscale, doublereal *yscale, char *shfr2,
+	 logical *rotf2, logical *usewcs, integer *coty, integer *conum, 
+	doublereal *xco, doublereal *yco, logical *disim, real *pxg, real *
+	pyg, integer *xgdim, integer *ygdim, ftnlen align_len, ftnlen 
+	shfr2_len)
 {
     /* System generated locals */
     integer pxg_dim1, pxg_offset, pyg_dim1, pyg_offset;
 
     /* Local variables */
-    static doublereal xout[3], yout[3];
-    extern /* Subroutine */ int inmat_();
+    static doublereal w5, w6, w7, w8, am, bm, cm, dm, xin[3], yin[3], xout[3],
+	     yout[3];
+    extern /* Subroutine */ int inmat_(doublereal *, doublereal *, doublereal 
+	    *, doublereal *);
     static integer istat, scoty;
-    static doublereal w5, w6, w7, w8, am, bm, cm, dm;
-    extern /* Subroutine */ int drival_(), umsput_();
-    static doublereal xin[3], yin[3];
+    extern /* Subroutine */ int drival_(doublereal *, doublereal *, integer *,
+	     integer *, integer *, integer *, integer *, logical *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, char *, 
+	    logical *, logical *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, char *, logical *, logical *, 
+	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
+	    doublereal *, logical *, real *, real *, integer *, integer *, 
+	    doublereal *, doublereal *, ftnlen, ftnlen), umsput_(char *, 
+	    integer *, integer *, integer *, ftnlen);
 
 
 /* Update the WCS to include the drizzling transformations */
@@ -3777,10 +3746,10 @@ ftnlen shfr2_len;
     --yco;
     --xco;
     pyg_dim1 = *xgdim;
-    pyg_offset = 1 + pyg_dim1 * 1;
+    pyg_offset = 1 + pyg_dim1;
     pyg -= pyg_offset;
     pxg_dim1 = *xgdim;
-    pxg_offset = 1 + pxg_dim1 * 1;
+    pxg_offset = 1 + pxg_dim1;
     pxg -= pxg_offset;
 
     /* Function Body */
@@ -3843,13 +3812,13 @@ ftnlen shfr2_len;
     return 0;
 } /* upwcs_ */
 
-/* Subroutine */ int boxer_(is, js, x, y, darea)
-integer *is, *js;
-doublereal *x, *y, *darea;
+/* Subroutine */ int boxer_(integer *is, integer *js, doublereal *x, 
+	doublereal *y, doublereal *darea)
 {
     static integer i__;
-    extern doublereal sgarea_();
     static doublereal px[4], py[4], sum;
+    extern doublereal sgarea_(doublereal *, doublereal *, doublereal *, 
+	    doublereal *, integer *, integer *);
 
 
 /* BOXER -- compute area of box overlap */
@@ -3889,17 +3858,15 @@ doublereal *x, *y, *darea;
     return 0;
 } /* boxer_ */
 
-doublereal sgarea_(x1, y1, x2, y2, is, js)
-doublereal *x1, *y1, *x2, *y2;
-integer *is, *js;
+doublereal sgarea_(doublereal *x1, doublereal *y1, doublereal *x2, doublereal 
+	*y2, integer *is, integer *js)
 {
     /* System generated locals */
     doublereal ret_val;
 
     /* Local variables */
-    static doublereal xtop, c__, m;
+    static doublereal c__, m, dx, xhi, yhi, xlo, ylo, xtop;
     static logical negdx;
-    static doublereal dx, xhi, yhi, xlo, ylo;
 
 
 /* To calculate area under a line segment within unit square at origin. */
@@ -3990,38 +3957,33 @@ L80:
     return ret_val;
 } /* sgarea_ */
 
-/* Subroutine */ int bupwcs_(wcsin, wcsout, dnx, dny, onx, ony, xsh, ysh, rot,
-	 scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 
-	shfr2, rotf2, usewcs, coty, conum, xco, yco, disim, pxg, pyg, pxdim, 
-	pydim, align_len, shfr2_len)
-doublereal *wcsin, *wcsout;
-integer *dnx, *dny, *onx, *ony;
-doublereal *xsh, *ysh, *rot, *scale;
-char *align;
-logical *rotfir, *secpar;
-doublereal *xsh2, *ysh2, *rot2, *xscale, *yscale;
-char *shfr2;
-logical *rotf2, *usewcs;
-integer *coty, *conum;
-doublereal *xco, *yco;
-logical *disim;
-real *pxg, *pyg;
-integer *pxdim, *pydim;
-ftnlen align_len;
-ftnlen shfr2_len;
+/* Subroutine */ int bupwcs_(doublereal *wcsin, doublereal *wcsout, integer *
+	dnx, integer *dny, integer *onx, integer *ony, doublereal *xsh, 
+	doublereal *ysh, doublereal *rot, doublereal *scale, char *align, 
+	logical *rotfir, logical *secpar, doublereal *xsh2, doublereal *ysh2, 
+	doublereal *rot2, doublereal *xscale, doublereal *yscale, char *shfr2,
+	 logical *rotf2, logical *usewcs, integer *coty, integer *conum, 
+	doublereal *xco, doublereal *yco, logical *disim, real *pxg, real *
+	pyg, integer *pxdim, integer *pydim, ftnlen align_len, ftnlen 
+	shfr2_len)
 {
     /* System generated locals */
     integer pxg_dim1, pxg_offset, pyg_dim1, pyg_offset;
 
     /* Builtin functions */
-    double cos();
+    double cos(doublereal);
 
     /* Local variables */
-    static doublereal xout[3], yout[3], d__[3];
-    extern /* Subroutine */ int xy2rd_();
-    static doublereal r__[3];
-    extern /* Subroutine */ int drival_();
-    static doublereal xin[3], yin[3];
+    static doublereal d__[3], r__[3], xin[3], yin[3], xout[3], yout[3];
+    extern /* Subroutine */ int xy2rd_(doublereal *, doublereal *, doublereal 
+	    *, doublereal *, doublereal *), drival_(doublereal *, doublereal *
+	    , integer *, integer *, integer *, integer *, integer *, logical *
+	    , doublereal *, doublereal *, doublereal *, doublereal *, char *, 
+	    logical *, logical *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, char *, logical *, logical *, 
+	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
+	    doublereal *, logical *, real *, real *, integer *, integer *, 
+	    doublereal *, doublereal *, ftnlen, ftnlen);
 
 
 /* Update the WCS to include the drizzling transformations */
@@ -4042,10 +4004,10 @@ ftnlen shfr2_len;
     --yco;
     --xco;
     pyg_dim1 = *pxdim;
-    pyg_offset = 1 + pyg_dim1 * 1;
+    pyg_offset = 1 + pyg_dim1;
     pyg -= pyg_offset;
     pxg_dim1 = *pxdim;
-    pxg_offset = 1 + pxg_dim1 * 1;
+    pxg_offset = 1 + pxg_dim1;
     pxg -= pxg_offset;
 
     /* Function Body */
@@ -4086,20 +4048,18 @@ ftnlen shfr2_len;
     return 0;
 } /* bupwcs_ */
 
-/* Subroutine */ int filalu_(order, npix, del, lanlut)
-integer *order, *npix;
-real *del, *lanlut;
+/* Subroutine */ int filalu_(integer *order, integer *npix, real *del, real *
+	lanlut)
 {
     /* System generated locals */
     integer i__1;
 
     /* Builtin functions */
-    double sin();
+    double sin(doublereal);
 
     /* Local variables */
-    static real poff;
     static integer i__;
-    static real for__;
+    static real for__, poff;
 
 
 /* Fill up a look-up-table of Lanczos interpolation kernel values */
@@ -4130,55 +4090,51 @@ real *del, *lanlut;
     /* Function Body */
     for__ = (real) (*order);
 /* Set the first value to avoid arithmetic problems */
-    lanlut[1] = (float)1.;
+    lanlut[1] = 1.f;
     i__1 = *npix;
     for (i__ = 2; i__ <= i__1; ++i__) {
-	poff = ((real) i__ - (float)1.) * (float)3.141592653 * *del;
-	if (poff < for__ * (float)3.141592653) {
+	poff = ((real) i__ - 1.f) * 3.141592653f * *del;
+	if (poff < for__ * 3.141592653f) {
 	    lanlut[i__] = sin(poff) / poff * sin(poff / for__) / (poff / 
 		    for__);
 	} else {
-	    lanlut[i__] = (float)0.;
+	    lanlut[i__] = 0.f;
 	}
     }
     return 0;
 } /* filalu_ */
 
-/* Subroutine */ int chover_(y, margin, dnx, dny, onx, ony, xsh, ysh, rot, 
-	scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, shfr2,
-	 rotf2, usewcs, wcsin, wcsout, coty, conum, xco, yco, disim, pxg, pyg,
-	 xgdim, ygdim, ofrac, x1, x2, align_len, shfr2_len)
-doublereal *y;
-integer *margin, *dnx, *dny, *onx, *ony;
-doublereal *xsh, *ysh, *rot, *scale;
-char *align;
-logical *rotfir, *secpar;
-doublereal *xsh2, *ysh2, *rot2, *xscale, *yscale;
-char *shfr2;
-logical *rotf2, *usewcs;
-doublereal *wcsin, *wcsout;
-integer *coty, *conum;
-doublereal *xco, *yco;
-logical *disim;
-real *pxg, *pyg;
-integer *xgdim, *ygdim;
-doublereal *ofrac;
-integer *x1, *x2;
-ftnlen align_len;
-ftnlen shfr2_len;
+/* Subroutine */ int chover_(doublereal *y, integer *margin, integer *dnx, 
+	integer *dny, integer *onx, integer *ony, doublereal *xsh, doublereal 
+	*ysh, doublereal *rot, doublereal *scale, char *align, logical *
+	rotfir, logical *secpar, doublereal *xsh2, doublereal *ysh2, 
+	doublereal *rot2, doublereal *xscale, doublereal *yscale, char *shfr2,
+	 logical *rotf2, logical *usewcs, doublereal *wcsin, doublereal *
+	wcsout, integer *coty, integer *conum, doublereal *xco, doublereal *
+	yco, logical *disim, real *pxg, real *pyg, integer *xgdim, integer *
+	ygdim, doublereal *ofrac, integer *x1, integer *x2, ftnlen align_len, 
+	ftnlen shfr2_len)
 {
     /* System generated locals */
     integer pxg_dim1, pxg_offset, pyg_dim1, pyg_offset, i__1, i__2;
     doublereal d__1, d__2, d__3, d__4, d__5, d__6, d__7, d__8;
 
     /* Local variables */
+    static integer i__, np;
     static logical logo[21];
     static integer nhit, last;
     static doublereal xval[21];
     static integer step;
     static doublereal yval[21], xout[21], yout[21];
-    static integer i__, first, nmiss, np;
-    extern /* Subroutine */ int drival_();
+    static integer first, nmiss;
+    extern /* Subroutine */ int drival_(doublereal *, doublereal *, integer *,
+	     integer *, integer *, integer *, integer *, logical *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, char *, 
+	    logical *, logical *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, char *, logical *, logical *, 
+	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
+	    doublereal *, logical *, real *, real *, integer *, integer *, 
+	    doublereal *, doublereal *, ftnlen, ftnlen);
 
 
 /* Check how much of a line will overlap an output image, if any, */
@@ -4199,10 +4155,10 @@ ftnlen shfr2_len;
     --yco;
     --xco;
     pyg_dim1 = *xgdim;
-    pyg_offset = 1 + pyg_dim1 * 1;
+    pyg_offset = 1 + pyg_dim1;
     pyg -= pyg_offset;
     pxg_dim1 = *xgdim;
-    pxg_offset = 1 + pxg_dim1 * 1;
+    pxg_offset = 1 + pxg_dim1;
     pxg -= pxg_offset;
 
     /* Function Body */
@@ -4248,9 +4204,9 @@ ftnlen shfr2_len;
 	d__5 = yout[i__ - 1], d__6 = yout[i__];
 /* Computing MIN */
 	d__7 = yout[i__ - 1], d__8 = yout[i__];
-	if (max(d__1,d__2) >= (float)1. - *margin && min(d__3,d__4) <= (
-		doublereal) (*onx + *margin) && max(d__5,d__6) >= (float)1. - 
-		*margin && min(d__7,d__8) <= (doublereal) (*ony + *margin)) {
+	if (max(d__1,d__2) >= 1.f - *margin && min(d__3,d__4) <= (doublereal) 
+		(*onx + *margin) && max(d__5,d__6) >= 1.f - *margin && min(
+		d__7,d__8) <= (doublereal) (*ony + *margin)) {
 	    logo[i__ - 1] = TRUE_;
 	    logo[i__] = TRUE_;
 	}
@@ -4299,27 +4255,21 @@ L88:
     return 0;
 } /* chover_ */
 
-doublereal ginter_(x, y, data, nx, ny, lut, nlut, space, nbox, misval)
-real *x, *y, *data;
-integer *nx, *ny;
-real *lut;
-integer *nlut;
-real *space;
-integer *nbox;
-real *misval;
+doublereal ginter_(real *x, real *y, real *data, integer *nx, integer *ny, 
+	real *lut, integer *nlut, real *space, integer *nbox, real *misval)
 {
     /* System generated locals */
     integer data_dim1, data_offset, i__1, i__2;
     real ret_val, r__1, r__2;
 
     /* Builtin functions */
-    integer i_nint();
+    integer i_nint(real *);
 
     /* Local variables */
-    static integer xoff, yoff;
-    static real luty;
     static integer i__, j, ixe, iye, ixs, iys;
     static real sum;
+    static integer xoff, yoff;
+    static real luty;
 
 
 /* General interpolation using a lookup table */
@@ -4338,7 +4288,7 @@ real *misval;
 /* value */
     /* Parameter adjustments */
     data_dim1 = *nx;
-    data_offset = 1 + data_dim1 * 1;
+    data_offset = 1 + data_dim1;
     data -= data_offset;
     --lut;
 
@@ -4352,7 +4302,7 @@ real *misval;
 	return ret_val;
     }
 /* Loop over the box, which is assumed to be scaled appropriately */
-    sum = (float)0.;
+    sum = 0.f;
     i__1 = iye;
     for (j = iys; j <= i__1; ++j) {
 	r__2 = (r__1 = (*y - (real) j) / *space, dabs(r__1));
@@ -4369,9 +4319,7 @@ real *misval;
     return ret_val;
 } /* ginter_ */
 
-/* Subroutine */ int set1r_(a, arr, npix)
-real *a, *arr;
-integer *npix;
+/* Subroutine */ int set1r_(real *a, real *arr, integer *npix)
 {
     /* System generated locals */
     integer i__1;
@@ -4399,10 +4347,8 @@ integer *npix;
     return 0;
 } /* set1r_ */
 
-/* Subroutine */ int wsumr_(a, b, c__, npix, w1, w2)
-real *a, *b, *c__;
-integer *npix;
-real *w1, *w2;
+/* Subroutine */ int wsumr_(real *a, real *b, real *c__, integer *npix, real *
+	w1, real *w2)
 {
     /* System generated locals */
     integer i__1;

@@ -1,6 +1,13 @@
-/* doblot.f -- translated by f2c (version 19991025).
-   You must link the resulting object file with the libraries:
-	-lf2c -lm   (in that order)
+/* doblot.f -- translated by f2c (version 20031025).
+   You must link the resulting object file with libf2c:
+	on Microsoft Windows system, link with libf2c.lib;
+	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+	or, if you install libf2c.a in a standard place, with -lf2c -lm
+	-- in that order, at the end of the command line, as in
+		cc *.o -lf2c -lm
+	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+
+		http://www.netlib.org/f2c/libf2c.zip
 */
 
 #include "f2c.h"
@@ -9,7 +16,7 @@
 
 static integer c__3 = 3;
 static integer c__2048 = 2048;
-static real c_b4 = (float).01;
+static real c_b4 = .01f;
 static integer c__5 = 5;
 static integer c__1 = 1;
 static integer c__0 = 0;
@@ -17,34 +24,18 @@ static integer c__4 = 4;
 static logical c_false = FALSE_;
 static logical c_true = TRUE_;
 
-/* Subroutine */ int doblot_(data, ndat, intype, sinscl, kscale, misval, xmin,
-	 xmax, ymin, ymax, dnx, dny, rotfir, ef, align, onx, ony, coty, conum,
-	 xco, yco, disim, pxg, pyg, pxdim, pydim, xin, yin, xout, yout, scale,
-	 rot, xsh, ysh, usewcs, wcsin, wcsout, geomod, secpar, xsh2, ysh2, 
-	rot2, xscale, yscale, shfr2, rotf2, align_len, geomod_len, shfr2_len)
-real *data, *ndat;
-integer *intype;
-real *sinscl, *kscale, *misval;
-integer *xmin, *xmax, *ymin, *ymax, *dnx, *dny;
-logical *rotfir;
-real *ef;
-char *align;
-integer *onx, *ony, *coty, *conum;
-doublereal *xco, *yco;
-logical *disim;
-real *pxg, *pyg;
-integer *pxdim, *pydim;
-doublereal *xin, *yin, *xout, *yout, *scale, *rot, *xsh, *ysh;
-logical *usewcs;
-doublereal *wcsin, *wcsout;
-char *geomod;
-logical *secpar;
-doublereal *xsh2, *ysh2, *rot2, *xscale, *yscale;
-char *shfr2;
-logical *rotf2;
-ftnlen align_len;
-ftnlen geomod_len;
-ftnlen shfr2_len;
+/* Subroutine */ int doblot_(real *data, real *ndat, integer *intype, real *
+	sinscl, real *kscale, real *misval, integer *xmin, integer *xmax, 
+	integer *ymin, integer *ymax, integer *dnx, integer *dny, logical *
+	rotfir, real *ef, char *align, integer *onx, integer *ony, integer *
+	coty, integer *conum, doublereal *xco, doublereal *yco, logical *
+	disim, real *pxg, real *pyg, integer *pxdim, integer *pydim, 
+	doublereal *xin, doublereal *yin, doublereal *xout, doublereal *yout, 
+	doublereal *scale, doublereal *rot, doublereal *xsh, doublereal *ysh, 
+	logical *usewcs, doublereal *wcsin, doublereal *wcsout, char *geomod, 
+	logical *secpar, doublereal *xsh2, doublereal *ysh2, doublereal *rot2,
+	 doublereal *xscale, doublereal *yscale, char *shfr2, logical *rotf2, 
+	ftnlen align_len, ftnlen geomod_len, ftnlen shfr2_len)
 {
     /* System generated locals */
     integer data_dim1, data_offset, ndat_dim1, ndat_offset, pxg_dim1, 
@@ -53,35 +44,51 @@ ftnlen shfr2_len;
     doublereal d__1;
 
     /* Builtin functions */
-    integer s_cmp();
-    double sqrt();
-    integer i_nint(), s_wsfi(), do_fio(), e_wsfi();
+    integer s_cmp(char *, char *, ftnlen, ftnlen);
+    double sqrt(doublereal);
+    integer i_nint(real *), s_wsfi(icilist *), do_fio(integer *, char *, 
+	    ftnlen), e_wsfi(void);
 
     /* Local variables */
+    static integer i__, j;
+    static real v, s2;
+    static doublereal dx, dy;
+    static integer lx, ly;
+    static real xo, yo;
+    static doublereal yv;
+    static real ks2, spk;
     static doublereal xcen, ycen;
-    static integer nbox, i__, j;
-    static real v;
+    static integer nbox;
     static doublereal scall;
     static char chars[80];
     static doublereal scdis;
     static integer istat, nmiss;
-    static real s2;
-    static doublereal dx, dy;
-    static integer lx, ly;
-    static real xo, yo;
-    extern /* Subroutine */ int filalu_();
-    static doublereal yv;
-    extern /* Subroutine */ int drival_();
-    extern doublereal ginter_(), nrievl_();
+    extern /* Subroutine */ int filalu_(integer *, integer *, real *, real *),
+	     drival_(doublereal *, doublereal *, integer *, integer *, 
+	    integer *, integer *, integer *, logical *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, char *, logical *, 
+	    logical *, doublereal *, doublereal *, doublereal *, doublereal *,
+	     doublereal *, char *, logical *, logical *, doublereal *, 
+	    doublereal *, integer *, integer *, doublereal *, doublereal *, 
+	    logical *, real *, real *, integer *, integer *, doublereal *, 
+	    doublereal *, ftnlen, ftnlen);
+    extern doublereal ginter_(real *, real *, real *, integer *, integer *, 
+	    real *, integer *, real *, integer *, real *), nrievl_(real *, 
+	    real *, real *, integer *, integer *, integer *, integer *, real *
+	    );
     static real lanlut[2048];
-    extern /* Subroutine */ int bupwcs_();
-    static real ks2;
-    extern /* Subroutine */ int umsput_();
-    static real spk;
+    extern /* Subroutine */ int bupwcs_(doublereal *, doublereal *, integer *,
+	     integer *, integer *, integer *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, char *, logical *, logical *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, char *, logical *, logical *, integer *, integer *, 
+	    doublereal *, doublereal *, logical *, real *, real *, integer *, 
+	    integer *, ftnlen, ftnlen), umsput_(char *, integer *, integer *, 
+	    integer *, ftnlen);
 
     /* Fortran I/O blocks */
-    static icilist io___23 = { 0, chars, 0, "('! Warning, ',I7,' points were\
- outside ','the output image.')", 80, 1 };
+    static icilist io___23 = { 0, chars, 0, "('! Warning, ',I7,' points were"
+	    " outside ','the output image.')", 80, 1 };
 
 
 
@@ -100,22 +107,22 @@ ftnlen shfr2_len;
 
     /* Parameter adjustments */
     data_dim1 = *xmax - *xmin + 1;
-    data_offset = 1 + data_dim1 * 1;
+    data_offset = 1 + data_dim1;
     data -= data_offset;
     --yout;
     --xout;
     --yin;
     --xin;
     ndat_dim1 = *onx;
-    ndat_offset = 1 + ndat_dim1 * 1;
+    ndat_offset = 1 + ndat_dim1;
     ndat -= ndat_offset;
     --yco;
     --xco;
     pyg_dim1 = *pxdim;
-    pyg_offset = 1 + pyg_dim1 * 1;
+    pyg_offset = 1 + pyg_dim1;
     pyg -= pyg_offset;
     pxg_dim1 = *pxdim;
-    pxg_offset = 1 + pxg_dim1 * 1;
+    pxg_offset = 1 + pxg_dim1;
     pxg -= pxg_offset;
     --wcsin;
     --wcsout;
@@ -141,11 +148,11 @@ ftnlen shfr2_len;
     if (*usewcs) {
 	umsput_("USEWCS true...\n", &c__1, &c__0, &istat, (ftnlen)15);
 	if (s_cmp(align, "corner", (ftnlen)8, (ftnlen)6) == 0) {
-	    xcen = (doublereal) (*onx / 2) + (float).5;
-	    ycen = (doublereal) (*ony / 2) + (float).5;
+	    xcen = (doublereal) (*onx / 2) + .5f;
+	    ycen = (doublereal) (*ony / 2) + .5f;
 	} else {
-	    xcen = (doublereal) (*onx / 2) + (float)1.;
-	    ycen = (doublereal) (*ony / 2) + (float)1.;
+	    xcen = (doublereal) (*onx / 2) + 1.f;
+	    ycen = (doublereal) (*ony / 2) + 1.f;
 	}
 	xin[1] = xcen;
 	xin[2] = xcen;
@@ -192,16 +199,16 @@ ftnlen shfr2_len;
 /* Recalculate the area scaling factor */
     s2 = (real) (*scale * *scale);
 /* Some useful numbers */
-    spk = *kscale * (float).01;
+    spk = *kscale * .01f;
     if (*intype == 100) {
-	r__1 = (float)3. / *kscale;
+	r__1 = 3.f / *kscale;
 	nbox = i_nint(&r__1);
     } else if (*intype == 105) {
-	r__1 = (float)5. / *kscale;
+	r__1 = 5.f / *kscale;
 	nbox = i_nint(&r__1);
     }
     if (*intype >= 100) {
-	ks2 = (float)1. / (*kscale * *kscale);
+	ks2 = 1.f / (*kscale * *kscale);
     }
 /* Outer loop over output image pixels (X,Y) */
     i__1 = *ony;
@@ -225,8 +232,8 @@ ftnlen shfr2_len;
 	    xo = (real) (xout[i__] - dx);
 	    yo = (real) (yout[i__] - dy);
 /* Check it is on the input image */
-	    if (xo >= (float)1. && xo <= (real) lx && yo >= (float)1. && yo <=
-		     (real) ly) {
+	    if (xo >= 1.f && xo <= (real) lx && yo >= 1.f && yo <= (real) ly) 
+		    {
 /* Check for look-up-table interpolation */
 		if (*intype >= 100) {
 		    v = ginter_(&xo, &yo, &data[data_offset], &lx, &ly, 
