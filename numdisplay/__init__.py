@@ -106,7 +106,7 @@ try:
 except ImportError:
     geotrans = None
 
-__version__ = "0.1beta2 (14-Oct-2003)"
+__version__ = "0.1.3 (21-Oct-2003)"
 #
 # Version 0.1-alpha: Initial release 
 #       WJH 7-Oct-2003
@@ -145,8 +145,8 @@ class NumDisplay:
         # default values for attributes used to determine pixel range values
         self.zscale = 0
         self.stepline = 6
-        self.contrast = 1
-        self.nlines = 256
+        self.contrast = 1    # Not implemented yet!
+        self.nlines = 256    # Not implemented yet!
         
         # If zrange != 0, use user-specified min/max values
         self.zrange = False
@@ -203,7 +203,6 @@ class NumDisplay:
         else:
             self.offset = None
         
-
     def _noTransform(self, image):
         """ Applies NO transformation to image. Returns original. 
             This will be the default operation when None is specified by user.
@@ -259,7 +258,7 @@ class NumDisplay:
         _xend = max( (_lx + _nx),_nx)
         _ystart = max(_ly, 0)
         _yend = max( (_ly + _ny), _ny)    
-
+        
         # Return bytescaled, frame-buffer trimmed image            
         if (_xstart == 0 and _xend == pix.shape[0]) and (_ystart == 0 and _yend == pix.shape[1]):
             return self._bscaleImage(pix, self.z1, self.z2)
@@ -333,14 +332,15 @@ class NumDisplay:
         if _z1 == _z2:
             print 'Error encountered during transformation. No transformation applied...'
             bpix = pix
-        else:
-            self.z1 = _z1
-            self.z2 = _z2
-        
+            self.z1 = numarray.minimum.reduce(numarray.ravel(bpix))
+            self.z2 = numarray.maximum.reduce(numarray.ravel(bpix))
+
         _wcsinfo = displaydev.ImageWCS(bpix,z1=self.z1,z2=self.z2,name=name)
 
         bpix = self._fbclipImage(bpix,_d.fbwidth,_d.fbheight)
-        
+        _z1 = numarray.minimum.reduce(numarray.ravel(bpix))
+        _z2 = numarray.maximum.reduce(numarray.ravel(bpix))
+                
         # Update the WCS to match the frame buffer being used.
         _d.syncWCS(_wcsinfo)   
         

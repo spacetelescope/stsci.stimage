@@ -485,17 +485,17 @@ class ImageDisplay:
         if _lper_block == 1:
             # send each line of image to display
             for block in xrange(int(_nblocks)):
-                _ydisp = _fbh - (_ty - block)
+                _ydisp = _fbh - (_ty - (block+1))
                 self.writeData(_lx,_ydisp,_fpix[block,:])
         else:
             # display each line segment separately
             for block in xrange(int(_nblocks)):
-                _y0 = block * _lper_block
-                _ydisp = _fbh - (_ty - _y0)
+                _y0 = (block+1) * _lper_block
+                _ydisp = _fbh - (_ty - _y0)                
                 _xper_block = (_nx / (_nx * _lper_block))
                 for xblock in xrange(int(_xper_block)):
                     _x0 = xblock * _xper_block
-                    _xend = xblock+1 * _xper_block
+                    _xend = xblock + 1 * _xper_block
                     if _xend > _nx: _xend = _nx
                     self.writeData(_lx,_ydisp,_fpix[_y0,_x0:_xend])
                     
