@@ -88,13 +88,15 @@ class Exposure:
             self.chip = str(_chip)
             # Keep track of any distortion correction images provided
             # for this chip
-            self.dgeoname = fileutil.getKeyword(expname,'DGEOFILE')
+            self.dgeoname = fileutil.getKeyword(expname,'DGEOFILE',header=_header)
             self.xgeoim,self.ygeoim = self.getDGEOExtn()
-
+            self.plam = float(fileutil.getKeyword(expname,'PHOTPLAM',header=_header)) / 10.
         else:
             _chip = 1
             _header = None
             self.chip = str(_chip)
+            # Set a default value for pivot wavelength
+            self.plam = 555.
 
         self.parity = parity
         self.dateobs = dateobs

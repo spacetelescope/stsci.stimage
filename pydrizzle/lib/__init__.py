@@ -879,6 +879,7 @@ class Pattern:
             member.geometry.model.convert(coeffs,xref=_xref,yref=_yref,delta=_delta)
             parameters['coeffs'] = coeffs
 
+            parameters['plam'] = member.plam
 
             # Set up the distortion image names as parameters
             parameters['xgeoim'] = member.xgeoim

@@ -2,6 +2,7 @@
 Version 5.2.6 (5-Oct-2004) WJH
       - Output product name no longer all lower-case, but rather uses the 
         exact case specified by the user in the ASN table.
+      - Added 'plam' to parlist for output to drizzle parameters in header
 Version 5.2.5 (29-Sept-2004) WJH
       - Insured that all input EXPTIME values are non-zero by setting
         any EXPTIME that is read in with a value of 0.0 to a value of 1.0.

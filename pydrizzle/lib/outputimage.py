@@ -403,7 +403,7 @@ class OutputImage:
             hdr.update(_keyprefix+'YGIM',pl['ygeoim'][:64],
                 comment= 'Drizzle, Y distortion image name ')
 
-            hdr.update(_keyprefix+'LAM',"",
+            hdr.update(_keyprefix+'LAM',pl['plam'],
                 comment='Drizzle, wavelength applied for transformation (nm)')
 
     #       Only put the next entries is we are NOT using WCS
