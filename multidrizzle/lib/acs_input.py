@@ -24,8 +24,13 @@
 #           Version 0.1.14 07/29/04 -- Plate scale is now defined by the Pydrizzle
 #               exposure class by use of a plate scale variable passed in through
 #               the constructor.
+#           Version 0.1.15 09/15/04 -- Modified SBCInputImage for overloading of
+#               gain and readnoise values by user input.  Also modified handling
+#               of an input CR bit value of 0 to be converted to a None type.  This
+#               allows the DQ array update step to be turned off in DRIZ_CR.
+ 
 
-__version__ = '0.1.14'
+__version__ = '0.1.15'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -74,9 +79,9 @@ class ACSInputImage (InputImage):
             instrpars['rnkeyword'] = 'READNSEA,READNSEB,READNSEC,READNSED'
         if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
             instrpars['expkeyword'] = 'EXPTIME'
-        if instrpars['crbit'] == None or instrpars['crbit'] == 0:
+        if instrpars['crbit'] == None:
             instrpars['crbit'] = self.cr_bits_value
-
+         
         self._gain      = self.getInstrParameter(instrpars['gain'], pri_header,
                                                  instrpars['gnkeyword'])
         self._rdnoise   = self.getInstrParameter(instrpars['rdnoise'], pri_header,
@@ -88,8 +93,6 @@ class ACSInputImage (InputImage):
         if self._gain == None or self._rdnoise == None or self._exptime == None:
             print 'ERROR: invalid instrument task parameter'
             raise ValueError
-
-#        InputImage.setInstrumentParameters(self, instrpars, pri_header)
 
 class WFCInputImage (ACSInputImage):
 
@@ -120,13 +123,15 @@ class SBCInputImage (ACSInputImage):
     def setInstrumentParameters(self, instrpars, pri_header):
         """ Sets the instrument parameters.
         """
+        if self._isNotValid (instrpars['gain'], instrpars['gnkeyword']):
+            instrpars['gnkeyword'] = None
+        if self._isNotValid (instrpars['rdnoise'], instrpars['rnkeyword']):
+            instrpars['rnkeyword'] = None
         if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
             instrpars['expkeyword'] = 'EXPTIME'
-        if instrpars['crbit'] == None or instrpars['crbit'] == 0:
+        if instrpars['crbit'] == None:
             instrpars['crbit'] = self.cr_bits_value
-
-        self._gain      = 1
-        self._rdnoise   = 0
+      
         self._exptime   = self.getInstrParameter(instrpars['exptime'], pri_header,
                                                  instrpars['expkeyword'])
         self._crbit     = instrpars['crbit']
@@ -134,3 +139,58 @@ class SBCInputImage (ACSInputImage):
         if self._exptime == None:
             print 'ERROR: invalid instrument task parameter'
             raise ValueError
+
+        # We need to treat Read Noise and Gain as a special case since it is 
+        # not populated in the SBC primary header for the MAMA
+        if (instrpars['rnkeyword'] != None):
+            self._rdnoise   = self.getInstrParameter(instrpars['rdnoise'], pri_header,
+                                                     instrpars['rnkeyword'])                                                 
+        else:
+            self._rdnoise = None
+        if (instrpars['gnkeyword'] != None):
+            self._gain = self.getInstrParameter(instrpars['gain'], pri_header,
+                                                     instrpars['gnkeyword'])
+        else:
+            self._gain = None
+ 
+
+        if self._exptime == None:
+            print 'ERROR: invalid instrument task parameter'
+            raise ValueError
+
+        # We need to determine if the user has used the default readnoise/gain value
+        # since if not, they will need to supply a gain/readnoise value as well                
+        usingDefaultGain = False
+        usingDefaultReadnoise = False
+        if (instrpars['gnkeyword'] == None):
+            usingDefaultGain = True
+        if (instrpars['rnkeyword'] == None):
+            usingDefaultReadnoise = True
+
+        # Set the default readnoise or gain values based upon the amount of user input given.
+        
+        # Case 1: User supplied no gain or readnoise information
+        if usingDefaultReadnoise and usingDefaultGain:
+            # Set the default gain and readnoise values
+            self._setSBCchippars()
+        # Case 2: The user has supplied a value for gain
+        elif usingDefaultReadnoise and not usingDefaultGain:
+            # Set the default readnoise value
+            self._setDefaultSBCReadnoise()
+        # Case 3: The user has supplied a value for readnoise 
+        elif not usingDefaultReadnoise and usingDefaultGain:
+            # Set the default gain value
+            self._setDefaultSBCGain()
+        else:
+            # In this case, the user has specified both a gain and readnoise values.  Just use them as is.
+            pass
+
+    def _setSBCchippars(self):
+        self._setDefaultSBCGain()
+        self._setDefaultSBCReadnoise()
+     
+    def _setDefaultSBCGain(self):
+        self._gain = 1
+
+    def _setDefaultSBCReadnoise(self):
+        self._rdnoise = 0

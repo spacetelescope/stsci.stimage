@@ -10,7 +10,11 @@
 #           Version 0.2.0 08/30/04 -- Added support for NUV and FUV MAMAs.
 #           Version 0.2.1 09/14/-4 -- Modified the setInstrumentParameters methods
 #                to allow for user input.  -- CJH
-__version__ = '0.2.1'
+#           Version 0.2.2 09/15/04 -- Modified the setInstrumentParameters to treat
+#               a user cr bit input value of zero as a None.  This allows the
+#               user to turn off the DQ array update during the Driz_CR step. -- CJH
+
+__version__ = '0.2.2'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -27,7 +31,7 @@ class STISInputImage (InputImage):
         InputImage.__init__(self,input,dqname,platescale,memmap=1)
         
         # define the cosmic ray bits value to use in the dq array
-        self.cr_bits_value = 4096
+        self.cr_bits_value = 8192
         self.platescale = platescale
         
         # Effective gain to be used in the driz_cr step.  Since the
@@ -46,7 +50,7 @@ class STISInputImage (InputImage):
             instrpars['rnkeyword'] = 'READNSE'
         if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
             instrpars['expkeyword'] = 'EXPTIME'
-        if instrpars['crbit'] == None or instrpars['crbit'] == 0:
+        if instrpars['crbit'] == None:
             instrpars['crbit'] = self.cr_bits_value
 
         self._gain      = self.getInstrParameter(instrpars['gain'], pri_header,
@@ -104,13 +108,13 @@ class STISInputImage (InputImage):
         del __sciext
 
     def _setMAMAchippars(self):
-        self._setDefaultMAMAGain()
-        self._setDefaultMAMAReadnoise()
+        self._setDefaultGain()
+        self._setDefaultReadnoise()
      
-    def _setDefaultMAMAGain(self):
+    def _setMAMADefaultGain(self):
         self._gain = 1
 
-    def _setDefaultMAMAReadnoise(self):
+    def _setMAMADefaultReadnoise(self):
         self._rdnoise = 0
 
 class CCDInputImage(STISInputImage):
@@ -138,7 +142,7 @@ class NUVInputImage(STISInputImage):
             instrpars['rnkeyword'] = None
         if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
             instrpars['expkeyword'] = 'EXPTIME'
-        if instrpars['crbit'] == None or instrpars['crbit'] == 0:
+        if instrpars['crbit'] == None:
             instrpars['crbit'] = self.cr_bits_value
 
         self._exptime   = self.getInstrParameter(instrpars['exptime'], pri_header,
@@ -181,11 +185,11 @@ class NUVInputImage(STISInputImage):
         # Case 2: The user has supplied a value for gain
         elif usingDefaultReadnoise and not usingDefaultGain:
             # Set the default readnoise value
-            self._setDefaultReadnoise()
+            self._setMAMADefaultReadnoise()
         # Case 3: The user has supplied a value for readnoise 
         elif not usingDefaultReadnoise and usingDefaultGain:
             # Set the default gain value
-            self._setDefaultGain()
+            self._setMAMADefaultGain()
         else:
             # In this case, the user has specified both a gain and readnoise values.  Just use them as is.
             pass
@@ -207,7 +211,7 @@ class FUVInputImage(STISInputImage):
             instrpars['rnkeyword'] = None
         if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
             instrpars['expkeyword'] = 'EXPTIME'
-        if instrpars['crbit'] == None or instrpars['crbit'] == 0:
+        if instrpars['crbit'] == None:
             instrpars['crbit'] = self.cr_bits_value
 
         self._exptime   = self.getInstrParameter(instrpars['exptime'], pri_header,
@@ -254,11 +258,11 @@ class FUVInputImage(STISInputImage):
         # Case 2: The user has supplied a value for gain
         elif usingDefaultReadnoise and not usingDefaultGain:
             # Set the default readnoise value
-            self._setDefaultReadnoise()
+            self._setMAMADefaultReadnoise()
         # Case 3: The user has supplied a value for readnoise 
         elif not usingDefaultReadnoise and usingDefaultGain:
             # Set the default gain value
-            self._setDefaultGain()
+            self._setMAMADefaultGain()
         else:
             # In this case, the user has specified both a gain and readnoise values.  Just use them as is.
             pass

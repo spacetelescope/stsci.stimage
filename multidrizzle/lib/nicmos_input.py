@@ -4,8 +4,11 @@
 #   Purpose: Class used to model NICMOS specific instrument data.
 #   History:
 #           Version 0.1.0, ----------- Created
-
-__version__ = '0.1.0'
+#           Version 0.1.1 09/15/04 -- Modified the setInstrumentParameters to treat
+#               a user cr bit input value of zero as a None.  This allows the
+#               user to turn off the DQ array update during the Driz_CR step. -- CJH
+           
+__version__ = '0.1.1'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -22,7 +25,7 @@ class NICMOSInputImage (InputImage):
         InputImage.__init__(self,input,dqname,platescale,memmap=1)
         
         # define the cosmic ray bits value to use in the dq array
-        self.cr_bits_value = 4096
+        self.cr_bits_value = 0
         self.platescale = platescale
         
         # Effective gain to be used in the driz_cr step.  Since the
@@ -41,9 +44,9 @@ class NICMOSInputImage (InputImage):
             instrpars['rnkeyword'] = None
         if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
             instrpars['expkeyword'] = 'EXPTIME'
-        if instrpars['crbit'] == None or instrpars['crbit'] == 0:
+        if instrpars['crbit'] == None:
             instrpars['crbit'] = self.cr_bits_value
-
+   
         self._gain      = self.getInstrParameter(instrpars['gain'], pri_header,
                                                  instrpars['gnkeyword'])
         self._rdnoise   = self.getInstrParameter(instrpars['rdnoise'], pri_header,
@@ -57,7 +60,7 @@ class NICMOSInputImage (InputImage):
             raise ValueError
 
         # We need to treat Read Noise as a special case since it is 
-        # not populated in the WFPC2 primary header
+        # not populated in the NICMOS primary header
         if (instrpars['rnkeyword'] != None):
             self._rdnoise   = self.getInstrParameter(instrpars['rdnoise'], pri_header,
                                                      instrpars['rnkeyword'])                                                 

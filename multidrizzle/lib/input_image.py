@@ -32,8 +32,10 @@
 #               if a user were to specify both a header keyword and a value for a specific parameter.
 #               This type of input is ambiguous.  Previously the value would be used and the header
 #               keyword silently ignored. -- CJH
+#           Version 0.1.37 09/15/04 -- The runDrizCR step was modified to skip the DQ array update if the
+#               cr bit value being used is None.  -- CJH
 
-__version__ = '0.1.36'
+__version__ = '0.1.37'
 
 import pyfits
 
@@ -339,15 +341,20 @@ class InputImage:
                             backg = self.getSubtractedSky(),
                             scale = drizcrpars['driz_cr_scale'])
 
-            # Update the dq information if there is a dq array to update.
-            # In the case of WFPC2 input, no DQ file may have been provided.
-            # For ACS, there will always be DQ array information in the FLT file.
-            if fileutil.findFile(self.dqfile_fullname):
-                __dqhandle = fileutil.openImage(self.dqfile_name,mode='update',memmap=1)
-                __dqarray = fileutil.getExtn(__dqhandle,extn=self.dqfile_extn)
-                __tmpDriz_cr.updatedqarray(__dqarray.data,self.cr_bits_value)
-                __dqhandle.close()
-                
+
+            # If the user provided a None value for the cr bit, don't
+            # update the dqarray
+            if (self.getCRbit() != 0):
+                # Update the dq information if there is a dq array to update.
+                # In the case of WFPC2 input, no DQ file may have been provided.
+                # For ACS, there will always be DQ array information in the FLT file.
+                if fileutil.findFile(self.dqfile_fullname):
+                    __dqhandle = fileutil.openImage(self.dqfile_name,mode='update',memmap=1)
+                    __dqarray = fileutil.getExtn(__dqhandle,extn=self.dqfile_extn)
+                    __tmpDriz_cr.updatedqarray(__dqarray.data,self.getCRbit())
+                    __dqhandle.close()
+            else:
+                print "  CR bit value of 0 specified.  Skipping DQ array updates."
 
             if  (corr_file != None):
                 __tmpDriz_cr.createcorrfile(corr_file)

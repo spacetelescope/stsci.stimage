@@ -16,8 +16,11 @@
 #           Version 0.1.2 09/09/04 -- The setInstrumentParameters was modifed so
 #               that user input of gain and readnoise parameters would not be
 #               ignored. -- CJH
-               
-__version__ = '0.1.2'
+#           Version 0.1.3 09/15/04 -- Modified the setInstrumentParameters to treat
+#               a user cr bit input value of zero as a None.  This allows the
+#               user to turn off the DQ array update during the Driz_CR step. -- CJH
+
+__version__ = '0.1.3'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -59,7 +62,7 @@ class WFPC2InputImage (InputImage):
         if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
             instrpars['expkeyword'] = 'EXPTIME'
 
-        if instrpars['crbit'] == None or instrpars['crbit'] == 0:
+        if instrpars['crbit'] == None:
             instrpars['crbit'] = self.cr_bits_value
 
         self._headergain      = self.getInstrParameter(instrpars['gain'], pri_header,
