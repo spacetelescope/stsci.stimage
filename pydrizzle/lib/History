@@ -1,4 +1,10 @@
 ### PyDrizzle Revision Changes
+Version 5.0.19 (9-July-2004) WJH
+      - 'fileutil.findFile' made more general with the ability to determine
+        whether the file with a given extension exists, not just the filename
+        itself.  
+      - Modified 'findDQName' for WFPCObservation class to set dq_extname 
+        to 'sdq,1' if input is FITS file.
 Version 5.0.18 (2-July-2004) WJH
       - Updated ImType class to support different files for SCI and DQ
         arrays, such as those for WFPC2 data.

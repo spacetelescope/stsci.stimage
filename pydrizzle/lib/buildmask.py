@@ -74,6 +74,9 @@ def buildMaskImage(rootname,bitvalue,extname='DQ',extver=1):
     fdq = fileutil.openImage(rootname,memmap=1,mode='readonly')
     try:
         _extn = fileutil.findExtname(fdq,extname,extver=extver)
+        if _extn == None:
+            raise Exception
+
         # Read in DQ array
         #dqarr = fdq[extname,extver].data
         dqarr = fdq[_extn].data
@@ -211,7 +214,7 @@ def buildShadowMaskImage(rootname,detnum,replace=yes,bitvalue=None):
         #
         # Build full mask based on .c1h and shadow mask
         #
-        fdq = readgeis.readgeis(_dqname)
+        fdq = fileutil.openImage(_dqname)
         #fsmask = pyfits.open(_mask,memmap=1,mode='readonly')
         try:
             # Read in DQ array from .c1h and from shadow mask files

@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.0.18 (2-July-2004)"
+__version__ = "5.0.19 (9-July-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -1491,7 +1491,9 @@ class WFPCObservation(Pattern):
             self.imtype.dqfile = _dqfile
 
             # Set the DQ extname to that used by WFPC2 C1H images
-            self.imtype.dq_extname = 'sdq'
+            if _dqfile.find('.fits') > 0:
+                self.imtype.dq_extname = 'sdq'
+                self.imtype.dq_extn = '[sdq,1]'
 
             # Build mask file for this member chip
             _dqname = self.imtype.makeDQName(extver=_detnum)
@@ -1543,7 +1545,7 @@ class DitherProduct(Pattern):
     def __init__(self, prodlist, pars=None):
 
         # Build temporary output drizzle product name
-        output = fileutil.buildRootname(string.lower(prodlist['output']),ext=['_drz.fits'])
+        output = fileutil.buildNewRootname(string.lower(prodlist['output']),extn='_drz.fits')
 
         # Setup a default exposure to contain the results
         Pattern.__init__(self, None, output=output, pars=pars)

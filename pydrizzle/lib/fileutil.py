@@ -564,12 +564,44 @@ def findFile(input):
 
     flist = os.listdir(_fdir)
 
+    _root,_extn = parseFilename(_fname)
+
     found = no
     for name in flist:
         #if not string.find(name,_fname):
-        if name == _fname:
-            found = yes
-            continue
+        if name == _root:
+            # Check to see if given extension, if any, exists
+            if _extn == None:
+                found = yes
+                continue
+            else:
+                _split = _extn.split(',')
+                _extnum = None
+                _extver = None
+                if  _split[0].isdigit():
+                    _extname = None
+                    _extnum = int(_split[0])
+                else:
+                    _extname = _split[0]
+                    if len(_split) > 1:
+                        _extver = int(_split[1])
+                    else:
+                        _extver = 1
+                f = openImage(_root)
+                f.close()
+                if _extnum:
+                    if _extnum < len(f):
+                        found = yes
+                        del f
+                        continue
+                    else:
+                        del f
+                else:
+                    _fext = findExtname(f,_extname,extver=_extver)
+                    if _fext != None:
+                        found = yes
+                        del f
+                        continue
     return found
 
 
@@ -688,7 +720,7 @@ def findExtname(fimg,extname,extver=None):
             corresponding to EXTNAME given.
     """
     i = 0
-    extnum = 0
+    extnum = None
     for chip in fimg:
         hdr = chip.header
         if hdr.has_key('EXTNAME'):
