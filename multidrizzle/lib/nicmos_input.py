@@ -11,8 +11,10 @@
 #           Version 0.2.0 11/03/04 -- Modified the updateMDRIZSKY method to deal with
 #               input data with EXPTIME = 0.  For that case, MDRIZSKY will be set to a
 #               value of 0. -- CJH
-           
-__version__ = '0.2.0'
+#           Version 1.0.0 01/18/05 -- Updated converte2electrons and updateMDRIZSKY to work
+#               with NICMOS data in both units of counts and counts/second           
+
+__version__ = '1.0.0'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -119,20 +121,37 @@ class NICMOSInputImage (InputImage):
                 # Assume the MDRIZSKY keyword is in the primary header.  Try to update
                 # the header value
                 try:
-                    print "Updating MDRIZSKY in %s with %f / %f / %f = %f"%(filename,
-                            self.getSubtractedSky(),
-                            self.getGain(), 
-                            self.getExpTime(),
-                            self.getSubtractedSky() / self.getGain() / self.getExpTime()
-                            )
-                    _handle[0].header['MDRIZSKY'] = self.getSubtractedSky() / self.getGain() / self.getExpTime()
+                    # We need to handle the updates of the header for data in 
+                    # original units of either counts per second or counts
+                    if (_handle[0].header['UNITCORR'].strip() == 'PERFORM'):
+                        print "Updating MDRIZSKY in %s with %f / %f / %f = %f"%(filename,
+                                self.getSubtractedSky(),
+                                self.getGain(), 
+                                self.getExpTime(),
+                                self.getSubtractedSky() / self.getGain() / self.getExpTime()
+                                )
+                        _handle[0].header['MDRIZSKY'] = self.getSubtractedSky() / self.getGain() / self.getExpTime()
+                    else:
+                        print "Updating MDRIZSKY in %s with %f / %f  = %f"%(filename,
+                                self.getSubtractedSky(),
+                                self.getGain(), 
+                                self.getSubtractedSky() / self.getGain() 
+                                )
+                        _handle[0].header['MDRIZSKY'] = self.getSubtractedSky() / self.getGain() 
+                        
                 # The MDRIZSKY keyword was not found in the primary header.  Add the
                 # keyword to the header and populate it with the subtracted sky value.
                 except:
                     print "Cannot find keyword MDRIZSKY in %s to update"%filename
-                    print "Adding MDRIZSKY keyword to primary header with value %f"%self.getSubtractedSky()
-                    _handle[0].header.update('MDRIZSKY',self.getSubtractedSky()/self.getGain()/self.getExpTime(), 
-                        comment="Sky value subtracted by Multidrizzle")
+                    if (_handle[0].header['UNITCORR'].strip() == 'PERFORM'):
+                        print "Adding MDRIZSKY keyword to primary header with value %f"%(self.getSubtractedSky()/self.getGain()/self.getExpTime())
+                        _handle[0].header.update('MDRIZSKY',self.getSubtractedSky()/self.getGain()/self.getExpTime(), 
+                            comment="Sky value subtracted by Multidrizzle")
+                    else:
+                        print "Adding MDRIZSKY keyword to primary header with value %f"%(self.getSubtractedSky()/self.getGain())
+                        _handle[0].header.update('MDRIZSKY',self.getSubtractedSky()/self.getGain(), 
+                            comment="Sky value subtracted by Multidrizzle")
+                    
         finally:
             _handle.close()
 
@@ -143,19 +162,26 @@ class NICMOSInputImage (InputImage):
         # Image information
         __handle = fileutil.openImage(self.name,mode='update',memmap=0)
         __sciext = fileutil.getExtn(__handle,extn=self.extn)        
-        __timext = fileutil.getExtn(__handle,extn='TIME')
 
-
-        # Multiply the values of the sci extension pixels by the gain.
-        print "Converting %s from COUNTS/S to ELECTRONS"%(self.name)
-        # If the exptime is 0 the science image will be zeroed out.
-        conversionFactor = (self.getExpTime() * self.getGain()) * __timext.data
+        # Determine if Multidrizzle is in units of counts/second or counts
+        #
+        # Counts per second case
+        if (__handle[0].header['UNITCORR'].strip() == 'PERFORM'):        
+            # Multiply the values of the sci extension pixels by the gain.
+            print "Converting %s from COUNTS/S to ELECTRONS"%(self.name)
+            # If the exptime is 0 the science image will be zeroed out.
+            conversionFactor = (self.getExpTime() * self.getGain()) 
+        # Counts case
+        else:
+            # Multiply the values of the sci extension pixels by the gain.
+            print "Converting %s from COUNTS to ELECTRONS"%(self.name)
+            # If the exptime is 0 the science image will be zeroed out.
+            conversionFactor = (self.getExpTime()) 
         N.multiply(__sciext.data,conversionFactor,__sciext.data)        
-
+        
         __handle.close()
         del __handle
         del __sciext
-        del __timext
 
 class NIC1InputImage(NICMOSInputImage):
 

@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.4.1 (17 January 2005)'
+__version__ = '2.4.2 (18 January 2005)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -1209,11 +1209,11 @@ help file.
             if (shfile != None) and (len(shfile) > 0):
                 updateasn.updateShifts(name,shfile,mode='replace')
 
-    def _buildAsnName(self, name):
-        """ Builds name for association table. """
-        for (search_for,suffix) in [('_asn.fits',''),('_asn','.fits'),('','_asn.fits')]:
-            if name.find(search_for) > -1:
-                return name + suffix
+#    def _buildAsnName(self, name):
+#        """ Builds name for association table. """
+#        for (search_for,suffix) in [('_asn.fits',''),('_asn','.fits'),('','_asn.fits')]:
+#            if name.find(search_for) > -1:
+#                return name + suffix
 
     def _preMedian(self, static_file, skysub):
         """ Perform the steps that take place before median computation:
