@@ -1,7 +1,7 @@
 import procstep as ps
 import mdzhandler
 import string
-import sys,types
+import sys,types,os
 
 import numarray
 import numarray.ieeespecial
@@ -279,9 +279,10 @@ class MDrizPars (HasTraits):
             'driz_sep_scale', 'driz_sep_rot', 'driz_sep_bits', 
             'driz_final_bits', 'driz_final_scale',
             'driz_final_rot']
-               
-    SHELVENAME = 'mdrizpars'
     
+    attribute_list = ['switches','input','_set_trait_value','_set_event_value',
+            'steps','output','master_pars']
+                       
     def __init__(self, input, output, dict=None, files = None):
         """ The input parameter 'dict' needs to be a Python dictionary
             of attributes whose values need to be updated. 
@@ -294,16 +295,7 @@ class MDrizPars (HasTraits):
         self.switches = {}
         self.master_pars = {}
         self.updateMasterPars()
-
-        # Initialize the attributes for storing the parameters
-        # as a shelve file
-        #
-        self.shelve_dir = self._findShelveDir()
-        self.shelve = self.shelve_dir +self.SHELVENAME
-        # If a previous shelve file existed, then restore those
-        # values to override the basic defaults.
-        self.restorePars()
-              
+                      
         # Now, apply any new values input through keywords 
         # upon start up. This will further override any previous
         # settings for those parameters.
@@ -322,15 +314,24 @@ class MDrizPars (HasTraits):
             tabdict = self._handleMdriztab(record)
             self.updatePars(tabdict)
 
+    def verifyPar(self,kw,value):
+        if value == 'None' or (kw in self.clean_string_list and value == ''):
+            value = None
+        if isinstance(value,types.StringType):
+            if value.isdigit():
+                value = int(value)
+        if value == 'INDEF': value = None
+
+        return value
+    
     def updateMasterPars(self):
         for _par in self.switches_list:
-            self.switches[_par] = getattr(self,_par)
+            _val = getattr(self,_par)
+            self.switches[_par] = _val
             
         for _par in self.master_list:
             if _par != 'bits':
-                value = getattr(self,_par)
-                if value == 'None' or (_par in self.clean_string_list and value == ''):
-                    value = None
+                value = self.verifyPar(_par,getattr(self,_par))
                 self.master_pars[_par] = value
         
     def updatePars(self,dict):
@@ -349,57 +350,26 @@ class MDrizPars (HasTraits):
             #print "keys updated in master dictionary: ",k
             # Update value of trait and coerce the
             # TraitType on the value in the process
-            setattr(self,k,dict[k])
+            #
+            if k[-1] != '_':
+
+                setattr(self,k,dict[k])
             
-            if k in self.switches_list:
-                # If key is a processing switch, update the
-                # switches dictionary
-                self.switches[k] = getattr(self,k)
-            elif k in self.master_list:
-                # If it is not a switch, update its value
-                # in the master list.
-                self.master_pars[k] = getattr(self,k)
+                if k in self.switches_list:
+                    # If key is a processing switch, update the
+                    # switches dictionary
+                    self.switches[k] = getattr(self,k)
+                elif k in self.master_list:
+                    # If it is not a switch, update its value
+                    # in the master list.
+                    value =  self.verifyPar(k,getattr(self,k))
+                    self.master_pars[k] = value
 
         if 'bits' in dict.keys():
             if 'driz_final_bits' not in dict.keys():
-                self.master_pars['driz_final_bits'] = dict['bits']
+                self.master_pars['driz_final_bits'] = int(dict['bits'])
                 self.master_pars['driz_sep_bits'] = None                
-    def _findShelveDir(self):
-        """ Tracks down the location of the shelve files
-        used for keeping the user-specified bit values. """
-        return fileutil.osfn('home$')
-
-    def setShelveDir(self,dirname):
-        """ Sets the name of the directory to be used for
-            saving the paramter values as a shelve file.
-            
-            We use 'osfn' to make sure any variables get fully
-            expanded.
-        """
-        self.shelve_dir = fileutil.osfn(dirname)
-
-    def savePars(self):
-        """ Open the shelve file and write/reset the 'dqpar' entry. """
-
-        _shelve = shelve.open(self.shelve)
-        _shelve[self.SHELVENAME] = self.__dict__
-        _shelve.close()
-
-    def restorePars(self):
-        """ Find what shelve file is to be used and read the 'dqpar' entry. """
-        if fileutil.findFile(self.shelve):
-            _shelve = shelve.open(self.shelve)
-            self.__dict__ = _shelve[self.SHELVENAME]
-            _shelve.close()
           
-    def editPars(self):
-        """ Edits the traits and updates values in appropriate 
-            dictionaries.
-        """
-        self.edit_traits()            
-        self.updatePars(self.__dict__)
-        self.savePars()
-            
  
     def verifyInput(self,dict):
         """ Verifies that all entries provided in the input dictionary
@@ -413,10 +383,11 @@ class MDrizPars (HasTraits):
             _err_str = 'MultiDrizzle inputs which are not recognized:\n'
             _num_invalid = 0
             for k in dict.keys():
-                if (not k.lower() in self.master_list and 
-                    not k.lower() in self.switches_list ):
-                    _err_str += 'Unrecognized key: '+str(k)+'\n'
-                    _num_invalid += 1
+                if k[-1] != '_' and k not in self.attribute_list:
+                    if (not k.lower() in self.master_list and 
+                        not k.lower() in self.switches_list ):
+                        _err_str += 'Unrecognized key: '+str(k)+'\n'
+                        _num_invalid += 1
             if _num_invalid > 0:
                 print _err_str
                 raise ValueError
@@ -495,7 +466,7 @@ class MDrizPars (HasTraits):
                 _kw = kw
 
             if kw in self.input_list:
-                _inst_dict[_kw] = self.__dict__[kw]
+                _instr_dict[_kw] = self.__dict__[kw]
             elif self.master_pars.has_key(kw):
                 _instr_dict[_kw] = self.master_pars[kw]
             elif self.switches.has_key(kw):

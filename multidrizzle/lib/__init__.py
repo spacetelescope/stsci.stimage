@@ -285,13 +285,15 @@ help file.
 
         # Convenience for user: if they specify 'editpars' on
         # command line as parameter, then automatically run GUI
-        # editor for them.        
+        # editor for them.  
+        self.traits_edited = False      
         if editpars:
             self.editpars()
             
     def editpars(self):
         """ Run Python GUI parameter editor to set parameter values. """
         self.pars.edit_traits()
+        self.traits_edited = True
 
 
     def build(self):
@@ -317,8 +319,9 @@ help file.
             return 
         
         #Update master_pars dictionary, and switches dictionary
-        # based on last set values.        
-        #self.pars.updateMasterPars()
+        # based on last set values.
+        if self.traits_edited:        
+            self.pars.updateMasterPars()
 
         # Use the values in the master parlist to set the values
         # for the attributes necessary for initializing this class
