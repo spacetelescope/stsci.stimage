@@ -446,7 +446,7 @@ class ImageDisplay:
         
         # Update WCS information with offsets into frame buffer for image        
         wcsinfo.tx = (wcsinfo.full_nx / 2.) - (self.fbwidth / 2.)
-        wcsinfo.ty = self.fbheight + ((wcsinfo.full_ny / 2.) - (self.fbheight / 2.))
+        wcsinfo.ty = self.fbheight + ((wcsinfo.full_ny / 2.) - (self.fbheight / 2.)) - 1
 
         wcsinfo.nx = min(wcsinfo.full_nx, self.fbwidth)
         wcsinfo.ny = min(wcsinfo.full_ny, self.fbheight)
@@ -454,7 +454,7 @@ class ImageDisplay:
         # Keep track of the origin of the displayed, trimmed image
         # which fits in the buffer.
         wcsinfo.dtx = (wcsinfo.nx / 2.) - (self.fbwidth / 2.)
-        wcsinfo.dty = self.fbheight + ((wcsinfo.ny / 2.) - (self.fbheight / 2.))
+        wcsinfo.dty = self.fbheight + ((wcsinfo.ny / 2.) - (self.fbheight / 2.)) + 1
 
     def writeImage(self,pix,wcsinfo):
 

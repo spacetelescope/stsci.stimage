@@ -27,20 +27,23 @@
         
             open(imtdev=None): 
                 Open the default display device or the device specified 
-                in 'imtdev'.
+                in 'imtdev', such as 'inet:5137' or 'fifo:/dev/imt1o'.
             
             close():
                 Close the display device defined by 'imtdev'. This must
                 be done before resetting the display buffer to a new size.
-            
-            set(z1=None,z2=None,transform=None,scale=None,offset=None,frame=None):
-                Method for setting globaly display attributes. If no value is
-                given for a parameter, then it will resort to a default value.
-                When called with no parameters, this will reset ALL parameters to
-                default values.
-                
+                            
+            display(pix, name=None, bufname=None, z1=None, z2=None, 
+                    transform=None, scale=None, offset=None, frame=None):
+                Display the scaled array in display tool (ds9/ximtool/...).
+                name -- optional name to pass along for identifying array
+               
+                bufname -- name of buffer to use for displaying array
+                            to best match size of array (such as 'imt1024')
+                            [default: 512x512 buffer named 'imt512']
+
                 z1,z2  -- minimum/maximum pixel value to display (float)
-                          Explicitly setting 'z1=None' resets the range 
+                          Not specifying values will default 
                           to the full range values of the input array.
                
                 transform -- Python function to apply to array (function)
@@ -51,23 +54,9 @@
                
                 frame  -- image buffer frame number in which to display array
                             (integer)
-                            
-                These attributes will apply to every array displayed.
-                
-            display(pix, name=None, bufname=None, z1=None, z2=None, transform=None,
-                    scale=None, offset=None, frame=None):
-                Display the scaled array in display tool (ds9/ximtool/...).
-                name -- optional name to pass along for identifying array
-               
-                bufname -- name of buffer to use for displaying array
-                            to best match size of array (such as 'imt1024')
-                            [default: 512x512 buffer named 'imt512']
-                
-                (see set() for explanation of remainder of parameters)
-                
-                The display parameters set here will apply to the display of
-                the current array as well as all others displayed later, unless
-                new values are provided later.
+                                
+                The display parameters set here will ONLY apply to the display 
+                of the current array.             
                 
             readcursor(sample=0):
                 Return a single cursor position from the image display.
@@ -92,8 +81,7 @@
         to the array to allow a 'log' scaling can be applied to the array values 
         using:
             >>> numdisplay.display(fdata,transform=numarray.log,offset=158.0)
-        To redisplay the image with default scaling:
-            >>> numdisplay.set()
+        To redisplay the image with default full-range scaling:
             >>> numdisplay.display(fdata)
                     
 """
@@ -106,7 +94,7 @@ try:
 except ImportError:
     geotrans = None
 
-__version__ = "0.1.3 (21-Oct-2003)"
+__version__ = "0.1.4 (22-Oct-2003)"
 #
 # Version 0.1-alpha: Initial release 
 #       WJH 7-Oct-2003
@@ -292,9 +280,9 @@ class NumDisplay:
         """
         
         # If any of the display parameters are specified here, apply them
-        if z1 or z2 or transform or scale or offset or frame:
-            self.set(frame=frame, z1=z1, z2=z2,
-                    transform=transform, scale=scale, offset=offset)
+        #if z1 or z2 or transform or scale or offset or frame:
+        self.set(frame=frame, z1=z1, z2=z2,
+                transform=transform, scale=scale, offset=offset)
         
         # Initialize the display device
         _d = self.view._display
@@ -334,6 +322,10 @@ class NumDisplay:
             bpix = pix
             self.z1 = numarray.minimum.reduce(numarray.ravel(bpix))
             self.z2 = numarray.maximum.reduce(numarray.ravel(bpix))
+            # Failsafe in case input image is flat:
+            if self.z1 == self.z2: 
+                self.z1 -= 1.
+                self.z2 += 1.
 
         _wcsinfo = displaydev.ImageWCS(bpix,z1=self.z1,z2=self.z2,name=name)
 
