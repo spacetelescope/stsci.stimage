@@ -325,6 +325,9 @@ class NoPersistError(exceptions.Exception):
 #-............................................................................
 def osfn(filename):
     """Return a filename with iraf syntax and os environment names substituted out"""
+    if filename is None:
+        return filename
+    
     #Baby assumptions: suppose that the env variables will be in front.
    
     if filename.startswith('$'):  #we need to translate a logical
