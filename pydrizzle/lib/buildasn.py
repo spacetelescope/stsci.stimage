@@ -662,6 +662,19 @@ def writeAsnDict(asndict,output=None):
         else:
             outfile = output
 
+    # Delete the file if it exists.
+    if os.path.exists(outfile):
+        warningmsg =  "\n#########################################\n"
+        warningmsg += "#                                       #\n"
+        warningmsg += "# WARNING:                              #\n"
+        warningmsg += "#  The exisiting assocation table,      #\n"
+        warningmsg += "           " + str(outfile) + '\n'
+        warningmsg += "#  is being replaced by buildasn.       #\n"
+        warningmsg += "#                                       #\n"
+        warningmsg += "#########################################\n\n"
+        print warningmsg
+        os.remove(outfile)
+
     mem0name = asndict['order'][0]
     refimg = asndict['members'][mem0name]['refimage']
     shframe = tbldict['frame']
@@ -684,6 +697,8 @@ def writeAsnDict(asndict,output=None):
     fasn.writeto(outfile)
     fasn.close()
     del fasn
+
+    return outfile
 
 def help():
     _str = """
