@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.5.0 (1 February 2005)'
+__version__ = '2.5.1 (7 February 2005)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -731,6 +731,20 @@ help file.
                 # We currently only need to worry about the conversion of WFPC2 and STIS
                 # files as special cases so this is the current DEFAULT case.
                 if (fileutil.getKeyword(inputfile,'EXPTIME') <= 0.0):
+                    msgstr =  "####################################\n"
+                    msgstr += "#                                  #\n"
+                    msgstr += "# WARNING:                         #\n"
+                    msgstr += "#  EXPTIME keyword value of 0.0 in #\n"
+                    msgstr += "         " + str(inputfile) +"\n"
+                    msgstr += "#  has been detected.  Images with #\n"
+                    msgstr += "#  no exposure time will not be    #\n"
+                    msgstr += "#  used during processing.  If you #\n"
+                    msgstr += "#  wish this file to be used in    #\n"
+                    msgstr += "#  processing please give EXPTIME  #\n"
+                    msgstr += "#  a valid non-zero value.         #\n"
+                    msgstr += "#                                  #\n"
+                    msgstr += "####################################\n"
+                    print msgstr   
                     excludedFileList.append(inputfile)
                 else:
                     newfilelist.append(inputfile)    

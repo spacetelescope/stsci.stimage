@@ -9,8 +9,10 @@
 #       newfilelist list. -- CJH
 #   Version 0.4.0, 01/26/05 -- Modifed the EXPTIME zero check to be less than
 #       or equal to zero.
+#   Version 0.5.0, 02/02/05 -- parseSTIS will now print a warning message when
+#       rejecting a zero EXPTIME image.
 
-__version__ = '0.4 (01/26/2005)'
+__version__ = '0.5 (02/02/2005)'
 __author__  = 'Christopher Hanley'
 
 
@@ -167,6 +169,20 @@ def parseSTIS(inputfile):
             # If the EXPTIME value for the image is zero, add it to the exclusion list.
             # Otwerwise the image should be included for processing by Multidrizzle.
             if (fitsobj[1].header['EXPTIME'] <= 0.0):
+                msgstr =  "####################################\n"
+                msgstr += "#                                  #\n"
+                msgstr += "# WARNING:                         #\n"
+                msgstr += "#  EXPTIME keyword value of 0.0 in #\n"
+                msgstr += "         " + str(newfilename) +"\n"
+                msgstr += "#  has been detected.  Images with #\n"
+                msgstr += "#  no exposure time will not be    #\n"
+                msgstr += "#  used during processing.  If you #\n"
+                msgstr += "#  wish this file to be used in    #\n"
+                msgstr += "#  processing please give EXPTIME  #\n"
+                msgstr += "#  a valid non-zero value.         #\n"
+                msgstr += "#                                  #\n"
+                msgstr += "####################################\n"
+                print msgstr   
                 excludedList.append(newfilename)
             else:
                 newfilelist.append(newfilename)
