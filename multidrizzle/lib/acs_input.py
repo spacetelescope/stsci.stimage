@@ -19,26 +19,27 @@
 #           Version 0.1.11 06/24/04 -- Moved _isNotValid method to InputImage 
 #               super class so that it can be inherited by all instrument
 #               specific modules. -- CJH
+#           Version 0.1.12 07/02/04 -- Revised to call 'makewcs'.
 
-__version__ = '0.1.11'
+__version__ = '0.1.12'
 
 import pydrizzle
 from pydrizzle import fileutil
 
-import upinwcs
+import makewcs
 
 from input_image import InputImage
 
 def checkACS(files):
 
-    """ Checks that UPINWCS is run on any ACS image in 'files' list. """
+    """ Checks that MAKEWCS is run on any ACS image in 'files' list. """
 
     for p in files:
         if fileutil.getKeyword(p,'instrume') == 'ACS':
             print('\nNote: Synchronizing ACS WCS to specified distortion coefficients table\n')
             # Update the CD matrix using the new IDCTAB
             # Not perfect, but it removes majority of errors...
-            upinwcs.run(image=p)
+            makewcs.run(image=p)
 
 
 class ACSInputImage (InputImage):
