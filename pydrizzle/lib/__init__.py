@@ -2282,10 +2282,10 @@ More help on SkyField objects and their parameters can be obtained using:
                 output = fileutil.buildNewRootname(asndict['output'],extn='_drz.fits')
                 print 'Setting up output name: ',output
 
-            if len(asndict['members'].keys()) > 1:
+            if len(asndict['order']) > 1:
                 self.observation = DitherProduct(asndict,pars=self.pars)
             else:
-                inroot = asndict['members'].keys()[0]
+                inroot = asndict['order'][0]
                 pardict = asndict['members'][inroot]
                 infile = fileutil.buildRootname(inroot)
                 if infile == None:

@@ -1,10 +1,21 @@
 ### PyDrizzle Revision Changes
-Version 5.4.1 (17-Dec-2005) WJH
+Version 5.4.2 (20-Jan-2005) WJH
+      - Modified reading of ASN tables to maintain order of filenames
+        and correctly identify when only 1 exposure gets read from an
+        ASN table.  
+      - For the case when no mask file was created, use the maskname
+        generated within PyDrizzle as the output maskname instead of 'None'
+        (the name of the non-existent file created for the mask file).
+        This required the reinstallation of 'masklist' attribute in Exposure
+        class to keep track of generated masknames whether PyDrizzle used
+        them for files or not.
+        
+Version 5.4.1 (17-Jan-2005) WJH
       - Added 'outmasks' attribute to Exposure class to track what files
         were actually created for mask files.  The 'maskname' attribute
         only records the name that should be used for the mask.
 
-Version 5.4.0 (14-Dec-2005) WJH
+Version 5.4.0 (14-Jan-2005) WJH
       - Removed dependency on DQPars module and classes.  
       - Expanded the formats supported by the 'bits' parameter to 
         allow the user to specify either a single value for the final
