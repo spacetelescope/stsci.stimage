@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.2.7 (2-November-2004)"
+__version__ = "5.2.8 (2-November-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -1519,7 +1519,15 @@ class DitherProduct(Pattern):
     def __init__(self, prodlist, pars=None):
 
         # Build temporary output drizzle product name
-        output = fileutil.buildNewRootname(prodlist['output'],extn='_drz.fits')
+        print 'output starts with: ',prodlist['output']
+        if prodlist['output'].find('.fits') < 0:
+            if prodlist['output'].rfind('_drz') < 0:
+                output = fileutil.buildNewRootname(prodlist['output'],extn='_drz.fits')
+            else:
+                output = prodlist['output']+'.fits'
+        else:
+            output = prodlist['output']
+        print 'DitherProduct built output as: ',output
 
         # Setup a default exposure to contain the results
         Pattern.__init__(self, None, output=output, pars=pars)
@@ -2182,9 +2190,9 @@ More help on SkyField objects and their parameters can be obtained using:
         # Check to see if user-supplied output name is complete
         # Append .FITS suffix to output name if necessary
         self.output = output
-        if output != None:
-            _indx = string.find(output,'.')
-            if _indx < 0: output = output + '.fits'
+        #if output != None:
+        #    _indx = string.rfind(output,'.')
+        #    if _indx < 0: output = output + '.fits'
 
         # Watch out for any errors.
         # If they arise, all open files need to be closed...
@@ -2203,6 +2211,11 @@ More help on SkyField objects and their parameters can be obtained using:
                 # We need to build a default output name...
                 output = fileutil.buildNewRootname(input,extn='_drz.fits')
                 print 'Setting up default output name: ',output
+            elif output.rfind('.fits') < 0:
+                if output.rfind('_drz') < 0:
+                    output += '_drz'
+
+                output += '.fits'
 
             self.observation = selectInstrument(input,output,pars=self.pars)
         else:

@@ -1,4 +1,11 @@
 ### PyDrizzle Revision Changes
+Version 5.2.8 (2-Nov-2004) WJH
+      - Output name building modified to eliminate '_drz_drz.fits' output
+        regardless of what was specified as the output name. 
+      - Bits default value reset to '0' to indicate that DQPars classes 
+        should be read by default.  Explicitly calling PyDrizzle with bits
+        set to None will turn off mask building altogether and not read 
+        DQPars classes at all.
 Version 5.2.7 (1-Nov-2004) WJH
       - Removed dependency on IRAF environment variable 'stsdas'. It will
         now default to current working directory for default coeffs dir
