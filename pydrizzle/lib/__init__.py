@@ -2294,7 +2294,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 #
                 # End of F2PY syntax
                 #
-                """"
+                """
                 #
                 # This call to 'arrdriz.tdriz' uses the F2C syntax
                 #
@@ -2442,7 +2442,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 #
                 # End of F2PY syntax
                 #
-                """"
+                """
                 #
                 # This call to 'arrdriz.tdriz' uses the F2C syntax
                 #
