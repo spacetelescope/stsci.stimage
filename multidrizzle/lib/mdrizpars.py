@@ -1,7 +1,7 @@
 import procstep as ps
 import mdzhandler
 import string
-import sys
+import sys,types
 
 import numarray
 import numarray.ieeespecial
@@ -36,7 +36,7 @@ def cleanInt(value):
     return value
 
 def cleanBlank(value):
-    if value == '' or value == ' ':
+    if value.strip() == '':
         return None
     return value
 
@@ -199,7 +199,8 @@ class MDrizPars (HasTraits):
     __traits__ = {'input':Trait('flt.fits',TraitString()),
             'output':Trait('',TraitString()),
             'mdriztab':Trait(False, true_boolean, editor=bit_editor),
-            'refimage':'','runfile':'multidrizzle.run',
+            'refimage':Trait('',None,TraitString()),
+            'runfile':'multidrizzle.run',
             'workinplace':Trait(False, true_boolean, editor=bit_editor),
             'context':Trait(True, true_boolean, editor=bit_editor), 
             'clean':Trait(True, true_boolean, editor=bit_editor),
@@ -386,7 +387,8 @@ class MDrizPars (HasTraits):
         # before the association is built.
         if self.master_pars['mdriztab']:
             record = mdzhandler.getMultidrizzleParameters(files)
-            self._handleMdriztab(record)
+            tabdict = self._handleMdriztab(record)
+            self.updatePars(tabdict)
 
     def updateMasterPars(self):
         for _par in self.switches_list:
@@ -575,6 +577,7 @@ class MDrizPars (HasTraits):
         be cleaned up in a similar way that parameters read
         from the user interface are.
         """
+        tabdict = {}
         # for each entry in the record... 
         for indx in xrange(len(rec.array.names)):
             # ... get the name, format, and value.
@@ -582,6 +585,14 @@ class MDrizPars (HasTraits):
             _format = rec.array.formats[indx]
             _value = rec.field(_name)
             
+            # Translate names from MDRIZTAB columns names to 
+            # input parameter names found in IRAF par file.
+            #
+            if _name.find('final') > -1: _name = 'driz_'+_name
+            elif _name == 'subsky': _name = 'skysub'
+            elif _name == 'crbitval': _name = 'crbit'
+            elif _name == 'readnoise': _name = 'rdnoise'
+                        
             # We do not care about the first two columns at this point
             # as they are only used for selecting the rows
             if _name != 'filter' and _name != 'numimages':
@@ -600,16 +611,8 @@ class MDrizPars (HasTraits):
                 else:
                     print 'MDRIZTAB column ',_name,' has unrecognized format',_format 
                     raise ValueError
-                # Set master parameters dictionary or 
-                #     master switch dictionary with value
-                if self.switches.has_key(_name):
-                    self.switches[_name] = _val
-                else:
-                    self.master_pars[_name] = _val
+                if _name.find('fillval') > -1 and _val == None:
+                    _val = 'INDEF'
+                tabdict[_name] = _val
 
-        # Take care of special parameter values
-        if self.master_pars['driz_sep_fillval'] == None:
-            self.master_pars['driz_sep_fillval'] = 'INDEF'
-        if self.master_pars['final_fillval'] == None:
-            self.master_pars['final_fillval'] = 'INDEF'
-        
+        return tabdict
