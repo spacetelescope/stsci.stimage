@@ -1,5 +1,5 @@
 ### PyDrizzle Revision Changes
-Version 5.4.0 (13-Dec-2005) WJH
+Version 5.4.0 (14-Dec-2005) WJH
       - Removed dependency on DQPars module and classes.  
       - Expanded the formats supported by the 'bits' parameter to 
         allow the user to specify either a single value for the final
@@ -13,6 +13,10 @@ Version 5.4.0 (13-Dec-2005) WJH
       - Modified 'buildmask' to use a single function for all name 
         generation for masks, and modified both 'buildMask' functions to 
         require an output filename as input.
+      - Added 'single_driz_mask' to the 'clean()' methods.
+      - Changed empty value for 'driz_mask' and 'single_driz_mask' in
+        parlist from blank ('') to None and modified ParList object to 
+        print them out appropriately. 
         
 Version 5.3.3 (20-Dec-2004) WJH
       - (OPR 52619) Modified Exposure class to not expand DGEOFILE filename

@@ -16,7 +16,7 @@ import pyfits
 
 #Add buildasn/updateasn to namespace for use by other programs
 import buildasn, updateasn
-import traits102,dqpars
+import traits102
 
 yes = True  # 1
 no = False  # 0
@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.4.0 (13-January-2005)"
+__version__ = "5.4.0 (14-January-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -63,6 +63,14 @@ class ParDict(dict):
         if self['ysh'] == None: _ysh = repr(self['ysh'])
         else: _ysh = '%0.4f'%self['ysh']
 
+        # Insure that valid strings are available for
+        # 'driz_mask' and 'single_driz_mask'
+        if self['driz_mask'] == None: _driz_mask = ''
+        else: _driz_mask = self['driz_mask']
+        if self['single_driz_mask'] == None: _sdriz_mask = ''
+        else: _sdriz_mask = self['single_driz_mask']
+
+
         _str = ''
         _str += 'Parameters for input chip: '+self['data']+'\n'
         _str += '  Shifts:       %s      %s\n'%(_xsh,_ysh)
@@ -75,8 +83,8 @@ class ParDict(dict):
         _str += '  Coeffs:          '+self['coeffs']+'    Geomode: '+self['geomode']+'\n'
         _str += '  XGeoImage       : '+self['xgeoim']+'\n'
         _str += '  YGeoImage       : '+self['ygeoim']+'\n'
-        _str += '  Single mask file: '+self['single_driz_mask']+'\n'
-        _str += '  Final mask file : '+self['driz_mask']+'\n'
+        _str += '  Single mask file: '+_sdriz_mask+'\n'
+        _str += '  Final mask file : '+_driz_mask+'\n'
         _str += '  Output science  : '+self['outdata']+'\n'
         _str += '  Output weight   : '+self['outweight']+'\n'
         _str += '  Output context  : '+self['outcontext']+'\n'
@@ -821,17 +829,8 @@ class Pattern:
             parameters['instrument'] = self.instrument
             parameters['detector'] = self.detector
 
-            # Check to see if a mask was created at all...
-            # if not, set it to ''
-            if member.maskname == None: _maskname = ''
-            else: _maskname = member.maskname
-            parameters['driz_mask'] = _maskname
-
-            # Check to see if a mask was created for the
-            # single-drizzle step.  If not, set it to ''.
-            if member.singlemaskname == None: _maskname = ''
-            else: _maskname = member.singlemaskname
-            parameters['single_driz_mask'] = _maskname
+            parameters['driz_mask'] = member.maskname
+            parameters['single_driz_mask'] = member.singlemaskname
 
             # Setup parameters for special cases here...
             parameters['outsingle'] = self.outsingle
@@ -2375,8 +2374,10 @@ More help on SkyField objects and their parameters can be obtained using:
             fileutil.removeFile(img['outblot'])
             if coeffs:
                 os.remove(img['coeffs'])
-                if img['driz_mask'] != '':
+                if img['driz_mask'] != None:
                     fileutil.removeFile(img['driz_mask'])
+                if img['single_driz_mask'] != None:
+                    fileutil.removeFile(img['single_driz_mask'])
         if final:
             fileutil.removeFile(self.output)
 
@@ -2686,8 +2687,10 @@ More help on SkyField objects and their parameters can be obtained using:
         if not save and clean:
             for img in self.parlist:
                 fileutil.removeFile(img['coeffs'])
-                if img['driz_mask'] != '':
+                if img['driz_mask'] != None:
                     fileutil.removeFile(img['driz_mask'])
+                if img['single_driz_mask'] != None:
+                    fileutil.removeFile(img['single_driz_mask'])
 
         print 'PyDrizzle drizzling completed at ',_ptime()
 
