@@ -22,7 +22,7 @@ from geissupport import *
 
 import makewcs
 
-__version__ = '2.2.0 (03 August 2004)'
+__version__ = '2.2.0 (04 August 2004)'
 
 def versioninfo():
     """ Print version information for packages used by Multidrizzle """
@@ -499,16 +499,16 @@ class Multidrizzle:
         """ Checks that MAKEWCS is run on any ACS image in 'files' list. """
         for p in files:
 
-            if fileutil.getKeyword(p,'instrume') == 'ACS':
-                print('\nNote: Synchronizing ACS WCS to specified distortion coefficients table\n')
-                # Update the CD matrix using the new IDCTAB
-                # Not perfect, but it removes majority of errors...
-                makewcs.run(image=p)
-
-#            if fileutil.getKeyword(p,'idctab') != None:
+#            if fileutil.getKeyword(p,'instrume') == 'ACS':
+#                print('\nNote: Synchronizing ACS WCS to specified distortion coefficients table\n')
 #                # Update the CD matrix using the new IDCTAB
 #                # Not perfect, but it removes majority of errors...
 #                makewcs.run(image=p)
+
+            if fileutil.getKeyword(p,'idctab') != None:
+                # Update the CD matrix using the new IDCTAB
+                # Not perfect, but it removes majority of errors...
+                makewcs.run(image=p)
 
     def _checkStaticFile(self, static_file):
 
