@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.4.6 (22-February-2005)"
+__version__ = "5.4.7 (25-February-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -2407,6 +2407,10 @@ More help on SkyField objects and their parameters can be obtained using:
                 ymin = 1
                 ymax = plist['outny']
                 #
+                # Convert shifts to input units
+                #
+                xsh = plist['xsh'] * plist['scale']
+                ysh = plist['ysh'] * plist['scale']
                 # ARRDRIZ.TBLOT needs to be updated to support 'poly5' interpolation,
                 # and exptime scaling of output image.
                 #
@@ -2427,7 +2431,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 # This call to 'arrdriz.tdriz' uses the F2C syntax
                 #
                 t = arrdriz.tblot(_insci, _outsci,xmin,xmax,ymin,ymax,
-                            plist['xsh'],plist['ysh'],
+                            xsh,ysh,
                             plist['rot'],plist['scale'], kscale, _pxg, _pyg,
                             'center',interp, plist['coeffs'], plist['exptime'],
                             misval, sinscl, 1)
