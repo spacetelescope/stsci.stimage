@@ -28,8 +28,12 @@
 #               and reference plate scale as parameters.  Added a new method that returns a sky value based
 #               upon the reference chip.  This is used in the create median step for WFPC2.  Currently
 #               for ACS and STIS data is returns the same value that getSubtractedSky would.
+#           Version 0.1.36 09/09/04 -- The getInstrParameter method was modified to raise a value error
+#               if a user were to specify both a header keyword and a value for a specific parameter.
+#               This type of input is ambiguous.  Previously the value would be used and the header
+#               keyword silently ignored. -- CJH
 
-__version__ = '0.1.35'
+__version__ = '0.1.36'
 
 import pyfits
 
@@ -111,13 +115,17 @@ class InputImage:
             pair of task parameters: a value, and a header keyword.
 
             The default behavior is:
+              - if the value and header keyword are given, raise an exception.
               - if the value is given, use it.
               - if the value is blank and the header keyword is given, use
                 the header keyword.
               - if both are blank, or if the header keyword is not
                 found, return None.
         """
-        if value != None and value != '':
+        if (value != None and value != '')  and (keyword != None and keyword.strip() != ''):
+            exceptionMessage = "ERROR: Your input is ambiguous!  Please specify either a value or a keyword.\n  You specifed both " + str(value) + " and " + str(keyword) 
+            raise ValueError, exceptionMessage
+        elif value != None and value != '':
             return self._averageFromList(value)
         elif keyword != None and keyword.strip() != '':
             return self._averageFromHeader(header, keyword)
