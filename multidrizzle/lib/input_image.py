@@ -24,8 +24,12 @@
 #           Version 0.1.33 07/08/04 -- pdated Dictionary key names -- CJH
 #           Version 0.1.34 07/15/04 -- Modified the the driz_cr calls to handle the case of WFPC2 data
 #               where no DQ file was provided. -- CJH
+#           Version 0.1.35 07/29/04 -- Added plate scale as an input to the constructor.  Added plate scale
+#               and reference plate scale as parameters.  Added a new method that returns a sky value based
+#               upon the reference chip.  This is used in the create median step for WFPC2.  Currently
+#               for ACS and STIS data is returns the same value that getSubtractedSky would.
 
-__version__ = '0.1.34'
+__version__ = '0.1.35'
 
 import pyfits
 
@@ -49,7 +53,7 @@ class InputImage:
        types of images
     '''
 
-    def __init__(self, input,dqname,memmap=1):
+    def __init__(self, input,dqname,platescale,memmap=1):
         # These will always be populated by the appropriate
         # sub-class, however, this insures that these attributes
         # are not overlooked/forgotten.
@@ -72,7 +76,11 @@ class InputImage:
         self._effGain = None
         self.static_badval = 64
         self.static_mask = None
-
+        
+        # Define the platescale and reference plate scale for the detector.
+        self.platescale = platescale
+        self.refplatescale = platescale # Default is to make each chip it's own reference value
+        
         # Image information
         __handle = fileutil.openImage(self.name,mode='readonly',memmap=self.memmap)
         __sciext = fileutil.getExtn(__handle,extn=self.extn)
@@ -143,6 +151,9 @@ class InputImage:
         if _count >= 1:
             _result = _result / _count
         return _result
+
+    def getreferencesky(self):
+        return (self._subtractedsky * (self.refplatescale / self.platescale)**2 )
 
     def getComputedSky(self):
         return self._computedsky

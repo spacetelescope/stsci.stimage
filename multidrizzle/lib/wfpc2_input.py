@@ -10,8 +10,11 @@
 #               chips when comparing the sky values in deciding which minimum to
 #               use.  The MDRIZSKY keyword will be populated with a value based
 #               upon the WF3 chip plate scale.
+#           Version 0.1.1 07/29/04 -- Plate scale is now defined by the Pydrizzle
+#               exposure class by use of a plate scale variable passed in through
+#               the constructor.
                
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -22,10 +25,12 @@ class WFPC2InputImage (InputImage):
 
     SEPARATOR = '_'
 
-    def __init__(self, input,dqname,memmap=1):
-        InputImage.__init__(self,input,dqname,memmap=1)
+    def __init__(self, input,dqname,platescale,memmap=1):
+        InputImage.__init__(self,input,dqname,platescale,memmap=1)
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
+        
+        self.platescale = platescale
         
         # Effective gain to be used in the driz_cr step.  Since the
         # images are arlready to have been convered to electrons
@@ -101,7 +106,7 @@ class WFPC2InputImage (InputImage):
         
     def setSubtractedSky(self,newValue):
         self._subtractedsky = (newValue / (self.refplatescale /  self.platescale)**2)
-        
+            
     def subtractSky(self):
         try:
             try:
@@ -159,10 +164,10 @@ class WFPC2InputImage (InputImage):
 
 class WF2InputImage (WFPC2InputImage):
 
-    def __init__(self, input, dqname, memmap=1):
-        WFPC2InputImage.__init__(self,input,dqname,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=1):
+        WFPC2InputImage.__init__(self,input,dqname,platescale, memmap=1)
         self.instrument = 'WFPC2/WF2'
-        self.platescale = 0.0996 #arcsec / pixel
+        self.platescale = platescale #0.0996 #arcsec / pixel
         
     def _setchippars(self):
         if self._headergain == 7:
@@ -176,10 +181,10 @@ class WF2InputImage (WFPC2InputImage):
 
 class WF3InputImage (WFPC2InputImage):
 
-    def __init__(self, input, dqname, memmap=1):
-        WFPC2InputImage.__init__(self, input, dqname, memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=1):
+        WFPC2InputImage.__init__(self, input, dqname, platescale, memmap=1)
         self.instrument = 'WFPC2/WF3'
-        self.platescale = 0.0996 #arcsec / pixel
+        self.platescale = platescale #0.0996 #arcsec / pixel
 
     def _setchippars(self):
         if self._headergain == 7:
@@ -193,10 +198,10 @@ class WF3InputImage (WFPC2InputImage):
 
 class WF4InputImage (WFPC2InputImage):
 
-    def __init__(self, input, dqname, memmap=1):
-        WFPC2InputImage.__init__(self, input, dqname, memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=1):
+        WFPC2InputImage.__init__(self, input, dqname, platescale, memmap=1)
         self.instrument = 'WFPC2/WF4'
-        self.platescale = 0.0996 #arcsec / pixel
+        self.platescale = platescale #0.0996 #arcsec / pixel
 
     def _setchippars(self):
         if self._headergain == 7:
@@ -210,10 +215,10 @@ class WF4InputImage (WFPC2InputImage):
 
 class PCInputImage (WFPC2InputImage):
 
-    def __init__(self, input, dqname, memmap=1):
-        WFPC2InputImage.__init__(self,input,dqname,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=1):
+        WFPC2InputImage.__init__(self,input,dqname,platescale,memmap=1)
         self.instrument = 'WFPC2/PC'
-        self.platescale = 0.0455 #arcsec / pixel
+        self.platescale = platescale #0.0455 #arcsec / pixel
 
     def _setchippars(self):
         if self._headergain == 7:

@@ -21,7 +21,11 @@
 #               specific modules. -- CJH
 #           Version 0.1.12 07/02/04 -- Revised to call 'makewcs'.
 #           Version 0.1.13 07/08/04 -- Updated names of key in dictionaries. -- CJH
-__version__ = '0.1.13'
+#           Version 0.1.14 07/29/04 -- Plate scale is now defined by the Pydrizzle
+#               exposure class by use of a plate scale variable passed in through
+#               the constructor.
+
+__version__ = '0.1.14'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -34,10 +38,12 @@ class ACSInputImage (InputImage):
 
     SEPARATOR = '_'
 
-    def __init__(self, input,dqname,memmap=1):
-        InputImage.__init__(self,input,dqname,memmap=1)
+    def __init__(self, input,dqname,platescale,memmap=1):
+        InputImage.__init__(self,input,dqname,platescale,memmap=1)
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
+        self.platescale = platescale
+        
         # Effective gain to be used in the driz_cr step.  Since the
         # ACS images have already benn converted to electons per
         # second, the effective gain is 1.
@@ -87,25 +93,28 @@ class ACSInputImage (InputImage):
 
 class WFCInputImage (ACSInputImage):
 
-    def __init__(self, input, dqname, memmap=1):
-        ACSInputImage.__init__(self,input,dqname,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=1):
+        ACSInputImage.__init__(self,input,dqname,platescale,memmap=1)
         self.instrument = 'ACS/WFC'
         self.full_shape = (4096,2048)
+        self.platescale = platescale
 
 
 class HRCInputImage (ACSInputImage):
 
-    def __init__(self, input, dqname, memmap=1):
-        ACSInputImage.__init__(self, input, dqname, memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=1):
+        ACSInputImage.__init__(self, input, dqname, platescale,memmap=1)
         self.instrument = 'ACS/HRC'        
         self.full_shape = (1024,1024)
+        self.platescale = platescale
 
 
 class SBCInputImage (ACSInputImage):
 
-    def __init__(self, input, dqname, memmap=1):
-        ACSInputImage.__init__(self,input,dqname,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=1):
+        ACSInputImage.__init__(self,input,dqname,platescale,memmap=1)
         self.full_shape = (1024,1024)
+        self.platescale = platescale
         self.instrument = 'ACS/SBC'
 
     def setInstrumentParameters(self, instrpars, pri_header):

@@ -21,6 +21,8 @@
 #           Version 0.1.40, 07/08/04 -- Updated Dictionary key names -- CJH
 #           Version 0.1.41, 07/16/04 -- Modified the _getInputImage method to support WFPC2 data -- CJH
 #           Version 0.1.42, 07/20/04 -- Added support for Stis Images -- CJH
+#           Version 0.1.43, 07/29/04 -- Modified call to InputImage class to pass the plate scale.  The 
+#               create median step now gets its' sky value with the getreferencesky method.  -- CJH
 
 # Import Numarray functionality
 import numarray.image.combine as combine
@@ -51,7 +53,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter
 
-__version__ = '0.1.42'
+__version__ = '0.1.43'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -231,7 +233,8 @@ class ImageManager:
 
         _instrument = plist['exposure'].header['INSTRUME']
         _detector = plist['exposure'].header['DETECTOR']
-
+        _platescale = plist['exposure'].pscale
+        
         # Extract the dq array designation
         _dqname = plist['exposure'].dqname
         _dq_root,_dq_extn = fileutil.parseFilename(_dqname)
@@ -239,16 +242,16 @@ class ImageManager:
 #        print "DQ name being build: ",_dqname
 
         if _instrument == 'ACS':
-            if _detector == 'HRC': return HRCInputImage(input,_dqname,memmap=0)
-            if _detector == 'WFC': return WFCInputImage(input,_dqname,memmap=0)
-            if _detector == 'SBC': return SBCInputImage(input,_dqname,memmap=0)
+            if _detector == 'HRC': return HRCInputImage(input,_dqname,_platescale,memmap=0)
+            if _detector == 'WFC': return WFCInputImage(input,_dqname,_platescale,memmap=0)
+            if _detector == 'SBC': return SBCInputImage(input,_dqname,_platescale,memmap=0)
         if _instrument == 'WFPC2':
-            if _detector == 1: return PCInputImage(input,_dqname,memmap=0)
-            if _detector == 2: return WF2InputImage(input,_dqname,memmap=0)
-            if _detector == 3: return WF3InputImage(input,_dqname,memmap=0)
-            if _detector == 4: return WF4InputImage(input,_dqname,memmap=0)
+            if _detector == 1: return PCInputImage(input,_dqname,_platescale,memmap=0)
+            if _detector == 2: return WF2InputImage(input,_dqname,_platescale,memmap=0)
+            if _detector == 3: return WF3InputImage(input,_dqname,_platescale,memmap=0)
+            if _detector == 4: return WF4InputImage(input,_dqname,_platescale,memmap=0)
         if _instrument == 'STIS': 
-            if _detector == 'CCD': return CCDInputImage(input,_dqname)
+            if _detector == 'CCD': return CCDInputImage(input,_dqname_platescale,memmap=0)
 
         # If a supported instrument is not detected, print the following error message
         # and raise an exception.
@@ -526,8 +529,10 @@ class ImageManager:
                 # Extract instrument specific parameters and place in lists
                 __readnoiseList.append(p['image'].getReadNoise())
                 __exposureTimeList.append(p['image'].getExpTime())
-                __backgroundValueList.append(p['image'].getSubtractedSky())
-                print "subtracted sky value for image ",p['image'].rootname," is ", p['image'].getSubtractedSky()
+#                __backgroundValueList.append(p['image'].getSubtractedSky())
+#                print "subtracted sky value for image ",p['image'].rootname," is ", p['image'].getSubtractedSky()
+                __backgroundValueList.append(p['image'].getreferencesky())
+                print "reference sky value for image ",p['image'].rootname," is ", p['image'].getreferencesky()
 
 
         # create an array for the median output image

@@ -4,7 +4,11 @@
 #   Purpose: Class used to model STIS specific instrument data.
 #   History:
 #           Version 0.1.0, ----------- Created
-__version__ = '0.1.0'
+#           Version 0.1.1 07/29/04 -- Plate scale is now defined by the Pydrizzle
+#               exposure class by use of a plate scale variable passed in through
+#               the constructor.
+
+__version__ = '0.1.1'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -17,14 +21,18 @@ class STISInputImage (InputImage):
 
     SEPARATOR = '_'
 
-    def __init__(self, input,dqname,memmap=1):
-        InputImage.__init__(self,input,dqname,memmap=1)
+    def __init__(self, input,dqname,platescale,memmap=1):
+        InputImage.__init__(self,input,dqname,platescale,memmap=1)
+        
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
+        self.platescale = platescale
+        
         # Effective gain to be used in the driz_cr step.  Since the
         # ACS images have already benn converted to electons per
         # second, the effective gain is 1.
         self._effGain = 1
+        
         
     def setInstrumentParameters(self, instrpars, pri_header):
         """ This method overrides the superclass to set default values into
@@ -96,9 +104,11 @@ class STISInputImage (InputImage):
 
 class CCDInputImage (STISInputImage):
 
-    def __init__(self, input, dqname, memmap=1):
-        STISInputImage.__init__(self,input,dqname,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=1):
+        STISInputImage.__init__(self,input,dqname,platescale,memmap=1)
         self.instrument = 'STIS/CCD'
         self.full_shape = (1024,1024)
+        self.platescale = platescale
+
 
 
