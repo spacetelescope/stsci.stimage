@@ -1,4 +1,4 @@
-import string,os,types
+import string,os,types,sys
 import shutil
 
 #from pyraf import iraf
@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.1.2 (30-August-2004)"
+__version__ = "5.1.3 (30-August-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -86,7 +86,6 @@ class ParDict(dict):
         _str += '     start: %s         end: %s\n'%(repr(self['expstart']),repr(self['expend']))
         _str += '  Single image products--  output:  %s\n'%self['outsingle']
         _str += '     weight:  %s  \n '%self['outsweight']
-        _str += '    context: %s \n'%self['outscontext']
         _str += '  Blot output: %s \n'%self['outblot']
         _str += '  Size of original image to blot: %d %d \n'%(self['blotnx'],self['blotny'])
 
@@ -1155,7 +1154,8 @@ class Pattern:
         # Define output file names for separate output for each input
         self.outsingle = fileutil.buildNewRootname(filename,extn='_single_sci.fits')
         self.outsweight = fileutil.buildNewRootname(filename,extn='_single_wht.fits')
-        self.outscontext = fileutil.buildNewRootname(filename,extn='_single_ctx.fits')
+        self.outscontext = None
+        #self.outscontext = fileutil.buildNewRootname(filename,extn='_single_ctx.fits')
 
     ########
     #
@@ -2277,7 +2277,8 @@ More help on SkyField objects and their parameters can be obtained using:
         """ Removes intermediate products from disk. """
         for img in self.parlist:
             fileutil.removeFile([img['outdata'],img['outcontext'],img['outweight']])
-            fileutil.removeFile([img['outsingle'],img['outsweight'],img['outscontext']])
+            fileutil.removeFile([img['outsingle'],img['outsweight']])
+            #fileutil.removeFile([img['outsingle'],img['outsweight'],img['outscontext']])
             fileutil.removeFile(img['outblot'])
             if coeffs:
                 os.remove(img['coeffs'])
@@ -2319,6 +2320,7 @@ More help on SkyField objects and their parameters can be obtained using:
             _insci = N.zeros((plist['outny'],plist['outnx']),N.Float32)
             _outsci = N.zeros((plist['blotny'],plist['blotnx']),N.Float32)
             _hdrlist = []
+
             for plist in self.parlist:
 
                 _hdrlist.append(plist)
@@ -2332,7 +2334,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 # output from PyDrizzle (which will always be a FITS file)
                 # Open the input science file
                 _fname,_sciextn = fileutil.parseFilename(_data)
-                _inimg = fileutil.openImage(_fname,memmap=1)
+                _inimg = fileutil.openImage(_fname)
 
                 # Return the PyFITS HDU corresponding to the named extension
                 _scihdu = fileutil.getExtn(_inimg,_sciextn)
@@ -2355,6 +2357,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 # ARRDRIZ.TBLOT needs to be updated to support 'poly5' interpolation,
                 # and exptime scaling of output image.
                 #
+                #arrdriz.tblot(_insci, _outsci,xmin,xmax,ymin,ymax,
                 t = arrdriz.tblot(_insci, _outsci,xmin,xmax,ymin,ymax,
                             plist['xsh'],plist['ysh'],
                             plist['rot'],plist['scale'], kscale, _pxg, _pyg,
@@ -2410,6 +2413,10 @@ More help on SkyField objects and their parameters can be obtained using:
 
             # Compute how many planes will be needed for the context image.
             _nplanes = int((_numctx-1) / 32) + 1
+            # For single drizzling or when context is turned off,
+            # minimize to 1 plane only...
+            if single or self.parlist[0]['outcontext'] == '':
+                _nplanes = 1
 
             # Always initialize context images to a 3-D array
             # and only pass the appropriate plane to drizzle as needed
@@ -2513,6 +2520,7 @@ More help on SkyField objects and their parameters can be obtained using:
                     N.multiply(_outsci,0.,_outsci)
                     N.multiply(_outwht,0.,_outwht)
                     N.multiply(_outctx,0,_outctx)
+
                     _hdrlist = []
                 else:
                     _nimg += 1
