@@ -18,6 +18,7 @@
 #           Version 0.1.37, 06/28/04 -- Modified some print statements in median step.  -- CJH
 #           Version 0.1.38, 06/29/04 -- Modified import of imagestats and minmed. -- CJH
 #           Version 0.1.39, 06/29/04 -- Modified imports to remove dependence on pytools package -- CJH
+#           Version 0.1.40, 07/08/04 -- Updated Dictionary key names -- CJH
 
 import numarray.image.combine as combine
 
@@ -48,7 +49,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter
 
-__version__ = '0.1.39'
+__version__ = '0.1.40'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -177,12 +178,6 @@ class ImageManager:
         for p in self.assoc.parlist:
             p['image'].setInstrumentParameters (instrpars, p['exposure'].header)
 
-##            print '*****************  DEBUG    ********************************'
-##            print 'gain    = ' + str(p['image'].getGain())
-##            print 'rdnoise = ' + str(p['image'].getReadNoise())
-##            print 'exptime = ' + str(p['image'].getExpTime())
-##            print 'crbit   = ' + str(p['image'].getCRbit())
-
     # This is called upon initialization of this class...
     def setupInputCopies(self,p,workinplace = False ):
         """ Make copies of all input science files, keeping track of
@@ -269,7 +264,14 @@ class ImageManager:
     def createStatic(self, static_file, static_sig):
 
         """ Create the static bad-pixel mask from input images."""
-
+        
+        #Print paramater values supplied through the interface
+        print "USER PARAMETERS:"
+        print "static     =  True"
+        print "staticfile = ",static_file
+        print "static_sig = ",static_sig
+        print "\n"
+                 
         self.static_mask = StaticMask(goodval = 1, badval = 0, staticsig=static_sig)
 
         for p in self.assoc.parlist:
@@ -311,6 +313,19 @@ class ImageManager:
             file.close()
 
     def doSky(self, skypars, skysub):
+    
+        # Print out the parameters provided by the interface
+        print "USER PARAMETERS:"
+        print "skysub    = ",skysub
+        print "skywidth  = ",skypars['skywidth']
+        print "skystat   = ",skypars['skystat']
+        print "skylower  = ",skypars['skylower']
+        print "skyupper  = ",skypars['skyupper']
+        print "skyclip   = ",skypars['skyclip']
+        print "skylsigma = ",skypars['skylsigma']
+        print "skyusigma = ",skypars['skyusigma']
+        print "skyuser   = ",skypars['skyuser'] 
+        print "\n"
 
         """ Processes sky in input images."""
         if (skypars['skyuser'] != ''):
@@ -429,6 +444,20 @@ class ImageManager:
 
 
     def createMedian(self, medianpars):
+    
+        # Print out the parameters provided by the interface
+        print "USER PARAMETERS:"
+        print "median          =  True"
+        print "median_newmaks  = ",medianpars['newmasks']
+        print "combine_type    = ",medianpars['type']  
+        print "combine_nsigma  = ",medianpars['nsigma1']," ",medianpars['nsigma2']
+        print "combine_nlow    = ",medianpars['nlow']
+        print "combine_nhigh   = ",medianpars['nhigh']
+        print "combine_lthresh = ",medianpars['lthresh']
+        print "combine_hthresh = ",medianpars['hthresh']
+        print "combine_grow    = ",medianpars['grow']
+        print "\n"
+                    
         __newmasks = medianpars['newmasks']
         __type = medianpars['type']
         __nsigma1 = medianpars['nsigma1']
@@ -485,7 +514,7 @@ class ImageManager:
                 __readnoiseList.append(p['image'].getReadNoise())
                 __exposureTimeList.append(p['image'].getExpTime())
                 __backgroundValueList.append(p['image'].getSubtractedSky())
-                print "subtracted sky value is ", p['image'].getSubtractedSky()
+                print "subtracted sky value for image ",p['image'].rootname," is ", p['image'].getSubtractedSky()
 
 
         # create an array for the median output image
@@ -681,11 +710,20 @@ class ImageManager:
 
     def doDrizCR(self, drizcrpars, skypars):
         """ Runs deriv and driz_cr to create cosmic-ray masks. """
+        
+        # Print out the parameters provided by the interface
+        print "USER PARAMETERS:"
+        print "driz_cr       =  True"
+        print "driz_cr_corr  = ",drizcrpars['driz_cr_corr']
+        print "driz_cr_snr   = ",drizcrpars['driz_cr_snr']
+        print "driz_cr_scale = ",drizcrpars['driz_cr_scale']
+        print "\n"
+        
         try:
             for p in self.assoc.parlist:
                 try:
                     # If cor_file is desired, then build name for file
-                    if drizcrpars['corr_file']:
+                    if drizcrpars['driz_cr_corr']:
                         # Build Name for cor file
                         _corr_file= p['rootname'] + '_sci' + p['group'] + '_cor.fits'
                         # Build Name for cr file

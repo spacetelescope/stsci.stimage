@@ -4,7 +4,9 @@
 #   Purpose: Class used to model WFPC2 specific instrument data.
 #   History:
 #           Version 0.0.0, ----------- Created -- CJH
-__version__ = '0.0.0'
+#           Version 0.0.1, Updated key names in dictionaries -- CJH -- 07/08/04
+
+__version__ = '0.0.1'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -67,26 +69,26 @@ class WFPC2InputImage (InputImage):
         """ This method overrides the superclass to set default values into
             the parameter dictionary, in case empty entries are provided.
         """
-        if self._isNotValid (instrpars['gain'], instrpars['gainkw']):
-            instrpars['gainkw'] = 'ATODGAIN'
+        if self._isNotValid (instrpars['gain'], instrpars['gnkeyword']):
+            instrpars['gnkeyword'] = 'ATODGAIN'
             self._getCalibratedGain()
 
 #       We will no be reading the read noise in from the header.  It is 
 #       necessary to hard code those values for each WFPC2 chip.
-        if self._isNotValid (instrpars['rdnoise'], instrpars['rdnoisekw']):
-            instrpars['rdnoisekw'] = None
+        if self._isNotValid (instrpars['rdnoise'], instrpars['rdnkeyword']):
+            instrpars['rdnkeyword'] = None
             
-        if self._isNotValid (instrpars['exptime'], instrpars['exptimekw']):
-            instrpars['exptimekw'] = 'EXPTIME'
+        if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
+            instrpars['expkeyword'] = 'EXPTIME'
         if instrpars['crbit'] == None or instrpars['crbit'] == 0:
             instrpars['crbit'] = self.cr_bits_value
 
         self._gain      = self.getInstrParameter(instrpars['gain'], pri_header,
-                                                 instrpars['gainkw'])
+                                                 instrpars['gnkeyword'])
         self._rdnoise   = self.getInstrParameter(instrpars['rdnoise'], pri_header,
-                                                 instrpars['rdnoisekw'])
+                                                 instrpars['rdnkeyword'])
         self._exptime   = self.getInstrParameter(instrpars['exptime'], pri_header,
-                                                 instrpars['exptimekw'])
+                                                 instrpars['expkeyword'])
         self._crbit     = instrpars['crbit']
 
         if self._gain == None or self._rdnoise == None or self._exptime == None:

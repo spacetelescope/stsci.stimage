@@ -21,8 +21,9 @@
 #           Version 0.1.30 06/07/04 -- Turned memory maping back on by default.  -- CJH
 #           Version 0.1.31 06/29/04 -- Modified import of imagestats. -- CJH
 #           Version 0.1.32 06/29/04 -- Modified imports to remove dependence on pytools package -- CJH
+#           Version 0.1.33 07/08/04 -- pdated Dictionary key names -- CJH
 
-__version__ = '0.1.32'
+__version__ = '0.1.33'
 
 import pyfits
 
@@ -308,9 +309,9 @@ class InputImage:
                             mask_array,
                             gain = self.getEffGain(),
                             rn = self.getReadNoise(),
-                            SNR = drizcrpars['snr'],
+                            SNR = drizcrpars['driz_cr_snr'],
                             backg = self.getSubtractedSky(),
-                            scale = drizcrpars['scale'])
+                            scale = drizcrpars['driz_cr_scale'])
 
             __tmpDriz_cr.updatedqarray(__dqarray.data,self.cr_bits_value)
 

@@ -9,11 +9,11 @@ from numarray.ieeespecial import *
 import pydrizzle
 from pydrizzle import drutil, fileutil, buildasn, updateasn, dqpars
 import pyfits
+import readgeis
 
 import acs_input
 
 import mdzhandler
-
 import manager
 from manager import ImageManager
 
@@ -108,22 +108,22 @@ def BuildDrizPars(outnx   = None,
     return pars
 
 def BuildInstrPars(gain       = '1.0',
-                   gainkw     = None,
+                   gnkeyword  = None,
                    rdnoise    = 0.0,
-                   rdnoisekw  = None,
+                   rdnkeyword  = None,
                    exptime    = 1.0,
-                   exptimekw  = None,
+                   expkeyword  = None,
                    crbit      = 64):
     """ Function that builds instrument parameter sets.
     """
     pars = {}
 
     pars['gain']      = gain
-    pars['gainkw']    = gainkw
+    pars['gnkeyword']    = gnkeyword
     pars['rdnoise']   = rdnoise
-    pars['rdnoisekw'] = rdnoisekw
+    pars['rdnkeyword'] = rdnkeyword
     pars['exptime']   = exptime
-    pars['exptimekw'] = exptimekw
+    pars['expkeyword'] = expkeyword
     pars['crbit']     = crbit
 
     return pars
@@ -155,6 +155,9 @@ class Multidrizzle:
 
         timestamp()
         print 'Running MultiDrizzle ',__version__
+
+        # Print version information for all external python modules used
+        versioninfo()
 
         # Create object that controls step execution and mark
         # initialization step.
@@ -260,7 +263,7 @@ class Multidrizzle:
         # Done with initialization.
         self.steps.markStepDone(ProcSteps.doInitialize)
 
-    def _printInputPars(self):
+    def _printInputPars(self,switches):
         print "\n\n**** Multidrizzle Parameter Input ****"
 
         print "\n** General Parameters:"
@@ -270,39 +273,62 @@ class Multidrizzle:
         print "refimage  = ", self.refimage
         print "runfile = ", self.runfile
         print "workinplace = ", self.workinplace
+        print "coeffs = ", self.driz_sep_pars['coeffs']
         print "context = ", self.context
         print "clean  = ", self.clean
+        print "group = ", self.driz_sep_pars['group']
+        print "bits = ", self.driz_sep_pars['bits']
+        print "ra = ", self.driz_sep_pars['ra']
+        print "dec = ", self.driz_sep_pars['dec']
+        print "build = ", self.driz_sep_pars['build']
         print "shiftfile =  ",self.shiftfile
         
         print "\n** Static Mask:"
+        print "static = ", switches['static']
         print "staticfile = ",self.staticfile
         print "static_sig = ", self.static_sig
 
         print "\n** Sky Subtraction:"
-        self._printDictEntries(self.skypars)
+        print "skysub = ", switches['skysub']
+        self._printDictEntries("",self.skypars)
                 
         print "\n** Separate Drizzle Images:"
-        self._printDictEntries(self.driz_sep_pars)
+        print "driz_separate = ", switches['driz_separate']
+        self._printDictEntries('driz_sep_',self.driz_sep_pars)
         
         print "\n** Create Median Image:"
-        self._printDictEntries(self.medianpars)
+        print "median = ", switches['median']
+        print "median_newmasks = ",self.medianpars['newmasks']
+        print "combine_nsigma = ",self.medianpars['nsigma1']," ",self.medianpars['nsigma2']
+        self._printDictEntries('combine_',self.medianpars)
  
         print "\n** Blot Back the Median Image:"
-        self._printDictEntries(self.blotpars)
+        print "blot = ", switches['blot']
+        self._printDictEntries('blot_',self.blotpars)
 
         print "\n** Remove Cosmic Rays with DERIV, DRIZ_CR:"
-        self._printDictEntries(self.drizcrpars)
+        print "driz_cr = ", switches['driz_cr']
+        self._printDictEntries("",self.drizcrpars)
 
         print "\n** Combined Drizzled Image:"
-        self._printDictEntries(self.driz_final_pars)
+        print "driz_combine = ", switches['driz_combine']
+        self._printDictEntries('final_',self.driz_final_pars)
         
         print "\n** Instrument Parameters:"
-        self._printDictEntries(self.instrpars)
+        self._printDictEntries("",self.instrpars)
         print "\n"
 
-    def _printDictEntries(self,dict):
-        for item in dict.items():
-            print item[0], " = ", item[1]
+    def _printDictEntries(self,prefix,dict):
+        # Define list of items that is to be handeled as a special printing case.
+        itemlist = ['newmasks','ra','dec','build','bits','group','coeffs','nsigma1','nsigma2']
+        
+        sortedkeys = dict.keys()
+        sortedkeys.sort()
+        
+        for key in sortedkeys:
+            if (itemlist.count(key) == 0):
+                print prefix+key, " = ", dict[key]
+            
             
     def _initdqpars(self,_instrument,_bits):
         print "Initializing DQpars file..."
@@ -364,13 +390,13 @@ class Multidrizzle:
         )
 
         self.instrpars = BuildInstrPars(
-            gain      = cleanBlank(rec.field('gain')),
-            gainkw    = cleanBlank(rec.field('gnkeyword')),
-            rdnoise   = cleanBlank(rec.field('readnoise')),
-            rdnoisekw = cleanBlank(rec.field('rnkeyword')),
-            exptime   = cleanNaN(rec.field('exptime')),
-            exptimekw = cleanBlank(rec.field('expkeyword')),
-            crbit     = cleanInt  (rec.field('crbitval')))
+            gain       = cleanBlank(rec.field('gain')),
+            gnkeyword  = cleanBlank(rec.field('gnkeyword')),
+            rdnoise    = cleanBlank(rec.field('readnoise')),
+            rdnkeyword = cleanBlank(rec.field('rnkeyword')),
+            exptime    = cleanNaN(rec.field('exptime')),
+            expkeyword = cleanBlank(rec.field('expkeyword')),
+            crbit      = cleanInt  (rec.field('crbitval')))
 
 ##        print self.instrpars
 
@@ -461,9 +487,9 @@ class Multidrizzle:
                       driz_cr_scale = '1.2 0.7',
                       driz_cr_corr = False):
         """ Sets the driz CR parameters. """
-        self.drizcrpars['snr'] = driz_cr_snr
-        self.drizcrpars['scale'] = driz_cr_scale
-        self.drizcrpars['corr_file'] = driz_cr_corr
+        self.drizcrpars['driz_cr_snr'] = driz_cr_snr
+        self.drizcrpars['driz_cr_scale'] = driz_cr_scale
+        self.drizcrpars['driz_cr_corr'] = driz_cr_corr
 
 
     def setBlotPars(self,
@@ -775,9 +801,18 @@ class Multidrizzle:
             driz_combine    = True,
             timing          = True):
 
-        # Print the input parameters now that MDRIZTAB has had a chance to modify the default values
-        self._printInputPars()
+        #Create a dictornary recording the boolean step indicators for printing
+        switches = {}
+        switches['static'] = static
+        switches['skysub'] = skysub
+        switches['driz_separate'] = driz_separate
+        switches['median'] = median
+        switches['blot'] = blot
+        switches['driz_cr'] = driz_cr
+        switches['driz_combine'] = driz_combine
 
+        # Print the input parameters now that MDRIZTAB has had a chance to modify the default values
+        self._printInputPars(switches)
 
         # Update object that controls step execution. Use either user
         # interface switches, or MDRIZTAB switches.
@@ -827,8 +862,7 @@ class Multidrizzle:
 
         if timing:
             self.steps.reportTimes()
-        versioninfo()
-
+        
 
 
 class ProcSteps:

@@ -20,8 +20,8 @@
 #               super class so that it can be inherited by all instrument
 #               specific modules. -- CJH
 #           Version 0.1.12 07/02/04 -- Revised to call 'makewcs'.
-
-__version__ = '0.1.12'
+#           Version 0.1.13 07/08/04 -- Updated names of key in dictionaries. -- CJH
+__version__ = '0.1.13'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -71,21 +71,21 @@ class ACSInputImage (InputImage):
         """ This method overrides the superclass to set default values into
             the parameter dictionary, in case empty entries are provided.
         """
-        if self._isNotValid (instrpars['gain'], instrpars['gainkw']):
-            instrpars['gainkw'] = 'ATODGNA,ATODGNB,ATODGNC,ATODGND'
-        if self._isNotValid (instrpars['rdnoise'], instrpars['rdnoisekw']):
-            instrpars['rdnoisekw'] = 'READNSEA,READNSEB,READNSEC,READNSED'
-        if self._isNotValid (instrpars['exptime'], instrpars['exptimekw']):
-            instrpars['exptimekw'] = 'EXPTIME'
+        if self._isNotValid (instrpars['gain'], instrpars['gnkeyword']):
+            instrpars['gnkeyword'] = 'ATODGNA,ATODGNB,ATODGNC,ATODGND'
+        if self._isNotValid (instrpars['rdnoise'], instrpars['rdnkeyword']):
+            instrpars['rdnkeyword'] = 'READNSEA,READNSEB,READNSEC,READNSED'
+        if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
+            instrpars['expkeyword'] = 'EXPTIME'
         if instrpars['crbit'] == None or instrpars['crbit'] == 0:
             instrpars['crbit'] = self.cr_bits_value
 
         self._gain      = self.getInstrParameter(instrpars['gain'], pri_header,
-                                                 instrpars['gainkw'])
+                                                 instrpars['gnkeyword'])
         self._rdnoise   = self.getInstrParameter(instrpars['rdnoise'], pri_header,
-                                                 instrpars['rdnoisekw'])
+                                                 instrpars['rdnkeyword'])
         self._exptime   = self.getInstrParameter(instrpars['exptime'], pri_header,
-                                                 instrpars['exptimekw'])
+                                                 instrpars['expkeyword'])
         self._crbit     = instrpars['crbit']
 
         if self._gain == None or self._rdnoise == None or self._exptime == None:
@@ -120,15 +120,15 @@ class SBCInputImage (ACSInputImage):
     def setInstrumentParameters(self, instrpars, pri_header):
         """ Sets the instrument parameters.
         """
-        if self._isNotValid (instrpars['exptime'], instrpars['exptimekw']):
-            instrpars['exptimekw'] = 'EXPTIME'
+        if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
+            instrpars['expkeyword'] = 'EXPTIME'
         if instrpars['crbit'] == None or instrpars['crbit'] == 0:
             instrpars['crbit'] = self.cr_bits_value
 
         self._gain      = 1
         self._rdnoise   = 0
         self._exptime   = self.getInstrParameter(instrpars['exptime'], pri_header,
-                                                 instrpars['exptimekw'])
+                                                 instrpars['expkeyword'])
         self._crbit     = instrpars['crbit']
 
         if self._exptime == None:
