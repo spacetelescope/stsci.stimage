@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.1.1 (27-August-2004)"
+__version__ = "5.1.2 (30-August-2004)"
 
 # For History of changes and updates, see 'History'
 

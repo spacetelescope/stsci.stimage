@@ -1,4 +1,7 @@
 ### PyDrizzle Revision Changes
+Version 5.1.2 (30-August-2004) CJH
+      - Update to fileutil.py
+        Detchip object cast as string before attempt to call isdigit() method.
 Version 5.1.1 (27-August-2004) CJH
       - Update to fileutil.py
         Added support for dealing with an 'ANY' DETCHIP value in and IDCTAB.

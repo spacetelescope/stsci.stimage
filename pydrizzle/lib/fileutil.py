@@ -876,7 +876,7 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
 
         if 'DETCHIP' in colnames:
             detchip = ftab[1].data.field('DETCHIP')[i]
-            if not detchip.isdigit():
+            if not str(detchip).isdigit():
                 detchip = 1
         else:
             detchip = 1
