@@ -52,6 +52,10 @@ WJH, 25 Aug 2003 (0.8)
 CJH, 13 Jul 2004 (0.9)
     Updated to support input of simple python list as linename input.
 
+CJH, 02 Aug 2004 (0.9a)
+    Added support to find files for having 2 columns of filenames in an @inputlist
+    file.  This is used by Multidrizzle to implement the use of IVM files.
+
 """
 
 import os, sre, types, copy
@@ -67,7 +71,7 @@ import numarray
 #EXTLIST =  ['_crj.fits','_flt.fits','_sfl.fits','_raw.fits','_drz.fits']
 EXTLIST =  ['_crj.fits','_flt.fits','_sfl.fits','_cal.fits','_raw.fits','.c0h','.hhh','.fits']
 
-__version__ = '0.9 (13-Jul-2004)'
+__version__ = '0.9a (02-Aug-2004)'
 
 _prihdr = pyfits.Header([pyfits.Card('SIMPLE', pyfits.TRUE,'Fits standard'),
                 pyfits.Card('BITPIX  ',                    16 ,' Bits per pixel'),
@@ -233,11 +237,19 @@ def _findFiles(inlist):
             file = f.readline()
             if not file:
                 break
+
+            # Parse the line on spaces
+            fline = file.split(' ')
+
             # Determine suffix here...
             if suffix == None:
-                suffix = _findSuffix(file)
+                suffix = _findSuffix(fline[0])
 
-            flist.append((file[:-1],suffix))
+            ivmfile = None
+            if (len(fline) > 1):
+                ivmfile = fline[1].rstrip()
+
+            flist.append((fline[0],suffix,ivmfile))
 
     del regpatt
     flist.sort()
