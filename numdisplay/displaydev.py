@@ -1,4 +1,4 @@
-"""irafdisplay.py: Interact with IRAF-compatible image display
+"""displaydev.py: Interact with IRAF-compatible image display
 
 Modeled after the NOAO Client Display Library (CDL)
 
@@ -33,7 +33,6 @@ $Id$
 import os, socket, struct
 
 import numarray
-import tkutils
 import string
 import imconfig
 
@@ -528,7 +527,7 @@ class ImageDisplay:
         remain responsive.
         """
         try:
-            return tkutils.tkread(self._fdin, n)
+            return os.read(self._fdin, n)
         except (EOFError, IOError):
             raise IOError("Error reading from image display")
 
@@ -673,7 +672,12 @@ class ImageDisplayProxy(ImageDisplay):
             
         self._display.setCursor(x,y,wcs)
  
-                    
+
+# Print help information
+def help():
+    print __doc__
+
+                
 _display = ImageDisplayProxy()
 
 # create aliases for _display methods

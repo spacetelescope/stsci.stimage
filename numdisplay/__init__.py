@@ -1,3 +1,70 @@
+"""numdisplay: Package for displaying numarray arrays in IRAF-compatible
+                image display tool such as DS9 or XIMTOOL.
+    
+    Displaying a numarray array object involves:
+        1.  Opening the connection to a usable display tool (such as DS9).
+        2.  Setting the display parameters for the array, such as min and
+            max array value to be used for min and max grey scale level,
+            the offset to be applied to the array before displaying, and 
+            the scaling of array values within the min/max range.
+        3.  Building the byte-scaled version of the array and sending it
+            to the display tool.
+    
+        This package provides several methods for controlling the display
+        of the numarray array; namely,
+        
+            open(imtdev=None): 
+                open the default display device or the device specified 
+                in 'imtdev'
+            
+            close():
+                close the display device handle
+            
+            set(z1=None,z2=None,scale=None,factor=None,frame=None):
+                convenience method for setting display attributes where
+                z1,z2  -- minimum/maximum pixel value to display (float)
+                          Explicitly setting 'z1=None' resets the range 
+                          to the full range values of the input array.
+                scale  -- numarray ufunc name to use for scaling array (string)
+                factor -- additive/multiplicative factor to apply to array
+                          before scaling (string)
+                frame  -- image buffer frame number in which to display array
+                            (integer)
+                            
+            display(pix, name=None, bufname=None):
+                display the scaled array in display tool (ds9/ximtool/...)
+                name -- optional name to pass along for identifying array
+                bufname -- name of buffer to use for displaying array
+                            to best match size of array (such as 'imt1024')
+                            [default: 512x512 buffer named 'imt512']
+                
+            readcursor():
+                return a single cursor position from the image display
+            
+            help():
+                print Version ID and this message.
+
+    Example:            
+        The user starts with a 1024x1024 array in the variable 'fdata'.
+        This array has min pixel value of -157.04 and a max pixel value 
+        of 111292.02.  The display tool DS9 has already been started from
+        the host level and awaits the array for display.  Displaying the
+        array requires:
+            >>> import numdisplay
+            >>> numdisplay.open()
+            >>> numdisplay.display(fdata)
+        To bring out the fainter features, a 'log' scaling can be applied
+        to the positive array values using:
+            >>> numdisplay.set(z1=1.,scale='log')
+            >>> numdisplay.display(fdata)
+        The full pixel range can be displayed with 'log' scaling with:
+            >>> numdisplay.set(z1=None,factor='+158.0')
+            >>> numdisplay.display(fdata)
+        The value of 'z1' is reset to 'None' to force the full range of
+        pixel values in the original array to be used again.
+        
+"""
+
 import numarray, math
 import displaydev
 
@@ -5,70 +72,12 @@ try:
     import geotrans
 except ImportError:
     geotrans = None
+
+__version__ = "0.1alpha (9-Oct-2003)"
 #
 # Version 0.1-alpha: Initial release 
 #       WJH 7-Oct-2003
 #
-NITER = 0
-KREJ = 0
-
-def ipyfitLine(pix,krej,niter):
-    _niter = krej
-    _krej = niter
-
-    xscale = 2. / (len(pix)-1)
-    
-    _pix = pix
-    
-    npix = _pix.getshape()[0]
-     
-    normx = numarray.array(numarray.arange(npix)) * 2./(npix-1) - 1
-    sumxsqr = numarray.sum(numarray.power(_pix,2))
-    sumxz = numarray.sum(_pix * normx)
-    sumz = numarray.sum(_pix)
-
-    z0 = sumz / npix
-    dz = sumxz / sumxsqr        
-
-    for iter in range(_niter):
-    
-        # Subtract fitted line from data array
-        flat = _pix - (normx * dz + z0)
-
-        # Compute k-sigma rejection threshhold
-        mean = sumz / npix
-        sigma = math.sqrt( float((sumxsqr/(npix-1.)) - (sumz * sumz)/(npix * (npix-1.)) ) )
-        thresh = sigma * _krej
-        
-        # Clip bad pixels from array
-        # Unfortunately, this routine does not 'grow' the bad pixels
-        # and this makes a difference compared to the IRAF routine.
-        #
-        # Clip upper outliers
-        flat = numarray.choose(numarray.greater(flat,thresh),(flat,0.0))
-        # Clip lower outliers
-        flat = numarray.choose(numarray.less(flat,-thresh),(flat,0.0))
-                
-        # remove all bad pixels
-        _pix = numarray.compress(_pix,flat)
-        _pmin = numarray.minimum.reduce(_pix)
-        _pmax = numarray.maximum.reduce(_pix)
-        
-        normx = numarray.array(numarray.arange(len(_pix))) * 2./(len(_pix)-1) - 1. 
-        sumxsqr = numarray.sum(numarray.power(_pix,2))
-        sumxz = numarray.sum(_pix * normx)
-        sumz = numarray.sum(_pix)
-        
-        npix = len(_pix)
-        z0 = sumz  / npix 
-        dz = (_pmax - _pmin) / npix
-        #dz = sumxz / sumxsqr
-
-    zstart = z0 - dz
-    #zslope = dz * xscale
-    zslope = dz
-
-    return npix,zstart,zslope 
     
 # This function converts the input image into a byte-array 
 # with the z1/z2 values being mapped from 1 - 200.
@@ -95,7 +104,22 @@ def bscaleImage(image, iz1, iz2):
 
 
 class NumDisplay:
-    def __init__(self,imtdev=None):
+    """ Class to manage the attributes and methods necessary for displaying
+        the array in the image display tool.
+        
+        This class contains the methods:
+            open(imtdev=None): 
+            
+            close():
+            
+            set(z1=None,z2=None,scale=None,factor=None,frame=None):
+                            
+            display(pix, name=None, bufname=None):
+                
+            readcursor():
+            
+    """
+    def __init__(self):
         self.frame = 1
         
         # Attributes used to scale image nearly arbitrarily
@@ -121,8 +145,6 @@ class NumDisplay:
         self.name = None
         try:
             self.view = displaydev.ImageDisplayProxy()
-            # Now, open the view...
-            self.open(imtdev=imtdev)
         except IOError, error:
             raise IOError("No display device (ds9/ximtool) available.")          
 
@@ -138,32 +160,31 @@ class NumDisplay:
         
         """ Allows user to set multiple parameters at one time. """
         
-        if frame:
-            self.frame = frame
+        self.frame = frame
+        
         if z1 != None:
             self.z1 = z1
             self.zrange = True
+        else:
+            self.z1=None
+
         if z2 != None:
             self.z2 = z2
             self.zrange = True
             
-        if scale:
-            self.scale = scale
-        if factor:
-            self.factor = factor
+        self.scale = scale
+        self.factor = factor
         
-        if z1 == None:
+        if self.z1 == None:
             self.zrange = False
-            self.z1 = None
             self.z2 = None
         
         # Perform consistency checks here...
         if self.scale != None:
             if (self.scale.find('log') or self.scale.find('sqrt')) and self.z1 <= 0.:
-                print 'Minimum pixel value of ',self.z1,' inconsistent with scale of ',self.scale
-                raise ValueError,'Please adjust Z1 value...'
+                print 'Minimum pixel value of ',self.z1,' MAY be inconsistent with scale of ',self.scale
             
-    def transformImage(self,pix,fbwidth,fbheight):
+    def _transformImage(self,pix,fbwidth,fbheight):
         
         # Get the image parameters
         _ny,_nx = pix.shape
@@ -193,7 +214,7 @@ class NumDisplay:
         else:
             return bscaleImage(pix[_ystart:_yend,_xstart:_xend],self.z1,self.z2)
 
-    def scaleImage(self, pix):
+    def _scaleImage(self, pix):
     
         """ Apply user-specified scaling to image. """
         
@@ -220,62 +241,7 @@ class NumDisplay:
         return eval(_iscale)
 
     
-        
-    def getZscale (self,image):
-        _niter = KREJ
-        _krej = NITER
-        
-        _x = image.shape[1]
-        _y = image.shape[0]
-
-        # how pixels are to be extracted
-        _ystep = _y / self.nlines
-
-        # start by extracting pixel values from image to determine min/max
-        pix = self.scaleImage(image[::_ystep,::self.stepline].copy())
-        
-        # Remove all pixels which are identically zero.
-        pix = numarray.compress(numarray.not_equal(pix.getflat(),0),pix.getflat())
-        npix = pix.getshape()[0]
-
-        center_pixel = max(1,(npix+1)/2)
-        # This can take the most time depending on the number of elements in pix
-        pix.sort()   
-        zmin = pix[1]
-        zmax = pix[-1]
-        zsum = numarray.sum(pix)
-        
-        # Use full range of pixel values...
-        if (self.contrast == 0) or (self.zscale == 1):
-           return zmin, zmax
-
-        # Compute the mean of the pixel values
-        med = numarray.add.reduce(pix,0)/npix
-        
-        # Fit a line to the pixel values
-        if (npix > 1):
-            if geotrans:
-                ngood,zmin,zslope = geotrans.pyfitLine(pix,_krej,_niter)
-            else:
-                ngood,zmin,zslope = ipyfitLine(pix,2.5,3)
-        else:
-            ngood = 0
-            zslope = 0.0
-            zmin = 0.0
-                
-        if (ngood < self.nlines):
-            oz1 = zmin
-            oz2 = zmax
-        else:
-            if (self.contrast > 0):
-                zslope = zslope / self.contrast
-
-            oz1 = max (zmin, med - (center_pixel - 1) * zslope)
-            oz2 = min (zmax, med + (npix - center_pixel) * zslope)
-            
-        return oz1,oz2
-
-    def display(self,pix,imtdev=None,name=None,bufname=None):
+    def display(self, pix, name=None, bufname=None):
         
         """ Displays byte-scaled (UInt8) numarray to XIMTOOL device. 
             If input is not byte-scaled, it will perform scaling using 
@@ -283,8 +249,6 @@ class NumDisplay:
         """
         
         # Initialize the display device
-        #displaydev.open(imtdev=imtdev)
-        #_d = displaydev._display._display
         _d = self.view._display
         
         if self.z1 == None:
@@ -305,15 +269,15 @@ class NumDisplay:
 
         # Apply user specified scaling to image, returns original
         # if none are specified.
-        bpix = self.scaleImage(pix)        
+        bpix = self._scaleImage(pix)        
         
         # If image has been rescaled, then recompute the default pixel range
         # based on rescaled pixel values
-        if (self.factor or self.scale) and self.zrange == True:
+        if (self.factor or self.scale) or self.zrange == True:
             self.z1 = numarray.minimum.reduce(bpix.flat)
             self.z2 = numarray.maximum.reduce(bpix.flat)
-            
-        bpix = self.transformImage(bpix,_d.fbwidth,_d.fbheight)
+        
+        bpix = self._transformImage(bpix,_d.fbwidth,_d.fbheight)
 
         _wcsinfo = displaydev.ImageWCS(bpix,z1=self.z1,z2=self.z2,name=name)
         # Update the WCS to match the frame buffer being used.
@@ -329,6 +293,13 @@ class NumDisplay:
     def readcursor(self):
         """ Return the cursor position from the image display. """
         return self.view.readCursor()
+    
+# Help facility
+def help():
+    """ Print out doc string with syntax and example. """
+    print 'numdisplay --- Version ',__version__
+    print __doc__
+
 
 view = NumDisplay()
 
@@ -339,3 +310,4 @@ close = view.close
 set = view.set
 display = view.display
 readcursor = view.readcursor
+
