@@ -1,7 +1,7 @@
 from distutils.core import setup, Extension
 import numarray
 from numarray.numarrayext import NumarrayExtension
-import sys
+import sys, string, os
 
 if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'alpha',0):
     raise SystemExit, "Python 2.3 or later required to build imagestats."
@@ -21,20 +21,39 @@ def dolocal():
                 ])
             sys.argv.remove(a)
 
-def getF2CDirs():
+def getF2CDirs(args):
     """ Defines the location of the F2C include and library directories. """
+    for a in args:
+        if string.find(a, '--with-f2c=') != -1:
+            f2cdir = string.split(a, '=')[1]
+            sys.argv.remove(a)
+            if os.path.isfile(os.path.join(f2cdir, 'f2c.h')):
+                f2c_include = f2cdir
+            elif os.path.isfile(os.path.join(f2cdir, 'include','f2c.h')):
+                f2c_include = os.path.join(f2cdir, 'include','f2c.h')
+            else:
+                print "File f2c.h not found.\n"
+                sys.exit(1)
+            if os.path.isfile(os.path.join(f2cdir, 'libf2c.a')):
+                f2c_lib = f2cdir
+            elif os.path.isfile(os.path.join(f2cdir, 'include','libf2c.a')):
+                f2c_include = os.path.join(f2cdir, 'lib','libf2c.a')
+            else:
+                print "Library libf2c.a not found.\n"
+                sys.exit(1)
+        else:
 
-    platform = sys.platform[:5]
-    if platform == 'linux':
-        f2c_include  = "/data/chulak1/local/include"
-        f2c_lib      = "/data/chulak1/local/lib"
-    elif platform == 'sunos':
-        f2c_include  = "/usr/ra/f2c"
-        f2c_lib      = "/usr/ra/f2c"
-    else:
-        print 'ERROR: Unsupported platform: ',sys.platform
-        print 'ERROR: No supported version of F2C available!'
-        raise ValueError
+            platform = sys.platform[:5]
+            if platform == 'linux':
+                f2c_include  = "/usr/lib/gcc-lib/i386-redhat-linux/2.96/include/"
+                f2c_lib      = "/usr/lib/gcc-lib/i386-redhat-linux/2.96"
+            elif platform == 'sunos':
+                f2c_include  = "/usr/local/include"
+                f2c_lib      = "/usr/local/lib"
+            else:
+                print 'ERROR: Unsupported platform: ',sys.platform
+                print 'ERROR: No supported version of F2C available!'
+                raise ValueError
 
     return f2c_include,f2c_lib
 
@@ -66,7 +85,7 @@ def dosetup(ext):
 def main():
     args = sys.argv
     dolocal()
-    f2cdirs = getF2CDirs()
+    f2cdirs = getF2CDirs(args)
     ext = getExtensions(f2cdirs)
     dosetup(ext)
 
