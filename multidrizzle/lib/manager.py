@@ -30,6 +30,8 @@
 #           Version 0.1.47, 09/14/04 -- Modified imports to include the new NICMOSINputImage classes -- CJH
 #           Version 0.1.48, 09/16/04 -- Modified  _setOutputFrame method to use the user provided outnx and outny values for 
 #               the single drizzle step. -- CJH
+#           Version 0.1.49, 09/17/04 -- Removed diagnostic print statements in single drizzle step. -- CJH
+
 
 # Import Numarray functionality
 import numarray.image.combine as combine
@@ -61,7 +63,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter
 
-__version__ = '0.1.48'
+__version__ = '0.1.49'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -500,9 +502,6 @@ class ImageManager:
             else:
                 p['driz_mask'] = None
 
-            print "outnx = ",p['outnx']
-            print "outny = ",p['outny']
-            
             print("\ndrizzle data='"+p['data']+"' outdata='"+p['outsingle']+"' outweig='"+p['outsweight']+
                 "' in_mask='static_mask"+"' kernel='"+p['kernel']+
                 "' outnx="+str(p['outnx'])+" outny="+str(p['outny'])+" xsh="+str(p['xsh'])+" ysh="+str(p['ysh'])+
