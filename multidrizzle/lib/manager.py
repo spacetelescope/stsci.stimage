@@ -20,36 +20,38 @@
 #           Version 0.1.39, 06/29/04 -- Modified imports to remove dependence on pytools package -- CJH
 #           Version 0.1.40, 07/08/04 -- Updated Dictionary key names -- CJH
 #           Version 0.1.41, 07/16/04 -- Modified the _getInputImage method to support WFPC2 data -- CJH
-import numarray.image.combine as combine
+#           Version 0.1.42, 07/20/04 -- Added support for Stis Images -- CJH
 
+# Import Numarray functionality
+import numarray.image.combine as combine
 import numarray as N
 
+# Import file utilities
 import pyfits
 import shutil, os
 
+# Import Pydrizzle
 import pydrizzle
 from pydrizzle import fileutil,drutil,buildmask
 
+# Import support for specific HST Instruments
 from acs_input import WFCInputImage, HRCInputImage, SBCInputImage
-
 from wfpc2_input import WFPC2InputImage, PCInputImage, WF2InputImage, WF3InputImage, WF4InputImage
+from stis_input import CCDInputImage
 
+# Import general tools
 import imagestats
 from imagestats import ImageStats
-
 import numcombine
 from numcombine import numCombine
-
 import minmed
 from minmed import minmed
-
 import static_mask
 from static_mask import StaticMask
-
 import nimageiter
 from nimageiter import ImageIter
 
-__version__ = '0.1.41'
+__version__ = '0.1.42'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -245,7 +247,8 @@ class ImageManager:
             if _detector == 2: return WF2InputImage(input,_dqname,memmap=0)
             if _detector == 3: return WF3InputImage(input,_dqname,memmap=0)
             if _detector == 4: return WF4InputImage(input,_dqname,memmap=0)
-##        if _instrument == 'STIS': return STISInputImage(input,_dqname)
+        if _instrument == 'STIS': 
+            if _detector == 'CCD': return CCDInputImage(input,_dqname)
 
         # If a supported instrument is not detected, print the following error message
         # and raise an exception.
