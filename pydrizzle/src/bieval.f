@@ -32,8 +32,8 @@ C
       save
 
       do i = 1, npts 
-         nx = x(i) + 0.5
-         ny = y(i) + 0.5
+         nx = int(x(i) + 0.5)
+         ny = int(y(i) + 0.5)
 
 C	      define pointer to data[nx,ny]
          index = firstt + (ny - 1) * lencof + nx
@@ -69,8 +69,8 @@ C int	   npts		      # number of data points
 
       save
       do i = 1, npts 
-         nx = x(i)
-         ny = y(i)
+         nx = int(x(i))
+         ny = int(y(i))
          sx = x(i) - nx
          tx = 1. - sx
          sy = y(i) - ny
@@ -121,13 +121,13 @@ C int	   npts		      # number of data points
       nxold = -1
       nyold = -1
       do i = 1, npts 
-         nx = x(i)
+         nx = int(x(i))
          sx = x(i) - nx
          tx = 1. - sx
          sx2m1 = sx * sx - 1.
          tx2m1 = tx * tx - 1.
 
-         ny = y(i)
+         ny = int(y(i))
          sy = y(i) - ny
          ty = 1. - sy
 
@@ -211,7 +211,7 @@ C int	   npts		      # number of data points
       nxold = -1
       nyold = -1
       do 110 i = 1, npts 
-         nx = x(i)
+         nx = int(x(i))
          sx = x(i) - nx
          sx2 = sx * sx
          sx2m1 = sx2 - 1.
@@ -221,7 +221,7 @@ C int	   npts		      # number of data points
          tx2m1 = tx2 - 1.
          tx2m4 = tx2 - 4.
 
-         ny = y(i)
+         ny = int(y(i))
          sy = y(i) - ny
          sy2 = sy * sy
          ty = 1. - sy
@@ -307,11 +307,11 @@ C int	   npts		      # number of data points
       real sum
       save
       do i = 1, npts 
-         nx = x(i)
+         nx = int(x(i))
          sx = x(i) - nx
          tx = 1. - sx
 
-         ny = y(i)
+         ny = int(y(i))
          sy = y(i) - ny
          ty = 1. - sy
 

@@ -2964,8 +2964,7 @@ ftnlen shfr2_len;
     static real w;
     static doublereal y, ofrac, scall, scdis, dover;
     extern /* Subroutine */ int boxer_(), upcon_();
-    static doublereal r2;
-    static real s2;
+    static doublereal r2, s2;
     static integer x1, x2;
     static doublereal ac;
     static real dd;
@@ -2988,8 +2987,8 @@ ftnlen shfr2_len;
     static doublereal pfo;
     static integer nxa, nya, nxi, nyi;
     static doublereal xin[4], yin[4], xxi, xxa, yyi, yya;
-    static real dow, sdp;
-    static doublereal pfo2, efac;
+    static real dow;
+    static doublereal sdp, pfo2, efac;
 
 
 /* This module does the actual mapping of input flux to output images using */
@@ -3065,7 +3064,7 @@ ftnlen shfr2_len;
     oldcon = -1;
 /* The bitmask - trimmed to the appropriate range */
     np = (*uniqid - 1) / 32 + 1;
-    i__1 = *uniqid - 1 - (np - 1 << 5);
+    i__1 = (*uniqid - 33) * (np - 1);
     bv = pow_ii(&c__2, &i__1);
 /* In the WCS case we can't use the scale to calculate the */
 /* Jacobian so we need to do it */
@@ -3231,7 +3230,7 @@ ftnlen shfr2_len;
 			    if (ii >= 1 && ii <= lx && jj >= 1 && jj <= ly) {
 				vc = ncou[ii + jj * ncou_dim1];
 /* Allow for stretching because of scale change */
-				d__ = data[i__ + j * data_dim1] * s2;
+				d__ = data[i__ + j * data_dim1] * (real) s2;
 /* Scale the weighting mask by the scale factor */
 /* Note that we DON'T scale by the Jacobian as it hasn't been */
 /* calculated */
@@ -3284,7 +3283,7 @@ ftnlen shfr2_len;
 			    nya = i_dnnt(&yya);
 			    nhit = 0;
 /* Allow for stretching because of scale change */
-			    d__ = data[i__ + j * data_dim1] * s2;
+			    d__ = data[i__ + j * data_dim1] * (real) s2;
 /* Scale the weighting mask by the scale factor */
 /* and inversely by the Jacobian to ensure conservation */
 /* of weight in the output */
@@ -3360,7 +3359,7 @@ ftnlen shfr2_len;
 			    nya = i_dnnt(&yya);
 			    nhit = 0;
 /* Allow for stretching because of scale change */
-			    d__ = data[i__ + j * data_dim1] * s2;
+			    d__ = data[i__ + j * data_dim1] * (real) s2;
 /* Scale the weighting mask by the scale factor */
 /* and inversely by the Jacobian to ensure conservation */
 /* of weight in the output */
@@ -3384,7 +3383,7 @@ ftnlen shfr2_len;
 /* Count the hits */
 					++nhit;
 					vc = ncou[ii + jj * ncou_dim1];
-					dow = dover * w;
+					dow = (real) (dover * w);
 /* If we are creating or modifying the context image we */
 /* do so here */
 					if (*con && dow > (float)0.) {
@@ -3434,7 +3433,7 @@ ftnlen shfr2_len;
 			    nya = i_dnnt(&yya);
 			    nhit = 0;
 /* Allow for stretching because of scale change */
-			    d__ = data[i__ + j * data_dim1] * s2;
+			    d__ = data[i__ + j * data_dim1] * (real) s2;
 /* Scale the weighting mask by the scale factor */
 /* and inversely by the Jacobian to ensure conservation */
 /* of weight in the output */
@@ -3460,7 +3459,7 @@ ftnlen shfr2_len;
 /* Count the hits */
 					++nhit;
 					vc = ncou[ii + jj * ncou_dim1];
-					dow = dover * w;
+					dow = (real) (dover * w);
 /* If we are creating or modifying the context image we */
 /* do so here */
 					if (*con && dow > (float)0.) {
@@ -3514,7 +3513,7 @@ ftnlen shfr2_len;
 			    nya = i_dnnt(&yya);
 			    nhit = 0;
 /* Allow for stretching because of scale change */
-			    d__ = data[i__ + j * data_dim1] * s2;
+			    d__ = data[i__ + j * data_dim1] * (real) s2;
 /* Scale the weighting mask by the scale factor */
 /* and inversely by the Jacobian to ensure conservation */
 /* of weight in the output */
@@ -3536,7 +3535,7 @@ ftnlen shfr2_len;
 /* Count the hits */
 					    ++nhit;
 					    vc = ncou[ii + jj * ncou_dim1];
-					    dow = dover * w;
+					    dow = (real) (dover * w);
 /* If we are creating or modifying the context image we */
 /* do so here */
 					    if (*con && dow > (float)0.) {
@@ -3641,7 +3640,7 @@ ftnlen shfr2_len;
 				float).5;
 			nhit = 0;
 /* Allow for stretching because of scale change */
-			d__ = data[i__ + j * data_dim1] * s2;
+			d__ = data[i__ + j * data_dim1] * (real) s2;
 /* Scale the weighting mask by the scale factor */
 /* and inversely by the Jacobian to ensure conservation */
 /* of weight in the output */
@@ -3676,7 +3675,7 @@ ftnlen shfr2_len;
 /* Count the hits */
 					++nhit;
 					vc = ncou[ii + jj * ncou_dim1];
-					dow = dover * w;
+					dow = (real) (dover * w);
 /* If we are creating or modifying the context image we */
 /* do so here */
 					if (*con && dow > (float)0.) {

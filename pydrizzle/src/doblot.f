@@ -138,7 +138,7 @@ C Offsets
       DY=DBLE(YMIN-1)
 
 C Recalculate the area scaling factor
-      S2=SCALE*SCALE
+      S2=FLOAT(SCALE*SCALE)
 
 C Some useful numbers
       SPK=SPACE*KSCALE

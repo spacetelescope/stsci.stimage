@@ -48,8 +48,8 @@ integer *npts;
     /* Function Body */
     i__1 = *npts;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	nx = x[i__] + (float).5;
-	ny = y[i__] + (float).5;
+	nx = (integer) (x[i__] + (float).5);
+	ny = (integer) (y[i__] + (float).5);
 /* 	      define pointer to data[nx,ny] */
 	index = *firstt + (ny - 1) * *lencof + nx;
 	zfit[i__] = coeff[index];
@@ -91,8 +91,8 @@ integer *npts;
     /* Function Body */
     i__1 = *npts;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	nx = x[i__];
-	ny = y[i__];
+	nx = (integer) x[i__];
+	ny = (integer) y[i__];
 	sx = x[i__] - nx;
 	tx = (float)1. - sx;
 	sy = y[i__] - ny;
@@ -146,12 +146,12 @@ integer *npts;
     nyold = -1;
     i__1 = *npts;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	nx = x[i__];
+	nx = (integer) x[i__];
 	sx = x[i__] - nx;
 	tx = (float)1. - sx;
 	sx2m1 = sx * sx - (float)1.;
 	tx2m1 = tx * tx - (float)1.;
-	ny = y[i__];
+	ny = (integer) y[i__];
 	sy = y[i__] - ny;
 	ty = (float)1. - sy;
 /* 	         define pointer to datain[nx,ny-1] */
@@ -234,7 +234,7 @@ integer *npts;
     nyold = -1;
     i__1 = *npts;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	nx = x[i__];
+	nx = (integer) x[i__];
 	sx = x[i__] - nx;
 	sx2 = sx * sx;
 	sx2m1 = sx2 - (float)1.;
@@ -243,7 +243,7 @@ integer *npts;
 	tx2 = tx * tx;
 	tx2m1 = tx2 - (float)1.;
 	tx2m4 = tx2 - (float)4.;
-	ny = y[i__];
+	ny = (integer) y[i__];
 	sy = y[i__] - ny;
 	sy2 = sy * sy;
 	ty = (float)1. - sy;
@@ -342,10 +342,10 @@ integer *npts;
     /* Function Body */
     i__1 = *npts;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	nx = x[i__];
+	nx = (integer) x[i__];
 	sx = x[i__] - nx;
 	tx = (float)1. - sx;
-	ny = y[i__];
+	ny = (integer) y[i__];
 	sy = y[i__] - ny;
 	ty = (float)1. - sy;
 /*        calculate the x B-splines */

@@ -190,7 +190,7 @@ ftnlen shfr2_len;
     dx = (doublereal) (*xmin - 1);
     dy = (doublereal) (*ymin - 1);
 /* Recalculate the area scaling factor */
-    s2 = *scale * *scale;
+    s2 = (real) (*scale * *scale);
 /* Some useful numbers */
     spk = *kscale * (float).01;
     if (*intype == 100) {

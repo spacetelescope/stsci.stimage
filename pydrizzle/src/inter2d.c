@@ -60,8 +60,8 @@ real *scale;
     datain -= datain_offset;
 
     /* Function Body */
-    nx = *x;
-    ny = *y;
+    nx = (integer) (*x);
+    ny = (integer) (*y);
 /* Nearest neighbour */
     ret_val = (float)0.;
     if (*intere == 1) {

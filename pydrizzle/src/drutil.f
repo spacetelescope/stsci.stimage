@@ -2232,14 +2232,14 @@ C
       DOUBLE PRECISION XIN(4),YIN(4)
       DOUBLE PRECISION ROT,XF,YF,SCALE,XXI,XXA,YYI,YYA,SCALL,SCDIS
       DOUBLE PRECISION PFRACT,OFRAC
-      DOUBLE PRECISION AC,JACO,DX,DY,PFO,PFO2
+      DOUBLE PRECISION AC,JACO,DX,DY,PFO,PFO2,S2
       DOUBLE PRECISION XI(DNX,4),YI(DNX,4),XO(DNX,4),YO(DNX,4)
       DOUBLE PRECISION XIB(DNX),YIB(DNX),XOB(DNX),YOB(DNX)
       DOUBLE PRECISION R2,ES,EFAC,NSIG,XCEN,YCEN
       DOUBLE PRECISION OVER
 
 C Some things are still single
-      REAL VC,WTSCL,S2,D,DOW,DD
+      REAL VC,WTSCL,D,DOW,DD
 
       CHARACTER*8 ALIGN,KERNEL
       LOGICAL ROTFIR,UPDATE,USEWEI,INCPS,USEWCS,NOOVER,DISIM
@@ -2257,11 +2257,12 @@ C Space for Lanczos-style look-up-tables
       INTEGER NLUT
       PARAMETER (NLUT=512)
       REAL LANLUT(NLUT)
-      REAL DEL,SDP
+      REAL DEL
       PARAMETER (DEL=0.01)
       INTEGER LANORD
       INTEGER IX,IY
-
+      DOUBLE PRECISION SDP
+      
 C Number of sigma to be included for gaussians
       PARAMETER (NSIG=2.5)
 
@@ -2278,7 +2279,7 @@ C position is determined by the value of ALIGN
 
 C The bitmask - trimmed to the appropriate range
       NP=(UNIQID-1)/32+1
-      BV=2**(UNIQID-1-32*(NP-1))
+      BV=2**((UNIQID-1-32)*(NP-1))
 
 C In the WCS case we can't use the scale to calculate the
 C Jacobian so we need to do it
@@ -2459,7 +2460,7 @@ C Check it is on the output image
                VC=NCOU(II,JJ)
 
 C Allow for stretching because of scale change
-               D=DATA(I,J)*S2
+               D=DATA(I,J)*FLOAT(S2)
 
 C Scale the weighting mask by the scale factor
 C Note that we DON'T scale by the Jacobian as it hasn't been
@@ -2517,7 +2518,7 @@ C Offset within the subset
           NHIT=0
 
 C Allow for stretching because of scale change
-          D=DATA(I,J)*S2
+          D=DATA(I,J)*FLOAT(S2)
 
 C Scale the weighting mask by the scale factor
 C and inversely by the Jacobian to ensure conservation
@@ -2599,7 +2600,7 @@ C Offset within the subset
           NHIT=0
 
 C Allow for stretching because of scale change
-          D=DATA(I,J)*S2
+          D=DATA(I,J)*FLOAT(S2)
 
 C Scale the weighting mask by the scale factor
 C and inversely by the Jacobian to ensure conservation
@@ -2624,7 +2625,7 @@ C Count the hits
                NHIT=NHIT+1
 
                VC=NCOU(II,JJ)
-               DOW=DOVER*W
+               DOW=FLOAT(DOVER*W)
 
 C If we are creating or modifying the context image we
 C do so here
@@ -2679,7 +2680,7 @@ C Offset within the subset
           NHIT=0
 
 C Allow for stretching because of scale change
-          D=DATA(I,J)*S2
+          D=DATA(I,J)*FLOAT(S2)
 
 C Scale the weighting mask by the scale factor
 C and inversely by the Jacobian to ensure conservation
@@ -2705,7 +2706,7 @@ C Count the hits
                NHIT=NHIT+1
 
                VC=NCOU(II,JJ)
-               DOW=DOVER*W
+               DOW=FLOAT(DOVER*W)
 
 C If we are creating or modifying the context image we
 C do so here
@@ -2766,7 +2767,7 @@ C Offset within the subset
           NHIT=0
 
 C Allow for stretching because of scale change
-          D=DATA(I,J)*S2
+          D=DATA(I,J)*FLOAT(S2)
 
 C Scale the weighting mask by the scale factor
 C and inversely by the Jacobian to ensure conservation
@@ -2794,7 +2795,7 @@ C Count the hits
 
                VC=NCOU(II,JJ)
 
-               DOW=DOVER*W
+               DOW=FLOAT(DOVER*W)
 
 C If we are creating or modifying the context image we
 C do so here
@@ -2898,7 +2899,7 @@ C clockwise order
           NHIT=0
 
 C Allow for stretching because of scale change
-          D=DATA(I,J)*S2
+          D=DATA(I,J)*FLOAT(S2)
 
 C Scale the weighting mask by the scale factor
 C and inversely by the Jacobian to ensure conservation
@@ -2928,7 +2929,7 @@ C Count the hits
                NHIT=NHIT+1
 
                VC=NCOU(II,JJ)
-               DOW=DOVER*W
+               DOW=FLOAT(DOVER*W)
 
 C If we are creating or modifying the context image we
 C do so here
@@ -3537,7 +3538,7 @@ C Check where the overlap starts and ends
       END
 
 
-      REAL FUNCTION GINTER(X,Y,DATA,NX,NY,LUT,NLUT,SPACE,NBOX,MISVAL)
+      REAL*4 FUNCTION GINTER(X,Y,DATA,NX,NY,LUT,NLUT,SPACE,NBOX,MISVAL)
 C
 C General interpolation using a lookup table
 C

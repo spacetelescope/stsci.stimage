@@ -40,8 +40,8 @@ C      integer kx, ky
 C      real tmp(19*19)
 
 C Define common terms
-         nx = x
-         ny = y
+         nx = int(x)
+         ny = int(y)
    
 
 C Nearest neighbour
