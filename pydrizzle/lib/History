@@ -1,4 +1,12 @@
 ### PyDrizzle Revision Changes
+Version 5.3.2 (7-Dec-2004) WJH
+      - Added 'createReferenceWCS' method to WCSObject class to support
+        output of WCS for use as a reference WCS with shiftfiles.  Required
+        for 'tweak.py' (tweakshifts)
+      - Fixed a bug in computing the RA and Dec values when applying shifts.
+        This caused a problem with the final rotation values when a shiftfile
+        was used.
+        
 Version 5.3.1 (6-Dec-2004) WJH
       - Added support for NICMOS IDCTAB usage, including support for quadratic
         coefficients in IDCTAB.

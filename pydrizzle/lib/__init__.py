@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.3.1 (6-December-2004)"
+__version__ = "5.3.2 (7-December-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -298,7 +298,7 @@ class Pattern:
 
             # Use 'xy2rd' to convert these pixel positions to RA/Dec
             ra1,dec1 = _geo.xy2rd((_oxy1[0],_oxy1[1]))
-            ra2,dec2 = _geo.xy2rd((_oxy2[0],_oxy1[1]))
+            ra2,dec2 = _geo.xy2rd((_oxy2[0],_oxy2[1]))
             ra3,dec3 = _geo.xy2rd((_oxy3[0],_oxy3[1]))
 
             # Convert these numbers into a new WCS
@@ -330,6 +330,7 @@ class Pattern:
 
             _mem_wcs.orient = fileutil.RADTODEG(N.arctan2(_mem_wcs.cd12,_mem_wcs.cd22))
             _mem_wcs.pscale = N.sqrt(N.power(_mem_wcs.cd11,2) +N.power(_mem_wcs.cd21,2))*3600.
+
             #
             # Compute change in orientation due to change in CRPIX.
             # This delta gets introduced due to the use of the updated
@@ -342,6 +343,7 @@ class Pattern:
             _ref_wcs.crpix2 += _oxy1o[1] - _oxy1[1]
             _ref_wcs.recenter()
             _mem_wcs.rotateCD(_mem_wcs.orient + (_ref_wcs.orient - _mem_wcs.orient))
+
             """
             Finish updating CD matrix
             """
@@ -511,7 +513,8 @@ class Pattern:
 
         #if not _refimage:
         # Update product WCS with the new values
-        in_wcs.updateWCS(orient=_orient,pixel_scale=_scale)
+        if _orient != None or _scale != None:
+            in_wcs.updateWCS(orient=_orient,pixel_scale=_scale)
 
     def getProductCorners(self):
         """ Compute the product's corner positions based on input exposure's

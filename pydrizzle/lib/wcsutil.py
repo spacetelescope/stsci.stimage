@@ -613,6 +613,7 @@ class WCSObject:
         fimg.close()
         del fimg
 
+
     def savecopy(self,prepend,fitsname=None):
         """ Saves a copy of the WCS keywords from the image header
             as new keywords with the user-supplied 'prepend'
@@ -733,6 +734,29 @@ class WCSObject:
             print 'No original WCS values found. Exiting...'
             fimg.close()
             del fimg
+
+    def createReferenceWCS(self,refname,overwrite=yes):
+        """ Write out the values of the WCS keywords to the NEW
+            specified image 'fitsname'.
+
+        """
+        # If refname already exists, delete it to make way for new file
+        if os.path.exists(refname) and overwrite==yes: os.remove(refname)
+
+        # Open image as writable FITS object
+        _extn = pyfits.PrimaryHDU()
+
+        # Write out values to header...
+        for key in self.wcstrans.keys():
+            _dkey = self.wcstrans[key]
+            if _dkey != 'pscale':
+                _extn.header.update(key,self.__dict__[_dkey])
+        _extn.header['NAXIS'] = 0
+
+        # Close the file
+        _extn.writeto(refname)
+        del _extn
+
 
     def _buildNewKeyname(self,key,prepend):
         """ Builds a new keyword based on original keyword name and
