@@ -16,7 +16,7 @@ import pyfits
 
 #Add buildasn/updateasn to namespace for use by other programs
 import buildasn, updateasn
-import dqpars
+import dqpars,traits102
 
 yes = True  # 1
 no = False  # 0
