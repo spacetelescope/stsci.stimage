@@ -2439,7 +2439,7 @@ More help on SkyField objects and their parameters can be obtained using:
             # For single case, this will determine when to close
             # one product and open the next.
             _numchips = 0
-            _nimg = 0j8cw08n4q_raw.fits
+            _nimg = 0
             _hdrlist = []
 
             for plist in self.parlist:
