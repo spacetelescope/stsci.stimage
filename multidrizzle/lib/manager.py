@@ -31,6 +31,8 @@
 #           Version 0.1.48, 09/16/04 -- Modified  _setOutputFrame method to use the user provided outnx and outny values for 
 #               the single drizzle step. -- CJH
 #           Version 0.1.49, 09/17/04 -- Removed diagnostic print statements in single drizzle step. -- CJH
+#           Version 0.1.50, 10/05/04 -- Added logic to treat STIS sky subtraction differently than all
+#                                       other instruments. CJH/WJH
 
 
 # Import Numarray functionality
@@ -63,7 +65,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter
 
-__version__ = '0.1.49'
+__version__ = '0.1.50'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -404,7 +406,18 @@ class ImageManager:
                         _imageMinDict[p['rootname']]=_computedImageSky
 
             for p in self.assoc.parlist:
-                p['image'].setSubtractedSky(_imageMinDict[p['rootname']])
+                # We need to account for the fact that STIS associations contain
+                # separate exposures for the same chip within the same file.
+                # In those cases, we do not want to use the minimum sky value
+                # for the set of chips, but rather use each chip's own value.
+                # NOTE: This can be generalized later with changes to PyDrizzle
+                #       to provide an attribute that specifies whether each member
+                #       associated with file is a separate exposure or not.
+                #   WJH/CJH 
+                if (p['exposure'].header['INSTRUME'] != 'STIS'):
+                    p['image'].setSubtractedSky(_imageMinDict[p['rootname']])
+                else:
+                    p['image'].setSubtractedSky(p['image'].getComputedSky())
                 p['image'].subtractSky()
 
         else:
