@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.1.3 (30-August-2004)"
+__version__ = "5.1.4 (7-September-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -219,7 +219,7 @@ class Pattern:
             list for each extension.
         """
 
-        self.detector = detector = self.header[self.DETECTOR_NAME]
+        self.detector = detector = str(self.header[self.DETECTOR_NAME])
 
         # Build rootname here for each SCI extension...
         for i in range(self.nmembers):
@@ -930,7 +930,7 @@ class Pattern:
         _pscale1 = None
         for img in self.members:
             _chip = img.chip
-            _detector = str(img.header['detector'])
+            _detector = str(img.header[self.DETECTOR_NAME])
             # scale all chips to first chip plate scale...
             if _pscale1 == None or img.chip == '1':
                 _pscale1 = self.REFDATA[_detector]['psize']
@@ -944,7 +944,7 @@ class Pattern:
             _model = img.geometry.model
             _ikey = img.geometry.ikey
             _chip = img.chip
-            _detector = str(img.header['detector'])
+            _detector = str(img.header[self.DETECTOR_NAME])
             _refdata = self.REFDATA[_detector]
 
             # ... determine the plate scale and scaling factor between chips...
@@ -1391,6 +1391,9 @@ class NICMOSObservation(Pattern):
 
         self.instrument = 'NICMOS'
 
+        # build output rootnames here...
+        self.setNames(filename,output)
+
         # Set EXPTIME for exposure
         self.exptime = self.getExptime()
 
@@ -1532,7 +1535,7 @@ class WFPCObservation(Pattern):
             dqfile = self.name[:-2]+'1h'
         else:
             # Looking for c1f FITS DQ file...
-            dqfile = self.name.replace('0f.fits','1f.fits')
+            dqfile = self.name.replace('0h.fits','1h.fits')
 
         return dqfile
 

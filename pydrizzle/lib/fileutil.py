@@ -817,7 +817,11 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
     #First thing we need, is to read in the coefficients from the IDC
     # table and populate the Fx and Fy matrices.
 
-    detector = ftab['PRIMARY'].header['DETECTOR']
+    if ftab['PRIMARY'].header.has_key('DETECTOR'):
+        detector = ftab['PRIMARY'].header['DETECTOR']
+    else:
+        detector = str(ftab['PRIMARY'].header['CAMERA'])
+
     # Set default filters for SBC
     if detector == 'SBC':
         if filter1 == 'CLEAR':

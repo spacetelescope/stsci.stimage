@@ -1,4 +1,10 @@
 ### PyDrizzle Revision Changes
+Version 5.1.4 (7-Sept-2004) WJH
+      - Changed references of header['detector'] to header[self.DETECTOR_NAME]
+        to account for lack of 'detector' keyword in NICMOS headers. This change
+        affected drutil, fileutil and __init__.
+      - Changed naming convention for MEF DQ files associated with input
+        WFPC2 GEIS images.
 Version 5.1.3 (30-August-2004) WJH
       - Eliminated generation of context image for single drizzling.
       - Changed usage of chip for 'computeCubicCoeffs' to rely instead on

@@ -164,7 +164,10 @@ def getIDCFile(image,keyword=None,directory=None):
 def __buildIDCTAB(header, directory, kw = None):
     # Need to build IDCTAB filename from scratch
     instrument = header['INSTRUME']
-    detector = header['DETECTOR']
+    if instrument != 'NICMOS':
+        detector = header['DETECTOR']
+    else:
+        detector = str(header['CAMERA'])
 
     # Default non-IDCTAB distortion model
     if (kw == None):
@@ -188,9 +191,8 @@ def __buildIDCTAB(header, directory, kw = None):
         idcfile = default_dir+'stis-'+string.lower(detector)
 
     elif instrument == 'NICMOS':
-        camera = header['CAMERA']
-        if camera != None:
-            idcfile = default_dir+'nic-'+camera
+        if detector != None:
+            idcfile = default_dir+'nic-'+detector
         else:
             idcfile = None
     else:
