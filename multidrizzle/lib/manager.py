@@ -928,7 +928,7 @@ class ImageManager:
                 elif drizpars['wht_type'] == 'ERR':
                     self._applyERR(p)
                 else:
-                    continue
+                    pass
                 p['driz_mask'] = p['image'].maskname
 
 

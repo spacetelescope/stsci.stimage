@@ -24,6 +24,36 @@ import makewcs
 
 __version__ = '2.3.0 (31 August 2004)'
 
+__help_str = """
+MultiDrizzle combines astronomical images while removing
+distortion and cosmic-rays. The Python syntax for using
+MultiDrizzle relies on initializing a MultiDrizzle object,
+building up the parameters necessary for combining the images,
+then performing the actual processing necessary to generate
+the final product.  The process starts with the input of the
+image names to initialize the MultiDrizzle object:
+
+>>> import multidrizzle
+>>> md = multidrizzle.MultiDrizzle(input)
+>>> md.editpars()  
+>>> md.build()
+>>> md.run()
+
+The 'editpars()' method starts the Traits GUI for editing all the
+input parameters, and is a step that can be skipped. MultiDrizzle
+defines default values for all inputs, and only those values which
+need to be over-ridden should be entered.
+
+Further help can be obtained interactively using:
+>>> md.help()
+
+"""
+def help():
+    """ Prints help information for MultiDrizzle."""
+    print 'MultiDrizzle Version ',__version__
+    print __help_str
+
+
 def versioninfo():
     """ Print version information for packages used by Multidrizzle """
 
@@ -70,7 +100,42 @@ def _splitNsigma(s):
     return (_nsigma1, _nsigma2)
 
 class Multidrizzle:
+    """ 
+The MultiDrizzle object manages the processing of the images.  All
+input parameters, including the input, have default values, so only
+those parameters which need to be changed should be specified. The
+processing requires the following steps to be performed in order:
+  - input all parameters and convert all input images to 
+    multi-extension FITS (MEF) files
 
+    >>> md = multidrizzle.MultiDrizzle (input, output=None, 
+                                        editpars=no,**input_dict)
+
+    where editpars turns on/off the GUI parameter editor
+          input_dict contains all parameters which have non-default values
+
+  - (optionally) edit all input parameter values with Traits-based GUI
+
+    >>> md.editpars()
+
+  - build parameters necessary for combining the images
+
+    >>> md.build()
+
+  - process the images through the steps which were turned on
+
+    >>> md.run( static = None,          skysub = None,
+                driz_separate = None,   median = None,
+                blot = None,            driz_cr = None,
+                driz_combine = None,    timing = None):
+
+    where each parameter controls whether a processing step gets performed.
+
+A full list of the parameters can be obtained from the MultiDrizzle
+help file.
+
+
+    """
     init_keys = ['mdriztab','runfile','workinplace',
                 'context','clean','shiftfile','staticfile',
                 'static_sig','coeffs']
@@ -162,7 +227,7 @@ class Multidrizzle:
         # for the attributes necessary for initializing this class
         for kw in self.init_keys:
             self.__dict__[kw] = self.pars.master_pars[kw]
-
+        
         # Create object that controls step execution and mark
         # initialization step.
         self.steps = self.pars.steps
@@ -776,5 +841,8 @@ class Multidrizzle:
 
         if self.pars.switches['timing']:
             self.steps.reportTimes()
-        
 
+    def help(self):
+        """ Prints help string for MultiDrizzle class."""
+        print 'MultiDrizzle Version ',__version__
+        print self.__doc__        
