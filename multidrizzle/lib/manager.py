@@ -59,7 +59,11 @@
 #                                       the createStatic step is turned off.
 #           Version 1.4.0,  03/10/05 -- Modified the createMedian step to use imagestats to compute the mean of the 
 #                                       weight image instead of the numarray mean method.  -- CJH
-
+#           Version 1.5.0,  03/25/05 -- Removed the call to the _setOutputFrame() method in the doDrizSeparate() method.
+#                                       This method is now called from within the run() method of __init__.py to ensure
+#                                       that it is executed regardless of any of the other preMedian steps
+#                                       being executed.  This is to allow for a Multidrizzle restart capability at the
+#                                       Blot step. -- CJH
 # Import Numarray functionality
 import numarray.image.combine as combine
 import numarray as N
@@ -624,7 +628,7 @@ class ImageManager:
         
         # Start by applying input parameters to redefine
         # the output frame as necessary
-        self._setOutputFrame(pars)
+#        self._setOutputFrame(pars)
 
         for p in self.assoc.parlist:
 

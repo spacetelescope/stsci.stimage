@@ -1,5 +1,14 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.5.6: 03/25/05 -- CJH
+    The calling to the _setOutputFrame() method from within the doDrizSeparate() method
+    of the ImageManager class has been removed.  Instead it is executed directly from
+    the run() method of __init__ to allow for a restart capability at the Blot step.
+
+    The ASN_MTYP keyword is now set to "PROD-DTH" in the "empty" DRZ product that 
+    Multidrizzle creates when all entries of the input association table have
+    zero exptime.  This fix is to address PR #53285.
+
 Version 2.5.5: 03/10/05 -- CJH
     The createMedian method withing the ImageManager class has been modified
     to compute the mean value of the singe weight images using imagestats

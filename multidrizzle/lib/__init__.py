@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.5.5 (10 March 2005)'
+__version__ = '2.5.6 (25 March 2005)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -505,8 +505,15 @@ help file.
         
         # Change the filename in the primary header to reflect the name of the output
         # filename.
-        fitsobj[0].header['FILENAME'] = "'"+str(self.output)+"_drz.fits"+"'"
-                
+        fitsobj[0].header['FILENAME'] = str(self.output)+"_drz.fits"
+        
+        # Change the ROOTNAME keyword to the ROOTNAME of the output PRODUCT
+        fitsobj[0].header['ROOTNAME'] = str(self.output)
+        
+        # Modify the ASN_MTYP keyword to contain "PROD-DTH" so it can be properly
+        # ingested into the archive catalog.
+        fitsobj[0].header['ASN_MTYP'] = 'PROD-DTH'
+        
         errstr =  "#############################################\n"
         errstr += "#                                           #\n"
         errstr += "# ERROR:                                    #\n"
@@ -1448,6 +1455,10 @@ help file.
         # Insure that if an error occurs,
         # all file handles are closed before exiting...
         try:
+            # Start by applying input parameters to redefine
+            # the output frame as necessary
+            self.image_manager._setOutputFrame(self.driz_sep_pars)
+
             self._preMedian(skysub)
 
             if self.steps.doStep(ProcSteps.doMedian):
