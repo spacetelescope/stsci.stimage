@@ -29,8 +29,6 @@ Functions to build mask files for PyDrizzle.
 #                   added output filename as input parameter to 'buildMask'
 #                   functions. WJH
 #
-# Test
-#
 import string,os,types
 
 import fileutil
