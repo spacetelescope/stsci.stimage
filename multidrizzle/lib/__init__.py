@@ -22,7 +22,7 @@ from geissupport import *
 
 import makewcs
 
-__version__ = '2.3.0 (31 August 2004)'
+__version__ = '2.3.0 (14 September 2004)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -499,6 +499,9 @@ help file.
             _parfile.update(_bits)
         elif (_instrument.lower() == 'stis'):
             _parfile = dqpars.STISPars()
+            _parfile.update(_bits)
+        elif (_instrument.lower() == 'nicmos'):
+            _parfile = dqpars.NICMOSPars()
             _parfile.update(_bits)
         else:
             print " "

@@ -27,7 +27,7 @@
 #               the final drizzle step.  -- CJH
 #           Version 0.1.45, 08/30/04 -- Added support for the STIS NUV and FUV MAMAs.  -- CJH
 #           Version 0.1.46, 09/07/04 -- Added support for the NICMOS cameras 1,2,3. -- CJH
-
+#           Version 0.1.47, 09/14/04 -- Modified imports to include the new NICMOSINputImage classes -- CJH
  
 # Import Numarray functionality
 import numarray.image.combine as combine
@@ -45,6 +45,7 @@ from pydrizzle import fileutil,drutil,buildmask
 from acs_input import WFCInputImage, HRCInputImage, SBCInputImage
 from wfpc2_input import WFPC2InputImage, PCInputImage, WF2InputImage, WF3InputImage, WF4InputImage
 from stis_input import CCDInputImage, FUVInputImage, NUVInputImage
+from nicmos_input import NIC1InputImage, NIC2InputImage, NIC3InputImage
 
 # Import general tools
 import imagestats
@@ -58,7 +59,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter
 
-__version__ = '0.1.46'
+__version__ = '0.1.47'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 

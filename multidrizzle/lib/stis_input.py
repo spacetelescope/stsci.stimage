@@ -31,8 +31,8 @@ class STISInputImage (InputImage):
         self.platescale = platescale
         
         # Effective gain to be used in the driz_cr step.  Since the
-        # ACS images have already benn converted to electons per
-        # second, the effective gain is 1.
+        # STIS images have already benn converted to electons
+        # the effective gain is 1.
         self._effGain = 1
         
         
