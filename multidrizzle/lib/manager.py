@@ -470,10 +470,15 @@ class ImageManager:
             else:
                 _orient = pars['rot']
 
+            # Need to account for non-existent specification of shape
+            # when setting up output field parameters.
+            if pars['outnx'] == None: _shape = None
+            else: _shape = (pars['outnx'],pars['outny'])
+            
             print 'Default orientation for output: ',_orient,'degrees'
 
             _sky_field.set(psize=pars['scale'], orient=_orient,
-                           ra=pars['ra'], dec=pars['dec'], shape=(pars['outnx'],pars['outny']))
+                           ra=pars['ra'], dec=pars['dec'], shape=_shape)
 
         # Now that we have built the output frame, let the user know
         # what was built...
