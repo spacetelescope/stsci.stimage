@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.0.17 (22-June-2004)"
+__version__ = "5.0.18 (2-July-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -1484,7 +1484,16 @@ class WFPCObservation(Pattern):
 
             _detnum = fileutil.getKeyword(_extname,'DETECTOR',handle=self.image_handle)
 
-            # Also, build mask file for this member chip
+            # Start by looking for the corresponding WFPC2 'c1h' files
+            _dqfile = self._findDQFile()
+
+            # Reset dqfile name in ImType class to point to new file
+            self.imtype.dqfile = _dqfile
+
+            # Set the DQ extname to that used by WFPC2 C1H images
+            self.imtype.dq_extname = 'sdq'
+
+            # Build mask file for this member chip
             _dqname = self.imtype.makeDQName(extver=_detnum)
 
             _maskname = buildmask.buildShadowMaskImage(_dqname,_detnum,bitvalue=self.bitvalue)
@@ -1497,6 +1506,16 @@ class WFPCObservation(Pattern):
             if self.idckey != 'idctab':
                 _chip1_rot = self.members[0].geometry.def_rot
 
+    def _findDQFile(self):
+        """ Find the DQ file which corresponds to the input WFPC2 image. """
+        if self.name.find('.fits') < 0:
+            # Working with a GEIS image...
+            dqfile = self.name[:-2]+'1h'
+        else:
+            # Looking for c1f FITS DQ file...
+            dqfile = self.name.replace('0f.fits','1f.fits')
+
+        return dqfile
 
     def setOrient(self):
 

@@ -192,10 +192,12 @@ def buildShadowMaskImage(rootname,detnum,replace=yes,bitvalue=None):
 
 
     # Read in info from .c1h file to add flagged bad pixels to final mask
-    _indx = rootname.find('.c')
+    _indx = rootname.find('.c1h')
     if _indx < 0: _indx = len(rootname)
-    _dqname = rootname[:_indx]+'.c1h'
-
+    if rootname.find('.fits') < 0:
+        _dqname = rootname[:_indx]+'.c1h'
+    else:
+        _dqname = rootname
     # Check for existance of input .c1h file for use in making inmask file
     if fileutil.findFile(_dqname) != yes:
         print 'DQ file ',_dqname,' NOT found...'

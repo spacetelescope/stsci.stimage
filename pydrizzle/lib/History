@@ -1,4 +1,12 @@
 ### PyDrizzle Revision Changes
+Version 5.0.18 (2-July-2004) WJH
+      - Updated ImType class to support different files for SCI and DQ
+        arrays, such as those for WFPC2 data.
+      - Changed 'buildShadowMaskImage' to only append '.c1h' to filename
+        when it was not a FITS image, based on presence of .fits.
+      - Added '_findDQFile' method to WFPC2Observation class to reset the
+        ImType class attributes for WFPC2 data to be consistent with both
+        GEIS or readgeis-FITS input.
 Version 5.0.17 (22-June-2004) WJH
       - Added 'getDGEOArrays' to Exposure class to read in distortion
         correction images and return them as numarray objects.  If none

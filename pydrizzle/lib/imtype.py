@@ -22,6 +22,7 @@ class Imtype:
 
         self.handle = handle
         self.filename = filename
+        self.dqfile = filename
 
         self.seperator = ','            # Used for parsing EXTN syntax
         self.dq_suffix = dqsuffix
@@ -73,9 +74,9 @@ class Imtype:
         """
 
         if not self.dq_suffix:
-            _dqname = self.filename
+            _dqname = self.dqfile
         else:
-            _dqname = fileutil.buildNewRootname(self.filename,extn=self.dq_suffix)
+            _dqname = fileutil.buildNewRootname(self.dqfile,extn=self.dq_suffix)
 
         if self.dq_extn:
             _dqname += self._setDQExtn(extn=extver)
@@ -85,7 +86,6 @@ class Imtype:
             _dqname = None
 
         return _dqname
-
 
     def _setDQExtn(self, extn=None):
         """ Builds extension specification for accessing DQ extension/group.
