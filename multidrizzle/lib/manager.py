@@ -26,6 +26,7 @@
 #           Version 0.1.44, 08/02/04 -- Added support for the application of inverse variance maps in
 #               the final drizzle step.  -- CJH
 #           Version 0.1.45, 08/30/04 -- Added support for the STIS NUV and FUV MAMAs.  -- CJH
+#           Version 0.1.46, 09/07/04 -- Added support for the NICMOS cameras 1,2,3. -- CJH
 
  
 # Import Numarray functionality
@@ -57,7 +58,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter
 
-__version__ = '0.1.45'
+__version__ = '0.1.46'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -234,9 +235,21 @@ class ImageManager:
     def _getInputImage (self, input, plist):
         """ Factory function to return appropriate InputImage class type"""
 
+        # Extract the instrument name for the data that is being processed by Multidrizzle
         _instrument = plist['exposure'].header['INSTRUME']
-        _detector = plist['exposure'].header['DETECTOR']
+        
+        # Determine the instrument detector in use.  NICMOS is a special case because it does
+        # not use the 'DETECTOR' keyword.  It instead used 'CAMERA' to identify which of it's
+        # 3 camera's is in use.  All other instruments support the 'DETECTOR' keyword.
+        if (_instrument == 'NICMOS'):
+            _detector = plist['exposure'].header['CAMERA']
+        else:
+            _detector = plist['exposure'].header['DETECTOR']
+            
+        # Extract the plate scale in use by the detector
         _platescale = plist['exposure'].pscale
+        if _platescale == None:
+            raise ValueError, 'The plate scale has a value of -- None -- '
         
         # Extract the dq array designation
         _dqname = plist['exposure'].dqname
@@ -257,6 +270,10 @@ class ImageManager:
             if _detector == 'CCD': return CCDInputImage(input,_dqname,_platescale,memmap=0)
             if _detector == 'FUV-MAMA': return FUVInputImage(input,_dqname,_platescale,memmap=0)
             if _detector == 'NUV-MAMA': return NUVInputImage(input,_dqname,_platescale,memmap=0)
+        if _instrument == 'NICMOS':
+            if _detector == 1: return NIC1InputImage(input,_dqname,_platescale,memmap=0)
+            if _detector == 2: return NIC2InputImage(input,_dqname,_platescale,memmap=0)
+            if _detector == 3: return NIC3InputImage(input,_dqname,_platescale,memmap=0)
 
         # If a supported instrument is not detected, print the following error message
         # and raise an exception.
