@@ -1030,8 +1030,44 @@ class ImageManager:
         #except:
         #    print 'Error during final drizzling.'
         #    raise RuntimeError
+        
+        self.updateMdrizskyHistory(drizpars['build'])
 
+    def updateMdrizskyHistory(self,build):
+        """ Update the output SCI image with HISTORY cards
+            that document what MDRIZSKY value was applied to each
+            input image.
+        """
+        _plist = self.assoc.parlist[0]
+        if build == True: _sky_output = _plist['output']
+        else: _sky_output = _plist['outdata']
+        
+        fhdu = pyfits.open(_sky_output,mode='update')
+        prihdr = fhdu[0].header
+        
+        for sky in self._getMdrizskyValues():
+            sky_str = sky[0]+' MDRIZSKY = '+str(sky[1])
+            prihdr.add_history(sky_str)
+            
+        fhdu.close()
+        del fhdu
+        
 
+    def _getMdrizskyValues(self):
+        """ Builds a list of MDRIZSKY values used for each unique
+            input exposure, not chip.
+        """
+        mdict = {}
+        mlist = []
+        for member in self.assoc.parlist:
+            fname = member['image'].datafile
+            if not mdict.has_key(fname): 
+                mlist.append((fname, member['image'].getSubtractedSky()))
+                mdict[fname] = 1
+                
+        return mlist
+
+                 
     def _applyIVM(self,parlistentry):
 
         if parlistentry['ivmname'] != None:
