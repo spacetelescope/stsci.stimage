@@ -587,6 +587,7 @@ def wcsfit(img_geom, ref):
     # Define objects that we need to use for the fit...
     img_wcs = img_geom.wcs
     in_refpix = img_geom.model.refpix
+    img_wcs.recenter()
 
     # Only work on a copy to avoid unexpected behavior in the
     # call routine...

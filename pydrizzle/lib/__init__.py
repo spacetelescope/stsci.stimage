@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.2.0 (17-September-2004)"
+__version__ = "5.2.1 (20-September-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -2282,13 +2282,32 @@ More help on SkyField objects and their parameters can be obtained using:
                 # ARRDRIZ.TBLOT needs to be updated to support 'poly5' interpolation,
                 # and exptime scaling of output image.
                 #
-                #arrdriz.tblot(_insci, _outsci,xmin,xmax,ymin,ymax,
+
+                #
+                # This call to 'arrdriz.tdriz' uses the F2PY syntax
+                #
+                arrdriz.tblot(_insci, _outsci,xmin,xmax,ymin,ymax,
+                            plist['xsh'],plist['ysh'],
+                            plist['rot'],plist['scale'], kscale, _pxg, _pyg,
+                            'center',interp, plist['coeffs'], plist['exptime'],
+                            misval, sinscl, 1)
+                #
+                # End of F2PY syntax
+                #
+                """"
+                #
+                # This call to 'arrdriz.tdriz' uses the F2C syntax
+                #
                 t = arrdriz.tblot(_insci, _outsci,xmin,xmax,ymin,ymax,
                             plist['xsh'],plist['ysh'],
                             plist['rot'],plist['scale'], kscale, _pxg, _pyg,
                             'center',interp, plist['coeffs'], plist['exptime'],
                             misval, sinscl, 1)
 
+                #
+                # End of F2C syntax
+                #
+                """
                 # Write output Numarray objects to a PyFITS file
                 # Blotting only occurs from a drizzled SCI extension
                 # to a blotted SCI extension...
@@ -2398,7 +2417,6 @@ More help on SkyField objects and their parameters can be obtained using:
                 ystart = 0
                 nmiss = 0
                 nskip = 0
-                _dny = plist['blotny']
                 _vers = plist['driz_version']
 
                 _con = yes
@@ -2407,6 +2425,28 @@ More help on SkyField objects and their parameters can be obtained using:
                     _con = no
                     _imgctx = _numctx[plist['outsingle']]
 
+
+                #
+                # This call to 'arrdriz.tdriz' uses the F2PY syntax
+                #
+                #_dny = plist['blotny']
+                # Call 'drizzle' to perform image combination
+                tdriz,nmiss,nskip,_vers = arrdriz.tdriz(
+                            _sciext.data,_inwht, _outsci, _outwht,
+                            _outctx[_planeid], _con, _uniqid, ystart, 1, 1,
+                            plist['xsh'],plist['ysh'], 'output','output',
+                            plist['rot'],plist['scale'], _pxg,_pyg,
+                            'center', plist['pixfrac'], plist['kernel'],
+                            plist['coeffs'], 'counts', _expin,_wtscl,
+                            plist['fillval'], _inwcs, 1, nmiss, nskip,_vers)
+                #
+                # End of F2PY syntax
+                #
+                """"
+                #
+                # This call to 'arrdriz.tdriz' uses the F2C syntax
+                #
+                _dny = plist['blotny']
                 # Call 'drizzle' to perform image combination
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
                             _outctx[_planeid], _uniqid, ystart, 1, 1, _dny,
@@ -2415,6 +2455,10 @@ More help on SkyField objects and their parameters can be obtained using:
                             'center', plist['pixfrac'], plist['kernel'],
                             plist['coeffs'], 'counts', _expin,_wtscl,
                             plist['fillval'], _inwcs, nmiss, nskip, 1)
+                #
+                # End of F2C syntax
+                #
+                """
                 plist['driz_version'] = _vers
 
                 if nmiss > 0:
@@ -2436,7 +2480,6 @@ More help on SkyField objects and their parameters can be obtained using:
                 # Increment number of chips processed for single output
                 _numchips += 1
                 if _numchips == _imgctx:
-
                     #
                     # Write output arrays to FITS file(s) and reset chip counter
                     #
