@@ -161,7 +161,7 @@ class ImageManager:
                 _mask_array = N.ones(p['image'].image_shape,N.UInt8)
                 # We also need to create a name for the mask array file
 #                p['image'].maskname = buildmask.buildMaskName(p['image'].rootname,p['image'].grp)
-                p['image'].maskname = p['exposure'].maskname
+                p['image'].maskname = p['exposure'].masklist[0]
 
                 self._buildMaskImage(p['image'].maskname,_mask_array)
                 del _mask_array
