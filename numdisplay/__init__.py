@@ -86,7 +86,7 @@
                     
 """
 
-import numarray, math
+import numarray, math, string
 import displaydev
 
 try:
@@ -94,7 +94,7 @@ try:
 except ImportError:
     geotrans = None
 
-__version__ = "0.1.4 (22-Oct-2003)"
+__version__ = "0.1.5 (27-Oct-2003)"
 #
 # Version 0.1-alpha: Initial release 
 #       WJH 7-Oct-2003
@@ -137,7 +137,7 @@ class NumDisplay:
         self.nlines = 256    # Not implemented yet!
         
         # If zrange != 0, use user-specified min/max values
-        self.zrange = False
+        self.zrange = 0  # 0 == False
         
         # Scale the image based on input pixel range...
         self.z1 = None
@@ -157,21 +157,27 @@ class NumDisplay:
         """ Close the display device entry."""
         self.view.close()
         
-    def set(self,frame=None,z1=None,z2=None,transform=None,scale=None,offset=None):
+    def set(self,frame=None,z1=None,z2=None,contrast=None,transform=None,scale=None,offset=None):
         
         """ Allows user to set multiple parameters at one time. """
         
         self.frame = frame
+        self.zrange = 0  # 0 == False
         
-        if z1:
+        if contrast != None:
+            self.contrast = contrast
+        else:
+            self.contrast = None
+        
+        if z1 != None:
             self.z1 = z1
-            self.zrange = True
+            self.zrange = 1  # 1 == True
         else:
             self.z1=None
 
-        if z2:
+        if z2 != None:
             self.z2 = z2
-            self.zrange = True
+            self.zrange = 1  # 1 == True
         else:
             self.z2=None
 
@@ -181,7 +187,7 @@ class NumDisplay:
         else:
             self.transform = self._noTransform
         
-        if scale:
+        if scale != None:
             self.scale = scale
         else:
             self.scale = None
@@ -197,7 +203,7 @@ class NumDisplay:
         """
         return image
         
-    def _bscaleImage(self, image, iz1, iz2):
+    def _bscaleImage(self, image):
         """
         This function converts the input image into a byte-array 
          with the z1/z2 values being mapped from 1 - 200.
@@ -209,13 +215,15 @@ class NumDisplay:
         _ny,_nx = image.shape        
 
         bimage = numarray.zeros((_ny,_nx),numarray.UInt8)
-
+        iz1 = self.z1
+        iz2 = self.z2
+        
         if iz2 == iz1: 
             status = "Image scaled to all one pixel value!"
             return bimage
         else:
-            scale = _pmax / (iz2 - iz1 + 1)
-
+            scale =  _pmax / (iz2 - iz1 + 1)
+            
         # Now we can scale the pixels using a linear scale only (for now)
         # Add '1' to clip value to account for zero indexing
         bimage = numarray.clip(((image - iz1+1) * scale),_pmin,_pmax).astype(numarray.UInt8)
@@ -250,32 +258,42 @@ class NumDisplay:
         
         # Return bytescaled, frame-buffer trimmed image            
         if (_xstart == 0 and _xend == pix.shape[0]) and (_ystart == 0 and _yend == pix.shape[1]):
-            return self._bscaleImage(pix, self.z1, self.z2)
+            return self._bscaleImage(pix)
         else:
-            return self._bscaleImage(pix[_ystart:_yend,_xstart:_xend],self.z1,self.z2)
+            return self._bscaleImage(pix[_ystart:_yend,_xstart:_xend])
 
     def _transformImage(self, pix):
         """ Apply user-specified scaling to the input array. """
-        
 
+        if isinstance(pix,numarray.numarraycore.NumArray):
+            
+            if self.zrange:
+                zpix = pix.copy()
+                zpix = numarray.clip(pix,self.z1,self.z2)
+            else:
+                zpix = pix    
+        else:
+            zpix = pix
         # Now, what kind of multiplicative scaling should be applied
         if self.scale:
             # Apply any additive offset to array
             if self.offset:
-                return self.transform( (pix+self.offset)*self.scale)
+                return self.transform( (zpix+self.offset)*self.scale)
             else:
-                return self.transform( pix*self.scale)
+                return self.transform( zpix*self.scale)
         else:
             if self.offset:
-                return self.transform (pix + self.offset)
+                return self.transform (zpix + self.offset)
             else:
-                return self.transform(pix)        
-            
+                return self.transform(zpix)        
     
     def display(self, pix, name=None, bufname=None, z1=None, z2=None,
-            transform=None, scale=None, offset=None, frame=None):
+             transform=None, scale=None, offset=None, frame=None):
         
-        """ Displays byte-scaled (UInt8) numarray to XIMTOOL device. 
+        """ Displays byte-scaled (UInt8) numarray to XIMTOOL device.
+            This method uses the IIS protocol for displaying the data
+            to the image display device, which requires the data to be
+            byte-scaled.
             If input is not byte-scaled, it will perform scaling using 
             set values/defaults.
         """
@@ -312,9 +330,9 @@ class NumDisplay:
 
         bpix = self._transformImage(pix)        
                 
-        # Recompute the pixel range of (possibly) transformed array
-        _z1 = numarray.minimum.reduce(numarray.ravel(bpix))
-        _z2 = numarray.maximum.reduce(numarray.ravel(bpix))
+        # Recompute the pixel range of (possibly) transformed array        
+        _z1 = self._transformImage(self.z1)
+        _z2 = self._transformImage(self.z2)
 
         # If there was a problem in the transformation, then restore the original
         # array as the one to be displayed, even though it may not be ideal.
@@ -327,14 +345,18 @@ class NumDisplay:
             if self.z1 == self.z2: 
                 self.z1 -= 1.
                 self.z2 += 1.
-                
+        else:
+            # Reset z1/z2 values now so that image gets displayed with
+            # correct range.  Also, when displaying transformed images
+            # this allows the input pixel value to be displayed, rather
+            # than the transformed pixel value.
+            self.z1 = _z1
+            self.z2 = _z2
 
         _wcsinfo = displaydev.ImageWCS(bpix,z1=self.z1,z2=self.z2,name=name)
-        print 'Image displayed with Z1: ',self.z1,' Z2:',self.z2 
+        print 'Image displayed with Z1: ',self.z1,' Z2:',self.z2
 
         bpix = self._fbclipImage(bpix,_d.fbwidth,_d.fbheight)
-        _z1 = numarray.minimum.reduce(numarray.ravel(bpix))
-        _z2 = numarray.maximum.reduce(numarray.ravel(bpix))
                 
         # Update the WCS to match the frame buffer being used.
         _d.syncWCS(_wcsinfo)   

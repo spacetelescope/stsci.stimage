@@ -196,7 +196,7 @@ def _open(imtdev=None):
                 return _open(imtdev)
             except:
                 pass
-        raise IOError("Cannot open image display")
+        raise IOError("Cannot attach to display program. Verify that one is running...")
     # substitute user id in name (multiple times) if necessary
     nd = len(imtdev.split("%d"))
     if nd > 1:
