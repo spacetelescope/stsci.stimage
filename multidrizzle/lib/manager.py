@@ -476,7 +476,7 @@ class ImageManager:
                 p['driz_mask'] = None
 
             print("\ndrizzle data='"+p['data']+"' outdata='"+p['outsingle']+"' outweig='"+p['outsweight']+
-                "' outcont='"+p['outscontext']+"' in_mask='static_mask"+"' kernel='"+p['kernel']+
+                "' in_mask='static_mask"+"' kernel='"+p['kernel']+
                 "' outnx="+str(p['outnx'])+" outny="+str(p['outny'])+" xsh="+str(p['xsh'])+" ysh="+str(p['ysh'])+
                 " scale="+str(p['scale'])+" pixfrac="+str(p['pixfrac'])+" rot="+str(p['rot'])+
                 " coeffs='"+p['coeffs']+"' wt_scl='"+p['wt_scl']+"' align='center' shft_fr='output' shft_un='output'"+
