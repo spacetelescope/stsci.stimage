@@ -9,7 +9,7 @@
 #           0.1.0 -- Created -- Warren Hack
 #           0.1.1 -- DGEOFILE logic set to work with N/A as input
 #
-
+import os
 import buildmask, fileutil, drutil
 from obsgeometry import ObsGeometry
 
@@ -40,6 +40,15 @@ class Exposure:
 
         # This name should be formatted for use in image I/O
         self.name = fileutil.osfn(expname)
+
+        # osfn() will expand '.' unnecessarily, potentially
+        # creating a string-length problem for 'drizzle', which
+        # is limited to strings of 80 chars.
+        _path,_name = os.path.split(self.name)
+        # if path for this filename is the same as the current dir,
+        # then there is no need to pass along the path.
+        if _path == os.getcwd(): self.name = _name
+
 
         # Keep track of any associated mask file created for
         # this exposure from its DQ file, or other mask file.
@@ -238,10 +247,14 @@ class Exposure:
         else:
             # Open distortion correction FITS file
             _xgfile = fileutil.openImage(self.xgeoim)
+            _xgfile.info()
 
             # Access the extensions which correspond to this Exposure
             _xgname,_xgext = fileutil.parseFilename(self.xgeoim)
             _ygname,_ygext = fileutil.parseFilename(self.ygeoim)
+            print 'xgname,xgext: ',_xgname,_xgext
+            print ' based on input name of: ',self.xgeoim
+
             _pxgext = fileutil.getExtn(_xgfile,extn=_xgext)
             _pygext = fileutil.getExtn(_xgfile,extn=_ygext)
 

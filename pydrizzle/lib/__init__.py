@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.1.4 (7-September-2004)"
+__version__ = "5.2.0 (17-September-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -560,13 +560,12 @@ class Pattern:
         # It will be based on the undistorted version of members[0] WCS
         meta_wcs = _wcs_ref.copy()
 
-        # Now compute the CRPIX for the new output frame
-        # for the CRVAL from the reference chip
-        #_crval = (_wcs_ref.crval1,_wcs_ref.crval2)
-        #_cpix = (_wcs_ref.crpix1, _wcs_ref.crpix2)
-
-        # Update meta_wcs with initial guess for CRPIX and CRVAL
-        #meta_wcs.updateWCS(refval=_crval,refpos=_cpix,pixel_scale=pscale)
+        # Now, check to see if members have subarray offsets, but was
+        # taken as a full image...
+        if len(self.members) > 1 and _geo_ref.wcs.subarray == yes:
+            for member in self.members:
+                member.geometry.wcslin.subarray = no
+                member.geometry.model.refpix['centered'] = no
 
         #Determine range of pixel values for corrected image
         # Using verbose=yes will return additional info on range calculation
@@ -593,19 +592,14 @@ class Pattern:
                 _nref = meta_range['nref']
 
                 for member in self.members:
+                    _refpix = member.geometry.model.refpix
                     # Update XDELTA,YDELTA (zero-point of coefficients) to adjust for
                     # uncentered output
-                    member.geometry.model.refpix['XDELTA'] -= _nref[0]/2.
-                    member.geometry.model.refpix['YDELTA'] -= _nref[1]/2.
+                    _refpix['XDELTA'] -= _nref[0]/2.
+                    _refpix['YDELTA'] -= _nref[1]/2.
 
                     # Update corner positions based on corrected DELTAs
                     member.corners['corrected'] -= (_nref[0]/2.,_nref[1]/2.)
-            else:
-                _nref = (0.,0.)
-
-        else:
-            _nref = (0.,0.)
-
         #
         # TROLL computation not needed, as this get corrected for both
         # in 'recenter()' and in 'wcsfit'...
@@ -855,7 +849,6 @@ class Pattern:
             parameters['gpar_ysh'] = member.geometry.gpar_ysh
             parameters['gpar_rot'] = member.geometry.gpar_rot
 
-
             # coord for image array reference pixel in full chip coords
             _xref = None
             _yref = None
@@ -869,11 +862,11 @@ class Pattern:
                 # Pass along the reference position assumed by Drizzle
                 # based on 'align=center' according to the conventions
                 # described in the help page for 'drizzle'.  26Mar03 WJH
-                _xref = int(in_wcs_orig.naxis1/2.) + 1.0
-                _yref = int(in_wcs_orig.naxis2/2.) + 1.0
+                _xref = int(in_wcs_orig.naxis1/2.)
+                _yref = int(in_wcs_orig.naxis2/2.)
 
             # Set up the idcfile for use by 'drizzle'
-            indx = string.find(member.name,'.')
+            indx = string.rfind(member.name,'.')
             coeffs = member.name[:indx]+'_coeffs'+member.chip+'.dat'
             member.geometry.model.convert(coeffs,xref=_xref,yref=_yref,delta=_delta)
             parameters['coeffs'] = coeffs
@@ -992,84 +985,6 @@ class Pattern:
             _nmembers += 1
 
 
-    def _computeOffsets(self):
-
-        """
-        This version of 'computeOffsets' calculates the zero-point
-        shifts to be included in the distortion coefficients table
-        used by 'drizzle'.
-        It relies on 'WCSFIT' to compute the offsets between the chips
-        based on each chip's WCS without explicitly relying on V2REF/V3REF
-        and the parity matrix anymore.
-        """
-        meta_ref = self.members[0].geometry
-        meta_wcs = meta_ref.wcslin.copy()
-        _off_list = []
-        _xsum = 0.
-        _ysum = 0.
-        v2v3off_list = []
-
-        for member in self.members:
-            abxt,cdyt = drutil.wcsfit(member.geometry,meta_wcs)
-            _theta = RADTODEG(N.arctan2(abxt[1],abxt[0]))
-            _xscale = abxt[0] / N.cos(DEGTORAD(_theta))
-            _wcs = member.geometry.wcs
-            _refp = member.geometry.model.refpix
-
-            _delta_ref = ((_wcs.crpix1 - _wcs.naxis1/2.)*_xscale,(_wcs.crpix2 - _wcs.naxis2/2.)*_xscale)
-            _fitmat = drutil.buildRotMatrix(_theta)/_xscale
-            _fitmatn = drutil.buildRotMatrix(-_theta)/_xscale
-            _delta_off = N.dot(_fitmatn,_delta_ref)
-            _off = N.dot(_fitmat,(abxt[2]+meta_wcs.crpix1,cdyt[2]+meta_wcs.crpix2))
-
-            """
-            #
-            # Compute the offsets based on V2REF/V3REF instead
-            # using algorithm from 'chipwcs.pro' by R. Hook
-            #
-            xsep = (_refp['V2REF'] - meta_ref.model.refpix['V2REF']) / meta_ref.model.refpix['PSCALE']
-            ysep = -(_refp['V3REF'] - meta_ref.model.refpix['V3REF']) / meta_ref.model.refpix['PSCALE']
-            sep = N.sqrt(N.power(xsep,2)+N.power(ysep,2))
-            ang = N.arctan2(ysep,xsep)
-            delta_rotx = ang - DEGTORAD(meta_ref.model.refpix['THETA'])
-
-            xoff = _wcs.crpix1 - _refp['XREF']
-            yoff = _wcs.crpix2 - _refp['YREF']
-            sc_ratio = meta_ref.model.refpix['PSCALE'] / _refp['PSCALE']
-            sepoff = N.sqrt(N.power(xoff,2)+N.power(yoff,2)) / sc_ratio
-            setang = N.arctan2(yoff,xoff)
-
-            rrot = DEGTORAD(_refp['THETA'] - meta_ref.model.refpix['THETA'])
-            xdoff = sepoff * N.cos(rrot + setang)
-            ydoff = sepoff * N.sin(rrot + setang)
-
-            v2v3off_list.append((sep*N.cos(delta_rotx) + xdoff, sep*N.sin(delta_rotx)+ydoff))
-            """
-            _xsum += _off[0]
-            _ysum += _off[1]
-            _off_list.append(_off)
-
-        _off_list = N.array(_off_list)
-        _xsum /= len(self.members)
-        _ysum /= len(self.members)
-
-        # Compute position of each chip's common point relative
-        # to the output chip's reference position.
-        i = 0
-        for chip in self.members:
-            _refp = chip.geometry.model.refpix
-
-            _refp['XDELTA'] = _off_list[i][0]
-            _refp['YDELTA'] = _off_list[i][1]
-
-            # Only set centered to yes for full exposures...
-            if chip.geometry.wcs.subarray != yes:
-                _refp['centered'] = no
-            else:
-                _refp['centered'] = yes
-
-            i = i + 1
-
     def computeOffsets(self,parity=None,refchip=None):
         """
         This version of 'computeOffsets' calculates the zero-point
@@ -1080,6 +995,14 @@ class Pattern:
         matrix will be specific to each detector.
         """
         vref = []
+
+        # Check to see if any chip-to-chip offsets need to be computed at all
+        if len(self.members) == 1:
+            refp = self.members[0].geometry.model.refpix
+            refp['XDELTA'] = 0.
+            refp['YDELTA'] = 0.
+            refp['centered'] = yes
+            return
 
         # Set up the parity matrix here for a SINGLE chip
         if parity == None:
@@ -1118,10 +1041,13 @@ class Pattern:
             scale = refp['PSCALE']
             theta = refp['THETA']
             if theta == None: theta = 0.0
+
+            chipcen = (memwcs.naxis1/2. + memwcs.offset_x, memwcs.naxis2/2. + memwcs.offset_y)
             xypos = N.dot(ref_pmat,v2v3-ref_v2v3) / scale + ref_xy
             chiprot = drutil.buildRotMatrix(theta - ref_theta)
 
-            offcen = ((refp['XREF'] - memwcs.naxis1/2), (refp['YREF'] - memwcs.naxis2/2.))
+            offcen = ((refp['XREF'] - chipcen[0]), (refp['YREF'] - chipcen[1]))
+
             # Update member's geometry model with computed
             # reference position...
             #refp['XDELTA'] = vref[i][0] - v2com + chip.geometry.delta_x
@@ -1502,7 +1428,7 @@ class WFPCObservation(Pattern):
         for i in range(self.nmembers):
             _extname = self.imtype.makeSciName(i+1,section=self.pars['section'])
 
-            _detnum = fileutil.getKeyword(_extname,'DETECTOR',handle=self.image_handle)
+            _detnum = fileutil.getKeyword(_extname,self.DETECTOR_NAME,handle=self.image_handle)
 
             # Start by looking for the corresponding WFPC2 'c1h' files
             _dqfile = self._findDQFile()
@@ -1826,9 +1752,12 @@ class DitherProduct(Pattern):
         _nimg = len(prodlist)
         _delta_x /= _nimg
         _delta_y /= _nimg
-        # delta_d[x/y] not needed with WCSFIT computing final pars
-        #_delta_dx = ((_dxmax - _dxmin)/2. - abs(_delta_x))
-        #_delta_dy = ((_dymax - _dymin)/2. - abs(_delta_y))
+
+        # Computes the offset from center of the overall set of shifts
+        # as applied to the pixels.  This insures that the visible pixels
+        # are centered in the output.
+        _delta_dx = ((_xmax - _delta_x) + (_xmin - _delta_x))/2.
+        _delta_dy = ((_ymax - _delta_y) + (_ymin - _delta_y))/2.
 
         if _xmin > 0.: _xmin = 0.
         if _ymin > 0.: _ymin = 0.
@@ -1858,25 +1787,18 @@ class DitherProduct(Pattern):
         # delta_[x/y] : average of all shifts applied to input images
         # delta_d[x/y]: amount off-center of all shifts
         #
+        # Need to take into account overall offset in shifts, such that
+        # minimum, not maximum, shift is always 0.0. This is needed to allow
+        # subarrays to align properly with full frame observations without
+        # introducing an overall offset to the output.  WJH 13 Sept 2004.
         #
-        #_nref = ( _dxsize/2. - _delta_x + _delta_dx/2., _dysize/2. - _delta_y + _delta_dy/2.)
-        _nref = ( _dxsize/2. - _delta_x , _dysize/2. - _delta_y )
+        _nref = ( _dxsize/2. - _delta_x - _delta_dx, _dysize/2. - _delta_y - _delta_dy)
 
         # Have to adjust the CRPIX by how much the center needs to shift
         # to fit into the reference frame.
         meta_wcs.crpix1 = meta_wcs.crpix1 + _nref[0]
         meta_wcs.crpix2 = meta_wcs.crpix2 + _nref[1]
-
         meta_wcs.recenter()
-        # update the orientation for the change in CRVAL
-        #_dec = fileutil.DEGTORAD(meta_wcs.crval2)
-        #_delta_ra = fileutil.DEGTORAD(meta_wcs.crval1 - ref_crval[0])
-        #_delta_orient = N.sin(_dec)*_delta_ra/N.cos(_dec)
-
-        #meta_wcs.updateWCS(orient=meta_wcs.orient + _delta_orient)
-        #meta_wcs.crval1,meta_wcs.crval2 = meta_wcs.xy2rd(_cen)
-        #meta_wcs.crpix1 = _cen[0]
-        #meta_wcs.crpix2 = _cen[1]
 
         return meta_wcs
 
@@ -2395,14 +2317,13 @@ More help on SkyField objects and their parameters can be obtained using:
             #
             _wcs = self.observation.product.geometry.wcs
 
-            _numctx = len(self.parlist)
+            _numctx = {'all':len(self.parlist)}
             if single:
                 # Determine how many chips make up each single image
-                _numctx = 0
                 for plist in self.parlist:
-                    if plist['outsingle'] == self.parlist[0]['outsingle']:
-                        _numctx += 1
-
+                    plsingle = plist['outsingle']
+                    if _numctx.has_key(plsingle): _numctx[plsingle] += 1
+                    else: _numctx[plsingle] = 1
             #
             # A image buffer needs to be setup for converting the input
             # arrays (sci and wht) from FITS format to native format
@@ -2415,7 +2336,7 @@ More help on SkyField objects and their parameters can be obtained using:
             _inwcs = N.zeros([8],N.Float64)
 
             # Compute how many planes will be needed for the context image.
-            _nplanes = int((_numctx-1) / 32) + 1
+            _nplanes = int((_numctx['all']-1) / 32) + 1
             # For single drizzling or when context is turned off,
             # minimize to 1 plane only...
             if single or self.parlist[0]['outcontext'] == '':
@@ -2478,6 +2399,13 @@ More help on SkyField objects and their parameters can be obtained using:
                 nmiss = 0
                 nskip = 0
                 _dny = plist['blotny']
+                _vers = plist['driz_version']
+
+                _con = yes
+                _imgctx = _numctx['all']
+                if single or plist['outcontext'] == '':
+                    _con = no
+                    _imgctx = _numctx[plist['outsingle']]
 
                 # Call 'drizzle' to perform image combination
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
@@ -2507,7 +2435,7 @@ More help on SkyField objects and their parameters can be obtained using:
 
                 # Increment number of chips processed for single output
                 _numchips += 1
-                if _numchips == _numctx:
+                if _numchips == _imgctx:
 
                     #
                     # Write output arrays to FITS file(s) and reset chip counter

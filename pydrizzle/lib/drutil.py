@@ -47,7 +47,7 @@ def factorial(n):
 
 def combin(j,n):
     """ Return the combinatorial factor for j in n."""
-    return (factorial(j)*1. / (factorial(n) * factorial( (j-n) ) ) )
+    return (factorial(j) / (factorial(n) * factorial( (j-n) ) ) )
 
 
 #################
@@ -450,27 +450,6 @@ def rotatePos(pos, theta,offset=None,scale=None):
 
     return xr,yr
 
-def getWCSRange(members,ref_wcs,verbose=None):
-    xma,yma = [],[]
-    xmi,ymi = [],[]
-
-    for member in members:
-        _wcs = member.geomtry.wcs
-        _wclin = member.geometry.wcslin
-
-        _scale = _wcslin.pscale / ref_wcs.pscale
-        _delta_rot = _wcslin.orient - ref_wcs.orient
-
-        # Compute the corrected corner positions for each chip
-        skypos = _wcslin.xy2rd(member.geometry.calcNewCorners())
-
-        xma.append(N.maximum.reduce(xypos[:,0]))
-        yma.append(N.maximum.reduce(xypos[:,1]))
-        xmi.append(N.minimum.reduce(xypos[:,0]))
-        ymi.append(N.minimum.reduce(xypos[:,1]))
-
-
-
 # Function for determining the positions of the image
 # corners after applying the geometry model.
 # Returns a dictionary with the limits and size of the
@@ -614,8 +593,7 @@ def wcsfit(img_geom, ref):
     ref_wcs = ref.copy()
     # Insure that reference WCS has reference pixel at
     # center, and adjust if not centered.
-    ref_wcs.recenter()
-
+    #ref_wcs.recenter()
 
     # Convert the RA/Dec positions back to X/Y in output product image
     _cpix_xyref = N.zeros((4,2),type=N.Float64)

@@ -1,4 +1,10 @@
 ### PyDrizzle Revision Changes
+Version 5.2.0 (17-Sept-2004) WJH
+      - Support for subarrays significantly revised so that multi-chip 
+        images with LTV values get processed correctly, and so that subarrays
+        align properly with full frame images at the same pointing.
+      - Changed search algorithm for building 'coeffs' name to start at
+        end of input image name when looking for rootname. 
 Version 5.1.4 (7-Sept-2004) WJH
       - Changed references of header['detector'] to header[self.DETECTOR_NAME]
         to account for lack of 'detector' keyword in NICMOS headers. This change

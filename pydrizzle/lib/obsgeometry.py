@@ -71,22 +71,19 @@ class GeometryModel:
         _cxs = N.zeros(shape=cx.shape,type=cx.type())
         _cys = N.zeros(shape=cy.shape,type=cy.type())
         _k = self.norder + 1
-
         # loop over each input coefficient
         for m in xrange(_k):
             for n in xrange(_k):
                 if m >= n:
                     # For this coefficient, shift by xs/ys.
-                    _ilist = N.array(range(_k - m)) + m
+                    _ilist = range(m, _k)
                     # sum from m to k
                     for i in _ilist:
-                        _jlist = N.array(range( i - (m-n) - n + 1)) + n
+                        _jlist = range(n, i - (m-n)+1)
                         # sum from n to i-(m-n)
                         for j in _jlist:
-                            _cxs[m,n] = _cxs[m,n] + cx[i,j]*combin(j,n)*combin((i-j),(m-n))*pow(xs,(j-n))*pow(ys,((i-j)-(m-n)))
-                            _cys[m,n] = _cys[m,n] + cy[i,j]*combin(j,n)*combin((i-j),(m-n))*pow(xs,(j-n))*pow(ys,((i-j)-(m-n)))
-        _cxs[0,0] = _cxs[0,0] - xs
-        _cys[0,0] = _cys[0,0] - ys
+                            _cxs[m,n] += cx[i,j]*combin(j,n)*combin((i-j),(m-n))*pow(xs,(j-n))*pow(ys,((i-j)-(m-n)))
+                            _cys[m,n] += cy[i,j]*combin(j,n)*combin((i-j),(m-n))*pow(xs,(j-n))*pow(ys,((i-j)-(m-n)))
 
         return _cxs,_cys
 
@@ -110,24 +107,24 @@ class GeometryModel:
 
         if xref != None:
             # Shift coefficients for use with drizzle
-            cx[0,0] += x0
-            cy[0,0] += y0
             _xs = xref - self.refpix['XREF']
             _ys = yref - self.refpix['YREF']
+
             if _xs != 0 or _ys != 0:
                 cxs,cys= self.shift(cx, cy, _xs, _ys)
                 cx = cxs
                 cy = cys
-                # Apply distortion model to reference point shift as well
-                _x0,_y0 = self.apply([(xref,yref)])
+
+                # We only want to apply this shift to coeffs
+                # for subarray images.
+                if delta == no:
+                    cxs[0,0] = cxs[0,0] - _xs
+                    cys[0,0] = cys[0,0] - _ys
+
                 # Now, apply only the difference introduced by the distortion..
                 # i.e., (undistorted - original) shift.
-                x0 += _x0/self.pscale
-                y0 += _y0/self.pscale
-
-        if not delta:
-            x0 = 0.
-            y0 = 0.
+                x0 += cxs[0,0]
+                y0 += cys[0,0]
 
         # Now, write out the coefficients into an ASCII
         # file in 'drizzle' format.
@@ -201,7 +198,6 @@ class GeometryModel:
             _convert = yes
 
         dxy = _p - (self.refpix['XREF'],self.refpix['YREF'])
-
         # Apply coefficients from distortion model here...
         c = _p * 0.
         for i in range(self.norder+1):
@@ -442,8 +438,11 @@ class ObsGeometry:
             if float(_ltv1) != 0. or float(_ltv2) != 0.:
                 self.wcs.offset_x = self.wcslin.offset_x = -float(_ltv1)
                 self.wcs.offset_y = self.wcslin.offset_y = -float(_ltv2)
-                _delta_refx = self.wcs.offset_x - self.model.refpix['XREF']
-                _delta_refy = self.wcs.offset_y - self.model.refpix['YREF']
+                _delta_refx =  (self.wcs.crpix1 + self.wcs.offset_x) - self.model.refpix['XREF']
+                _delta_refy =  (self.wcs.crpix2 + self.wcs.offset_y) - self.model.refpix['YREF']
+
+                #_delta_refx =  self.wcs.offset_x - self.model.refpix['XREF']
+                #_delta_refy =  self.wcs.offset_y - self.model.refpix['YREF']
                 self.wcs.delta_refx = self.wcslin.delta_refx = _delta_refx
                 self.wcs.delta_refy = self.wcslin.delta_refy = _delta_refy
                 self.wcs.subarray = self.wcslin.subarray = yes
@@ -530,13 +529,11 @@ class ObsGeometry:
 
         # Put input positions into full frame coordinates...
         pixpos = pixpos + N.array((self.wcs.offset_x,self.wcs.offset_y),type=N.Float64)
-
         v2,v3 = self.model.apply(pixpos)
 
         # If there was no distortion applied to
         # the pixel position, simply shift by new
         # reference point.
-
         if self.model.cx == None:
             if self.model.refpix != None:
                 if self.model.refpix['XREF'] == None:
@@ -552,11 +549,15 @@ class ObsGeometry:
             # For sub-arrays, we need to account for the offset
             # between the CRPIX of the sub-array and the model reference
             # position in the full frame coordinate system.
+            # In addition, the LTV value (offset_x,offset_y) needs to be
+            # removed again as well. WJH 12 Sept 2004
             # For full images, this correction will be ZERO.
             # This offset, though, has to be scaled by the relative plate-scales.
+            v2 = v2 / pscale
+            v3 = v3 / pscale
 
-            xpos = ( v2 / pscale ) + deltax - (self.wcs.delta_refx / _ratio)
-            ypos = ( v3 / pscale ) + deltay - (self.wcs.delta_refy / _ratio)
+            xpos = v2  + deltax - (self.wcs.delta_refx / _ratio)
+            ypos = v3  + deltay - (self.wcs.delta_refy / _ratio)
 
         # Return the geometrically-adjusted position as a tuple (x,y)
         return xpos,ypos
@@ -589,10 +590,8 @@ class ObsGeometry:
         # Apply VAFACTOR
         for i in range(self.model.norder+1):
             for j in range(i+1):
-#                _xcs[i][j] *= N.power(vafactor,i)
-#                _ycs[i][j] *= N.power(vafactor,i)
-                _xcs[i][j] *= vafactor
-                _ycs[i][j] *= vafactor
+                _xcs[i][j] *= N.power(vafactor,i)
+                _ycs[i][j] *= N.power(vafactor,i)
 
         _xc,_yc = self.model.shift(_xcs,_ycs,-delta_x,-delta_y)
 
@@ -757,14 +756,6 @@ class ObsGeometry:
         self.wcslin.orient = N.arctan2(self.wcslin.cd12,self.wcslin.cd22) * 180./N.pi
         self.wcslin.pscale = N.sqrt(N.power(self.wcslin.cd11,2)+N.power(self.wcslin.cd21,2))*3600.
 
-        #if self.model.refpix['DEFAULT_SCALE'] == yes:
-            #self.wcslin.pscale = self.model.pscale
-        #    _ratio = self.wcs.pscale / self.wcslin.pscale
-        #else:
-            #self.wcslin.pscale = N.sqrt(N.power(self.wcslin.cd11,2)+N.power(self.wcslin.cd21,2))*3600.
-            #_ratio = 1.0
-        #_ratio = self.wcs.pscale / self.wcslin.pscale
-
         # Compute new size and reference pixel position...
         _corners = self.calcNewCorners()
         _naxis1 = float(N.maximum.reduce(_corners[:,0]) - N.minimum.reduce(_corners[:,0]))
@@ -860,11 +851,10 @@ class ObsGeometry:
         yin[1]=self.wcs.naxis2
         yin[2]=self.wcs.naxis2
         yin[3]=1.
+
         corners[:,0] = xin
         corners[:,1] = yin
         corners[:,0],corners[:,1] = self.apply(corners)
         corners += (self.model.refpix['XDELTA'],self.model.refpix['YDELTA'])
-        #corners += (self.wcs.crpix1, self.wcs.crpix2)
-        #print 'CRPIX: ',self.wcs.crpix1,self.wcs.crpix2
 
         return corners
