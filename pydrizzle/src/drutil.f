@@ -2279,7 +2279,7 @@ C position is determined by the value of ALIGN
 
 C The bitmask - trimmed to the appropriate range
       NP=(UNIQID-1)/32+1
-      BV=2**((UNIQID-1-32)*(NP-1))
+      BV=2**(UNIQID-1-(32*(NP-1)))
 
 C In the WCS case we can't use the scale to calculate the
 C Jacobian so we need to do it

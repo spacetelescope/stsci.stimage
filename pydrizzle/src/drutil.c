@@ -3064,7 +3064,7 @@ ftnlen shfr2_len;
     oldcon = -1;
 /* The bitmask - trimmed to the appropriate range */
     np = (*uniqid - 1) / 32 + 1;
-    i__1 = (*uniqid - 33) * (np - 1);
+    i__1 = *uniqid - 1 - (np - 1 << 5);
     bv = pow_ii(&c__2, &i__1);
 /* In the WCS case we can't use the scale to calculate the */
 /* Jacobian so we need to do it */
