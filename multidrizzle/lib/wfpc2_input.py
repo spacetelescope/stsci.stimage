@@ -5,8 +5,13 @@
 #   History:
 #           Version 0.0.0, ----------- Created -- CJH
 #           Version 0.0.1, Updated key names in dictionaries -- CJH -- 07/08/04
-
-__version__ = '0.0.1'
+#           Version 0.1.0, Have modified the sky value get and set functions to
+#               take into account the plate scale differences between the WFPC2
+#               chips when comparing the sky values in deciding which minimum to
+#               use.  The MDRIZSKY keyword will be populated with a value based
+#               upon the WF3 chip plate scale.
+               
+__version__ = '0.1.0'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -28,6 +33,9 @@ class WFPC2InputImage (InputImage):
 
         # Attribute defining the pixel dimensions of WFPC2 chips.
         self.full_shape = (800,800)
+        
+        # Reference Plate Scale used for updates to MDRIZSKY
+        self.refplatescale = 0.0996 # arcsec / pixel
 
     def setInstrumentParameters(self, instrpars, pri_header):
         """ This method overrides the superclass to set default values into
@@ -59,18 +67,6 @@ class WFPC2InputImage (InputImage):
     def _setchippars(self):
         pass
 
-    def getComputedSky(self):
-        return self._computedsky
-
-    def setComputedSky(self,newValue):
-        self._computedsky = newValue
-        
-    def getSubtractedSky(self):
-        return self._subtractedsky
-        
-    def setSubtractedSky(self,newValue):
-        self._subtractedsky = newValue
-        
     def getEffGain(self):
         return self._effGain
 
@@ -94,6 +90,31 @@ class WFPC2InputImage (InputImage):
         if _indx < 0: _indx = len(name)
         return name[:_indx]
 
+    def getComputedSky(self):
+        return (self._computedsky * (self.refplatescale / self.platescale)**2 )
+
+    def setComputedSky(self,newValue):
+        self._computedsky = newValue
+        
+    def getSubtractedSky(self):
+        return self._subtractedsky
+        
+    def setSubtractedSky(self,newValue):
+        self._subtractedsky = (newValue / (self.refplatescale /  self.platescale)**2)
+        
+    def subtractSky(self):
+        try:
+            try:
+                _handle = fileutil.openImage(self.name,mode='update',memmap=0)
+                _sciext = fileutil.getExtn(_handle,extn=self.extn)
+                print "%s (computed sky,subtracted sky)  : (%f,%f)"%(self.name,self.getComputedSky(),self.getSubtractedSky()*(self.refplatescale / self.platescale)**2)
+                N.subtract(_sciext.data,self.getSubtractedSky(),_sciext.data)
+            except:
+                raise IOError, "Unable to open %s for sky subtraction"%self.name
+        finally:
+            _handle.close()
+            del _sciext,_handle
+
     def updateMDRIZSKY(self,filename=None):
     
         if (filename == None):
@@ -103,19 +124,19 @@ class WFPC2InputImage (InputImage):
             _handle = fileutil.openImage(filename,mode='update',memmap=0)
         except:
             raise IOError, "Unable to open %s for sky level computation"%filename
+
+         # Compute the sky level subtracted from all the WFPC2 detectors based upon the reference plate scale.
+        skyvalue = (self.getSubtractedSky()  * (self.refplatescale/self.platescale)**2) / self.getGain()
+        
         try:
             try:
                 # Assume MDRIZSKY lives in primary header
-                print "Updating MDRIZSKY in %s with %f / %f = %f"%(filename,self.getSubtractedSky(),
-                        self.getGain(),
-                        self.getSubtractedSky() / self.getGain()
-                        )
-                _handle[0].header['MDRIZSKY'] = self.getSubtractedSky() / self.getGain()
+                print "Updating MDRIZSKY in %s with %f"%(filename,skyvalue)
+                _handle[0].header['MDRIZSKY'] = skyvalue
             except:
                 print "Cannot find keyword MDRIZSKY in %s to update"%filename
-                print "Adding MDRIZSKY keyword to primary header with value %f"%self.getSubtractedSky()
-                _handle[0].header.update('MDRIZSKY',self.getSubtractedSky()/self.getGain(), 
-                    comment="Sky value subtracted by Multidrizzle")
+                print "Adding MDRIZSKY keyword to primary header with value %f"%skyvalue
+                _handle[0].header.update('MDRIZSKY',skyvalue, comment="Sky value subtracted by Multidrizzle")
         finally:
             _handle.close()
 
@@ -141,7 +162,8 @@ class WF2InputImage (WFPC2InputImage):
     def __init__(self, input, dqname, memmap=1):
         WFPC2InputImage.__init__(self,input,dqname,memmap=1)
         self.instrument = 'WFPC2/WF2'
-
+        self.platescale = 0.0996 #arcsec / pixel
+        
     def _setchippars(self):
         if self._headergain == 7:
             self._gain    = 7.12
@@ -157,6 +179,7 @@ class WF3InputImage (WFPC2InputImage):
     def __init__(self, input, dqname, memmap=1):
         WFPC2InputImage.__init__(self, input, dqname, memmap=1)
         self.instrument = 'WFPC2/WF3'
+        self.platescale = 0.0996 #arcsec / pixel
 
     def _setchippars(self):
         if self._headergain == 7:
@@ -173,6 +196,7 @@ class WF4InputImage (WFPC2InputImage):
     def __init__(self, input, dqname, memmap=1):
         WFPC2InputImage.__init__(self, input, dqname, memmap=1)
         self.instrument = 'WFPC2/WF4'
+        self.platescale = 0.0996 #arcsec / pixel
 
     def _setchippars(self):
         if self._headergain == 7:
@@ -189,6 +213,7 @@ class PCInputImage (WFPC2InputImage):
     def __init__(self, input, dqname, memmap=1):
         WFPC2InputImage.__init__(self,input,dqname,memmap=1)
         self.instrument = 'WFPC2/PC'
+        self.platescale = 0.0455 #arcsec / pixel
 
     def _setchippars(self):
         if self._headergain == 7:
