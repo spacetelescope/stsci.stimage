@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>numdisplay</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th bgcolor="#70b0f0" class="navselect">&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <font size="-1"><b class="breadcrumbs">
+        Package&nbsp;numdisplay
+      </b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[show&nbsp;private&nbsp;|&nbsp;<a href="../public/numdisplay-module.html">hide&nbsp;private</a>]</font></td></tr>
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="numdisplay-module.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td>
+</tr></table>
+
+<!-- =========== START OF PACKAGE DESCRIPTION =========== -->
+<h2 class="package">Package numdisplay</h2>
+
+<pre class="literalblock">
+numdisplay: Package for displaying numarray arrays in IRAF-compatible
+            image display tool such as DS9 or XIMTOOL.
+
+Displaying a numarray array object involves:
+    1.  Opening the connection to a usable display tool (such as DS9).
+    
+    2.  Setting the display parameters for the array, such as min and
+        max array value to be used for min and max grey scale level, along
+        with any offset, scale factor and/or transformation function to be 
+        applied to the array.
+    3.  Applying any transformation to the input array.  This transformation
+        could be a simple numarray ufunc or a user-defined function that
+        returns a modified array.
+    
+    4.  Building the byte-scaled version of the transformed array and 
+        sending it to the display tool.  The image sent to the display 
+        device will be trimmed to fit the image buffer defined by the 
+        'imtdev' device from the 'imtoolrc' or the 'stdimage' 
+        variable under IRAF. If the image is smaller than the buffer, 
+        it will be centered in the display device.  
+        
+        All pixel positions reported back will be relative to the 
+        full image size.
+
+    This package provides several methods for controlling the display
+    of the numarray array; namely,
+    
+        open(imtdev=None): 
+            Open the default display device or the device specified 
+            in 'imtdev', such as 'inet:5137' or 'fifo:/dev/imt1o'.
+        
+        close():
+            Close the display device defined by 'imtdev'. This must
+            be done before resetting the display buffer to a new size.
+                        
+        display(pix, name=None, bufname=None, z1=None, z2=None, 
+                transform=None, scale=None, offset=None, frame=None):
+            Display the scaled array in display tool (ds9/ximtool/...).
+            name -- optional name to pass along for identifying array
+           
+            bufname -- name of buffer to use for displaying array
+                        to best match size of array (such as 'imt1024')
+                        [default: 512x512 buffer named 'imt512']
+
+            z1,z2  -- minimum/maximum pixel value to display (float)
+                      Not specifying values will default 
+                      to the full range values of the input array.
+           
+            transform -- Python function to apply to array (function)
+           
+            scale  -- multiplicative scale factor to apply to array (float/int)
+           
+            offset -- additive factor to apply to array before scaling (float/int)
+           
+            frame  -- image buffer frame number in which to display array
+                        (integer)
+                            
+            The display parameters set here will ONLY apply to the display 
+            of the current array.             
+            
+        readcursor(sample=0):
+            Return a single cursor position from the image display.
+            By default, this operation will wait for a keystroke before
+            returning the cursor position. If 'sample' is set to 1,
+            then it will NOT wait to read the cursor.
+            This will return a string containing: x,y,frame and key.
+            
+        help():
+            print Version ID and this message.
+
+Example:            
+    The user starts with a 1024x1024 array in the variable 'fdata'.
+    This array has min pixel value of -157.04 and a max pixel value 
+    of 111292.02.  The display tool DS9 has already been started from
+    the host level and awaits the array for display.  Displaying the
+    array requires:
+        &gt;&gt;&gt; import numdisplay
+        &gt;&gt;&gt; numdisplay.open()
+        &gt;&gt;&gt; numdisplay.display(fdata)
+    To bring out the fainter features, an offset value of 158 can be added
+    to the array to allow a 'log' scaling can be applied to the array values 
+    using:
+        &gt;&gt;&gt; numdisplay.display(fdata,transform=numarray.log,offset=158.0)
+    To redisplay the image with default full-range scaling:
+        &gt;&gt;&gt; numdisplay.display(fdata)
+</pre>
+<hr/>
+
+<!-- =========== START OF SUBMODULES =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Submodules</th></tr>
+  <tr><td><ul>
+<li> <b><a href="numdisplay.displaydev-module.html"><code>displaydev</code></a></b>: <i>displaydev.py: Interact with IRAF-compatible image display
+
+Modeled after the NOAO Client Display Library (CDL)
+
+Public functions:
+
+readCursor(sample=0)
+        Read image cursor position
+
+open(imtdev=None)
+        Open a connection to the display server.</i>
+<li> <b><a href="numdisplay.imconfig-module.html"><code>imconfig</code></a></b>: <i>Version 1.0alpha - 9-Oct-2003 (WJH)
+
+loadImtoolrc (imtoolrc=None):
+    Locates, then reads in IMTOOLRC configuration file from
+    system or user-specified location, and returns the 
+    dictionary for reference.</i>
+  </ul></td></tr>
+</table><br />
+
+
+<!-- =========== START OF CLASSES =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Classes</th></tr>
+<tr><td width="15%">
+  <b><a href="numdisplay.NumDisplay-class.html"><code>NumDisplay</code></a></b></td>
+  <td>Class to manage the attributes and methods necessary for displaying
+the array in the image display tool.</td></tr>
+</table><br />
+
+
+<!-- =========== START OF FUNCTION SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Function Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="numdisplay-module.html#help" class="summary-sig-name"><code>help</code></a>()</span></code>
+<br />
+Print out doc string with syntax and example.</td></tr>
+</table><br />
+
+
+<!-- =========== START OF VARIABLE SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Variable Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>str</code></font></td>
+<td><b><a href="numdisplay-module.html#__version__"><code>__version__</code></a></b> = <span title="'0.1.5 (27-Oct-2003)'"><code><span class="variable-quote">'</span>0.1.5&nbsp;(27-Oct-2003)<span class="variable-quote">'</span>                      </code>
+</span></td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>instancemethod</code></font></td>
+  <td><a name="close"></a><b><code>close</code></b> = <a href="numdisplay.NumDisplay-class.html#close"><code>numdisplay.NumDisplay.close</code></a></td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>instancemethod</code></font></td>
+  <td><a name="display"></a><b><code>display</code></b> = <a href="numdisplay.NumDisplay-class.html#display"><code>numdisplay.NumDisplay.display</code></a></td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>instancemethod</code></font></td>
+  <td><a name="open"></a><b><code>open</code></b> = <a href="numdisplay.NumDisplay-class.html#open"><code>numdisplay.NumDisplay.open</code></a></td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>instancemethod</code></font></td>
+  <td><a name="readcursor"></a><b><code>readcursor</code></b> = <a href="numdisplay.NumDisplay-class.html#readcursor"><code>numdisplay.NumDisplay.readcursor</code></a></td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>instancemethod</code></font></td>
+  <td><a name="set"></a><b><code>set</code></b> = <a href="numdisplay.NumDisplay-class.html#set"><code>numdisplay.NumDisplay.set</code></a></td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><a href="numdisplay.NumDisplay-class.html" 
+          class="link"><code>NumDisplay</code></a></font></td>
+<td><b><a href="numdisplay-module.html#view"><code>view</code></a></b> = <span title="&lt;numdisplay.NumDisplay instance at 0x404cf2ec&gt;"><code>&lt;numdisplay.NumDisplay&nbsp;instance&nbsp;at&nbsp;0x404cf2ec&gt;    </code>
+</span></td></tr>
+</table><br />
+
+
+<!-- =========== START OF FUNCTION DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Function Details</th></tr>
+</table>
+
+<a name="help"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">help</span>()</span>
+  </h3>
+  Print out doc string with syntax and example.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF VARIABLE DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Variable Details</th></tr>
+</table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="__version__"></a>
+<h3>__version__</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>str</code>
+
+      </dd>
+<span title="'0.1.5 (27-Oct-2003)'">      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+<span class="variable-quote">'</span>0.1.5 (27-Oct-2003)<span class="variable-quote">'</span>                                                  </pre>
+        </td></tr></table></dd>
+</span>    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="view"></a>
+<h3>view</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <a href="numdisplay.NumDisplay-class.html" 
+          class="link"><code>NumDisplay</code></a>
+
+      </dd>
+<span title="&lt;numdisplay.NumDisplay instance at 0x404cf2ec&gt;">      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+&lt;numdisplay.NumDisplay instance at 0x404cf2ec&gt;                         </pre>
+        </td></tr></table></dd>
+</span>    </dl>
+  </dd>
+</dl></td></tr></table>
+<br />
+
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th bgcolor="#70b0f0" class="navselect">&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 2.1 on Thu Oct 21 14:44:28 2004</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>numdisplay.displaydev</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="numdisplay-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <font size="-1"><b class="breadcrumbs">
+        <a href="numdisplay-module.html">Package&nbsp;numdisplay</a> ::
+        Module&nbsp;displaydev
+      </b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[show&nbsp;private&nbsp;|&nbsp;<a href="../public/numdisplay.displaydev-module.html">hide&nbsp;private</a>]</font></td></tr>
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="numdisplay.displaydev-module.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td>
+</tr></table>
+
+<!-- =========== START OF MODULE DESCRIPTION =========== -->
+<h2 class="module">Module numdisplay.displaydev</h2>
+
+<pre class="literalblock">
+displaydev.py: Interact with IRAF-compatible image display
+
+Modeled after the NOAO Client Display Library (CDL)
+
+Public functions:
+
+readCursor(sample=0)
+        Read image cursor position
+
+open(imtdev=None)
+        Open a connection to the display server.  This is called
+        automatically by readCursor if the display has not already been
+        opened, so it is not generally necessary for users to call it.
+
+        See the open doc string for info on the imtdev argument, which
+        allows various forms of socket and network connections.
+
+close()
+        Close the active display server.  Called automatically on exit.
+
+Various classes are defined for the different connections (ImageDisplay,
+ImageDisplayProxy, UnixImageDisplay, InetImageDisplay, FifoImageDisplay).
+They should generally be created using the _open factory function.
+This could be used to maintain references to multiple display servers.
+
+Ultimately more functionality may be added to make this a complete
+replacement for CDL.
+
+$Id$
+</pre>
+<hr/>
+
+<!-- =========== START OF CLASSES =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Classes</th></tr>
+<tr><td width="15%">
+  <b><a href="numdisplay.displaydev.FifoImageDisplay-class.html"><code>FifoImageDisplay</code></a></b></td>
+  <td>FIFO version of image display</td></tr>
+<tr><td width="15%">
+  <b><a href="numdisplay.displaydev.ImageDisplay-class.html"><code>ImageDisplay</code></a></b></td>
+  <td>Interface to IRAF-compatible image display</td></tr>
+<tr><td width="15%">
+  <b><a href="numdisplay.displaydev.ImageDisplayProxy-class.html"><code>ImageDisplayProxy</code></a></b></td>
+  <td>Interface to IRAF-compatible image display</td></tr>
+<tr><td width="15%">
+  <b><a href="numdisplay.displaydev.ImageWCS-class.html"><code>ImageWCS</code></a></b></td>
+  <td>&nbsp;</td></tr>
+<tr><td width="15%">
+  <b><a href="numdisplay.displaydev.InetImageDisplay-class.html"><code>InetImageDisplay</code></a></b></td>
+  <td>INET socket version of image display</td></tr>
+<tr><td width="15%">
+  <b><a href="numdisplay.displaydev.UnixImageDisplay-class.html"><code>UnixImageDisplay</code></a></b></td>
+  <td>Unix socket version of image display</td></tr>
+</table><br />
+
+
+<!-- =========== START OF FUNCTION SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Function Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="help"></a><span class="summary-sig"><span class="summary-sig-name">help</span>()</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="../private/numdisplay.displaydev-module.html#_open" class="summary-sig-name"><code>_open</code></a>(<span class=summary-sig-arg>imtdev</span>)</span></code>
+<br />
+Open connection to the image display server
+
+This is a factory function that returns an instance of the ImageDisplay
+class for the specified imtdev.</td></tr>
+</table><br />
+
+
+<!-- =========== START OF VARIABLE SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Variable Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>instancemethod</code></font></td>
+  <td><a name="close"></a><b><code>close</code></b> = <a href="numdisplay.displaydev.ImageDisplayProxy-class.html#close"><code>numdisplay.displaydev.ImageDisplayProxy.close</code></a></td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>instancemethod</code></font></td>
+  <td><a name="open"></a><b><code>open</code></b> = <a href="numdisplay.displaydev.ImageDisplayProxy-class.html#open"><code>numdisplay.displaydev.ImageDisplayProxy.open</code></a></td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>instancemethod</code></font></td>
+  <td><a name="readCursor"></a><b><code>readCursor</code></b> = <a href="numdisplay.displaydev.ImageDisplayProxy-class.html#readCursor"><code>numdisplay.displaydev.ImageDisplayProxy.readCursor</code></a></td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>instancemethod</code></font></td>
+  <td><a name="setCursor"></a><b><code>setCursor</code></b> = <a href="numdisplay.displaydev.ImageDisplayProxy-class.html#setCursor"><code>numdisplay.displaydev.ImageDisplayProxy.setCursor</code></a></td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+<td><b><a href="numdisplay.displaydev-module.html#SZ_BLOCK"><code>SZ_BLOCK</code></a></b> = <span title="16384">16384&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>int</code></font></td>
+<td><b><a href="../private/numdisplay.displaydev-module.html#_default_fbconfig"><code>_default_fbconfig</code></a></b> = <span title="3">3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><code>tuple</code></font></td>
+<td><b><a href="../private/numdisplay.displaydev-module.html#_default_imtdev"><code>_default_imtdev</code></a></b> = <span title="('unix:/tmp/.IMT%d', 'fifo:/dev/imt1i:/dev/imt1o', 'inet:5137')"><code>('unix:/tmp/.IMT%d',&nbsp;'fifo:/dev/imt1i:<span class="variable-ellipsis">...</span></code>
+</span></td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1"><a href="numdisplay.displaydev.ImageDisplayProxy-class.html" 
+          class="link"><code>ImageDisplayProxy</code></a></font></td>
+<td><b><a href="../private/numdisplay.displaydev-module.html#_display"><code>_display</code></a></b> = <span title="&lt;numdisplay.displaydev.ImageDisplayProxy instance at 0x404d9fcc&gt;"><code>&lt;numdisplay.displaydev.ImageDisplayProxy&nbsp;inst<span class="variable-ellipsis">...</span></code>
+</span></td></tr>
+</table><br />
+
+
+<!-- =========== START OF FUNCTION DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Function Details</th></tr>
+</table>
+
+<a name="_open"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">_open</span>(<span class=sig-arg>imtdev</span>=<span class=sig-default>None</span>)</span>
+  </h3>
+<pre class="literalblock">
+Open connection to the image display server
+
+This is a factory function that returns an instance of the ImageDisplay
+class for the specified imtdev.  The default connection if no imtdev is
+specified is given in the environment variable IMTDEV (if defined) or
+is &quot;unix:/tmp/.IMT%d&quot;.  Failing that, a connection is attempted on the
+/dev/imt1[io] named fifo pipes.
+
+The syntax for the imtdev argument is &lt;domain&gt;:&lt;address&gt; where &lt;domain&gt;
+is one of &quot;inet&quot; (internet tcp/ip socket), &quot;unix&quot; (unix domain socket)
+or &quot;fifo&quot; (named pipe).  The form of the address depends upon the
+domain, as illustrated in the examples below.
+
+inet:5137                   Server connection to port 5137 on the local
+                            host.  For a client, a connection to the
+                            given port on the local host.
+
+inet:5137:foo.bar.edu       Client connection to port 5137 on internet
+                            host foo.bar.edu.  The dotted form of address
+                            may also be used.
+
+unix:/tmp/.IMT212           Unix domain socket with the given pathname
+                            IPC method, local host only.
+
+fifo:/dev/imt1i:/dev/imt1o  FIFO or named pipe with the given pathname.
+                            IPC method, local host only.  Two pathnames
+                            are required, one for input and one for
+                            output, since FIFOs are not bidirectional.
+                            For a client the first fifo listed will be
+                            the client's input fifo; for a server the
+                            first fifo will be the server's output fifo.
+                            This allows the same address to be used for
+                            both the client and the server, as for the
+                            other domains.
+
+The address field may contain one or more &quot;%d&quot; fields.  If present, the
+user's UID will be substituted (e.g. &quot;unix:/tmp/.IMT%d&quot;).
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF VARIABLE DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Variable Details</th></tr>
+</table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="SZ_BLOCK"></a>
+<h3>SZ_BLOCK</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+<span title="16384">      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+16384&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</pre>
+        </td></tr></table></dd>
+</span>    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="_default_fbconfig"></a>
+<h3>_default_fbconfig</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>int</code>
+
+      </dd>
+<span title="3">      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</pre>
+        </td></tr></table></dd>
+</span>    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="_default_imtdev"></a>
+<h3>_default_imtdev</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <code>tuple</code>
+
+      </dd>
+<span title="('unix:/tmp/.IMT%d', 'fifo:/dev/imt1i:/dev/imt1o', 'inet:5137')">      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+('unix:/tmp/.IMT%d', 'fifo:/dev/imt1i:/dev/imt1o', 'inet:5137')        </pre>
+        </td></tr></table></dd>
+</span>    </dl>
+  </dd>
+</dl></td></tr></table>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+<a name="_display"></a>
+<h3>_display</h3>
+<dl>
+  <dt></dt>
+  <dd>
+    <dl>
+      <dt><b>Type:</b></dt>
+      <dd>
+          <a href="numdisplay.displaydev.ImageDisplayProxy-class.html" 
+          class="link"><code>ImageDisplayProxy</code></a>
+
+      </dd>
+<span title="&lt;numdisplay.displaydev.ImageDisplayProxy instance at 0x404d9fcc&gt;">      <dt><b>Value:</b></dt>
+      <dd><table><tr><td>
+<pre class="variable">
+&lt;numdisplay.displaydev.ImageDisplayProxy instance at 0x404d9fcc&gt;       </pre>
+        </td></tr></table></dd>
+</span>    </dl>
+  </dd>
+</dl></td></tr></table>
+<br />
+
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="numdisplay-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 2.1 on Thu Oct 21 14:44:28 2004</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>
