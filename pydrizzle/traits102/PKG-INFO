@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: traits
+Version: 1.0.2
+Summary: Strongly typed Python attributes package
+Home-page: http://www.scipy.org/site_content/traits
+Author: David C. Morrill
+Author-email: dmorrill@enthought.com
+License: BSD
+Description: UNKNOWN
+Platform: UNKNOWN
