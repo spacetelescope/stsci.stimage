@@ -2557,7 +2557,7 @@ More help on SkyField objects and their parameters can be obtained using:
         del new_parlist
 
         if pixfrac or kernel or units:
-            print 'resetting additional parameter(s)...'
+            #print 'resetting additional parameter(s)...'
             for p in self.parlist:
                 if kernel:
                     p['kernel'] = kernel
