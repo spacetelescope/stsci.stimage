@@ -13,8 +13,8 @@
 #           Version 0.2.2 09/15/04 -- Modified the setInstrumentParameters to treat
 #               a user cr bit input value of zero as a None.  This allows the
 #               user to turn off the DQ array update during the Driz_CR step. -- CJH
-
-__version__ = '0.2.2'
+#           Version 0.2.3 09/21/04 -- 
+__version__ = '0.2.3'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -108,8 +108,8 @@ class STISInputImage (InputImage):
         del __sciext
 
     def _setMAMAchippars(self):
-        self._setDefaultGain()
-        self._setDefaultReadnoise()
+        self._setMAMADefaultGain()
+        self._setMAMADefaultReadnoise()
      
     def _setMAMADefaultGain(self):
         self._gain = 1
