@@ -1,4 +1,12 @@
 ### PyDrizzle Revision Changes
+Version 5.4.3 (27-Jan-2005) WJH
+        ###
+        # Interface change
+        ###
+      - Replaced 'bits' parameter with 'bits_final' and 'bits_single'. 
+      - EPAR interface change: removed 'use_mask', 'bits' and added 'bits_final',
+        'bits_single', and 'prodonly'. 
+
 Version 5.4.2 (20-Jan-2005) WJH
       - Modified reading of ASN tables to maintain order of filenames
         and correctly identify when only 1 exposure gets read from an

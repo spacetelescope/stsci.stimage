@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.4.2 (20-January-2005)"
+__version__ = "5.4.3 (27-January-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -2194,7 +2194,8 @@ More help on SkyField objects and their parameters can be obtained using:
     --> f.help()
     """
     def __init__(self, input, output=None, field=None, units=None, section=None,
-        kernel=None,pixfrac=None,bits=0,wt_scl='exptime',fillval=0.,idckey='',
+        kernel=None,pixfrac=None,bits_final=0,bits_single=0,
+        wt_scl='exptime',fillval=0.,idckey='',
         idcdir=DEFAULT_IDCDIR,memmap=1,dqsuffix=None,prodonly=yes,shiftfile=None):
 
         if idcdir == None: idcdir = DEFAULT_IDCDIR
@@ -2236,7 +2237,7 @@ More help on SkyField objects and their parameters can be obtained using:
             'pixfrac':pixfrac,'idckey':idckey,'wt_scl':wt_scl,
             'fillval':fillval,'section':section, 'idcdir':idcdir+os.sep,
             'memmap':memmap,'dqsuffix':dqsuffix,
-            'bits':self._interpretBits(bits)}
+            'bits':[bits_final,bits_single]}
 
         # Check to see if user-supplied output name is complete
         # Append .FITS suffix to output name if necessary
@@ -2313,39 +2314,6 @@ More help on SkyField objects and their parameters can be obtained using:
         # Let the user know parameters have been successfully calculated
         print 'Drizzle parameters have been calculated. Ready to .run()...'
         print 'Finished calculating parameters at ',_ptime()
-
-    def _interpretBits(self,bits):
-        """ Returns a list based on the input value of the 'bits' parameter.
-            'bits' parameter will be interpreted as:
-                None - No DQ information to be used, no mask created
-                Int or [Int] or ["Int"] - final drizzle bits value only
-                "Int,Int" or "Int Int" or [Int, Int] or ["Int","Int]
-                    - final drizzle value, single drizzle value
-            Always returns a 2-element list _bitlist, where
-                _bitlist[0] - final drizzle bits value
-                    (can be None if no single drizzle bits value provided)
-                _bitlist[1] - single drizzle bits value (can be None)
-
-        """
-        if bits == None:
-            return [None,None]
-        _bitlist = []
-        if isinstance(bits,types.StringType):
-            # convert string value of bits into a list
-            _splstr = None
-            if bits.find(',') > -1: _splstr = ','
-            _splbits = bits.split(_splstr)
-            for m in _splbits:  _bitlist.append(int(m))
-        elif isinstance(bits,types.ListType):
-            for m in bits:  _bitlist.append(int(m))
-        else:
-            _bitlist = [bits]
-
-        # Insure that there are always 2 entries, with the
-        # second entry being set to None.
-        if len(_bitlist) < 2: _bitlist.append(None)
-
-        return _bitlist
 
     def clean(self,coeffs=no,final=no):
         """ Removes intermediate products from disk. """
