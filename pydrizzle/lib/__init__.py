@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.2.4 (28-September-2004)"
+__version__ = "5.2.5 (29-September-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -1104,6 +1104,7 @@ class Pattern:
 
     def getExptime(self):
         _exptime = float(self.header['EXPTIME'])
+        if _exptime == 0.: _exptime = 1.0
 
         if self.header.has_key('EXPSTART'):
             _expstart = float(self.header['EXPSTART'])
@@ -1279,6 +1280,7 @@ class STISObservation(Pattern):
 
         header = fileutil.getHeader(self.name+'[sci,1]')
         _exptime = float(header['EXPTIME'])
+        if _exptime == 0.: _exptime = 1.0
 
         if header.has_key('EXPSTART'):
             _expstart = float(header['EXPSTART'])

@@ -1,4 +1,7 @@
 ### PyDrizzle Revision Changes
+Version 5.2.5 (29-Sept-2004) WJH
+      - Insured that all input EXPTIME values are non-zero by setting
+        any EXPTIME that is read in with a value of 0.0 to a value of 1.0.
 Version 5.2.4 (28-Sept-2004) WJH
       - Restored 'bits' as PyDrizzle input parameter, allowing it to update
         the value internally, rather than forcing the user to always set it.
