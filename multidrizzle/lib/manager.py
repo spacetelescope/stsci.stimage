@@ -33,7 +33,8 @@
 #           Version 0.1.49, 09/17/04 -- Removed diagnostic print statements in single drizzle step. -- CJH
 #           Version 0.1.50, 10/05/04 -- Added logic to treat STIS sky subtraction differently than all
 #                                       other instruments. CJH/WJH
-
+#           Version 0.1.51, 10/13/04 -- Added use of overlap to image iterator to insure that last
+#                                       returned image section has nrows >= 2*grow+1. WJH/CJH  
 
 # Import Numarray functionality
 import numarray.image.combine as combine
@@ -65,7 +66,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter
 
-__version__ = '0.1.50'
+__version__ = '0.1.51'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -650,7 +651,14 @@ class ImageManager:
   #      __minOutput = N.zeros(self.single_handles[0][0].data.shape,self.single_handles[0][0].data.type())
 
         # Fire up the image iterator
-        for __imageSectionsList,__prange in ImageIter(__masterList):
+        #
+        # The overlap value needs to be set to 2*grow in order to 
+        # avoid edge effects when scrolling down the image, and to
+        # insure that the last section returned from the iterator
+        # has enough row to span the kernel used in the boxcar method
+        # within minmed.  
+        _overlap = 2*int(__grow)
+        for __imageSectionsList,__prange in ImageIter(__masterList,overlap=_overlap):
             #print 'processing rows in range: ',__prange
 
             # For section syntax, it returns a numarray object of the
