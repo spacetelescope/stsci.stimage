@@ -6,7 +6,7 @@ import os, shutil, sys
 #from numarray.ieeespecial import *
 
 import pydrizzle
-from pydrizzle import drutil, fileutil, buildasn, updateasn, dqpars
+from pydrizzle import drutil, fileutil, buildasn, updateasn
 import pyfits
 import readgeis
 
@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.4.0 (10 January 2005)'
+__version__ = '2.4.1 (17 January 2005)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -408,8 +408,11 @@ help file.
 
 
         # Initialize the dqpar file based upon instrument type
-        _instrument = fileutil.getKeyword(self.files[0]+'[0]','INSTRUME')
-        self._initdqpars(_instrument,self.driz_sep_pars['bits'])
+        #_instrument = fileutil.getKeyword(self.files[0]+'[0]','INSTRUME')
+        #self._initdqpars(_instrument,self.driz_sep_pars['bits'])
+        
+        # Extract bits value from master dictionary for use in setupAssociation
+        self.bits = self.driz_sep_pars['bits']
 
         # Build association object
         association = self._setupAssociation()
@@ -826,30 +829,7 @@ help file.
         for key in sortedkeys:
             if (itemlist.count(key) == 0):
                 print prefix+key, " = ", dict[key]
-            
-            
-    def _initdqpars(self,_instrument,_bits):
-        print "Initializing DQpars file..."
-        if (_instrument.lower() == 'acs'):
-            _parfile = dqpars.ACSPars()
-            _parfile.update(_bits)
-        elif (_instrument.lower() == 'wfpc2'):
-            _parfile = dqpars.WFPC2Pars()
-            _parfile.update(_bits)
-        elif (_instrument.lower() == 'stis'):
-            _parfile = dqpars.STISPars()
-            _parfile.update(_bits)
-        elif (_instrument.lower() == 'nicmos'):
-            _parfile = dqpars.NICMOSPars()
-            _parfile.update(_bits)
-        else:
-            print " "
-            print "****************"
-            print "*"
-            print "* UNABLE TO IDENTIFY INSTRUMENT DQPARAMETERS.  ALL DQ PARAMETERS TREATED AS GOOD"
-            print "*"
-            print "****************"
-
+                        
 
     def setMedianPars(self):
         """ Sets the special median parameters which need to
@@ -973,6 +953,7 @@ help file.
                         - self.parseWFPC2flag
                         - self.shiftfile
                         - self.excludedFileList
+                        - self.bits
         OUTPUT      : A new ASN file used as input to Pydrizzle.  Remember, PyDrizzle is
                       invoked by Multidrizzle and used the assocation table to create the
                       assoc.par object.
@@ -1159,6 +1140,7 @@ help file.
         # laying around...        
         assoc = pydrizzle.PyDrizzle(driz_asn_file, idckey=self.coeffs,
                                     section=self.driz_sep_pars['group'],
+                                    bits=self.bits,
                                     prodonly=False)
 
         # Use PyDrizzle to clean up any previously produced products...
