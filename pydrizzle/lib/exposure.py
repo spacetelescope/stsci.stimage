@@ -111,7 +111,11 @@ class Exposure:
 
         # Create a pointer to the mask file's data array
         # and the name of the original input DQ file
-        self.maskname = mask
+        self.maskname = None
+        self.singlemaskname = None
+        if mask != None:
+            self.maskname = mask[0]
+            self.singlemaskname = mask[1]
         self.dqname = dqname
 
 

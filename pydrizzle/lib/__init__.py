@@ -823,14 +823,14 @@ class Pattern:
 
             # Check to see if a mask was created at all...
             # if not, set it to ''
-            if member.maskname[0] == None: _maskname = ''
-            else: _maskname = member.maskname[0]
+            if member.maskname == None: _maskname = ''
+            else: _maskname = member.maskname
             parameters['driz_mask'] = _maskname
 
             # Check to see if a mask was created for the
             # single-drizzle step.  If not, set it to ''.
-            if member.maskname[1] == None: _maskname = ''
-            else: _maskname = member.maskname[1]
+            if member.singlemaskname == None: _maskname = ''
+            else: _maskname = member.singlemaskname
             parameters['single_driz_mask'] = _maskname
 
             # Setup parameters for special cases here...
@@ -2349,7 +2349,6 @@ More help on SkyField objects and their parameters can be obtained using:
             _splstr = None
             if bits.find(',') > -1: _splstr = ','
             _splbits = bits.split(_splstr)
-            print 'splbits = ',_splbits
             for m in _splbits:  _bitlist.append(int(m))
         elif isinstance(bits,types.ListType):
             for m in bits:  _bitlist.append(int(m))
