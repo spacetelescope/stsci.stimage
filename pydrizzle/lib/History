@@ -1,4 +1,9 @@
 ### PyDrizzle Revision Changes
+Version 5.4.1 (17-Dec-2005) WJH
+      - Added 'outmasks' attribute to Exposure class to track what files
+        were actually created for mask files.  The 'maskname' attribute
+        only records the name that should be used for the mask.
+
 Version 5.4.0 (14-Dec-2005) WJH
       - Removed dependency on DQPars module and classes.  
       - Expanded the formats supported by the 'bits' parameter to 

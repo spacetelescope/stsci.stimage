@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.4.0 (14-January-2005)"
+__version__ = "5.4.1 (17-January-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -224,7 +224,8 @@ class Pattern:
             _extname = self.imtype.dq_extname
 
             # Build mask files based on input 'bits' parameter values
-            _masklist = []
+            _masklist = [[None,None]]
+            #
             # If we have a valid bits value...
             if self.bitvalue[0] != None:
                 # Creat the name of the output mask file
@@ -232,10 +233,14 @@ class Pattern:
                 # Add the name to the list of mask names
                 _masklist.append(_maskname)
                 # Create the actual mask file now...
-                buildmask.buildMaskImage(_dqname,self.bitvalue[0],_maskname,extname=_extname,extver=i+1)
+                outmask = buildmask.buildMaskImage(_dqname,self.bitvalue[0],_maskname,extname=_extname,extver=i+1)
+                if outmask != None:
+                    # We had no problem generating the mask file.
+                    _masklist[0][0] = outmask
             else:
                 # No valid bits value set, so do not create anything
                 _masklist.append(None)
+            #
             # Check to see if a bits value was provided for single drizzling...
             if self.bitvalue[1] != None:
                 # Check to see if value is same as final drizzle bits value
@@ -250,7 +255,9 @@ class Pattern:
                     # Add new name to list for single drizzle step
                     _masklist.append(_maskname)
                     # Create new mask file with different bit value.
-                    buildmask.buildMaskImage(_dqname,self.bitvalue[1],_maskname,extname=_extname,extver=i+1)
+                    outmask = buildmask.buildMaskImage(_dqname,self.bitvalue[1],_maskname,extname=_extname,extver=i+1)
+                    if outmask != None:
+                        _masklist[0][1] = outmask
             else:
                 # No bits value provided for single drizzle step,
                 #   set name to None
@@ -829,8 +836,9 @@ class Pattern:
             parameters['instrument'] = self.instrument
             parameters['detector'] = self.detector
 
-            parameters['driz_mask'] = member.maskname
-            parameters['single_driz_mask'] = member.singlemaskname
+
+            parameters['driz_mask'] = member.outmasks[0]
+            parameters['single_driz_mask'] = member.outmasks[1]
 
             # Setup parameters for special cases here...
             parameters['outsingle'] = self.outsingle
