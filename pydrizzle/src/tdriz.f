@@ -207,7 +207,7 @@ C Keep quiet
       ENDIF
 
 C Define Version ID
-      VERS = 'Callable DRIZZLE Version 0.5 (23rd June 2004)'
+      VERS = 'Callable DRIZZLE Version 0.6 (20th Dec 2004) '
 C Announce
       CALL UMSPUT(VERS,1,0,ISTAT)
 
