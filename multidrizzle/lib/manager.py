@@ -64,7 +64,7 @@ from minmed import minmed
 import static_mask
 from static_mask import StaticMask
 import nimageiter
-from nimageiter import ImageIter
+from nimageiter import ImageIter,computeBuffRows
 
 __version__ = '0.1.51'
 
@@ -658,7 +658,23 @@ class ImageManager:
         # has enough row to span the kernel used in the boxcar method
         # within minmed.  
         _overlap = 2*int(__grow)
-        for __imageSectionsList,__prange in ImageIter(__masterList,overlap=_overlap):
+        
+        #Start by computing the buffer size for the iterator
+        _imgarr = __masterList[0].data
+        _bufsize = nimageiter.BUFSIZE
+        _imgrows = _imgarr.shape[0]
+        _nrows = computeBuffRows(_imgarr)
+        _niter = int(_imgrows/_nrows)
+        _lastrows = _imgrows - (_niter*_nrows) 
+
+        # check to see if this buffer size will leave enough rows for
+        # the section returned on the last iteration
+        if _lastrows < _overlap+1:
+            _delta_rows = int((_overlap+1 - _lastrows)/_niter)
+            if _delta_rows < 1: _delta_rows = 1
+            _bufsize += (_imgarr.shape[1]*_imgarr.itemsize()) * _delta_rows
+        
+        for __imageSectionsList,__prange in ImageIter(__masterList,overlap=_overlap,bufsize=_bufsize):
             #print 'processing rows in range: ',__prange
 
             # For section syntax, it returns a numarray object of the
@@ -733,7 +749,15 @@ class ImageManager:
                                         upper=__hthresh,
                                         lower=__lthresh
                                     )
-            __medianOutputImage[__prange[0]:__prange[1],:] = __result.combArrObj
+                                    
+            # We need to account for any specified overlap when writing out
+            # the processed image sections to the final output array.
+            if __prange[1] != _imgrows:
+                __medianOutputImage[__prange[0]:__prange[1]-_overlap,:] = __result.combArrObj[:-_overlap,:]
+            else:
+                __medianOutputImage[__prange[0]:__prange[1],:] = __result.combArrObj
+            
+            
             del __result
 
 
