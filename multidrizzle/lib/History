@@ -1,6 +1,8 @@
 Multidrizzle Revision History
 -----------------------------
-
+Version 2.3.4: 10/05/04 -- CJH/WJH
+    Added logic to treat STIS sky subtraction differently than all
+    other instruments. 
 Version 2.3.3: 09/30/04 -- CJH
     Modified the DrizCR rountines to include the input image's combined
     primary and extension headers in the primary header of the resulting 
