@@ -145,7 +145,6 @@ class Multidrizzle:
     def editpars(self):
         """ Run Python GUI parameter editor to set parameter values. """
         self.pars.edit_traits()
-        self.pars.updateMasterPars()
 
 
     def build(self):
@@ -155,6 +154,10 @@ class Multidrizzle:
             uses that to build the InputImage instances needed
             for MultiDrizzle processing.
         """
+        #Update master_pars dictionary, and switches dictionary
+        # based on last set values.        
+        self.pars.updateMasterPars()
+        
         # Use the values in the master parlist to set the values
         # for the attributes necessary for initializing this class
         for kw in self.init_keys:
@@ -165,7 +168,7 @@ class Multidrizzle:
         self.steps = self.pars.steps
         self.steps.doStep(ProcSteps.doInitialize)
 
-        self.skypars    = self.pars.getParList(self.sky_keys)  
+        self.skypars    = self.pars.getParList(self.sky_keys) 
         self.medianpars = self.pars.getParList(self.median_keys,prefix='combine_')
         self.drizcrpars = self.pars.getParList(self.drizcr_keys)
         self.blotpars   = self.pars.getParList(self.blot_keys, prefix='blot_')
