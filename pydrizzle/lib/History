@@ -1,4 +1,7 @@
 ### PyDrizzle Revision Changes
+Version 5.2.3 (27-Sept-2004) CJH
+      - Removed diagnostic print statments relating to the use of DGEO files
+        in the exposure.py module.
 Version 5.2.2 (21-Sept-2004) WJH
       - Fixed offset problems when dealing with subarrays so they align with
         full images.

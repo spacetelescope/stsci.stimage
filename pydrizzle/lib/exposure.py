@@ -9,6 +9,8 @@
 #           0.1.0 -- Created -- Warren Hack
 #           0.1.1 -- DGEOFILE logic set to work with N/A as input
 #
+#           0.1.2 -- Removed diagnostic print statements related to
+#                   the use of DGEO files.  --  CJH
 import os
 import buildmask, fileutil, drutil
 from obsgeometry import ObsGeometry
@@ -18,7 +20,7 @@ import numarray as N
 yes = True  # 1
 no = False  # 0
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 #################
 #
@@ -247,13 +249,13 @@ class Exposure:
         else:
             # Open distortion correction FITS file
             _xgfile = fileutil.openImage(self.xgeoim)
-            _xgfile.info()
+            #_xgfile.info()
 
             # Access the extensions which correspond to this Exposure
             _xgname,_xgext = fileutil.parseFilename(self.xgeoim)
             _ygname,_ygext = fileutil.parseFilename(self.ygeoim)
-            print 'xgname,xgext: ',_xgname,_xgext
-            print ' based on input name of: ',self.xgeoim
+            #print 'xgname,xgext: ',_xgname,_xgext
+            #print ' based on input name of: ',self.xgeoim
 
             _pxgext = fileutil.getExtn(_xgfile,extn=_xgext)
             _pygext = fileutil.getExtn(_xgfile,extn=_ygext)
