@@ -1,0 +1,924 @@
+### PyDrizzle Revision Changes
+Version 5.0.17 (22-June-2004) WJH
+      - Added 'getDGEOArrays' to Exposure class to read in distortion
+        correction images and return them as numarray objects.  If none
+        are specified, then returns empty 2x2 arrays.
+      - Updated interfaces to 'tblot' and 'tdriz' to use distortion image
+        arrays, _pxg and _pyg.
+      - Updated drizzle source code to support all interpolation kernels
+        for blot, except spline3.
+      - Reorganized all drizzle source code to work with STSDAS V3.3 
+        code, and support STSDAS interface code as well.
+      - Implemented 'osfn' interpretation of input filename to Exposure
+        to avoid problems with building 'coeffs' filename when input
+        name starts with './'.
+      - Build coeffs filename based on last occurance of '.' in filename
+        instead of first to avoid problems with names starting with './'. 
+
+Version 5.0.16 (18-June-2004) WJH
+      - Added 'prodonly' as an input parameter to PyDrizzle to control
+        how the ASN table gets interpreted.  This was needed to support
+        MultiDrizzle operation in the pipeline.
+      - Updated 'xytosky' functionality work and be consistent with 
+        STSDAS PyDrizzle.
+
+Version 5.0.15 (8-June-2004) WJH
+      - Added support for use of 'fillval' parameter with callable drizzle.
+        The 'fillval' member of the parlist now gets stored as a string,
+        with None being translated to 'INDEF', and 'INDEF' being the default
+        to not apply any fill values. (8-June-2004) 
+      - Implemented output context images. 
+      - Implemented update of output headers to report Drizzle parameters
+        (ala STSDAS Drizzle).
+      - Fixed problems with reporting the wrong EXPTIME keyword values for
+        output product headers, along with wrong EXPSTART and EXPEND values 
+        for single and full product cases.
+      - Added 'getLTime' and 'getDate' functions to 'fileutil'.
+      - Updated 'openImage' to make copies of GEIS images when provided a
+        FITSNAME for the copy.  It will also open the FITS copy preferentially
+        over any GEIS image name provided, if the copy has already been made.
+      - If a value of None is provided to 'findFile', it will return False/no
+        instaed of crashing.
+      - Added 'write', 'savecopy', and 'restoreWCS' methods to WCSObject in 
+        support of new 'makewcs' module.
+      - Added 'version' and 'driz_version' to ParList in 'buildPars' to 
+        support adding that information as keywords to output headers.
+      - Corrected DitherProduct's 'getExptime' method to work with the 
+        member's product's exptime values to correctly compute the total 
+        value and range.
+  
+
+Version 5.0.14 (1-June-2004) WJH
+      - Updated 'openImage' to work with GEIS images in update, by allowing
+        the user to force of copy to a multi-extension FITS file and use that
+        for the update.  This required a new parameter 'force' to be added.
+      - Added 'update' and 'savecopy' methods to WCSObject class.  These 
+        methods write out new values to the header and save the old values
+        as new keywords, respectively. Used by 'makeWCS'.
+      - Added 'CTYPE' as attributes to WCSObject.
+
+Version 5.0.13 (27-May-2004) WJH
+      - Filter values of 'N/A' (for SBC) are now treated as valid values,
+        rather than getting set to 'None', so that row selection from IDCTAB
+        can succeed.  
+      - Made sure that only when orient or pscale are different from 
+        original WCS values will the WCS CD matrix get updated in 'updateWCS'.
+        
+Version 5.0.12 (18-May-2004) WJH
+      - Fixed interface to 'resetPars' to include 'pixfrac','kernel', and 
+        'units' as input parameters.
+      - Revised 'resetPars' to only UPDATE the parlist, not create a complete
+        new version.  This avoids deleting all the additions made to the 
+        parlist by external programs (like MultiDrizzle).
+Version 5.0.11 (17-May-2004) WJH
+      - Added 'getFilterNames' to 'fileutil' to provide a unified interface
+        for extracting the filter names from the input image headers.  This
+        can then be used by MultiDrizzle to get the same results.  Modified 
+        Exposure class and ObsGeometry class to not pass keyword names around,
+        but use this function instead.
+      - Fixed residual rotation and scaling problems for datasets with
+        large (>50 pix) delta shifts from ASN files.  This now produces
+        shift residuals less than the measurement rms.  
+      - Modified 'mergeWCS' method of SkyField to recenter merging WCS, 
+        then provide centered CRPIX values regardless of rotation or scaling.
+        This fixed a problem with resetting psize after intial drizzling and
+        shifts come out wrong.
+      - Added 'pixfrac', 'kernel' and 'units' as user-resettable parameters in
+        the 'resetPars' method.  This allows the user to reset these parameters
+        without starting from scratch.
+
+Version 5.0.9 (6-May-2004) WJH
+      - Added 'filters' attribute to Exposure class, for access from parlist
+        plist['exposure']. This string contains the names of the filters used
+        for the observation.
+      - Provided default behavior for running 'drizzle' when no mask/weight
+        file is provided, either as a filename or a non-existant numarray
+        object.  In these cases, it will use an array of all 1's and print
+        a warning message.
+Version 5.0.7 (27-Apr-2004) WJH
+      - Revised 'run' method to accept either filenames for the 'in_mask' 
+        value or a Numarray object directly. This supports direct passing
+        of static_mask array as input without file I/O.        
+      - Revised 'applyShifts' to rotate delta CRPIX and to not update the
+        product WCS with the delta rotation when given a reference image
+        for the shifts.  This corrects problems with residual shifts larger
+        than the RMS and with applying twice the delta rotation.
+      - Added support for DGEOFILE reference images, the distortion 
+        correction images, to the Exposure class and 'buildPars'. If no
+        file is provided, then blanks will be passed back to 'drizzle'.
+      - Provided a default value for THETA when reading IDCTAB, so that 
+        detectors without a THETA column will still process correctly.
+      - Revised 'readOFFtab' in fileutil.py to use linear extrapolation for
+        V2REF/V3REF values for dates newer than those in the table. It will
+        still only use the first epoch values for dates older than those
+        in the table, though.  Also, this fixed problems with crashing for
+        dates beyond those in the table in the first place. This function
+        gets called by 'upincd' as well for use with ACS and WFPC2 data.
+      - Moved removal of output product from initialization to '.run' method,
+        to allow for recomputation of new parameters without deleting previous
+        output.
+      - Expanded 'findNumExt' in drutil.py to work for WFPC2 data as well, 
+        by adding support for GCOUNT as well as NEXTEND.
+      - Corrected interpretation of OFFTAB table to utilize the correct row
+        from the table for the chip.
+      - Modified the list of files returned by buildasn._findFiles to be sorted
+        by filename.
+      - Completely rewrote the 'computeOffsets' method to work from
+        V2REF/V3REF derived from IDCTAB/OFFTAB tables. This new method
+        requires a simple parity matrix to define the relationship between
+        chip X/Y and V2/V3 orientations.  However, all rotations and scaling
+        is derived from IDCTAB/OFFTAB and not hard-coded in the classes, like
+        WFPC2 had it.
+      - Reversed the signs of the delta shifts for the output frame to be 
+        consistent with those used for the input frame. 
+
+      
+Version 5.0.6 (1-Mar-2004) WJH
+      #####
+      Incorporated revisions for STSDAS Version 4.6 into Version 5.0.
+      #####
+      - Removed 'close' method, and simply closes all file-handles upon
+        finishing computing the drizzle parameters.  Also, modified the
+        run method to open/close the inputs as needed. 
+      - Removed use of the PARITY dictionaries, as they were no longer 
+        necessary given the use of 'wcsfit' to compute the offsets between
+        chips.
+      - Implemented 'WBACKWCS' algorithm in 'applyAsnShifts' to properly
+        convert shifts in undistorted frame to each distorted input WCS.
+        The WBACKWCS algorithm replaces the need to use the '.invert()'
+        method of the model, and provides a fully general solution without
+        iteration.
+      - Added iteration of 'undistortWCS' and 'buildMetachip' to 'buildProduct'
+        so that the final product will be built using the same offsets as
+        'drizzle' uses.
+      - Corrected the 'recenter()' method in the WCSObject class to provide
+        a fully general solution for shifting the reference position of a
+        WCS from off-center to the center of the frame, including orientation
+        and plate scale changes.  This replaces the 'TROLL' function used
+        before without requiring the use of the PA_V3 keyword (or any like it).
+      - Reverted to using shifts computed solely from 'wcsfit' in 'buildPars'.
+      - Revised 'drutil.wcsfit' to accept an ObsGeometry class as input
+        rather than a full Observation class.
+      - SkyField init() now extracts ra,dec,orient, and psize from input WCS.
+      - The 'mergeWCS()' method was modified to compute rotated output sizes,
+        instead of just scaling the input size.
+      - Removed offsets in 'GeometryModel.convert()' so that coeffs are shifted
+        by 1 (by default) to match usage by 'drizzle'. Also removed offsets from
+        'drutil.getRange()' as well.
+      - Implemented 'wtraxy()' in ObsGeometry class to support 'WBACKWCS'
+      - Revised 'undistortWCS' to match results from 'drizzle'.
+      - WCSObject class updated to report value of '.orient' derived from CD
+        matrix regardless of value of ORIENTAT in header, while preserving 
+        header value in '.orientat'.
+      - Changed IRAF parameter 'clean' to be used only '.run'.
+      
+Version 5.0.5 (5-Feb-2004) WJH
+      - Modified 'outputimage' to work with GEIS template images to 
+        support WFPC2.
+      - Added 'shift_fr', 'shift_un', and 'in_un' as parameters to 
+        callable drizzle to support different plate scales for each
+        chip's shifts (as in WFPC2).
+
+Version 5.0.4 (30-Jan-2004) WJH
+      #####
+      - split out Exposure class into it's own module: exposure.py 
+      - moved 'combin' and 'factorial' to drutil.py
+      - moved 'buildRootname' and 'buildNewRootname' from drutil to fileutil
+      #####
+      - Added 'update' and 'memmap' parameters to PyDrizzle class to control
+        use of memory-mapping and use of copies of inputs.  Revised 
+        'getHeaderHandle' and 'closeHandle' to make copies of input file
+        when 'update == copy' and restore the original upon closing.
+      - corrected 'applyAsnShift' so that rotations are applied, not dropped
+      - removed offset of 1 from output size in 'transformMetachip'
+        and from 'mergeWCS'
+      - corrected problem with overwriting reference WCS when using 'mergeWCS'
+        in 'buildPars' by revising 'mergeWCS' and adding a new parameter 
+        'overwrite=no'.
+      - Updated 'help' docstring to include use of 'resetPars' and 'help()'.
+      - impelemented output WCS from callable drizzle and use those values
+        to update the output image header.
+      - revised 'resetPars' to accept either a SkyField object or a 
+        WCSObject, and added 'convertWCS' and 'updateWCS' to 'drutil' to support
+        this new feature.
+      - Generalized 'buildNewRootname' to accept user list of extensions to use
+        when matching to input filename.
+      - modified 'fileutil.copyFile' to use 'shutil.copy2'
+      - added 'recenter' method to WCSObject class and use it to insure that
+        input WCS is centered when fitting against the reference WCS in 'wcsfit'
+      - Modified call to 'drizzle' to use WCS returned from drizzle for updating
+        output image header.  
+       
+Version 5.0.3 (15-Jan-2004) WJH
+      - Created 'buildMaskName' in 'buildmask.py' and used this in
+        'addMembers' to pass along to the Exposure class for input images.
+      - Modified DQPars class to only initialize/use Tk in the 'edit()' 
+        method.  Initializing a DQPars class no longer fires up Tk.
+      - Modified 'outputimage' to create output images as HDUList then use
+        'writeto()' methods.  
+      - Added 'extver' ID as input to the Exposure class, and removed 
+        computation of this from within Exposure class.  Also, revised 
+        Exposure class to only open a 'in_mask' file if created by 
+        buildMask prior to calling Exposure.  This allows outside programs
+        to generate a mask file and pass back the view to it to Exposure as 
+        needed for use by 'drizzle' and 'blot'.
+      - Added 'try...finally' block in PyDrizzle class to insure that no 
+        matter what happens, all filehandles get closed, especially upon 
+        an error.
+
+Version 5.0beta (5-Jan-2004) WJH
+    #####    
+    ### Removed all dependecies on IRAF/PyRAF.
+    #####
+      - Replaced the IRAF versions of 'drizzle' and 'blot' with 
+        direct Python callable versions which accept numarray 
+        objects as input.
+      - Removed all references to GEIS products: goutdata,goutweight,
+        goutcontext,goutsingle,goutsweight,goutscontext. Also removed
+        'convertSingleGeisToFits'.
+      - Added 'image_handle' and 'image_extn' to Pattern class, and added
+        'close' method to close all open 'image_handle' instances.  The
+        'image_handle' is the readonly,memmap PyFITS object for each input
+        observation, while 'image_extn' records the extension name/number
+        for the given Exposure.  
+      - Added 'handle' parameter to fileutil.getHeader and fileutil.getKeyword
+        to allow direct access to already opened PyFITS object, if available.
+      - Modified 'outputimage' to write out SCI,WHT,CTX numarray arrays
+        to FITS files, and do it so that the numarray objects can be re-used
+        as necessary by the callable drizzle/blot for new outputs. 
+      
+Version 5.0alpha (7-Nov-2003) WJH
+      - Revised boolean comparisons to not include '== yes/no' to make
+        use under Python 2.3 work. 
+      - Added 'import buildproduct' to support conversion from GEIS products
+        FITS products when using IRAF's drizzle.
+      - Added 'dqpars' IRAF interface along with PSETs for each instrument:
+        ACS, WFPC2, STIS, and NICMOS.  These PSETs can be modified to add
+        chip specific readout values as needed.
+      - Removed 'bits' as user parameter in favor of DQPars() classes to be
+        called directly by PyDrizzle in the Observation classes for each 
+        instrument.  Each instrument's class will open the shelve file
+        and retrieve the bit setting specified by the user.
+      - Recast 'yes' and 'no' to 'True' and 'False'.
+      - Added 'irafvars.py' to package to provide 'osfn' function from PyRAF.
+      - modified all file and keyword access functions to rely on PyFITS
+        objects or PyFITS/readgeis, like 'fileutil.getKeyword', 
+        'drutil.getChipId' and 'drutil.getIDCFile' 
+      - Added 'openImage' to 'fileutil.py' work with both FITS or GEIS 
+        images as PyFITS objects.
+      - Moved 'findNumExt', 'updateKeyword' and 'getKeyword' from drutil
+        to fileutil and modified them to work with PyFITS objects.
+      - Added docstring to 'fileutil' to describe what general functions are
+        available for use.  Also included 'help()' function to see the
+        docstring more readily.
+      - Started modifying 'runDrizzle' and 'runBlot' to use Python-callable
+        versions of 'drizzle' and 'blot' even though they PyFITS objects
+        are not used yet. 
+      - Modified 'runDrizzle' and 'runBlot' to accept a single parlist entry
+        as input instead of looping over all entries. 
+
+Version 4.5c (7-Nov-2003) WJH
+      - Removed 'crpix1/2' from computation of 'delta_refx/y' for use in
+        'calcNewCorners' to avoid introducing offset for subarrays.  This 
+        caused the 'overlap' logic to fail for small subarrays in the pipeline. 
+
+Version 4.5b (31-Oct-2003) WJH
+      - Modified 'transformMetachip' to correctly account for missing
+        plate scale and orientation information from the SkyField object.
+        This allows 'crj.fits' and 'asn.fits' inputs to produce the same
+        output when SkyField was set, whereas before the scaling and 
+        rotations were being overridden by the SkyField's defaults.
+        Also corrected default to use newly computed naxis1/2 for
+        range, instead of relying of ref.wcs (which may still be incomplete).
+      - Revised 'mergeWCS' to account for plate scale changes due to 
+        coeffs files. This corrected a problem in interpreting cubic
+        coeffs correctly for WFPC2 data when rescaling the output.
+      - Restored calls to 'mergeWCS' in 'buildPars'.
+      - Removed overlap logic in 'buildPars' to avoid problems caused by
+        miscalculation of corners for small subarrays.  The root cause still
+        needs to be identified and corrected, but this allows the data to be
+        drizzled.  (OPR 49698)
+      - Added '1' to 'nref' values to account for offset introduced by 
+        enlarging the final output size by 2 in 'getRange'.  
+
+Version 4.5a (15-Oct-2003) WJH
+      - removed extra calls to 'mergeWCS' in 'buildPars()' to allow changing
+        of the plate scale to produce proper output size for the product.
+      - modified iraf interface code to treat ra/dec values as numbers
+        instead of strings.
+      - Revised how cubic coeffs files are interpreted for WFPC2 to account
+        for scale changes and rotations included in the coeffs files.  This
+        needed to be implemented due to changes in how the WCS information is
+        handled with the use of 'wcsfit' for computing the parameters.
+      - Added 'idcdir' parameter to allow user to specify directory containing
+        coeffs files.
+      - Added 'idctype' as a return value for 'getIDCFile' to allow
+        introspection of file to do the actual determination of the type of
+        coeffs in the file ('cubic','trauger',...) despite the filename.
+      - Revised call to 'runBlot' to actually pass the required plist.
+
+Version 4.5 (16-Sept-2003) WJH
+      - ADDED Support for NICMOS. Required adding NICMOSObservation class,
+        updating EXTLIST in drutil to include '_cal', updating 
+        PyDrizzle class to recognize '_asc' as well as '_asn' files, 
+        and modifying 'readAsnTable' to recognize '-TARG' as equivalent to
+        '-DTH'. 
+      - Upgraded 'WCSObject' to check for WCS keywords first in SCI header,
+        then in PRIMARY to support keywords which are in different locations
+        for each instrument (such as 'ORIENTAT').  Also, made error message
+        more explicit as to which keyword caused the failure.
+      - Modified 'runDrizzle', 'runBlot' and 'runWDrizzle' to operate on
+        single parlist entries at a time.  This will allow the redesigned
+        version of Multidrizzle to operate more efficiently.
+        
+Version 4.4a (15-Sept-2003) WJH
+      - Corrected problems with computing offsets when absolute shifts
+        given in units of arcseconds.  This required modifying 'applyAsnShifts'
+        and DitherProduct.buildMetachip and correcting errors in 
+        'transformMetachip' when a SkyField object was provided to 
+        (re)define the output frame.
+      - SkyField method 'mergeWCS' revised to properly handled scale
+        changes for output size and CRPIX position.
+      - Reset the defining exposure for the offsets and Metachip center
+        to be the first in the list, not the one with the smallest 
+        shift from output center. 
+      - Modified buildasn and updateasn to recognize 'absolute' AND
+        'relative' for the specification of the non-delta shifts in 
+        shiftfiles. Also updated help methods accordingly.
+        
+Version 4.4 (21-August-2003) WJH
+      - NEW REQUIREMENT/DEPENDECY: numarray 0.6
+      - Updated all calls to numarray modules to be consistent with
+        numarray 0.6.  This forces PyDrizzle to REQUIRE numarray 0.6,
+        as these changes will not let it work with numarray 0.5.
+        
+Version 4.3c (6-August-2003) WJH
+      - modified DitherProduct.buildProduct to correctly account for output
+        size and image shifts whether shifts are applied or not regardless
+        of the order of the input images as well. The final size had to be
+        corrected for the overall shift imposed by the shifts applied to
+        the images (from the shiftfile/ASN table). In addition, the 
+        reference position needed to be corrected for this overall shift,
+        as well as the change in frame size (old to new) and the average
+        value of all the input shifts. 
+      - modified the handling of the 'clean' parameter in the IRAF interface
+        to only run the 'clean' method when specified as 'yes'.  This prevents
+        the '*single*' products from being deleted even when 'clean=no'.
+      - modified 'computeCubicCoeffs' to support cubic coeffs files.
+        REFDATA for STIS and WFPC2 had 'v2','v3' added as members to
+        allow proper computation of v2com/v3com when using cubic coeffs
+        files, and removed use of v2/v3 for computing shift zero-point.
+        These changes were implemented in 'computeCubicCoeffs', STISObservation,
+        and WFPC2Observation.
+      - Fixed a bug in 'applyAsnShifts' which caused WFPC2 chips to be placed
+        ever farther apart with larger shifts.  The chips new CRPIX values
+        were being computed based on distortion reference position, not
+        chip reference position. This difference needed to be taken into
+        account when shifting the chips.
+      - modified 'readCubicTable' in 'drutil.py' to use numarray float
+        conversion for translating the ascii values from the tables.
+
+Version 4.3b (29-July-2003) WJH
+      - PyDrizzle did not correctly determine which files or extensions to
+        modify when updating the value of the EXPTIME keyword.  This caused
+        warning messages to be reported when finishing the processing when
+        'build=no' (a case used by default in Multidrizzle).  This was fixed in
+        the 'run()' method of __init__.py.
+
+Version 4.3a (3-July-2003) WJH
+      - modified 'buildmask.buildShadowMaskImage' to use 'replace=yes' as the
+        default, so that new mask images will replace the old ones, rather
+        than appending to them and causing problems.
+        
+Version 4.3 (23-June-2003) WJH
+      - Added full WCSFIT usage in 'buildMetachip',in both Pattern base class
+        and DitherProduct class, to rigorously compute
+        offsets between members as well as change in orientation from 
+        initial guess to output chip center. Also uses 'wcsutil.troll' function
+        to update orientation. This allows PyDrizzle to compute the drizzle
+        parameters as accurately (without skew) as WDRIZZLE.
+      - Changed ALL instances of numarray objects to use double-precision
+        Float64 units. 
+      - Revised computation of '_c' and '_d' 
+        elements in 'drutil.wcsfit' to correspond to WDRIZZLE routine. 
+     ##### 
+        These corrected problems with 'drutil.wcsfit' so that
+        it now produces identical results as WDRIZZLE when given identical
+        inputs. This error caused miscalculation of orientations between
+        chips when using wcsfit.
+     #####   
+      - Added support for running PyDrizzle with WDRIZZLE instead of 'drizzle'
+        with a new function 'runWDrizzle'.
+      - Also, added 'gpar' parameters to ObsGeometry object to allow WDRIZZLE
+        to account for shift corrections, when using WDRIZZLE. The
+        full list of added pars: geomode='wcs', racen, deccen, orient,
+        outscl, gpar_xsh, gpar_ysh, gpar_rot.
+      - Corrected distortion-corrected position in geom.apply() by
+        subtracting wcs.offset_x/offset_y when no coeffs are present.
+      - Corrected corner positions from 'calcNewCorners' by XDELTA/YDELTA
+        to put them in output reference frame for proper computation of output
+        frame dimensions.
+      - Switched to use of new 'calcNewCorners' in 'drutil.getRange()'
+        (primarily for speed).
+      - Modified code to print out ParList so that if there is no overlap
+        determined by PyDrizzle, it will print 'None' instead of crashing.
+      - Revised 'applyAsnShift' to actually update 'product.geometry.wcslin'
+        object as well as corner['corrected'] positions with _delta_crpix
+        so that buildMetachip can properly deduce output size when shifts
+        are provided.
+      - Revised 'convert' in ObsGeometry class to shift coeffs by additional
+        1 pixel to correspond to 'align=center' convention for 'drizzle'.
+      - Now updates 'self.v2com' and 'self.v3com' in 'computeCubicCoeffs' so that
+        'buildMetachip' can properly deduce change in orientation using TROLL.
+      - Added 'detector' attribute to Pattern class for use with PARITY matrix.
+        For WFPC, this is set to 'WFPC' and new PARITY matrix was added to
+        WFPCObservation to produce default orientation based on PC after
+        fitting with 'wcsfit'.
+       
+Version 4.2final (11-June-2003) WJH
+      - Built in support for 'wdrizzle': created 'runWdrizzle', and
+        updated 'buildpars' to setup 'dr2gpar' pars for WDRIZZLE to use to
+        account for tweakshifts corrections.
+      - Update the input WCS object with the shifts provided by the user.
+      - Modified computation of output WCS to not recenter, along with the
+        updated input WCS, allows the WCSFIT to compute the proper shifts
+        and rotations as parameters for 'drizzle'. 
+      - Fixed the problem with specifying output parameters for single obs
+        in 'buildpars'.  
+        
+Version 4.1final (6-June-2003) WJH
+      - Revised 'buildDthProduct' to produce FITS-compliant MEF file using
+        GEIS images as the template.  This bug prevented WFPC2 output products
+        from being compliant, and therefore 'catfits' didn't see the extensions.
+        Fix required starting with GEIS chip header, then appending GEIS
+        primary header keywords that are not already in desired MEF PRI header.
+
+Version 4.1final (5-June-2003) WJH
+      - Corrected a problem in buildasn which resulted in subsequent runs
+        of buildAsnTable (by PyDrizzle or Multidrizzle) to end up with 
+        different, and many times obviously wrong, results. EXTLIST was
+        a module attribute, but it was being copied and appended and this
+        was remembered for the entire session.
+Version 4.1 (4-June-2003)
+      - Update offset between chips to include scale change due to VAFACTOR
+        (__init__.py:computeCoeffs()).
+      - Revised 'buildShadowMaskImage' to include any .c1h image DQ values
+        if present, and removed default bitvalue of None for WFPC2 to enable
+        this feature. (__init__.py:WFPCObservation.init() and 
+        buildmask.py:buildShadowMaskImage())
+      - Added GEIS outdata,outweight,outcontext images to those which are
+        controlled by the 'save' parameter (__init__.py:run())
+      - Blank lines in 'shiftfile' is now ignored rather than crashing
+        (buildasn.py:readShiftFile())
+      - Revised the application of VAFACTOR to add delta_x,delta_y as 
+        attribute of geometry class (obsgeometry.py:applyVAFactor())
+      - Modified buildDthProduct to produce multi-extension FITS files
+        which pipeline can work with: ROOTNAME updated in PRIMARY, 
+        TEXPTIME removed from headers, ASN_MTYP updated, drizzle cards
+        appended to PRIMARY instead of SCI header, CCDCHIP keyword in 
+        SCI header changed to -999, OBJECT keyword removed from PRIMARY.
+        (buildproduct.py:buildDthProduct())
+      - Message added to updateasn to better inform the user when an 
+        input file is missing, then raises an immediate exception
+        (updateasn.py:updateAsnTable())
+        
+Version 4.0release1 (21-May-2003)
+      - Modified 'geisToFITS' to remove GEIS keywords, and FITS extension
+        keywords from the output simple FITS file.  This (mostly?) avoids
+        an 'hedit' error/bug where 'hedit' removes them but doesn't move
+        up the data section leaving a blank FITS block after the END statement
+        in the header resulting in 'shifted' output files.
+        
+Version 4.0release (16-May-2003)
+       ***** RELEASE Version with all previous changes included. *****
+      - Added 'DEFAULT_SCALE' member to defaultIDCModel in fileutil.
+      - Changed readIDCFile() to not try and use IRAF osfn on non-existent 
+        filename for default model case.
+      - call getIDCFile() using primary extension only, instead of chip
+        extension name. Also, added default value of 1 for 'nmembers' when
+        less than all three extensions are present in an input image. This
+        allows support for 'non-standard' HST-like observations.
+            
+Version 4.0 (8-May-2003)
+      - NEW REQUIREMENT/DEPENDECY: readgeis.
+      - NEW MODULES: buildproduct, obsgeometry
+
+      - Updated to use 'close' method on readgeis objects to close
+        memory-mapped GEIS files to avoid out-of-resource errors.
+      - Added GEIS single-drizzle products to 'clean' method for removal.
+      - Corrected logic to determine reference image from computed offsets
+        and reversed the sign of the delta-CRVAL computed from relative
+        shifts. This allowed relative shifts to be properly applied to data.
+        (Corrected 14-May-2003)
+      - Reversed the signs of the shifts applied to the distortion model when
+        applying the VAFACTOR (velocity aberration) correction so the coeffs
+        get properly corrected. Also, applying vafactor to coeffs was
+        changed from division to multiplication, resulting in proper 
+        correction of data based on geomap results.  (Corrected 15-May-2003)
+
+Version 4.0beta9 (30-Apr-2003)
+      - Revised the logic for converting single output's from GEIS to FITS
+        to allow for multiple input chips.  Previously, as each chip was
+        drizzled, it was converted to FITS overwriting the previous chip's 
+        results.
+
+Version 4.0beta8 (29-Apr-2003)
+      - Fixed a bug in fileutil.readAsnTable which caused all shifts to be
+        given units of 'pixels'.  
+      - Modified 'applyAsnShifts' to only apply shifts to product.wcslin,
+        as well as input WCS.
+        This allows product.wcs to serve as default case for determining
+        final output parameters so 'drizzle' will place inputs in updated
+        positions relative to input header values.  
+      - DitherProduct.buildMetachip changed to use 'product.wcslin' as 
+        default WCS. Also, compute output size from 0 to max if min>0 to allow
+        for shifts putting images off-center.
+      - Implemented 'geisToFITS' in new 'buildProduct' module with 'readgeis'
+        and use it to automatically convert GEIS output to FITS format when 
+        finished with 'drizzle', then deletes the GEIS image immediately. 
+        Thus, user never sees GEIS unless there is a problem. This required 
+        using seperate names in parlist for GEIS and FITS output names.  
+      - Update both EXPTIME and ORIENTAT in output SCI image.
+      - Created 'obsgeometry' module to contain all of the geometry classes
+        originally located in __init__ file.
+      - Added default filter names for use with SBC in 'fileutil.readIDCtab'.
+      - Modified 'geisTofits' to write out SIMPLE FITS file, instead
+        multi-extension as dither tasks only work with SIMPLE FITS inputs.
+
+Version 4.0beta7 (11-Apr-2003)
+      - Fixed a bug in '_findRefFile' where it tried to compare non-dictionary
+        entries of sdict to input file list.  This caused 'expected character
+        buffer' error.
+        
+Version 4.0beta6 (10-Apr-2003)
+      - Added support for drizzling on a single chip/group by adding a 
+        new parameter: section.  The help was updated to reflect this new
+        parameter, along with the IRAF interface task.
+
+Version 4.0beta5 (10-Apr-2003)
+      - Removed input parameters from 'updateShifts' to account for the
+        fact that those defaults are now set by 'readShiftFile'.
+      - Corrected 'readAsnTable' in 'fileutil' to insure that the 
+        same units are passed along for all shifts read from the file.  
+        Also, removed the code which shifted 'relative' shifts so that 
+        one is at 0.,0.
+      - Completely rewrote 'applyAsnShifts' in '__init__.py' to 
+        handle all 6 input cases for shifts.  Also, modified 'buildProduct'
+        in DitherProduct class to call this in a more general manner.
+
+Version 4.0beta1 (7-Apr-2003)
+      - NEW REQUIREMENT/DEPENDECY: readgeis.
+      - NEW MODULE: buildproduct
+
+      - Completely restructured the code to compute parameters after all 
+        the default cases are computed. Also added 'resetPars' method to 
+        the PyDrizzle object. Both of these support changing the output
+        field specification 'on-the-fly' with the PyDrizzle object.  
+      - Added the method 'transformMetachip' in the Pattern class.  It 
+        performs the transformation of the default output field into
+        the user-specified output field.
+      - Implemented 'corners' attribute to Exposure and use them for 
+        checking overlap with output field, and for computing output size.
+        Also, added functions in 'drutil' to support use of the corners,
+        such as 'getRotatedSize'.
+      - The method 'buildProduct' in the Pattern class is overridden in
+        the DitherPattern class to support 'resetPars' usage.
+
+      - A new 'clean' method was added to the PyDrizzle object to simplify
+        removal of intermediate products created by PyDrizzle and products
+        created by 'drizzle' itself that may not have been combined into the
+        final multi-extension FITS product. 
+        ####NOTE####
+        This replaces the 'clean' parameter in the PyDrizzle object.
+
+      - Implemented support for both relative and delta shifts.  
+	    The method 'applyAsnShifts' was moved to the Pattern class to
+	    allow application of relative shifts and to apply all shifts
+	    to the default case.
+      - Updated 'buildasn' to support new ASN tables with both relative
+        and delta shifts.
+
+      - Rewrote 'buildDthProduct' to work with either FITS output or 
+        GEIS output from PyDrizzle, and uses 'readgeis' for combining
+        the GEIS products into a single output product.  Moved this
+        function to its own module: buildproduct. 
+
+      - Incorporated Richard's 'invert' method in the ObsGeometry class to 
+        support coordinate transformation from an undistorted to the original
+        'raw' distorted frame. 
+
+      - Added 'flprc' calls immediately after each run of 'drizzle' and 'blot'
+        to allow IRAF to better handle the memory usage.
+
+      - Implemented drutil.wcsfit and drutil.fitlin to perform linear
+        fits between a distorted image's WCS and an undistorted output WCS.
+        This is used to correctly compute the output rotations, especially
+        in the cases of high-Declination observations.
+
+      - Velocity aberration correction implemented as a method of ObsGeometry
+        and initially called when Exposure object is initialized. This 
+        method uses POSTARG*,RA_TARG, DEC_TARG keywords to deduce the
+        aperture center position which this correction is centered on. 
+
+      - Updated WCSObject method 'updateWCS' to update overall size and
+        default CRPIX position when the plate scale changes.
+        
+      - Revised IRAF parameter interface to support new clean method, 
+        and to allow single-drizzle option as well.
+
+Version 3.4a (13-Feb-2003)
+    (OPR 47600)
+      - This version implements changes to select the rows from the
+        IDCTAB based on the filters used for the observation as well
+        as chip and direction. Required changes to __init__.py and 
+        'readIDCtab' in fileutil. 
+
+Version 3.4 (21-Jan-2003)
+    (OPR 47271)
+      - Changed output drizzle products to GEIS format from FITS
+      - Rewrote 'buildDthProduct' to process input GEIS drizzle products
+        and use imcopy to combine into a MEF file. It also removes duplicate
+        keywords from extensions. 
+      - Rewrote 'getKeyword' to trim trailing '/' from values.
+      - Added 'new' parameter to WCSObject to indicate whether it is 
+        being created from scratch or based on an existing WCS object.
+         
+
+Version 3.3f (30-Dec-2002)
+      - Included defaults for ALL drizzle parameters to avoid having
+        user settings for the 'drizzle' task interfere with PyDrizzle 
+        settings; specifically, 'in_un' assumed to be 'counts' but not
+        explicitly set by PyDrizzle before this. 
+      - Updated EXPTIME for single output products as well.
+        
+Version 3.3f (7-November-2002)
+      - OPR 46912:
+        Reset 'and' to 'or' when determining whether LTV values indicate 
+        a subarray or not.  This correction took place in the ObsGeometry class.
+      - Use 'buildNewRootname' to always create an output _drz.fits filename.
+      - Corrected how user-specified extensions are handled in 'buildRootname'.
+      
+Version 3.3d (28-August-2002)
+      - Fixed bug in applying offset to subarray CRPIX value; needed to base
+        it on original CRPIX.
+      - OPR 46600:
+        Removed all calls to 'keypar' and replaced them with calls to 'hselect'.
+        This eliminates problems with multiple calls to keypar stepping on each
+        other as they write out the results to the par file, then read in the
+        results.
+
+Version 3.3c (21-August-2002)
+      - Added explicit 'fillval' parameter to PyDrizzle and its IRAF interface.
+      - Fixed syntax error in 'drutil': added colon to end of 'elif' in 
+        buildRootname.
+
+Version 3.3b (20-August-2002)
+      - Revised 'asndict' in fileutil.readAsnTable to include an 'order' 
+        list as a member. This provides ordered access to the members in
+        the dictionary when building up the list of members, keeping the 
+        parameters in the same order as listed in the ASN table.
+      - The 'addMembers' method of DitherProduct was modified to use the
+        ordered listing of members to keep the images straight.
+
+      - Added checks when adding members so that when it tries to work with 
+        files that have no recognizable usable inputs, it will skip that 
+        entry and continue. If no inputs are recognizable, it will quit 
+        at that point.
+      - Revised filename checking to search for 'rootname'+'.fits'. This 
+        should account for user-provided files which do not have standard
+        suffixes, such as 'crj.fits'.
+        
+Version 3.3a (20-August-2002)
+      - 'buildasn' was modified to accept a file with a list of files,
+        a wild-card specification or a suffix/partial filename as input.
+        In addition, a verbose mode was added to print out the list of files
+        which were used to build the table. 
+        An IRAF EPAR interface was also built for 'buildasn'
+        
+Version 3.3 (12-August-2002)
+      - Updated 'buildPars' to (finally) keep PyDrizzle WCS synchronized
+        with 'drizzle' product WCS for arbitrarily-specified output frames
+        as well as default case.
+      - Modified to work with default IDCTAB which applies NO correction at all
+        when no valid IDCTAB keyword or no valid header-based coeffs file
+        could be found.  This allows a user to specify 'N/A' for IDCTAB and
+        still use PyDrizzle.  The 'defaultModel()' method was added
+        to 'fileutil' to generate the proper set of coefficients.
+      - Revised WCS output to be formatted better on printing.
+      - Tested extensively using WFC, HRC datasets, including single exposures,
+        dithered associations, CRJ associations, and WFC sub-array data.
+
+Version 3.2 (1-August-2002)
+      - Corrects errors in using RA/Dec set in SkyField object.
+      - Adds new formatting for printing out 'parlist' dictionary
+        entries for each input.
+      - Added 'updateasn' to package.  This module allows a user to 
+        update an existing ASN table with new shift information.
+      - Changed mask file from Int16 to Int8 (for space and I/O efficiency)
+      - Revised 'buildasn' to support modular creation of offsets and rotation
+        columns. Also, revised IDCKEY storage in PyDrizzle as well.
+      - Removed extraneous 'nchips' parameter from Exposure class.
+      - Changed code so that weight and context products are not created for
+        'single=yes' runs.
+
+
+Version 3.1 (16-July-2002)
+      - Implemented support for correct drizzling of ACS subarray 
+        observations, particularly in support of polarization data.
+        This revision required addition to 'wcslin' the calculation of
+        naxis*, crpix* and center positions after distortion correction.
+        This involved moving 'calcNewCorners' to the ObsGeometry class.
+        It also involved modifying 'geometry.XYtoSky' to support subarray
+        coordinates: shift them to full frame, then apply correction from
+        wcslin. It also required the creation of a new method for the
+        GeometryModel class, shift, to create a coeffs file for 'drizzle'
+        which has been shifted to match the center of the subarray. The 
+        convert method will automatically call this new method if it detects
+        that it is working with a sub-array. Reading the value of the 
+        subarray offset from the image header (getLTV) was also moved
+        to the GeometryModel class.    
+        
+Version 3.0a (26-June-2002)
+      - Fixed a bug with running blot.  Exposure time in outsingle
+        images from 'drizzle' is not correct (exptime * nchips), and
+        blot used it as is.  Changed this to have PyDrizzle specify
+        exptime for each chip.
+      (OPR 46092)
+      - Implemented a check in 'buildmask' to remove faulty inmask 
+        files when they are created.  
+
+Version 3.0  (25-June-2002)
+      - Changed the import command to include 'stsdas,analysis'.
+      This will allow it to be run from Python directly.
+      (Used for initial build of STSDAS release)
+Version 3.0  (21-June-2002)
+      - Minor change to naming of blot output to correctly support
+            WFPC2 chip IDs.
+
+Version 3.0  (14-June-2002)
+      (OPR 46091)
+      - Implemented 'single=yes' and 'blot=yes' in .run() for PyDrizzle.
+      (OPR 46093)
+      - Corrected offset problems so that images are not only 
+      centered in output, but output size is calculated 
+      to within a pixel(in width or height) of needed size 
+      regardless of what the user specifies.
+
+      - Treats WFPC2 data XDELTA/YDELTA correctly with regard
+      to offsets from center (nref). 
+
+      - Renames coeffs and mask files based on EXTVER instead of
+      chip ID.  This makes it easier for users to manually keep
+      track of which files go with which extensions.
+
+      - Copies over all 'drizzle' created keywords from 'drizzle'
+      output images into the combined PyDrizzle MEF product.
+
+
+Version 2.6  (12-June-2002)
+      - implemented internal changes to support separate output for
+        each input, along with renaming 'shifts' dictionary in PyDrizzle
+        to a more appropriate 'pars'.  This also corrects a bug in 2.5a
+        with creating a final output from 'drizzle' with the same name
+        as the desired combined final output. This version, however,
+        will NOT actually create single outputs or run blot.
+        In addition, 'buildmask' was modified to delete previously
+        existing mask files it finds before re-creating them.
+
+Version 2.5a (6-June-2002)
+      - Corrected WFPC2 alignment problems by manually adjusting the
+        refdata for WFPCObservation class to match output from
+        'wmosaic'.
+
+
+Version 2.5 (31-May-2002)
+      - Fixed final problems with using optional SkyField parameters
+          such as RA/Dec and shape. Updated ObsGeometry.apply() to 
+          accurately reflect sub-array offsets now.
+
+Version 2.3 (30-May-2002) 
+      - Output size of product correctly predicted and product
+          WCS consistent with 'drizzle' product for rotated and 
+          default conditions. Now correctly works with sub-arrays.
+
+Version 2.2a  - Revised to be consistent with new numarray syntax
+
+Version 2.2   - Reworked use of WCS to compute accurate offsets between
+          observations from header.  Added 'undistortWCS' to create
+          linear CD directly from distortion without scaling.
+          Revised WCSObject to simplify updates of attributes and
+          formatted output on prints.
+          Includes new 'convert' method for working with IDCTABs
+          where NORDER > 3.
+
+Version 2.1c  - Updated ORIENTAT in SCIHDR instead of PRIHDR
+
+Version 2.1b  - Corrected namespace bug in wcsutil, and protected against
+          creating products with BSCALE and BZERO (in fileutil).
+
+Version 2.1a  - Added separate interface to XYtoSky function in wcsutil.
+          Corrected slight bug in WCSObject.xy2rd() function.
+          Changed 'from - import *' to explicit 'import' calls.
+          Corrected logic problem in 'drutil.buildRootname'.
+          Created IRAF interface for 'xytosky' task.
+
+Version 2.1   - Fixed bugs in use of numarray to perform XYtoSky on positions
+          or arrays of positions. Also, changed import calls to
+          numarray to be explicit rather than using from-import *.
+          This allows the built-in methods to be used interactively.
+
+Version 2.0   - Reorganized and revised to use PyFITS V0.6.1 with numarray
+        instead of FITS v0.4.2 with Numeric. Required modifying
+        'Obsgeometry.apply' and 'calcNewEdges' to work with arrays
+        instead of a single X,Y tuple. Reconfigured to support
+        installation into STSDAS using Python-tree. Separated out
+        WCS library into a separate callable library for use by
+        other tasks as well.
+
+Version 1.4b  - Corrected a problem for WFPC2 data, not to use DETECTOR
+          to try and access the groups.  Instead, use logical number.
+
+Version 1.4a  - Fixed a bug in building parameters without a SkyField
+        Automatically deletes previous product now.   
+
+Version 1.4   - Updated Exposure class to understand subarrays and
+          offsets (based on LTV keywords)
+          Also, updated to rely solely on the version of 
+          'drizzle' in STSDAS (since it was updated to 
+          TDRIZZLE Version 2.6).
+          Applies corrections provided in ASN table as well.
+          Updates EXPTIME in 'drizzle' products.
+          Updates EXPSTART/EXPEND in Dither product.
+          Added 'build' parameter to '.run()', if set to 
+          'no', will not create multi-extension FITS product.
+
+Version 1.3f  - Worked out bugs in IRAF interface function for 
+          SkyField parameters.
+Version 1.3e  - SkyField object use for specifying output frame 
+          finally works as intended! 
+Version 1.3d - Fixes bugs in the IRAF interface to include usage
+          of the SkyField object for user specified parameters
+          for the output frame. Also, updates ORIENTAT in 
+          primary header only in output DTH product.
+Version 1.3c - Corrects total exptime in output MEF image
+Version 1.3b - Fixes bugs in SkyField usage and in building the WCS for
+          PyDrizzle product objects.
+      In addition, 'readIDCTable' was updated to accept tables
+      with either 'A'/'B' or 'CX'/'CY' coefficients column names.
+
+Version 1.3  - This version contains the final working interface for
+      user-specified SkyField and it works with the EPAR interface.
+Version 1.2  - First Version with ACS, WFPC2, and STIS support
+       Can use cubic,Trauger, and IDCTAB files for STIS and WFPC2
+       This version also overwrites any existing output file with 
+       the new dither-product file.
+
+Version 1.1  - Added WFPC2 support.
+Version 1.0b - Revised to work with PyFITS 0.4.2.
+Version 1.0a - Revised to work with CALACS.
+Version 1.0 - IRAF enabled version with complete drizzle
+      functionality.
+Version 0.5 - Revised to combine drizzle output products
+      into a single multi-extension FITS file.
+      Has optional keyword to PyDrizzle.run() to
+      control whether the separate drizzle products
+      are saved or not (default: save=no).
+Version 0.4 - Revised calculation of output size to account
+      for shifts by drizzle coefficients. 
+Version 0.3 - Added arbitrary user rotation, output pixel size,
+      kernel choice to wrapper.  Also, added automatic
+      use of 'tdrizzle' if available (defaults to 'drizzle'
+      V1.41 in STSDAS) and some on-line help.
+
+
+###
+#
+# updateasn Revision History
+#
+###
+Version 0.3 (27-Aug-2002) WJH
+        Added 'mode' parameter to either 'replace' shifts or 'sum' them with
+        existing shifts.  If in 'sum' mode, any INDEF values will be considered
+        as 0., however, values of NaN/-NaN will not be updated/summed.
+        
+Version 0.2a (26-Aug-2002) WJH
+        Revised input of 'output' parameter to recognize filenames without
+        extension specification or '.fits' in filename. Defaults to using 
+        either primary or 'sci,1' in that order if none are specified.
+        Added verification code and somewhat more informative error messages.
+        
+Version 0.2 (26-Aug-2002) WJH
+        Made input rootname handling more general; can
+        build full filename from rootname only using 'drutil.buildRootname'.
+        No longer requires extension specification.  Modified 
+        'drutil.getPrimaryKeyword' to append '[0]' extension if no extension
+        was recognized.
+Version 0.1 WJH - Release Version 
+
+###
+#
+#  buildasn Revision History
+#
+###
+(Initial History comments located in 'buildasn.py' )
+
