@@ -75,8 +75,10 @@
         the host level and awaits the array for display.  Displaying the
         array requires:
             >>> import numdisplay
-            >>> numdisplay.open()
             >>> numdisplay.display(fdata)
+        If there is a problem connecting to the DS9 application, the connection
+        can be manually started using:
+            >>> numdisplay.open()
         To bring out the fainter features, an offset value of 158 can be added
         to the array to allow a 'log' scaling can be applied to the array values
         using:
