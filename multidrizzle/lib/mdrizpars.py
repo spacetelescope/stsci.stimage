@@ -295,7 +295,7 @@ class MDrizPars (HasTraits):
         self.switches = {}
         self.master_pars = {}
         self.updateMasterPars()
-                      
+
         # Now, apply any new values input through keywords 
         # upon start up. This will further override any previous
         # settings for those parameters.
@@ -320,7 +320,7 @@ class MDrizPars (HasTraits):
         if isinstance(value,types.StringType):
             if value.isdigit():
                 value = int(value)
-        if value == 'INDEF': value = None
+        if value == 'INDEF' and kw.find('fillval') < 0: value = None
 
         return value
     
