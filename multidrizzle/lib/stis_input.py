@@ -8,21 +8,9 @@ __version__ = '0.1.0'
 
 import pydrizzle
 from pydrizzle import fileutil
-
-import makewcs
+import numarray as N
 
 from input_image import InputImage
-
-def checkSTIS(files):
-
-    """ Checks that MAKEWCS is run on any STIS image in 'files' list. """
-
-    for p in files:
-        if fileutil.getKeyword(p,'instrume') == 'STIS':
-            print('\nNote: Synchronizing STIS WCS to specified distortion coefficients table\n')
-            # Update the CD matrix using the new IDCTAB
-            # Not perfect, but it removes majority of errors...
-            makewcs.run(image=p)
 
 
 class STISInputImage (InputImage):
@@ -36,9 +24,6 @@ class STISInputImage (InputImage):
         # Effective gain to be used in the driz_cr step.  Since the
         # ACS images have already benn converted to electons per
         # second, the effective gain is 1.
-        self._effGain = 1
-
-    def doUnitConversions(self):
         self._effGain = 1
         
     def setInstrumentParameters(self, instrpars, pri_header):
@@ -67,6 +52,47 @@ class STISInputImage (InputImage):
             raise ValueError
 
 #        InputImage.setInstrumentParameters(self, instrpars, pri_header)
+
+    def updateMDRIZSKY(self,filename=None):
+    
+        if (filename == None):
+            filename = self.name
+            
+        try:
+            _handle = fileutil.openImage(filename,mode='update',memmap=0)
+        except:
+            raise IOError, "Unable to open %s for sky level computation"%filename
+        try:
+            try:
+                # Assume MDRIZSKY lives in primary header
+                print "Updating MDRIZSKY in %s with %f / %f = %f"%(filename,self.getSubtractedSky(),
+                        self.getGain(),
+                        self.getSubtractedSky() / self.getGain()
+                        )
+                _handle[0].header['MDRIZSKY'] = self.getSubtractedSky() / self.getGain()
+            except:
+                print "Cannot find keyword MDRIZSKY in %s to update"%filename
+                print "Adding MDRIZSKY keyword to primary header with value %f"%self.getSubtractedSky()
+                _handle[0].header.update('MDRIZSKY',self.getSubtractedSky()/self.getGain(), 
+                    comment="Sky value subtracted by Multidrizzle")
+        finally:
+            _handle.close()
+
+    def doUnitConversions(self):
+        self._convert2electrons()
+
+    def _convert2electrons(self):
+        # Image information
+        __handle = fileutil.openImage(self.name,mode='update',memmap=0)
+        __sciext = fileutil.getExtn(__handle,extn=self.extn)
+
+        # Multiply the values of the sci extension pixels by the gain.
+        print "Converting %s from COUNTS to ELECTRONS"%(self.name)
+        N.multiply(__sciext.data,self.getGain(),__sciext.data)        
+
+        __handle.close()
+        del __handle
+        del __sciext
 
 class CCDInputImage (STISInputImage):
 

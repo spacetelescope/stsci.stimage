@@ -108,7 +108,7 @@ class WFPC2InputImage (InputImage):
                 # Assume MDRIZSKY lives in primary header
                 print "Updating MDRIZSKY in %s with %f / %f = %f"%(filename,self.getSubtractedSky(),
                         self.getGain(),
-                        self.getGain() / self.getSubtractedSky()
+                        self.getSubtractedSky() / self.getGain()
                         )
                 _handle[0].header['MDRIZSKY'] = self.getSubtractedSky() / self.getGain()
             except:
@@ -118,6 +118,7 @@ class WFPC2InputImage (InputImage):
                     comment="Sky value subtracted by Multidrizzle")
         finally:
             _handle.close()
+
     def doUnitConversions(self):
         self._convert2electrons()
 

@@ -26,20 +26,8 @@ __version__ = '0.1.13'
 import pydrizzle
 from pydrizzle import fileutil
 
-import makewcs
 
 from input_image import InputImage
-
-def checkACS(files):
-
-    """ Checks that MAKEWCS is run on any ACS image in 'files' list. """
-
-    for p in files:
-        if fileutil.getKeyword(p,'instrume') == 'ACS':
-            print('\nNote: Synchronizing ACS WCS to specified distortion coefficients table\n')
-            # Update the CD matrix using the new IDCTAB
-            # Not perfect, but it removes majority of errors...
-            makewcs.run(image=p)
 
 
 class ACSInputImage (InputImage):

@@ -11,8 +11,6 @@ from pydrizzle import drutil, fileutil, buildasn, updateasn, dqpars
 import pyfits
 import readgeis
 
-import acs_input
-
 import mdzhandler
 import manager
 from manager import ImageManager
@@ -20,7 +18,9 @@ from manager import ImageManager
 import geissupport
 from geissupport import *
 
-__version__ = '2.1.0 (19 July 2004)'
+import makewcs
+
+__version__ = '2.1.0 (20 July 2004)'
 
 def printout(text):
     print(' *** ' + text + '\n ***')
@@ -473,6 +473,9 @@ class Multidrizzle:
         elif (_instrument.lower() == 'wfpc2'):
             _parfile = dqpars.WFPC2Pars()
             _parfile.update(_bits)
+        elif (_instrument.lower() == 'stis'):
+            _parfile = dqpars.STISPars()
+            _parfile.update(_bits)
         else:
             print " "
             print "****************"
@@ -701,8 +704,19 @@ class Multidrizzle:
 
         """ Checks input files before they are required later. """
 
-        # Make sure that UPINCD is run on any ACS images.
-        acs_input.checkACS(files)
+        """ Checks that MAKEWCS is run on any ACS image in 'files' list. """
+        for p in files:
+
+            if fileutil.getKeyword(p,'instrume') == 'ACS':
+                print('\nNote: Synchronizing ACS WCS to specified distortion coefficients table\n')
+                # Update the CD matrix using the new IDCTAB
+                # Not perfect, but it removes majority of errors...
+                makewcs.run(image=p)
+
+#            if fileutil.getKeyword(p,'idctab') != None:
+#                # Update the CD matrix using the new IDCTAB
+#                # Not perfect, but it removes majority of errors...
+#                makewcs.run(image=p)
 
     def _checkStaticFile(self, static_file):
 
