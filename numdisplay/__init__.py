@@ -211,13 +211,14 @@ class NumDisplay:
         bimage = numarray.zeros((_ny,_nx),numarray.UInt8)
 
         if iz2 == iz1: 
-            status = "Image scaled to all zeros! Z1: 0, Z2: 0"
+            status = "Image scaled to all one pixel value!"
             return bimage
         else:
-            scale = _pmax / (iz2 - iz1)
+            scale = _pmax / (iz2 - iz1 + 1)
 
         # Now we can scale the pixels using a linear scale only (for now)
-        bimage = numarray.clip(((image - iz1) * scale),_pmin,_pmax).astype(numarray.UInt8)
+        # Add '1' to clip value to account for zero indexing
+        bimage = numarray.clip(((image - iz1+1) * scale),_pmin,_pmax).astype(numarray.UInt8)
 
         status = 'Image scaled to Z1: '+repr(iz1)+' Z2: '+repr(iz2)+'...'
         return bimage
@@ -326,8 +327,10 @@ class NumDisplay:
             if self.z1 == self.z2: 
                 self.z1 -= 1.
                 self.z2 += 1.
+                
 
         _wcsinfo = displaydev.ImageWCS(bpix,z1=self.z1,z2=self.z2,name=name)
+        print 'Image displayed with Z1: ',self.z1,' Z2:',self.z2 
 
         bpix = self._fbclipImage(bpix,_d.fbwidth,_d.fbheight)
         _z1 = numarray.minimum.reduce(numarray.ravel(bpix))
