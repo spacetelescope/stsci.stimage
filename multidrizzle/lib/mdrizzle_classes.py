@@ -17,7 +17,7 @@ import mdzhandler
 import manager
 from manager import ImageManager
 
-__version__ = '0.8.0 (28 June 2004)'
+__version__ = '2.0.0 (30 June 2004)'
 
 def printout(text):
     print(' *** ' + text + '\n ***')
@@ -28,7 +28,7 @@ def timestamp():
     print('----------------------------\n')
 
 def versioninfo():
-    """ Print version information for packages used by OOMultidrizzle """
+    """ Print version information for packages used by Multidrizzle """
 
     # Set up version ID's for printing to the log file
     _mdrizzle_version  = " MultiDrizzle "+__version__
@@ -154,7 +154,7 @@ class Multidrizzle:
                  instrpars  = None):
 
         timestamp()
-        print 'Running OOMultiDrizzle ',__version__
+        print 'Running MultiDrizzle ',__version__
 
         # Create object that controls step execution and mark
         # initialization step.
