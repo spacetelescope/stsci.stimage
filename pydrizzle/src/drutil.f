@@ -3021,7 +3021,7 @@ C
       DOUBLE PRECISION AM,BM,CM,DM,WCSIN(8),WCSOUT(8)
       DOUBLE PRECISION W5,W6,W7,W8
       DOUBLE PRECISION XIN(3),YIN(3),XOUT(3),YOUT(3)
-      LOGICAL DISIM
+      LOGICAL DISIM, OLDDIS
 
       REAL MEMR(1)
       COMMON /MEM/MEMR
@@ -3055,11 +3055,13 @@ C to allow us to update the WCS
       YIN(3)=YIN(1)+1.0D0
 
 C Transform
-C Only use LINEAR terms
+C Only use LINEAR terms and ignore distortion images
 
       SCOTY=COTY
       COTY=1
-
+      OLDDIS = DISIM
+      
+      DISIM = .FALSE.
       CALL DRIVAL(XIN,YIN,3,DNX,DNY,ONX,ONY,.FALSE.,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
@@ -3069,6 +3071,7 @@ C Only use LINEAR terms
 
 C Restore order
       COTY=SCOTY
+      DISIM = OLDDIS
 
 C Now work out the effective CD matrix of the transformation
       AM=(XOUT(2)-XOUT(1))

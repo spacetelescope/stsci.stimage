@@ -206,6 +206,8 @@ C        both the callable interface and STSDAS interface. Based on
 C        Version 3.32 from Richard.
 C              Warren Hack, STScI, 25th June 2004
 C
+C V3.4.1 - removed use of distortion images from UPWCS WJH/RH, 20th Dec 2004
+C
 C
 C--
       IMPLICIT NONE
@@ -313,7 +315,7 @@ C First initialise the logical flags
       ODND=.FALSE.
       COPALL=.TRUE.
 
-      VERS='DRIZZLE Version 3.4 (June 25th 2004)'
+      VERS='DRIZZLE Version 3.4.1 (Dec 20th 2004)'
 
 C Announce the version
       CALL UMSPUT('+ '//VERS,1,0,ISTAT)

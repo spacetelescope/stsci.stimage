@@ -3716,6 +3716,7 @@ L140:
     extern /* Subroutine */ int inmat_(doublereal *, doublereal *, doublereal 
 	    *, doublereal *);
     static integer istat, scoty;
+    static logical olddis;
     extern /* Subroutine */ int drival_(doublereal *, doublereal *, integer *,
 	     integer *, integer *, integer *, integer *, logical *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, char *, 
@@ -3777,9 +3778,11 @@ L140:
     xin[2] = xin[0];
     yin[2] = yin[0] + 1.;
 /* Transform */
-/* Only use LINEAR terms */
+/* Only use LINEAR terms and ignore distortion images */
     scoty = *coty;
     *coty = 1;
+    olddis = *disim;
+    *disim = FALSE_;
     drival_(xin, yin, &c__3, dnx, dny, onx, ony, &c_false, xsh, ysh, rot, 
 	    scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 
 	    shfr2, rotf2, usewcs, &wcsin[1], &wcsout[1], coty, conum, &xco[1],
@@ -3787,6 +3790,7 @@ L140:
 	     xout, yout, (ftnlen)8, (ftnlen)8);
 /* Restore order */
     *coty = scoty;
+    *disim = olddis;
 /* Now work out the effective CD matrix of the transformation */
     am = xout[1] - xout[0];
     bm = xout[2] - xout[0];
