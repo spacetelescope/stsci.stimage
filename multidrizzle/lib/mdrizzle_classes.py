@@ -17,7 +17,7 @@ import mdzhandler
 import manager
 from manager import ImageManager
 
-__version__ = '2.0.0 (30 June 2004)'
+__version__ = '2.0.1 (6 July 2004)'
 
 def printout(text):
     print(' *** ' + text + '\n ***')
@@ -207,6 +207,7 @@ class Multidrizzle:
         self.shiftfile = shiftfile
         self.staticfile = staticfile
         self.static_sig = static_sig
+        self.mdriztab = mdriztab
         # Remember the name for the output script for the final drizzling
         self.runfile = runfile
         self.clean = clean
@@ -253,13 +254,56 @@ class Multidrizzle:
         if mdriztab:
             self.image_manager.setInstrumentParameters(self.instrpars)
 
-
         # Check static file. Can only be done after reading MDRIZTAB.
         self._checkStaticFile(self.staticfile)
 
         # Done with initialization.
         self.steps.markStepDone(ProcSteps.doInitialize)
 
+    def _printInputPars(self):
+        print "\n\n**** Multidrizzle Parameter Input ****"
+
+        print "\n** General Parameters:"
+        print "input = ", self.input
+        print "output  = ",self.output
+        print "mdriztab = ", self.mdriztab
+        print "refimage  = ", self.refimage
+        print "runfile = ", self.runfile
+        print "workinplace = ", self.workinplace
+        print "context = ", self.context
+        print "clean  = ", self.clean
+        print "shiftfile =  ",self.shiftfile
+        
+        print "\n** Static Mask:"
+        print "staticfile = ",self.staticfile
+        print "static_sig = ", self.static_sig
+
+        print "\n** Sky Subtraction:"
+        self._printDictEntries(self.skypars)
+                
+        print "\n** Separate Drizzle Images:"
+        self._printDictEntries(self.driz_sep_pars)
+        
+        print "\n** Create Median Image:"
+        self._printDictEntries(self.medianpars)
+ 
+        print "\n** Blot Back the Median Image:"
+        self._printDictEntries(self.blotpars)
+
+        print "\n** Remove Cosmic Rays with DERIV, DRIZ_CR:"
+        self._printDictEntries(self.drizcrpars)
+
+        print "\n** Combined Drizzled Image:"
+        self._printDictEntries(self.driz_final_pars)
+        
+        print "\n** Instrument Parameters:"
+        self._printDictEntries(self.instrpars)
+        print "\n"
+
+    def _printDictEntries(self,dict):
+        for item in dict.items():
+            print item[0], " = ", item[1]
+            
     def _initdqpars(self,_instrument,_bits):
         print "Initializing DQpars file..."
         if (_instrument.lower() == 'acs'):
@@ -730,6 +774,10 @@ class Multidrizzle:
             driz_cr         = True,
             driz_combine    = True,
             timing          = True):
+
+        # Print the input parameters now that MDRIZTAB has had a chance to modify the default values
+        self._printInputPars()
+
 
         # Update object that controls step execution. Use either user
         # interface switches, or MDRIZTAB switches.
