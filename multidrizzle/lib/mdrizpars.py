@@ -110,7 +110,8 @@ class MDrizPars (HasTraits):
     enum_combine = Trait('minmed',TraitPrefixMap({
                         'median': 'median',
                         'sum': 'sum',
-                        'minmed': 'minmed',}) 
+                        'minmed': 'minmed',
+                        'minimum': 'minimum'}) 
                         )
     enum_interp = Trait('poly5',TraitPrefixMap({
                         'nearest': 'nearest',
@@ -508,13 +509,13 @@ class MDrizPars (HasTraits):
                 _fmt = findFormat(_format)
                 
                 # Based on format type, apply proper conversion/cleaning
-                if _fmt == 'a':
+                if (_fmt == 'a') or (_fmt == 'A'):
                     _val = cleanBlank(_value)
-                elif _format == 'i1':
+                elif (_format == 'i1') or (_format=='1L'):
                     _val = toBoolean(_value)
-                elif _fmt == 'i':
+                elif (_format == 'i4') or (_format == '1J'):
                     _val = cleanInt(_value)
-                elif _fmt == 'f':
+                elif (_format == 'f4') or (_format == '1E'):
                     _val = cleanNaN(_value)
                 else:
                     print 'MDRIZTAB column ',_name,' has unrecognized format',_format 
