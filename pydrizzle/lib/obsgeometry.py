@@ -589,8 +589,10 @@ class ObsGeometry:
         # Apply VAFACTOR
         for i in range(self.model.norder+1):
             for j in range(i+1):
-                _xcs[i][j] *= N.power(vafactor,i)
-                _ycs[i][j] *= N.power(vafactor,i)
+#                _xcs[i][j] *= N.power(vafactor,i)
+#                _ycs[i][j] *= N.power(vafactor,i)
+                _xcs[i][j] *= vafactor
+                _ycs[i][j] *= vafactor
 
         _xc,_yc = self.model.shift(_xcs,_ycs,-delta_x,-delta_y)
 

@@ -1,4 +1,7 @@
 ### PyDrizzle Revision Changes
+Version 5.0.23 (24-August-2004) CJH
+      -  The application of the VA factor is now multiplicative instead of 
+         exponential in nature.
 Version 5.0.20 (12-July-2004) WJH
       - (OPR 51654)
         Exposure class logic for recognizing DGEOFILE name of 'N/A' and passing
