@@ -1,4 +1,7 @@
 ### PyDrizzle Revision Changes
+Version 5.1.1 (27-August-2004) CJH
+      - Update to fileutil.py
+        Added support for dealing with an 'ANY' DETCHIP value in and IDCTAB.
 Version 5.1.0 (24-August-2004) WJH
       - (OPR 51892)
         Corrected problem with processing HRC data where a DGEOFILE has been
