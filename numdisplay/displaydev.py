@@ -90,12 +90,12 @@ class ImageWCS:
                
         # Determine full range of pixel values for image
         if not z1:
-            self.z1 = numarray.minimum.reduce(pix.getflat())
+            self.z1 = numarray.minimum.reduce(numarray.ravel(pix))
         else:
             self.z1 = z1
             
         if not z2:
-            self.z2 = numarray.maximum.reduce(pix.getflat())
+            self.z2 = numarray.maximum.reduce(numarray.ravel(pix))
         else:
             self.z2 = z2
             

@@ -5,13 +5,16 @@
         1.  Opening the connection to a usable display tool (such as DS9).
         
         2.  Setting the display parameters for the array, such as min and
-            max array value to be used for min and max grey scale level,
-            the offset to be applied to the array before displaying, and 
-            the scaling of array values within the min/max range.
+            max array value to be used for min and max grey scale level, along
+            with any offset, scale factor and/or transformation function to be 
+            applied to the array.
+        3.  Applying any transformation to the input array.  This transformation
+            could be a simple numarray ufunc or a user-defined function that
+            returns a modified array.
         
-        3.  Building the byte-scaled version of the array and sending it
-            to the display tool.  The image sent to the display device 
-            will be trimmed to fit the image buffer defined by the 
+        4.  Building the byte-scaled version of the transformed array and 
+            sending it to the display tool.  The image sent to the display 
+            device will be trimmed to fit the image buffer defined by the 
             'imtdev' device from the 'imtoolrc' or the 'stdimage' 
             variable under IRAF. If the image is smaller than the buffer, 
             it will be centered in the display device.  
@@ -23,35 +26,51 @@
         of the numarray array; namely,
         
             open(imtdev=None): 
-                open the default display device or the device specified 
+                Open the default display device or the device specified 
                 in 'imtdev'.
             
             close():
-                close the display device defined by 'imtdev'. This must
+                Close the display device defined by 'imtdev'. This must
                 be done before resetting the display buffer to a new size.
             
-            set(z1=None,z2=None,scale=None,factor=None,frame=None):
-                convenience method for setting display attributes where
+            set(z1=None,z2=None,transform=None,scale=None,offset=None,frame=None):
+                Method for setting globaly display attributes. If no value is
+                given for a parameter, then it will resort to a default value.
+                When called with no parameters, this will reset ALL parameters to
+                default values.
+                
                 z1,z2  -- minimum/maximum pixel value to display (float)
                           Explicitly setting 'z1=None' resets the range 
                           to the full range values of the input array.
-                scale  -- numarray ufunc name to use for scaling array (string)
-                factor -- additive/multiplicative factor to apply to array
-                          before scaling (string)
+               
+                transform -- Python function to apply to array (function)
+               
+                scale  -- multiplicative scale factor to apply to array (float/int)
+               
+                offset -- additive factor to apply to array before scaling (float/int)
+               
                 frame  -- image buffer frame number in which to display array
                             (integer)
                             
-                These attributes will apply to each array displayed.
+                These attributes will apply to every array displayed.
                 
-            display(pix, name=None, bufname=None):
-                display the scaled array in display tool (ds9/ximtool/...)
+            display(pix, name=None, bufname=None, z1=None, z2=None, transform=None,
+                    scale=None, offset=None, frame=None):
+                Display the scaled array in display tool (ds9/ximtool/...).
                 name -- optional name to pass along for identifying array
+               
                 bufname -- name of buffer to use for displaying array
                             to best match size of array (such as 'imt1024')
                             [default: 512x512 buffer named 'imt512']
                 
+                (see set() for explanation of remainder of parameters)
+                
+                The display parameters set here will apply to the display of
+                the current array as well as all others displayed later, unless
+                new values are provided later.
+                
             readcursor(sample=0):
-                return a single cursor position from the image display
+                Return a single cursor position from the image display.
                 By default, this operation will wait for a keystroke before
                 returning the cursor position. If 'sample' is set to 1,
                 then it will NOT wait to read the cursor.
@@ -69,16 +88,14 @@
             >>> import numdisplay
             >>> numdisplay.open()
             >>> numdisplay.display(fdata)
-        To bring out the fainter features, a 'log' scaling can be applied
-        to the positive array values using:
-            >>> numdisplay.set(z1=1.,scale='log')
+        To bring out the fainter features, an offset value of 158 can be added
+        to the array to allow a 'log' scaling can be applied to the array values 
+        using:
+            >>> numdisplay.display(fdata,transform=numarray.log,offset=158.0)
+        To redisplay the image with default scaling:
+            >>> numdisplay.set()
             >>> numdisplay.display(fdata)
-        The full pixel range can be displayed with 'log' scaling with:
-            >>> numdisplay.set(z1=None,factor='+158.0')
-            >>> numdisplay.display(fdata)
-        The value of 'z1' is reset to 'None' to force the full range of
-        pixel values in the original array to be used again.
-        
+                    
 """
 
 import numarray, math
@@ -89,35 +106,12 @@ try:
 except ImportError:
     geotrans = None
 
-__version__ = "0.1beta (10-Oct-2003)"
+__version__ = "0.1beta2 (14-Oct-2003)"
 #
 # Version 0.1-alpha: Initial release 
 #       WJH 7-Oct-2003
 #
     
-# This function converts the input image into a byte-array 
-# with the z1/z2 values being mapped from 1 - 200.
-# It also returns a status message to report on success or failure.
-def bscaleImage(image, iz1, iz2):
-    
-    _pmin = 1
-    _pmax = 200
-    _ny,_nx = image.getshape()        
-    
-    bimage = numarray.zeros((_nx,_ny),numarray.UInt8)
-            
-    if iz2 == iz1: 
-        status = "Image scaled to all zeros! Z1: 0, Z2: 0"
-        return bimage
-    else:
-        scale = _pmax / (iz2 - iz1)
-        
-    # Now we can scale the pixels using a linear scale only (for now)
-    bimage = numarray.clip(((image - iz1) * scale),_pmin,_pmax).astype(numarray.UInt8)
-
-    status = 'Image scaled to Z1: '+repr(iz1)+' Z2: '+repr(iz2)+'...'
-    return bimage
-
 
 class NumDisplay:
     """ Class to manage the attributes and methods necessary for displaying
@@ -139,11 +133,14 @@ class NumDisplay:
         self.frame = 1
         
         # Attributes used to scale image nearly arbitrarily
-        # scale : name of numarray ufunc to apply to array
-        # factor: string of mathematical operation and scalar to apply to array
-        #         i.e. '*1.96e-18', or '/1200.' or '+1.0' 
+        # transform: name of Python function to operate on array
+        #           default is to do nothing (apply self._noTransform)
+        # scale : multiplicative factor to apply to input array
+        # offset: additive factor to apply to input array 
+
+        self.transform = self._noTransform
         self.scale = None
-        self.factor = None
+        self.offset = None
         
         # default values for attributes used to determine pixel range values
         self.zscale = 0
@@ -172,35 +169,74 @@ class NumDisplay:
         """ Close the display device entry."""
         self.view.close()
         
-    def set(self,frame=None,z1=None,z2=None,scale=None,factor=None):
+    def set(self,frame=None,z1=None,z2=None,transform=None,scale=None,offset=None):
         
         """ Allows user to set multiple parameters at one time. """
         
         self.frame = frame
         
-        if z1 != None:
+        if z1:
             self.z1 = z1
             self.zrange = True
         else:
             self.z1=None
 
-        if z2 != None:
+        if z2:
             self.z2 = z2
             self.zrange = True
+        else:
+            self.z2=None
+
             
-        self.scale = scale
-        self.factor = factor
+        if transform:
+            self.transform = transform
+        else:
+            self.transform = self._noTransform
         
-        if self.z1 == None:
-            self.zrange = False
-            self.z2 = None
+        if scale:
+            self.scale = scale
+        else:
+            self.scale = None
+
+        if offset:
+            self.offset = offset
+        else:
+            self.offset = None
         
-        # Perform consistency checks here...
-        if self.scale != None:
-            if (self.scale.find('log') or self.scale.find('sqrt')) and self.z1 <= 0.:
-                print 'Minimum pixel value of ',self.z1,' MAY be inconsistent with scale of ',self.scale
+
+    def _noTransform(self, image):
+        """ Applies NO transformation to image. Returns original. 
+            This will be the default operation when None is specified by user.
+        """
+        return image
+        
+    def _bscaleImage(self, image, iz1, iz2):
+        """
+        This function converts the input image into a byte-array 
+         with the z1/z2 values being mapped from 1 - 200.
+         It also returns a status message to report on success or failure.
+
+        """
+        _pmin = 1.
+        _pmax = 200.
+        _ny,_nx = image.shape        
+
+        bimage = numarray.zeros((_ny,_nx),numarray.UInt8)
+
+        if iz2 == iz1: 
+            status = "Image scaled to all zeros! Z1: 0, Z2: 0"
+            return bimage
+        else:
+            scale = _pmax / (iz2 - iz1)
+
+        # Now we can scale the pixels using a linear scale only (for now)
+        bimage = numarray.clip(((image - iz1) * scale),_pmin,_pmax).astype(numarray.UInt8)
+
+        status = 'Image scaled to Z1: '+repr(iz1)+' Z2: '+repr(iz2)+'...'
+        return bimage
+
             
-    def _transformImage(self,pix,fbwidth,fbheight):
+    def _fbclipImage(self,pix,fbwidth,fbheight):
         
         # Get the image parameters
         _ny,_nx = pix.shape
@@ -226,50 +262,50 @@ class NumDisplay:
 
         # Return bytescaled, frame-buffer trimmed image            
         if (_xstart == 0 and _xend == pix.shape[0]) and (_ystart == 0 and _yend == pix.shape[1]):
-            return bscaleImage(pix, self.z1,self.z2)
+            return self._bscaleImage(pix, self.z1, self.z2)
         else:
-            return bscaleImage(pix[_ystart:_yend,_xstart:_xend],self.z1,self.z2)
+            return self._bscaleImage(pix[_ystart:_yend,_xstart:_xend],self.z1,self.z2)
 
-    def _scaleImage(self, pix):
-    
-        """ Apply user-specified scaling to image. """
+    def _transformImage(self, pix):
+        """ Apply user-specified scaling to the input array. """
         
-        # If, for some reason, no scaling is provide, return original array
-        if not self.factor and not self.scale:
-            return pix
 
-        # If factor is specified, start building eval string to apply it.
-        if self.factor:
-            _ifac = 'pix'+self.factor
-        else:
-            _ifac = 'pix'
-
-        if self.zrange == True:
-            _ifac = 'numarray.clip('+_ifac+','+str(self.z1)+','+str(self.z2)+')'
-            
-        # If scaling is specified, build eval string to apply it.
+        # Now, what kind of multiplicative scaling should be applied
         if self.scale:
-            _iscale = 'numarray.'+self.scale+'('+_ifac+')'
+            # Apply any additive offset to array
+            if self.offset:
+                return self.transform( (pix+self.offset)*self.scale)
+            else:
+                return self.transform( pix*self.scale)
         else:
-            _iscale = _ifac
-        
-        # Rescale the image according to user settings...       
-        return eval(_iscale)
-
+            if self.offset:
+                return self.transform (pix + self.offset)
+            else:
+                return self.transform(pix)        
+            
     
-    def display(self, pix, name=None, bufname=None):
+    def display(self, pix, name=None, bufname=None, z1=None, z2=None,
+            transform=None, scale=None, offset=None, frame=None):
         
         """ Displays byte-scaled (UInt8) numarray to XIMTOOL device. 
             If input is not byte-scaled, it will perform scaling using 
             set values/defaults.
         """
         
+        # If any of the display parameters are specified here, apply them
+        if z1 or z2 or transform or scale or offset or frame:
+            self.set(frame=frame, z1=z1, z2=z2,
+                    transform=transform, scale=scale, offset=offset)
+        
         # Initialize the display device
         _d = self.view._display
         
+        # If no user specified values are provided, interrogate the array itself
+        # for the full range of pixel values
         if self.z1 == None:
-            self.z1 = numarray.minimum.reduce(pix.flat)
-            self.z2 = numarray.maximum.reduce(pix.flat)
+            self.z1 = numarray.minimum.reduce(numarray.ravel(pix))
+        if self.z2 == None:
+            self.z2 = numarray.maximum.reduce(numarray.ravel(pix))
             
         # If the user has not selected a specific buffer for the display,
         # select and set the frame buffer size based on input image size.
@@ -285,18 +321,25 @@ class NumDisplay:
 
         # Apply user specified scaling to image, returns original
         # if none are specified.
-        bpix = self._scaleImage(pix)        
-        
-        # If image has been rescaled, then recompute the default pixel range
-        # based on rescaled pixel values
-        if (self.factor or self.scale) or self.zrange == True:
-            self.z1 = numarray.minimum.reduce(bpix.flat)
-            self.z2 = numarray.maximum.reduce(bpix.flat)
-        
 
+        bpix = self._transformImage(pix)        
+                
+        # Recompute the pixel range of (possibly) transformed array
+        _z1 = numarray.minimum.reduce(numarray.ravel(bpix))
+        _z2 = numarray.maximum.reduce(numarray.ravel(bpix))
+
+        # If there was a problem in the transformation, then restore the original
+        # array as the one to be displayed, even though it may not be ideal.
+        if _z1 == _z2:
+            print 'Error encountered during transformation. No transformation applied...'
+            bpix = pix
+        else:
+            self.z1 = _z1
+            self.z2 = _z2
+        
         _wcsinfo = displaydev.ImageWCS(bpix,z1=self.z1,z2=self.z2,name=name)
 
-        bpix = self._transformImage(bpix,_d.fbwidth,_d.fbheight)
+        bpix = self._fbclipImage(bpix,_d.fbwidth,_d.fbheight)
         
         # Update the WCS to match the frame buffer being used.
         _d.syncWCS(_wcsinfo)   
