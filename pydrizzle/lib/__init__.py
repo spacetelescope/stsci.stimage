@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.2.8 (2-November-2004)"
+__version__ = "5.2.8 (3-November-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -203,10 +203,18 @@ class Pattern:
 
 
     def getBits(self,bits=None):
-        """ Method for extracting the bits value set through DQPars."""
+        """ Method for extracting the bits value set through DQPars.
+            If bits == None, simply return None.
+            If bits < 0 and bits != None, do not update value of
+                    DQpars instance, simply read already set value.
+            If bits > 0, update DQPars and return value set by user.
+        """
+        if bits == None:
+            return None
         if self.DQCLASS:
             _a = eval(DQPARS+'.'+self.DQCLASS)()
-            _a.update(bits)
+            if bits >= 0:
+                _a.update(bits)
             _bits = _a.bits
             del _a
         else:
@@ -2120,6 +2128,9 @@ Optional parameters:
                 'IDCTAB'(ACS default),'TRAUGER'(WFPC2),'CUBIC'(WFPC2)
     idcdir      User-specified directory for finding coeffs files:
                 'drizzle$coeffs' (default)
+    bits        Specify DQ values to be considered good. (Default: -1)
+                If negative, read value already set in DQPars classes.
+                If None, do not create inmask file at all.
 
 Optional Parameters for '.run()':
     build       create multi-extension output: yes (Default) or no
@@ -2152,7 +2163,7 @@ More help on SkyField objects and their parameters can be obtained using:
     --> f.help()
     """
     def __init__(self, input, output=None, field=None, units=None, section=None,
-        kernel=None,pixfrac=None,bits=0,wt_scl='exptime',fillval=0.,idckey=None,
+        kernel=None,pixfrac=None,bits=-1,wt_scl='exptime',fillval=0.,idckey=None,
         idcdir=DEFAULT_IDCDIR,memmap=1,dqsuffix=None,prodonly=yes):
 
         if idcdir == None: idcdir = DEFAULT_IDCDIR
