@@ -35,7 +35,7 @@ DQPARS = 'dqpars'
 
 
 # Version
-__version__ = "5.2.7 (1-November-2004)"
+__version__ = "5.2.7 (2-November-2004)"
 
 # For History of changes and updates, see 'History'
 
@@ -2144,7 +2144,7 @@ More help on SkyField objects and their parameters can be obtained using:
     --> f.help()
     """
     def __init__(self, input, output=None, field=None, units=None, section=None,
-        kernel=None,pixfrac=None,bits=None,wt_scl='exptime',fillval=0.,idckey=None,
+        kernel=None,pixfrac=None,bits=0,wt_scl='exptime',fillval=0.,idckey=None,
         idcdir=DEFAULT_IDCDIR,memmap=1,dqsuffix=None,prodonly=yes):
 
         if idcdir == None: idcdir = DEFAULT_IDCDIR
