@@ -25,20 +25,20 @@ __version__ = '0.1.11'
 import pydrizzle
 from pydrizzle import fileutil
 
-import upincd
+import upinwcs
 
 from input_image import InputImage
 
 def checkACS(files):
 
-    """ Checks that UPINCD is run on any ACS image in 'files' list. """
+    """ Checks that UPINWCS is run on any ACS image in 'files' list. """
 
     for p in files:
         if fileutil.getKeyword(p,'instrume') == 'ACS':
             print('\nNote: Synchronizing ACS WCS to specified distortion coefficients table\n')
             # Update the CD matrix using the new IDCTAB
             # Not perfect, but it removes majority of errors...
-            upincd.run(image=p)
+            upinwcs.run(image=p)
 
 
 class ACSInputImage (InputImage):
