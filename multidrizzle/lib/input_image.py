@@ -34,8 +34,10 @@
 #               keyword silently ignored. -- CJH
 #           Version 0.1.37 09/15/04 -- The runDrizCR step was modified to skip the DQ array update if the
 #               cr bit value being used is None.  -- CJH
-
-__version__ = '0.1.37'
+#           Version 0.1.38 09/29/04 -- Modified getExptime to return a value of 1 if exptime is 0.  This is
+#               to address an issue with ACS data that can have exptimes = 0.  This may or may not be ACS 
+#               specific-- CJH
+__version__ = '0.1.38'
 
 import pyfits
 
@@ -187,7 +189,10 @@ class InputImage:
         return self._rdnoise
 
     def getExpTime(self):
-        return self._exptime
+        if (self._exptime == 0.0):
+            return 1
+        else:
+            return self._exptime
 
     def getCRbit(self):
         return self._crbit
