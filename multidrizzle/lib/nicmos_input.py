@@ -7,8 +7,9 @@
 #           Version 0.1.1 09/15/04 -- Modified the setInstrumentParameters to treat
 #               a user cr bit input value of zero as a None.  This allows the
 #               user to turn off the DQ array update during the Driz_CR step. -- CJH
+#           Version 0.1.2 09/20/04 -- Set the default crbit value for NICMOS to 4096 -- CJH.
            
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -25,7 +26,7 @@ class NICMOSInputImage (InputImage):
         InputImage.__init__(self,input,dqname,platescale,memmap=1)
         
         # define the cosmic ray bits value to use in the dq array
-        self.cr_bits_value = 0
+        self.cr_bits_value = 4096
         self.platescale = platescale
         
         # Effective gain to be used in the driz_cr step.  Since the
