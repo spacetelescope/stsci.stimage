@@ -17,6 +17,7 @@
 #               making copies of the inputs.
 #           Version 0.1.37, 06/28/04 -- Modified some print statements in median step.  -- CJH
 #           Version 0.1.38, 06/29/04 -- Modified import of imagestats and minmed. -- CJH
+#           Version 0.1.39, 06/29/04 -- Modified imports to remove dependence on pytools package -- CJH
 
 import numarray.image.combine as combine
 
@@ -35,8 +36,8 @@ from wfpc2_input import WFPC2InputImage
 import imagestats
 from imagestats import ImageStats
 
-import pytools.numcombine
-from pytools.numcombine import numCombine
+import numcombine
+from numcombine import numCombine
 
 import minmed
 from minmed import minmed
@@ -44,10 +45,10 @@ from minmed import minmed
 import static_mask
 from static_mask import StaticMask
 
-import pytools.nimageiter
-from pytools.nimageiter import ImageIter
+import nimageiter
+from nimageiter import ImageIter
 
-__version__ = '0.1.38'
+__version__ = '0.1.39'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 

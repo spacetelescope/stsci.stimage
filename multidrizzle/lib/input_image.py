@@ -20,8 +20,9 @@
 #               order to support ACS/SBC data.  - CJH/WJH/IB
 #           Version 0.1.30 06/07/04 -- Turned memory maping back on by default.  -- CJH
 #           Version 0.1.31 06/29/04 -- Modified import of imagestats. -- CJH
+#           Version 0.1.32 06/29/04 -- Modified imports to remove dependence on pytools package -- CJH
 
-__version__ = '0.1.31'
+__version__ = '0.1.32'
 
 import pyfits
 
@@ -31,8 +32,8 @@ from pydrizzle import fileutil
 import imagestats
 from imagestats import ImageStats
 
-import pytools.imageiter
-from pytools.imageiter import ImageIter
+import imageiter
+from imageiter import ImageIter
 
 import numarray as N
 import quickDeriv
