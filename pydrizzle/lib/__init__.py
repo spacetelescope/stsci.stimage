@@ -1340,6 +1340,23 @@ class STISObservation(Pattern):
         # Set up the input members and create the product meta-chip
         self.buildProduct(filename, output)
 
+    def getExptime(self):
+
+        header = fileutil.getHeader(self.name+'[sci,1]')
+        _exptime = float(header['EXPTIME'])
+
+        if header.has_key('EXPSTART'):
+            _expstart = float(header['EXPSTART'])
+            _expend = float(header['EXPEND'])
+        else:
+            _expstart = 0.
+            _expend = _exptime
+
+        return (_exptime,_expstart,_expend)
+
+
+
+
 class NICMOSObservation(Pattern):
     """This class defines an observation with information specific
        to NICMOS exposures.
