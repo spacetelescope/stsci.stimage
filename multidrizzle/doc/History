@@ -1,5 +1,28 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.6.0: 04/05/05 -- CJH
+    A bug in which the driz_cr step would created invalid simple FITS format files for
+    the *_cor.fits and *_crmask.fits products has been corrected.  This fix addresses
+    PR #53344
+
+    The mdrizpars module was modified to support new return types from pyfits 0.9.8.1
+    for column definitions.  In previous versions of pyfits the return types were 
+    based upon numarray types.  Now, the return types are FITS standards.  This fix
+    addresses PR #53365
+
+    The the minmed algorithm was modified such that the first median
+    image created would ignore the use of nhigh = 1 clipping if using it
+    would result in no image data for that pixel location.  This addresses
+    PR #53317.
+
+    The a new "clipped" minimum combination algorithm has been added as an
+    option to the CREATE MEDIAN step.  This new feature requires that
+    NUMARRAY version 1.3 or later be installed.  If the appropriate NUMARRAY
+    version is not installed, a minimum image will still be computed but
+    not "clipping" will be done.  A warning message is issued to indicate
+    that no clipping is done in this condition.  This modification address
+    PR #53323.
+
 Version 2.5.6: 03/25/05 -- CJH
     The calling to the _setOutputFrame() method from within the doDrizSeparate() method
     of the ImageManager class has been removed.  Instead it is executed directly from
