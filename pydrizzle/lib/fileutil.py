@@ -790,7 +790,7 @@ def defaultModel():
     refpix['V2REF'] = 0.
     refpix['XSIZE'] = 0.
     refpix['YSIZE'] = 0.
-    refpix['V3REF'] = 1.
+    refpix['V3REF'] = 0.
     refpix['XDELTA'] = 0.
     refpix['YDELTA'] = 0.
     refpix['PSCALE'] = None
@@ -1151,7 +1151,7 @@ def readWCSCoeffs(header):
     refpix['XDELTA'] = 0.0
     refpix['YDELTA'] = 0.0
     refpix['DEFAULT_SCALE'] = yes
-    refpix['centered'] = no
+    refpix['centered'] = yes
 
 
     # Set up template for coeffs keyword names

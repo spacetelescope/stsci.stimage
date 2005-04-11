@@ -16,6 +16,7 @@ tasks.
 #
 
 import string,os,types
+from math import ceil,floor
 #import iraf
 
 import numarray as N
@@ -532,8 +533,8 @@ def getRange(members,ref_wcs,verbose=None):
     # edge of the image. Also, 'drizzle' centers the output, so
     # adding 2 only expands image by 1 row on each edge.
     # An additional two is added to accomodate floating point errors in drizzle.
-    xsize = int(xmax - xmin) + 2
-    ysize = int(ymax - ymin) + 2
+    xsize = int(ceil(xmax)) - int(floor(xmin))
+    ysize = int(ceil(ymax)) - int(floor(ymin))
 
     meta_range = {}
     meta_range = {'xmin':xmin,'xmax':xmax,'ymin':ymin,'ymax':ymax,'nref':nref}
@@ -630,8 +631,14 @@ def wcsfit(img_geom, ref):
 
     # We need to subtract 1 from CRPIX value here to account for
     # offset introduced in 'drizzle' with 'align=center'
-    abxt[2] -= ref_wcs.crpix1 - 1.0
-    cdyt[2] -= ref_wcs.crpix2 - 1.0
+    #abxt[2] -= ref_wcs.crpix1 - 1.0
+    #cdyt[2] -= ref_wcs.crpix2 - 1.0
+    # This correction affects the final fit when you are fitting
+    # a WCS to itself (no distortion coeffs), so it needs to be
+    # taken out in the coeffs file by modifying the zero-point value.
+    #  WJH 17-Mar-2005
+    abxt[2] -= ref_wcs.crpix1
+    cdyt[2] -= ref_wcs.crpix2
 
     return abxt,cdyt
 

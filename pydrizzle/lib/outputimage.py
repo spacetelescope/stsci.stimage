@@ -7,7 +7,7 @@ import numarray as N
 yes = True
 no = False
 
-RESERVED_KEYS = ['NAXIS','BITPIX','DATE','IRAF-TLM']
+RESERVED_KEYS = ['NAXIS','BITPIX','DATE','IRAF-TLM','XTENSION','EXTNAME','EXTVER']
 
 EXTLIST = ('SCI', 'WHT', 'CTX')
 
@@ -274,6 +274,8 @@ class OutputImage:
                 for _card in scihdr.ascard:
                     if _card.key not in RESERVED_KEYS and hdu.header.has_key(_card.key) == 0:
                         hdu.header.ascard.append(_card)
+            del hdu.header['PCOUNT']
+            del hdu.header['GCOUNT']
             hdu.header.update('filename',self.outdata)
 
             # Add primary header to output file...
@@ -480,6 +482,8 @@ def getTemplates(fname,extlist):
 
     ftemplate = fileutil.openImage(fname,mode='readonly')
     prihdr = pyfits.Header(cards=ftemplate['PRIMARY'].header.ascard.copy())
+    del prihdr['pcount']
+    del prihdr['gcount']
 
     if fname.find('.fits') > 0 and len(ftemplate) > 1:
 

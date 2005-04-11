@@ -31,13 +31,15 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
 	ncon, integer *uniqid, integer *ystart, integer *xmin, integer *ymin, 
 	integer *nx, integer *ny, integer *dny, integer *onx, integer *ony, 
 	doublereal *xsh, doublereal *ysh, char *shftfr, char *shftun, 
-	doublereal *drot, doublereal *scale, real *pxg, real *pyg, integer *
-	xgdim, integer *ygdim, char *align, doublereal *pfract, char *kernel, 
-	char *coeffs, char *inun, real *expin, real *wtscl, char *filstr, 
-	doublereal *wcs, integer *vflag, integer *clen, integer *nmiss, 
-	integer *nskip, char *vers, ftnlen shftfr_len, ftnlen shftun_len, 
-	ftnlen align_len, ftnlen kernel_len, ftnlen coeffs_len, ftnlen 
-	inun_len, ftnlen filstr_len, ftnlen vers_len)
+	doublereal *drot, doublereal *scale, doublereal *xsh2, doublereal *
+	ysh2, doublereal *xscale, doublereal *yscale, doublereal *rot2, char *
+	shfr2, real *pxg, real *pyg, integer *xgdim, integer *ygdim, char *
+	align, doublereal *pfract, char *kernel, char *coeffs, char *inun, 
+	real *expin, real *wtscl, char *filstr, doublereal *wcs, integer *
+	vflag, integer *clen, integer *nmiss, integer *nskip, char *vers, 
+	ftnlen shftfr_len, ftnlen shftun_len, ftnlen shfr2_len, ftnlen 
+	align_len, ftnlen kernel_len, ftnlen coeffs_len, ftnlen inun_len, 
+	ftnlen filstr_len, ftnlen vers_len)
 {
     /* System generated locals */
     integer data_dim1, data_offset, wei_dim1, wei_offset, ndat_dim1, 
@@ -60,11 +62,10 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
     static logical con;
     static integer nen;
     static doublereal xib[100000], yib[100000], xob[100000], xco[100], yco[
-	    100], yob[100000], rot, xsh2, ysh2, rot2;
+	    100], yob[100000], rot;
     static integer done[1]	/* was [1][1] */;
     static logical fill;
     static integer xmax, ymax, coty;
-    static char shfr2[8];
     static logical rotf2;
     static integer intab[10000]	/* was [100][100] */;
     static logical disim, incps;
@@ -93,9 +94,7 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
 	    *, integer *, integer *, integer *, doublereal *, doublereal *, 
 	    integer *, integer *, ftnlen);
     static real filval;
-    static logical bitcon, secpar, update;
-    static doublereal xscale, yscale;
-    static logical usewei;
+    static logical bitcon, update, secpar, usewei;
     extern /* Subroutine */ int putfil_(real *, real *, integer *, integer *, 
 	    real *);
     static logical rotfir, noover, usewcs;
@@ -276,8 +275,8 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
 	verbose_1.verbose = FALSE_;
     }
 /* Define Version ID */
-    s_copy(vers, "Callable DRIZZLE Version 0.6 (20th Dec 2004) ", (ftnlen)50, 
-	    (ftnlen)45);
+    s_copy(vers, "Callable DRIZZLE Version 0.7 (4th Apr 2005)", (ftnlen)50, (
+	    ftnlen)43);
 /* Announce */
     umsput_(vers, &c__1, &c__0, &istat, (ftnlen)50);
 /* Get geometric distortion coefficients */
@@ -327,13 +326,27 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
     }
 /* Convert the rotation to radians */
     rot = *drot * 3.141592653f / 180.f;
-/* Secondary parameters are not currently supported */
-    secpar = FALSE_;
+/* Convert the secondary parameters into suitable units */
+    *rot2 = *rot2 * 3.14159265358979 / 180.;
+    if (s_cmp(shfr2, "input", (ftnlen)5, (ftnlen)5) == 0) {
+	rotf2 = FALSE_;
+    } else {
+	rotf2 = TRUE_;
+    }
+/* Give a warning message if secondary parameters will have an effect */
+    if (*xscale != 1. || *yscale != 1. || *xsh2 != 0. || *ysh2 != 0. || *rot2 
+	    != 0.) {
+	umsput_("! Warning, secondary geometric transform is being used", &
+		c__1, &c__0, &istat, (ftnlen)54);
+	secpar = TRUE_;
+    } else {
+	secpar = FALSE_;
+    }
     update = TRUE_;
     usewei = TRUE_;
     usewcs = FALSE_;
     con = TRUE_;
-    bitcon = TRUE_;  
+    bitcon = TRUE_;
 /* Do the drizzling */
     dobox_(&data[data_offset], &wei[wei_offset], &ndat[ndat_offset], &ncou[
 	    ncou_offset], &ncon[ncon_offset], done, nx, ny, dny, ystart, xmin,
@@ -341,10 +354,9 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
 	    yib, yob, onx, ony, &coty, &conum, xco, yco, &disim, &pxg[
 	    pxg_offset], &pyg[pyg_offset], xgdim, ygdim, wtscl, align, &incps,
 	     expin, pfract, scale, &rot, xsh, ysh, &wcs[1], wcsout, &rotfir, &
-	    secpar, &xsh2, &ysh2, &rot2, &xscale, &yscale, shfr2, &rotf2, &
-	    con, &bitcon, intab, &c__100, &c__100, &nen, uniqid, &update, &
-	    usewei, &usewcs, &istat, nmiss, nskip, (ftnlen)8, (ftnlen)8, (
-	    ftnlen)8);
+	    secpar, xsh2, ysh2, rot2, xscale, yscale, shfr2, &rotf2, &con, &
+	    bitcon, intab, &c__100, &c__100, &nen, uniqid, &update, &usewei, &
+	    usewcs, &istat, nmiss, nskip, (ftnlen)8, (ftnlen)8, (ftnlen)8);
 /* Check for meaningful values */
     if (s_cmp(filstr, "INDEF", (ftnlen)5, (ftnlen)5) != 0 && s_cmp(filstr, 
 	    "indef", (ftnlen)5, (ftnlen)5) != 0) {
@@ -386,10 +398,10 @@ L100001:
 /*  Only need to do once per image, not once per section. */
     if (*ystart == 0) {
 	upwcs_(&wcs[1], &wcs[1], nx, ny, onx, ony, xsh, ysh, &rot, scale, 
-		align, &rotfir, &secpar, &xsh2, &ysh2, &rot2, &xscale, &
-		yscale, shfr2, &rotf2, &usewcs, &coty, &conum, xco, yco, &
-		disim, &pxg[pxg_offset], &pyg[pyg_offset], xgdim, ygdim, (
-		ftnlen)8, (ftnlen)8);
+		align, &rotfir, &secpar, xsh2, ysh2, rot2, xscale, yscale, 
+		shfr2, &rotf2, &usewcs, &coty, &conum, xco, yco, &disim, &pxg[
+		pxg_offset], &pyg[pyg_offset], xgdim, ygdim, (ftnlen)8, (
+		ftnlen)8);
     }
 /* Return the value of status */
     ret_val = (real) istat;

@@ -1,4 +1,42 @@
 ### PyDrizzle Revision Changes
+Version 5.5.0 (11-April-2005) WJH
+      - Implemented conversion of output product to 'counts' based on 'units'
+        parameter.
+      - Corrected offset of 1 pixel due to 'align=center' so that this offset
+        was accounted for properly in the shift file.  This resulted in 
+        images without distortion coeffs not be modified/shifted when run
+        through PyDrizzle.  In general, the predicted output size now almost
+        exactly matches the actual drizzle product resulting in almost no
+        dropped pixels for most cases.  Sky positions also now match exactly
+        what comes from the drizzle product.
+      - Moved writing of coeffs file from '__init__.py:buildPars()' to 
+        the Exposure class method 'writeCoeffs'.  
+      - Moved 'XYtoSky' function from 'wcsutil' to its own module, so that
+        'wcsutil' can be imported separately from rest of PyDrizzle
+        (specifically, the compiled C library 'arrdriz'). 
+      - The 'read_archive' method in 'wcsutil' needed to be modified to use
+        any existing prefix found in the header for archived keywords,
+        especially for computing the pscale.
+      - The output FITS products from PyDrizzle no longer have extension 
+        keywords in the primary headers when 'build=no'.
+      - Velocity aberration correction now gets turned off when no distortion
+        coeffs have been specified.
+      - Exposure time has been added as an attribute of the Exposure class
+        in order to allow for proper conversion of the product from 'counts'
+        to 'cps' and back.
+      - A new method, 'runDriz', has been added to the Exposure class to allow
+        a single chip to be drizzled to an output image as if cut as a section
+        from the final product. 
+      - The description of the 'bits' parameter was updated to explain both
+        bits_single and bits_final.
+      - The shifts applied to 'blot' are now properly scaled to the 'input'
+        frame to match the STSDAS interface to 'blot'.  This corrects the 
+        problem of the blotted images not matching the original input chips
+        when scale != 1, which was the case for all WFPC2 images.  This allows
+        WFPC2 images to finally be masked properly by MultiDrizzle.
+      - Secondary geometric parameters were added to the callable interfaces
+        for 'drizzle' and 'blot'.
+
 Version 5.4.6 (22-Feb-2005) WJH
       - Forced 'buildMask' to raise an exception when no DQ array is present
         at all (as in HRC ACQ or RAW files) so that no inmask file gets

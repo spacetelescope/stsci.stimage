@@ -1,5 +1,6 @@
       REAL FUNCTION TDRIZ(DATA,WEI,NDAT,NCOU,NCON,UNIQID,YSTART,XMIN,
      : YMIN,NX,NY,DNY,ONX,ONY,XSH,YSH,SHFTFR,SHFTUN,DROT,SCALE,
+     : XSH2,YSH2,XSCALE,YSCALE,ROT2, SHFR2,
      : PXG,PYG,XGDIM,YGDIM,ALIGN,
      : PFRACT,KERNEL,COEFFS,INUN,EXPIN,WTSCL,FILSTR,
      : WCS,VFLAG,CLEN,NMISS,NSKIP,VERS)
@@ -207,7 +208,7 @@ C Keep quiet
       ENDIF
 
 C Define Version ID
-      VERS = 'Callable DRIZZLE Version 0.6 (20th Dec 2004) '
+      VERS = 'Callable DRIZZLE Version 0.7 (4th Apr 2005)'
 C Announce
       CALL UMSPUT(VERS,1,0,ISTAT)
 
@@ -263,8 +264,26 @@ C Convert the shift units if necessary
 C Convert the rotation to radians
       ROT=DROT*3.141592653/180.0
 
-C Secondary parameters are not currently supported
-      SECPAR=.FALSE.
+C Convert the secondary parameters into suitable units
+      ROT2=ROT2*3.14159265358979D0/180.0D0
+      IF(SHFR2(1:5).eq.'input') THEN
+         ROTF2=.FALSE.
+      ELSE
+         ROTF2=.TRUE.
+      ENDIF
+
+C Give a warning message if secondary parameters will have an effect
+      IF(XSCALE.NE.1.0D0 .OR. YSCALE.NE.1.0D0 .OR.
+     :   XSH2.NE.0.0D0 .OR. YSH2.NE.0.0D0 .OR. ROT2.NE.0.0D0) THEN
+       CALL UMSPUT(
+     : '! Warning, secondary geometric transform is being used',
+     :               1,0,ISTAT)
+        SECPAR=.TRUE.
+      ELSE
+        SECPAR=.FALSE.
+      ENDIF
+
+
       UPDATE=.TRUE.
       USEWEI=.TRUE.
       USEWCS=.FALSE.

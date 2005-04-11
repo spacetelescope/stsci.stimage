@@ -30,10 +30,12 @@ static integer c__100 = 100;
 /* Subroutine */ int tblot_(real *data, real *ndat, integer *xmin, integer *
 	xmax, integer *ymin, integer *ymax, integer *dnx, integer *dny, 
 	integer *onx, integer *ony, doublereal *xsh, doublereal *ysh, 
-	doublereal *drot, doublereal *scale, real *kscale, real *pxg, real *
-	pyg, integer *xgdim, integer *ygdim, char *align, char *interp, char *
-	coeffs, real *ef, real *misval, real *sinscl, integer *clen, integer *
-	vflag, ftnlen align_len, ftnlen interp_len, ftnlen coeffs_len)
+	doublereal *drot, doublereal *scale, real *kscale, doublereal *xsh2, 
+	doublereal *ysh2, doublereal *xscale, doublereal *yscale, doublereal *
+	rot2, char *shfr2, real *pxg, real *pyg, integer *xgdim, integer *
+	ygdim, char *align, char *interp, char *coeffs, real *ef, real *
+	misval, real *sinscl, integer *clen, integer *vflag, ftnlen shfr2_len,
+	 ftnlen align_len, ftnlen interp_len, ftnlen coeffs_len)
 {
     /* System generated locals */
     address a__1[2];
@@ -48,12 +50,10 @@ static integer c__100 = 100;
 
     /* Local variables */
     static integer idd;
-    static doublereal lam, xco[100], yco[100], xin[10000], yin[10000], rot, 
-	    xsh2, ysh2, rot2;
+    static doublereal lam, xco[100], yco[100], xin[10000], yin[10000], rot;
     static char vers[45];
     static integer coty;
     static doublereal xout[10000], yout[10000];
-    static char shfr2[8];
     static logical rotf2, disim, incps;
     static integer conum;
     static doublereal wcsin[8];
@@ -63,7 +63,6 @@ static integer c__100 = 100;
 	    integer *, integer *, integer *, doublereal *, doublereal *, 
 	    integer *, integer *, ftnlen);
     static logical secpar;
-    static doublereal xscale, yscale;
     extern /* Subroutine */ int doblot_(real *, real *, integer *, real *, 
 	    real *, real *, integer *, integer *, integer *, integer *, 
 	    integer *, integer *, logical *, real *, char *, integer *, 
@@ -137,8 +136,8 @@ static integer c__100 = 100;
 	verbose_1.verbose = FALSE_;
     }
 /* First announce the version */
-    s_copy(vers, "Callable BLOT Version 0.4.1 (19th January 2004)", (ftnlen)
-	    45, (ftnlen)47);
+    s_copy(vers, "Callable BLOT Version 0.5 (4th April 2005)", (ftnlen)45, (
+	    ftnlen)42);
 /* Writing concatenation */
     i__1[0] = 2, a__1[0] = "+ ";
     i__1[1] = 45, a__1[1] = vers;
@@ -152,6 +151,22 @@ static integer c__100 = 100;
 /*      EF=1.0 */
 /* Convert the rotation to radians */
     rot = *drot * 3.1415926536f / 180.f;
+/* Convert the secondary parameters into suitable units */
+    *rot2 = *rot2 * 3.1415926536f / 180.;
+    if (s_cmp(shfr2, "input", (ftnlen)8, (ftnlen)5) == 0) {
+	rotf2 = FALSE_;
+    } else {
+	rotf2 = TRUE_;
+    }
+/* Give a warning message if secondary parameters will have an effect */
+    if (*xscale != 1. || *yscale != 1. || *xsh2 != 0. || *ysh2 != 0. || *rot2 
+	    != 0.) {
+	umsput_("! Warning, secondary geometric transform is being used", &
+		c__1, &c__0, &istat, (ftnlen)54);
+	secpar = TRUE_;
+    } else {
+	secpar = FALSE_;
+    }
 /* Check for invalid scale */
     if (*scale == 0.f) {
 	umsput_("! Invalid scale", &c__1, &c__0, &istat, (ftnlen)15);
@@ -204,9 +219,8 @@ static integer c__100 = 100;
 	    misval, xmin, xmax, ymin, ymax, dnx, dny, &rotfir, ef, align, onx,
 	     ony, &coty, &conum, xco, yco, &disim, &pxg[pxg_offset], &pyg[
 	    pyg_offset], xgdim, ygdim, xin, yin, xout, yout, scale, &rot, xsh,
-	     ysh, &usewcs, wcsin, wcsout, geomod, &secpar, &xsh2, &ysh2, &
-	    rot2, &xscale, &yscale, shfr2, &rotf2, (ftnlen)8, (ftnlen)8, (
-	    ftnlen)8);
+	     ysh, &usewcs, wcsin, wcsout, geomod, &secpar, xsh2, ysh2, rot2, 
+	    xscale, yscale, shfr2, &rotf2, (ftnlen)8, (ftnlen)8, (ftnlen)8);
 L99:
     return 0;
 } /* tblot_ */

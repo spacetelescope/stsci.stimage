@@ -15,8 +15,10 @@
 #                   pipeline directories in output drizzle keywords. -- WJH
 #
 import os
-import buildmask, fileutil, drutil
+import buildmask, fileutil, drutil,wcsutil,arrdriz
 from obsgeometry import ObsGeometry
+
+from math import ceil,floor
 
 import numarray as N
 
@@ -41,7 +43,7 @@ class Exposure:
 
     def __init__(self,expname, handle=None, dqname=None, idckey=None,
                     new=no,wcs=None,mask=None,pa_key=None, parity=None,
-                    idcdir=None, rot=None, extver=1, dateobs=None):
+                    idcdir=None, rot=None, extver=1, dateobs=None, exptime=None):
 
         # This name should be formatted for use in image I/O
         self.name = fileutil.osfn(expname)
@@ -84,6 +86,7 @@ class Exposure:
         self.dgeoname = None
         self.xgeoim = ""
         self.ygeoim = ""
+        self.exptime = exptime
         if not new:
             # Read in a copy of the header for this exposure/group/extension
             _header = fileutil.getHeader(expname,handle=handle)
@@ -97,12 +100,17 @@ class Exposure:
             if self.plam == None:
                 # Setup a default value in case this keyword does not exist
                 self.plam = 555.
+            if self.exptime == None:
+                self.exptime = float(_header['EXPTIME'])
+                if self.exptime == 0.: self.exptime = 1.0
         else:
             _chip = 1
             _header = None
             self.chip = str(_chip)
             # Set a default value for pivot wavelength
             self.plam = 555.
+            if self.exptime == None:
+                self.exptime = 1.
 
         self.parity = parity
         self.dateobs = dateobs
@@ -122,6 +130,8 @@ class Exposure:
 
         self.dqname = dqname
 
+        # Remember the name of the coeffs file generated for this chip
+        self.coeffs = self.buildCoeffsName()
 
         # Read the name of idcfile from image header if not explicitly
         # provided by user.
@@ -177,13 +187,44 @@ class Exposure:
         _blot_extn = '_sci'+repr(extver)+'_blt.fits'
         self.outblot = fileutil.buildNewRootname(self.name,extn=_blot_extn)
 
+        # Keep track of undistorted frame's position relative to metachip
+        # Zero-point offset for chip relative to meta-chip product
+        # These values get computed using 'setSingleOffsets' from 'writeCoeffs'
+        # to insure that the final XDELTA/YDELTA values have been computed.
+        self.product_wcs = self.geometry.wcslin
+        self.xzero = 0.
+        self.yzero = 0.
+        self.chip_shape = (0.,0.)
+        self.xsh2 = 0.
+        self.ysh2 = 0.
+
         if _open:
             handle.close()
             del handle
 
     def setCorners(self):
         """ Initializes corners for the raw image. """
-        self.corners['raw'] = N.array([(1.,1.),(1.,self.naxis2),(self.naxis1,1.),(self.naxis1,self.naxis2)],type=N.Float64)
+        self.corners['raw'] = N.array([(0.,0.),(0.,self.naxis2),(self.naxis1,0.),(self.naxis1,self.naxis2)],type=N.Float64)
+
+    def setSingleOffsets(self):
+        """ Computes the zero-point offset and shape of undistorted single chip relative
+            to the full final output product metachip.
+        """
+        _wcs = self.geometry.wcs
+        _corners = N.array([(0.,0.),(0.,_wcs.naxis2),(_wcs.naxis1,0.),(_wcs.naxis1,_wcs.naxis2)])
+        _wc = self.geometry.wtraxy(_corners,self.product_wcs)
+
+        _xrange = (_wc[:,0].min(),_wc[:,0].max())
+        _yrange = (_wc[:,1].min(),_wc[:,1].max())
+
+        _out_naxis1 = int(ceil(_xrange[1]) - floor(_xrange[0]))
+        _out_naxis2 = int(ceil(_yrange[1]) - floor(_yrange[0]))
+
+        self.chip_shape = (_out_naxis1,_out_naxis2)
+        self.xzero = int(_xrange[0])
+        self.yzero = int(_yrange[0])
+        self.xsh2 = (self.product_wcs.naxis1 - _out_naxis1)/2 - self.xzero
+        self.ysh2 = (self.product_wcs.naxis2 - _out_naxis2)/2 - self.yzero
 
     def getShape(self):
         """
@@ -202,6 +243,36 @@ class Exposure:
         Size will be defined as (nx,ny) and pixel size
         """
         self.shape = (size[0],size[1],pscale)
+
+
+    def buildCoeffsName(self):
+        """ Define the name of the coeffs file used for this chip. """
+        indx = self.name.rfind('.')
+        return self.name[:indx]+'_coeffs'+self.chip+'.dat'
+
+    def writeCoeffs(self):
+        """ Write out coeffs file for this chip. """
+        # coord for image array reference pixel in full chip coords
+        _xref = None
+        _yref = None
+        _delta = yes
+        # If we have a subarray, pass along the offset reference position
+        if self.geometry.wcslin.subarray:
+            _xref = self.geometry.wcs.offset_x + self.geometry.wcs.crpix1
+            _yref = self.geometry.wcs.offset_y + self.geometry.wcs.crpix2
+            _delta = no
+        else:
+            # Pass along the reference position assumed by Drizzle
+            # based on 'align=center' according to the conventions
+            # described in the help page for 'drizzle'.  26Mar03 WJH
+            _xref = ceil(self.geometry.wcs.naxis1/2.)
+            _yref = ceil(self.geometry.wcs.naxis2/2.)
+
+        # Set up the idcfile for use by 'drizzle'
+        self.geometry.model.convert(self.coeffs,xref=_xref,yref=_yref,delta=_delta)
+
+        # set exposure zero-point, now that all values are computed...
+        self.setSingleOffsets()
 
     def getDGEOExtn(self):
         """ Builds filename with extension to access distortion
@@ -308,6 +379,7 @@ class Exposure:
             _scale = in_wcs.pscale * dscale
 
         _crpix = (in_wcs.crpix1,in_wcs.crpix2)
+
         in_wcs.updateWCS(pixel_scale=_scale,orient=_orient,refval=_crval,refpos=_crpix)
         in_wcslin.updateWCS(pixel_scale=_scale,orient=_orient,refval=_crval,refpos=_crpix)
 
@@ -385,3 +457,115 @@ class Exposure:
         return self.geometry.wcs
     def showWCS(self):
         print self.geometry.wcs
+
+    def runDriz(self,pixfrac=1.0,kernel='turbo',fillval='INDEF'):
+        """ Runs the 'drizzle' algorithm on this specific chip to create
+            a numarray object of the undistorted image.
+
+            The resulting drizzled image gets returned as a numarray object.
+        """
+        #
+        # Perform drizzling...
+        #
+        _wcs = self.geometry.wcs
+        _wcsout = self.product_wcs
+
+        # Rigorously compute the orientation changes from WCS
+        # information using algorithm provided by R. Hook from WDRIZZLE.
+        abxt,cdyt = drutil.wcsfit(self.geometry, self.product_wcs)
+
+        # Compute the rotation and shifts between input and reference WCS.
+        xsh = abxt[2]
+        ysh = cdyt[2]
+        rot = fileutil.RADTODEG(N.arctan2(abxt[1],cdyt[0]))
+        scale = self.product_wcs.pscale / self.geometry.wcslin.pscale
+
+        # Now, trim the final output to only match this chip
+        _out_naxis1,_out_naxis2 = self.chip_shape
+
+        #
+        # Insure that the coeffs file was created
+        #
+        if not os.path.exists(self.coeffs):
+            self.writeCoeffs()
+
+        # A image buffer needs to be setup for converting the input
+        # arrays (sci and wht) from FITS format to native format
+        # with respect to byteorder and byteswapping.
+        # This buffer should be reused for each input.
+        #
+        _outsci = N.zeros((_out_naxis2,_out_naxis1),N.Float32)
+        _outwht = N.zeros((_out_naxis2,_out_naxis1),N.Float32)
+        _inwcs = N.zeros([8],N.Float64)
+
+        # Only one chip will ever be drizzled using this method, so
+        # the context image will only ever contain 1 bit-plane
+        _outctx = N.zeros((_out_naxis2,_out_naxis1),N.Int32)
+
+        # Read in the distortion correction arrays, if specifij8cw08n4q_raw.fitsed
+        _pxg,_pyg = self.getDGEOArrays()
+
+        # Open the SCI image
+        _expname = self.name
+        _handle = fileutil.openImage(_expname,mode='readonly',memmap=0)
+        _fname,_extn = fileutil.parseFilename(_expname)
+        _sciext = fileutil.getExtn(_handle,extn=_extn)
+
+        # Make a local copy of SCI array and WCS info
+        #_insci = _sciext.data.copy()
+        _inwcs = drutil.convertWCS(wcsutil.WCSObject(_fname,header=_sciext.header),_inwcs)
+
+        # Compute what plane of the context image this input would
+        # correspond to:
+        _planeid = 1
+
+        # Select which mask needs to be read in for drizzling
+        _inwht = N.ones((self.naxis2,self.naxis1),N.Float32)
+
+        # Default case: wt_scl = exptime
+        _wtscl = self.exptime
+
+        # Set additional parameters needed by 'drizzle'
+        _expin = self.exptime
+        #_in_un = 'counts'
+        #_shift_fr = 'output'
+        #_shift_un = 'output'
+        _uniqid = 1
+        ystart = 0
+        nmiss = 0
+        nskip = 0
+        _vers = ''
+
+        #
+        # This call to 'arrdriz.tdriz' uses the F2C syntax
+        #
+        _dny = self.naxis2
+        # Call 'drizzle' to perform image combination
+        _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data.copy(),_inwht,
+                    _outsci, _outwht, _outctx,
+                    _uniqid, ystart, 1, 1, _dny,
+                    xsh,ysh, 'output','output', rot,scale,
+                    self.xsh2,self.ysh2, 1.0, 1.0, 0.0, 'output',
+                    _pxg,_pyg,
+                    'center', pixfrac, kernel,
+                    self.coeffs, 'counts', _expin,_wtscl,
+                    fillval, _inwcs, nmiss, nskip, 1)
+        #
+        # End of F2C syntax
+        #
+
+        if nmiss > 0:
+            print '! Warning, ',nmiss,' points were outside the output image.'
+        if nskip > 0:
+            print '! Note, ',nskip,' input lines were skipped completely.'
+
+        # Close image handle
+        _handle.close()
+        del _handle,_fname,_extn,_sciext
+        del _inwht
+
+        del _pxg,_pyg
+
+        del _outwht,_outctx
+
+        return _outsci

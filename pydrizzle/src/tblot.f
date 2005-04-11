@@ -1,6 +1,7 @@
       SUBROUTINE TBLOT(DATA,NDAT,XMIN,XMAX,YMIN,YMAX,
-     :                  DNX,DNY,ONX,ONY,XSH,YSH,DROT,
-     :                  SCALE, KSCALE,PXG,PYG,XGDIM,YGDIM,
+     :                  DNX,DNY,ONX,ONY,XSH,YSH,DROT, SCALE,KSCALE,
+     :                 XSH2,YSH2,XSCALE,YSCALE,ROT2, SHFR2,  
+     :                 PXG,PYG,XGDIM,YGDIM,
      :                 ALIGN,INTERP,COEFFS,EF,MISVAL,SINSCL,CLEN,VFLAG)
 C++
 C
@@ -92,7 +93,7 @@ C Keep quiet
       ENDIF
 
 C First announce the version
-      VERS='Callable BLOT Version 0.4.1 (19th January 2004)'
+      VERS='Callable BLOT Version 0.5 (4th April 2005)'
 
       CALL UMSPUT('+ '//VERS,1,0,ISTAT)
 
@@ -106,6 +107,26 @@ C      EF=1.0
 C Convert the rotation to radians
       ROT=DROT*PI/180.0
     
+C Convert the secondary parameters into suitable units
+      ROT2=ROT2*PI/180.0D0
+      IF(SHFR2.EQ.'input') THEN
+         ROTF2=.FALSE.
+      ELSE
+         ROTF2=.TRUE.
+      ENDIF
+
+C Give a warning message if secondary parameters will have an effect
+      IF(XSCALE.NE.1.0D0 .OR. YSCALE.NE.1.0D0 .OR.
+     :   XSH2.NE.0.0D0 .OR. YSH2.NE.0.0D0 .OR. ROT2.NE.0.0D0) THEN
+       CALL UMSPUT(
+     : '! Warning, secondary geometric transform is being used',
+     :               1,0,ISTAT)
+        SECPAR=.TRUE.
+      ELSE
+        SECPAR=.FALSE.
+      ENDIF
+
+
 C Check for invalid scale
       IF(SCALE.EQ.0.0) THEN
          CALL UMSPUT('! Invalid scale',1,0,ISTAT)

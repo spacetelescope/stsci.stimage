@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.4.7 (25-February-2005)"
+__version__ = "5.5.0 (11-April-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -251,7 +251,7 @@ class Pattern:
             self.members.append(Exposure(_sciname, idckey=self.idckey, dqname=_dqname,
                     mask=_masklist, pa_key=self.pa_key, parity=self.PARITY[detector],
                     dateobs=self.dateobs, idcdir=self.pars['idcdir'],
-                    handle=self.image_handle,extver=i+1))
+                    handle=self.image_handle,extver=i+1,exptime=self.exptime[0]))
 
     def applyAsnShifts(self):
         """ Apply ASN Shifts to each member and the observations product. """
@@ -623,8 +623,7 @@ class Pattern:
                     # uncentered output
                     _refpix['XDELTA'] -= _nref[0]/2.
                     _refpix['YDELTA'] -= _nref[1]/2.
-                    # Update corner positions based on corrected DELTAs
-                    #member.corners['corrected'] -= (_nref[0]/2.,_nref[1]/2.)
+
         #
         # TROLL computation not needed, as this get corrected for both
         # in 'recenter()' and in 'wcsfit'...
@@ -638,6 +637,7 @@ class Pattern:
         #Compute the rotation between input and reference from fit coeffs.
         _delta_rot = RADTODEG(N.arctan2(abxt[1],cdyt[0]))
         _crpix = (meta_wcs.crpix1 + abxt[2], meta_wcs.crpix2 + cdyt[2])
+
         meta_wcs.crval1,meta_wcs.crval2 = meta_wcs.xy2rd(_crpix)
 
         # Insure output WCS has exactly orthogonal CD matrix
@@ -728,6 +728,7 @@ class Pattern:
         _out_wcs.crpix2 = _crpix[1] - _delta_crpix[1]/2.
 
         _out_wcs.recenter()
+
         """
         # Update the size and rotated position of reference pixel
         _cen = (_out_wcs.naxis1/2.,_out_wcs.naxis2/2.)
@@ -800,6 +801,7 @@ class Pattern:
 
             # Rigorously compute the orientation changes from WCS
             # information using algorithm provided by R. Hook from WDRIZZLE.
+
             abxt,cdyt = drutil.wcsfit(member.geometry, ref_wcs)
 
             # Compute the rotation between input and reference from fit coeffs.
@@ -874,27 +876,11 @@ class Pattern:
             parameters['gpar_ysh'] = member.geometry.gpar_ysh
             parameters['gpar_rot'] = member.geometry.gpar_rot
 
-            # coord for image array reference pixel in full chip coords
-            _xref = None
-            _yref = None
-            _delta = yes
-            # If we have a subarray, pass along the offset reference position
-            if in_wcs.subarray:
-                _xref = in_wcs_orig.offset_x + in_wcs_orig.crpix1
-                _yref = in_wcs_orig.offset_y + in_wcs_orig.crpix2
-                _delta = no
-            else:
-                # Pass along the reference position assumed by Drizzle
-                # based on 'align=center' according to the conventions
-                # described in the help page for 'drizzle'.  26Mar03 WJH
-                _xref = int(in_wcs_orig.naxis1/2.) + 1.0
-                _yref = int(in_wcs_orig.naxis2/2.) + 1.0
-
+            # Insure that the product WCS applied to each exposure gets set
+            member.product_wcs = ref_wcs
             # Set up the idcfile for use by 'drizzle'
-            indx = string.rfind(member.name,'.')
-            coeffs = member.name[:indx]+'_coeffs'+member.chip+'.dat'
-            member.geometry.model.convert(coeffs,xref=_xref,yref=_yref,delta=_delta)
-            parameters['coeffs'] = coeffs
+            member.writeCoeffs()
+            parameters['coeffs'] = member.coeffs
 
             parameters['plam'] = member.plam
 
@@ -1028,7 +1014,7 @@ class Pattern:
             refp = self.members[0].geometry.model.refpix
             refp['XDELTA'] = 0.
             refp['YDELTA'] = 0.
-            refp['centered'] = yes
+            #refp['centered'] = yes
             return
 
         # Set up the parity matrix here for a SINGLE chip
@@ -1505,7 +1491,8 @@ class WFPCObservation(Pattern):
             self.members.append(Exposure(_extname, idckey=self.idckey, dqname=_dqname,
                 mask=_masklist, parity=self.PARITY[str(i+1)],
                 idcdir=self.pars['idcdir'], dateobs=self.dateobs,
-                rot=_chip1_rot, handle=self.image_handle, extver=_detnum))
+                rot=_chip1_rot, handle=self.image_handle, extver=_detnum,
+                exptime=self.exptime[0]))
 
             if self.idckey != 'idctab':
                 _chip1_rot = self.members[0].geometry.def_rot
@@ -2154,14 +2141,13 @@ Optional parameters:
                 'IDCTAB'(ACS default),'TRAUGER'(WFPC2),'CUBIC'(WFPC2)
     idcdir      User-specified directory for finding coeffs files:
                 'drizzle$coeffs' (default)
-    bits        Specify DQ values to be considered good. (Default: 0)
-                'bits' parameter will be interpreted as:
-                    None - No DQ information to be used, no mask created
-                    Int or [Int] or ["Int"] - final drizzle bits value only
-                    "Int,Int" or "Int Int" or [Int, Int] or ["Int","Int]
-                        - final drizzle value, single drizzle value
-                    where Int refers to any Integer value, and [] refers
-                    to a Python list object.
+    bits_single Specify DQ values to be considered good when
+                    drizzling with 'single=yes'. (Default: 0)
+    bits_final  Specify DQ values to be considered good when
+                    drizzling with 'single=no'. (Default: 0)
+Bits parameters will be interpreted as:
+    None - No DQ information to be used, no mask created
+    Int  - sum of DQ values to be considered good
 
 Optional Parameters for '.run()':
     build       create multi-extension output: yes (Default) or no
@@ -2431,8 +2417,9 @@ More help on SkyField objects and their parameters can be obtained using:
                 # This call to 'arrdriz.tdriz' uses the F2C syntax
                 #
                 t = arrdriz.tblot(_insci, _outsci,xmin,xmax,ymin,ymax,
-                            xsh,ysh,
-                            plist['rot'],plist['scale'], kscale, _pxg, _pyg,
+                            xsh,ysh, plist['rot'],plist['scale'], kscale,
+                            0.0,0.0, 1.0,1.0, 0.0, 'output',
+                            _pxg, _pyg,
                             'center',interp, plist['coeffs'], plist['exptime'],
                             misval, sinscl, 1)
 
@@ -2625,8 +2612,9 @@ More help on SkyField objects and their parameters can be obtained using:
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
                             _outctx[_planeid], _uniqid, ystart, 1, 1, _dny,
                             plist['xsh'],plist['ysh'], 'output','output',
-                            plist['rot'],plist['scale'], _pxg,_pyg,
-                            'center', plist['pixfrac'], plist['kernel'],
+                            plist['rot'],plist['scale'],
+                            0.0,0.0, 1.0,1.0,0.0,'output',
+                            _pxg,_pyg, 'center', plist['pixfrac'], plist['kernel'],
                             plist['coeffs'], 'counts', _expin,_wtscl,
                             plist['fillval'], _inwcs, nmiss, nskip, 1)
                 #
@@ -2646,6 +2634,7 @@ More help on SkyField objects and their parameters can be obtained using:
 
                 del _pxg,_pyg
 
+
                 if _nimg == 0:
                     # Only update the WCS from drizzling the
                     # first image in the list, just like IRAF DRIZZLE
@@ -2654,6 +2643,26 @@ More help on SkyField objects and their parameters can be obtained using:
                 # Increment number of chips processed for single output
                 _numchips += 1
                 if _numchips == _imgctx:
+                    ###########################
+                    #
+                    #   IMPLEMENTATION REQUIREMENT:
+                    #
+                    # Need to implement scaling of the output image
+                    # from 'cps' to 'counts' in the case where 'units'
+                    # was set to 'counts'... 21-Mar-2005
+                    #
+                    ###########################
+                    # Start by determining what exposure time needs to be used
+                    # to rescale the product.
+                    if single:
+                        _expscale = plist['exptime']
+                    else:
+                        _expscale = plist['texptime']
+
+                    #If output units were set to 'counts', rescale the array in-place
+                    if plist['units'] == 'counts':
+                        N.multiply(_outsci, _expscale, _outsci)
+
                     #
                     # Write output arrays to FITS file(s) and reset chip counter
                     #

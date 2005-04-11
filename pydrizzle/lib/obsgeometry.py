@@ -1,4 +1,5 @@
 import types,string,os,copy
+from math import ceil,floor
 
 # Import PyDrizzle utility modules
 import fileutil, wcsutil, drutil
@@ -53,6 +54,9 @@ class GeometryModel:
         self.cy = None
         self.refpix = None
         self.norder = self.NORDER
+        # Keep track of computed zero-point for distortion coeffs
+        self.x0 = None
+        self.y0 = None
 
         # default values for these attributes
         self.direction = 'forward'
@@ -124,6 +128,9 @@ class GeometryModel:
                 # i.e., (undistorted - original) shift.
                 x0 += cxs[0,0]
                 y0 += cys[0,0]
+
+        self.x0 = x0
+        self.y0 = y0
 
         # Now, write out the coefficients into an ASCII
         # file in 'drizzle' format.
@@ -452,8 +459,6 @@ class ObsGeometry:
                 self.wcs.delta_refy = self.wcslin.delta_refy = 0.
                 self.wcs.subarray = self.wcslin.subarray = no
 
-            # Generate linear WCS to linear CD matrix
-            self.undistortWCS()
             #
             # Apply VAFACTOR if present in header.
             #
@@ -476,8 +481,9 @@ class ObsGeometry:
                 # Turn off applying VAFACTOR.
                 _vafactor == None
 
-
-            if _vafactor:
+            # If no distortion model has been specified,
+            # do NOT perform correction for VAFactor either...
+            if _vafactor and idcfile != None:
                 if float(_vafactor) != 1.0:
                     _ra_targ = self.header['RA_TARG']
                     _dec_targ = self.header['DEC_TARG']
@@ -489,6 +495,8 @@ class ObsGeometry:
                         print 'Velocity aberration correction also requires RA_TARG and DEC_TARG.'
                         print 'No correction applied.'
 
+            # Generate linear WCS to linear CD matrix
+            self.undistortWCS()
         else:
             # For new images with no distortion, CD matrix is sufficient.
             self.wcs = wcsutil.WCSObject(None)
@@ -741,10 +749,14 @@ class ObsGeometry:
 
         _xy = N.array([(_cpix1,_cpix2),(_cpix1+1.,_cpix2),(_cpix1,_cpix2+1.)],type=N.Float64) - (1.0,1.0)
 
+        #
+        _xdelta = self.model.refpix['XDELTA']
+        _ydelta = self.model.refpix['YDELTA']
+
         # apply the distortion to them
         _xc,_yc = self.apply(_xy)
-        _xc += self.model.refpix['XDELTA'] + _cen[0]
-        _yc += self.model.refpix['YDELTA'] + _cen[1]
+        _xc += _xdelta + _cen[0]
+        _yc += _ydelta + _cen[1]
 
         # Now, work out the effective CD matrix of the transformation
         _am = _xc[1] - _xc[0]
@@ -773,13 +785,24 @@ class ObsGeometry:
         self.wcslin.pscale = N.sqrt(N.power(self.wcslin.cd11,2)+N.power(self.wcslin.cd21,2))*3600.
 
         # Compute new size and reference pixel position...
-        _corners = self.calcNewCorners()
-        _naxis1 = float(N.maximum.reduce(_corners[:,0]) - N.minimum.reduce(_corners[:,0]))
-        _naxis2 = float(N.maximum.reduce(_corners[:,1]) - N.minimum.reduce(_corners[:,1]))
-        # Add '+2' to match computation performed by 'getRange'
-        # This adds 1 row on each edge and keeps the image centered
-        self.wcslin.naxis1 = int(_naxis1 + 2)
-        self.wcslin.naxis2 = int(_naxis2 + 2)
+        _wcorners = self.calcNewCorners()
+
+        _x0 = int(floor(N.minimum.reduce(_wcorners[:,0])))
+        if _x0 > 0: _xmin = 0.0
+        else: _xmin = _x0
+        _y0 = int(floor(N.minimum.reduce(_wcorners[:,1])))
+        if _y0 > 0: _ymin = 0.0
+        else: _ymin = _y0
+
+        _naxis1 = int(ceil(N.maximum.reduce(_wcorners[:,0]))) - _xmin
+        _naxis2 = int(ceil(N.maximum.reduce(_wcorners[:,1]))) - _ymin
+
+        # Added '+2' to match computation performed by 'getRange'
+        # This added 1 row on each edge and keeps the image centered
+        # Removed to insure that when no distortion coeffs are provided, the
+        # unity model reproduces the same output as input.
+        self.wcslin.naxis1 = int(_naxis1)
+        self.wcslin.naxis2 = int(_naxis2)
 
         self.wcslin.crpix1 = self.wcslin.naxis1/2.
         self.wcslin.crpix2 = self.wcslin.naxis2/2.
@@ -788,7 +811,6 @@ class ObsGeometry:
         _center = self.apply([(self.wcs.crpix1,self.wcs.crpix2)])
         self.wcslin.cenx = self.wcslin.crpix1 - _center[0]
         self.wcslin.ceny = self.wcslin.crpix2 - _center[1]
-
 
 
     def XYtoSky(self, pos,verbose=no,linear=no):
@@ -854,23 +876,25 @@ class ObsGeometry:
         These new position for each corner should be calculated by calling
         self.geometry.apply() on each corner position.
         This should also take into account the output scale as well.
+
+        Values for the corners must go from 0, not 1, since it is a Python array.
+            WJH, 17-Mar-2005
         """
         corners = N.zeros(shape=(4,2),type=N.Float64)
         xin = [0] * 4
         yin = [0] * 4
 
-        xin[0]=1.
-        xin[1]=1.
+        xin[0]=0.
+        xin[1]=0.
         xin[2]=self.wcs.naxis1
         xin[3]=self.wcs.naxis1
-        yin[0]=1.
+        yin[0]=0.
         yin[1]=self.wcs.naxis2
         yin[2]=self.wcs.naxis2
-        yin[3]=1.
+        yin[3]=0.
 
         corners[:,0] = xin
         corners[:,1] = yin
         corners[:,0],corners[:,1] = self.apply(corners)
         corners += (self.model.refpix['XDELTA'],self.model.refpix['YDELTA'])
-
         return corners
