@@ -1,5 +1,14 @@
 ### PyDrizzle Revision Changes
-Version 5.5.0 (11-April-2005) WJH
+Version 5.5.0 (13-April-2005) WJH
+      (13-April-2005)
+      - Moved the computation of each chip's full-frame reference position
+        from 'writeCoeffs' to the Obsgeometry class as new attributes 
+        'chip_xref' and 'chip_yref'.
+      - Corrected the WFPC2 'chip_xref' and 'chip_yref' values by 1.0 and 
+        modified WFPC2 product crpix values by 1.0 to allow for proper 
+        registration of images and application of the distortion model.
+         
+      (11-April-2005) 
       - Implemented conversion of output product to 'counts' based on 'units'
         parameter.
       - Corrected offset of 1 pixel due to 'align=center' so that this offset

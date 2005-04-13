@@ -452,12 +452,16 @@ class ObsGeometry:
                 self.wcs.delta_refx = self.wcslin.delta_refx = _delta_refx
                 self.wcs.delta_refy = self.wcslin.delta_refy = _delta_refy
                 self.wcs.subarray = self.wcslin.subarray = yes
+                self.wcs.chip_xref = self.wcs.offset_x + self.wcs.crpix1
+                self.wcs.chip_yref = self.wcs.offset_y + self.wcs.crpix2
             else:
                 self.wcs.offset_x = self.wcslin.offset_x = 0.
                 self.wcs.offset_y = self.wcslin.offset_y = 0.
                 self.wcs.delta_refx = self.wcslin.delta_refx = 0.
                 self.wcs.delta_refy = self.wcslin.delta_refy = 0.
                 self.wcs.subarray = self.wcslin.subarray = no
+                self.wcs.chip_xref = int(self.wcs.naxis1/2.)
+                self.wcs.chip_yref = int(self.wcs.naxis2/2.)
 
             #
             # Apply VAFACTOR if present in header.

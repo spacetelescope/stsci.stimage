@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.5.0 (11-April-2005)"
+__version__ = "5.5.0 (13-April-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -1442,6 +1442,11 @@ class WFPCObservation(Pattern):
         # Set up the input members and create the product meta-chip
         self.buildProduct(filename, output)
 
+        # Correct the crpix position of the metachip product
+        # in order to account for 'align=center' convention.
+        self.product.geometry.wcs.crpix1 -= 1.0
+        self.product.geometry.wcs.crpix2 -= 1.0
+
 
     def addMembers(self,filename):
 
@@ -1524,6 +1529,10 @@ class WFPCObservation(Pattern):
         # if not using Trauger coefficients
         for exp in self.members:
             exp.geometry.wcs.orient = meta_orient
+            # We need to correct each chip's full-frame reference
+            # position to account for 'align=center' convention.
+            exp.geometry.wcs.chip_xref += 1.0
+            exp.geometry.wcs.chip_yref += 1.0
 
 
 class DitherProduct(Pattern):
@@ -2609,11 +2618,20 @@ More help on SkyField objects and their parameters can be obtained using:
                 #
                 _dny = plist['blotny']
                 # Call 'drizzle' to perform image combination
+                """
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
                             _outctx[_planeid], _uniqid, ystart, 1, 1, _dny,
                             plist['xsh'],plist['ysh'], 'output','output',
                             plist['rot'],plist['scale'],
                             0.0,0.0, 1.0,1.0,0.0,'output',
+                            _pxg,_pyg, 'center', plist['pixfrac'], plist['kernel'],
+                            plist['coeffs'], 'counts', _expin,_wtscl,
+                            plist['fillval'], _inwcs, nmiss, nskip, 1)
+                """
+                _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
+                            _outctx[_planeid], _uniqid, ystart, 1, 1, _dny,
+                            plist['xsh'],plist['ysh'], 'output','output',
+                            plist['rot'],plist['scale'],
                             _pxg,_pyg, 'center', plist['pixfrac'], plist['kernel'],
                             plist['coeffs'], 'counts', _expin,_wtscl,
                             plist['fillval'], _inwcs, nmiss, nskip, 1)

@@ -252,21 +252,17 @@ class Exposure:
 
     def writeCoeffs(self):
         """ Write out coeffs file for this chip. """
+        # Pass along the reference position assumed by Drizzle
+        # based on 'align=center' according to the conventions
+        # described in the help page for 'drizzle'.  26Mar03 WJH
+        #
         # coord for image array reference pixel in full chip coords
-        _xref = None
-        _yref = None
-        _delta = yes
+        #
+        _xref = self.geometry.wcs.chip_xref
+        _yref = self.geometry.wcs.chip_yref
+
         # If we have a subarray, pass along the offset reference position
-        if self.geometry.wcslin.subarray:
-            _xref = self.geometry.wcs.offset_x + self.geometry.wcs.crpix1
-            _yref = self.geometry.wcs.offset_y + self.geometry.wcs.crpix2
-            _delta = no
-        else:
-            # Pass along the reference position assumed by Drizzle
-            # based on 'align=center' according to the conventions
-            # described in the help page for 'drizzle'.  26Mar03 WJH
-            _xref = ceil(self.geometry.wcs.naxis1/2.)
-            _yref = ceil(self.geometry.wcs.naxis2/2.)
+        _delta = not (self.geometry.wcslin.subarray)
 
         # Set up the idcfile for use by 'drizzle'
         self.geometry.model.convert(self.coeffs,xref=_xref,yref=_yref,delta=_delta)
