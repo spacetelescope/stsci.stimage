@@ -2618,7 +2618,6 @@ More help on SkyField objects and their parameters can be obtained using:
                 #
                 _dny = plist['blotny']
                 # Call 'drizzle' to perform image combination
-                """
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
                             _outctx[_planeid], _uniqid, ystart, 1, 1, _dny,
                             plist['xsh'],plist['ysh'], 'output','output',
@@ -2635,6 +2634,7 @@ More help on SkyField objects and their parameters can be obtained using:
                             _pxg,_pyg, 'center', plist['pixfrac'], plist['kernel'],
                             plist['coeffs'], 'counts', _expin,_wtscl,
                             plist['fillval'], _inwcs, nmiss, nskip, 1)
+                """
                 #
                 # End of F2C syntax
                 #
