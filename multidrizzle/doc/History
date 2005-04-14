@@ -1,5 +1,20 @@
 Multidrizzle Revision History
 -----------------------------
+
+Version 2.6.1: 04/14/05 -- WJH
+    This new version of Multidrizzle is actually a PyDrizzle update.  The Pydrizzle update
+    addresses the following issues:
+
+    - Pydrizzle creates invlaude simple FITS output files (PR #53342).
+
+    - Multidrizzle problem processing WFPC2 data (PR #53113).
+
+    - Makewcs raises exception about not finding OCD1_1 (PR #53418).
+
+    - Pydrizzle does not support output products with units of counts (PR #53421).
+
+    - Alignment problem with PyDrizzle and no distorion coeffs (PR #53422).
+
 Version 2.6.0: 04/05/05 -- CJH
     A bug in which the driz_cr step would created invalid simple FITS format files for
     the *_cor.fits and *_crmask.fits products has been corrected.  This fix addresses
