@@ -1,10 +1,12 @@
 Multidrizzle Revision History
 -----------------------------
 Version 2.6.2: 04/19/05 -- WJH
-    (OPR 53467)
+    - (OPR 53467)
     The output from MultiDrizzle now reports the versions of MultiDrizzle,
     PyDrizzle, numarray and PyFITS in history cards in the output file's
     primary header.
+    
+    - This version corresponds to a new version of PyDrizzle, Version 5.5.1.
 
 Version 2.6.1: 04/14/05 -- WJH
     This new version of Multidrizzle is actually a PyDrizzle update.  The Pydrizzle update
