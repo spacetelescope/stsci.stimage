@@ -98,7 +98,7 @@ class OutputImage:
         self.outcontext = _outcontext
 
 
-    def writeFITS(self, template, sciarr, whtarr, ctxarr=None, extlist=EXTLIST, overwrite=yes):
+    def writeFITS(self, template, sciarr, whtarr, ctxarr=None, versions=None, extlist=EXTLIST, overwrite=yes):
         """ Generate PyFITS objects for each output extension
             using the file given by 'template' for populating
             headers.
@@ -200,7 +200,8 @@ class OutputImage:
 
         prihdu.header.update('NDRIZIM',len(self.parlist),
             comment='Drizzle, No. images drizzled onto output')
-        self.addDrizKeywords(prihdu.header)
+        print 'Adding version HISTORY keywords to primary header...'
+        self.addDrizKeywords(prihdu.header,versions)
 
         if scihdr:
             del scihdr['OBJECT']
@@ -347,7 +348,7 @@ class OutputImage:
             ctxarr.togglebyteorder()
             ctxarr.byteswap()
 
-    def addDrizKeywords(self,hdr):
+    def addDrizKeywords(self,hdr,versions):
         """ Add drizzle parameter keywords to header. """
 
         # Extract some global information for the keywords
@@ -466,6 +467,14 @@ class OutputImage:
 
             hdr.update(_keyprefix+'OUYC',float(pl['outny']/2)+OFF,
                 comment= 'Drizzle, reference center of output image (Y)')
+
+        # Add version information as HISTORY cards to the header
+        if versions != None:
+            ver_str = "PyDrizzle processing performed using: "
+            hdr.add_history(ver_str)
+            for k in versions.keys():
+                ver_str = '    '+str(k)+' Version '+str(versions[k])
+                hdr.add_history(ver_str)
 
 
 

@@ -1,4 +1,18 @@
 ### PyDrizzle Revision Changes
+Version 5.5.1 (25-April-2005) WJH
+      - (OPR 53461)
+        Resetting the output frame using the SkyField object now works when
+        'crpix' is specified, and when object is initialized with shape and no
+        set method gets run.
+      - The 'repr' method of SkyField was updated to also print out crpix values.
+      - History cards will be added to PRIMARY header reporting the versions
+        of PyDrizzle, numarray and PyFITS that were used.
+      - An additional check was added to 'readShiftFile' to immediately recognize
+        when a specified reference WCS can not be found, raising an Exception when
+        it can not be located.
+      - The error message reporting that an IDCTAB row matching the image could not
+        be found was enhanced to be more specific. 
+
 Version 5.5.0 (13-April-2005) WJH
       (13-April-2005) (OPR 53422- fixed for WFPC2)
       - Moved the computation of each chip's full-frame reference position
@@ -9,6 +23,9 @@ Version 5.5.0 (13-April-2005) WJH
         registration of images and application of the distortion model.
          
       (11-April-2005) 
+        (OPR 53447)
+      - Secondary geometric parameters were added to the callable interfaces
+        for 'drizzle' and 'blot'.
       - (OPR 53342)
         The output FITS products from PyDrizzle no longer have extension 
         keywords in the primary headers when 'build=no'.
@@ -48,8 +65,6 @@ Version 5.5.0 (13-April-2005) WJH
         from the final product. 
       - The description of the 'bits' parameter was updated to explain both
         bits_single and bits_final.
-      - Secondary geometric parameters were added to the callable interfaces
-        for 'drizzle' and 'blot'.
 
 Version 5.4.6 (22-Feb-2005) WJH
       - Forced 'buildMask' to raise an exception when no DQ array is present

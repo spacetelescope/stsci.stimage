@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.5.0 (13-April-2005)"
+__version__ = "5.5.1 (25-April-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -791,6 +791,10 @@ class Pattern:
 
             # Extract the total exposure time
             _texptime = self.product.exptime
+
+        # Insure that reference WCS is properly centered in order to
+        # correctly fit to each input WCS
+        ref_wcs.recenter()
 
         for member in self.members:
             in_wcs = member.geometry.wcslin
@@ -1954,7 +1958,7 @@ class SkyField:
         self.orient = None
         self.psize = psize
 
-        self.crpix = (None,None)
+        self.crpix = None
 
         # Set up proper shape tuple for WCSObject
         if shape != None and psize != None:
@@ -1967,11 +1971,12 @@ class SkyField:
         # Specify 'new=yes' with given rootname to unambiguously create
         #   a new WCS from scratch.
         if wcs == None:
-            self.wcs = wcsutil.WCSObject("New",shape=wshape,new=yes)
+            self.wcs = wcsutil.WCSObject("New",new=yes)
         else:
             self.wcs = wcs.copy()
             self.wcs.recenter()
-            self.set(shape=wshape)
+
+        self.wcs.updateWCS(size=shape,pixel_scale=psize)
 
         # Set this to keep track of total exposure time for
         # output frame... Not user settable.
@@ -2108,11 +2113,12 @@ class SkyField:
             block =  self.wcs.__str__()
         else:
             block = 'User parameters for SkyField object: \n'
-            block = block + '    psize = '+repr(self.psize)+' \n'
-            block = block + '   orient = '+repr(self.orient)+' \n'
-            block = block + '    shape = '+repr(self.shape)+' \n'
             block = block + '       ra = '+repr(self.ra)+' \n'
             block = block + '      dec = '+repr(self.dec)+' \n'
+            block = block + '    shape = '+repr(self.shape)+' \n'
+            block = block + '    crpix = '+repr(self.crpix)+' \n'
+            block = block + '    psize = '+repr(self.psize)+' \n'
+            block = block + '   orient = '+repr(self.orient)+' \n'
             block = block + '   No WCS.\n'
 
         return block
@@ -2356,6 +2362,11 @@ More help on SkyField objects and their parameters can be obtained using:
         if single == no and build == yes and fileutil.findFile(self.output):
             print 'Removing previous output product...'
             os.remove(self.output)
+        #
+        # Setup the versions info dictionary for output to PRIMARY header
+        # The keys will be used as the name reported in the header, as-is
+        #
+        _versions = {'PyDrizzle':__version__,'PyFITS':pyfits.__version__,'Numarray':N.__version__}
 
         # Set parameters for each input and run drizzle on it here.
 
@@ -2445,7 +2456,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 _outimg = outputimage.OutputImage(_hdrlist, build=no, wcs=_wcs, blot=yes)
                 _outimg.outweight = None
                 _outimg.outcontext = None
-                _outimg.writeFITS(plist['data'],_outsci,None)
+                _outimg.writeFITS(plist['data'],_outsci,None,versions=_versions)
 
                 #_buildOutputFits(_outsci,None,plist['outblot'])
                 _insci *= 0.
@@ -2456,7 +2467,7 @@ More help on SkyField objects and their parameters can be obtained using:
 
                 del _pxg,_pyg
 
-            del _insci,_outsci
+            del _insci,_outsci,_outimg
 
         else:
             #
@@ -2685,7 +2696,7 @@ More help on SkyField objects and their parameters can be obtained using:
                     # Write output arrays to FITS file(s) and reset chip counter
                     #
                     _outimg = outputimage.OutputImage(_hdrlist, build=build, wcs=_wcs, single=single)
-                    _outimg.writeFITS(plist['data'],_outsci,_outwht,ctxarr=_outctx)
+                    _outimg.writeFITS(plist['data'],_outsci,_outwht,ctxarr=_outctx,versions=_versions)
                     del _outimg
                     #
                     # Reset chip counter for next output image...

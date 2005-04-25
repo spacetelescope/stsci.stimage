@@ -12,10 +12,15 @@ General functions included are:
 
     buildRootname(filename, extn=None, extlist=None)
     buildNewRootname(filename, ext=None)
+    parseFilename(filename)
+        Splits a input name into a tuple containing (filename, group/extension)
     getKeyword(filename, keyword, default=None, handle=None)
     getHeader(filename,handle=None)
          Return a copy of the PRIMARY header, along with any group/extension
          header, for this filename specification.
+    getExtn(fimg,extn=None)
+        Returns a copy of the specified extension with data from PyFITS object
+        'fimg' for desired file.
     updateKeyword(filename, key, value)
     openImage(filename,mode='readonly',memmap=0,fitsname=None)
          Opens file and returns PyFITS object.
@@ -52,7 +57,7 @@ EXTLIST =  ['_crj.fits','_flt.fits','_sfl.fits','_cal.fits','_raw.fits','.c0h','
 
 BLANK_ASNDICT = {'output':None,'order':[],'members':{'abshift':no,'dshift':no}}
 
-__version__ = '1.0.2 (7-Feb-2005)'
+__version__ = '1.0.3 (19-April-2005)'
 
 def help():
     print __doc__
@@ -940,8 +945,10 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
                     row = i
                     break
     if row < 0:
-        print 'Row corresponding to DETCHIP of ',detchip,' was not found!'
-        raise LookupError
+        err_str = '\nProblem finding row in IDCTAB! Could not find row matching:\n'
+        err_str += '        CHIP: '+str(detchip)+'\n'
+        err_str += '     FILTERS: '+filter1+','+filter2+'\n'
+        raise LookupError,err_str
     else:
         print '- IDCTAB: Distortion model from row',str(row+1),'for chip',detchip,':',filter1.strip(),'and',filter2.strip()
 
@@ -1235,7 +1242,13 @@ def readShiftFile(filename):
                     # Search for incidence of 'reference'
                     # add 9 to put indx at end of string
                     _indx = line.find('reference') + 9
-                sdict['refimage'] = line[_indx+1:].strip()
+                refname = line[_indx+1:].strip()
+                if findFile(refname):
+                    sdict['refimage'] = refname
+                else:
+                    referr = 'Shiftfile reference image "'+refname+'" not found!'
+                    raise ValueError, referr
+
             elif line.find('form') > -1:
                 _indx = line.find(':')
                 if _indx < 0:
