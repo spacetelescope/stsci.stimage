@@ -1203,6 +1203,36 @@ class ImageManager:
         fhdu.close()
         del fhdu
         
+    def updateMdrizVerHistory(self,build,versions):
+        """ Update the output SCI image with HISTORY cards
+            that document what version of MultiDrizzle was used.
+        """
+        _plist = self.assoc.parlist[0]
+        if build == True: _output = _plist['output']
+        else: _output = _plist['outdata']
+        
+        fhdu = pyfits.open(_output,mode='update')
+        prihdr = fhdu[0].header
+        
+        ver_str = "MultiDrizzle product generated using: "
+        prihdr.add_history(ver_str)
+        
+        for key in versions:
+            if versions[key].find('\n') < 0:
+                prihdr.add_history(key+versions[key])
+            else:
+                # This will accomodate multi-line comments
+                _ver_str = versions[key].split('\n')
+                prihdr.add_history(key)
+                for val in _ver_str:
+                    if val.strip() != '':
+                        prihdr.add_history(val)
+                     
+        #ver_str = '    MultiDrizzle Version '+str(version)
+        #prihdr.add_history(ver_str)
+            
+        fhdu.close()
+        del fhdu
 
     def _getMdrizskyValues(self):
         """ Builds a list of MDRIZSKY values used for each unique

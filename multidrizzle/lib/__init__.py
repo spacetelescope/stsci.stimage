@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.6.1 (14 April 2005)'
+__version__ = '2.6.2 (19 April 2005)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -71,33 +71,48 @@ def help():
 def versioninfo():
     """ Print version information for packages used by Multidrizzle """
 
+    # Initialize version dictionary
+    version_dict = {}
+    
     # Set up version ID's for printing to the log file
-    _mdrizzle_version  = " MultiDrizzle "+__version__
-    _numarray_version  = " Numarray Version  "+numarray.__version__
-    _pydrizzle_version = " PyDrizzle Version "+pydrizzle.__version__
-    _pyfits_version    = " PyFITS Version    "+pyfits.__version__
+    mdrizzle_key = " MultiDrizzle "
+    numarray_key = " Numarray Version  "
+    pydrizzle_key = " PyDrizzle Version "
+    pyfits_key =  " PyFITS Version    "
+    python_key = " Python Version: "
+    pyraf_key = " PyRAF "
+    
+    version_dict[mdrizzle_key] = __version__
+    version_dict[numarray_key]= numarray.__version__
+    version_dict[pydrizzle_key]= pydrizzle.__version__
+    version_dict[pyfits_key] = pyfits.__version__
 
     _sys_version_list = sys.version.split("\n")
     _sys_version = " # "
     for _sys_str in _sys_version_list:
         _sys_version += _sys_str+"\n # "
-    _python_version   = " Python Version: \n" +_sys_version
-
+    version_dict[python_key] = '\n'+_sys_version
+   
     # Print out version information for libraries used by MultiDrizzle
     print "\n"
-    print " Version Information for"+_mdrizzle_version
+    print " Version Information for MultiDrizzle "+version_dict[mdrizzle_key]
     print "-------------------------------------------- "
     try:
         import pyraf
-        _pyraf_version     = " PyRAF Version     "+pyraf.__version__
-        print _pyraf_version
+        version_dict[pyraf_key] = "Version     "+ pyraf.__version__
+
     except:
-        print "PyRAF cannot be found!"
-    print _numarray_version
-    print _pyfits_version
-    print _pydrizzle_version
-    print _python_version
+        version_dict[pyraf_key] = " cannot be found!"
+    
+    print pyraf_key+version_dict[pyraf_key]
+        
+    print numarray_key + version_dict[numarray_key]
+    print pyfits_key + version_dict[pyfits_key]
+    print pydrizzle_key + version_dict[pydrizzle_key]
+    print python_key + version_dict[python_key]
     print "\n"
+    
+    return version_dict
 
 def _splitNsigma(s):
 
@@ -180,7 +195,7 @@ help file.
         print 'Running MultiDrizzle ',__version__
 
         # Print version information for all external python modules used
-        versioninfo()        
+        self.versions = versioninfo()        
 
         # We need to parse the input to get the list of filenames
         # that are to be processed by Multidrizzle.
@@ -1469,6 +1484,7 @@ help file.
 
             if self.steps.doStep(ProcSteps.doFinalDriz):
                 self.image_manager.doFinalDriz(self.driz_final_pars, self.runfile)
+                self.image_manager.updateMdrizVerHistory(self.driz_final_pars['build'],self.versions)
                 self.steps.markStepDone(ProcSteps.doFinalDriz)
 
         finally:
