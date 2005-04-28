@@ -200,7 +200,7 @@ class OutputImage:
 
         prihdu.header.update('NDRIZIM',len(self.parlist),
             comment='Drizzle, No. images drizzled onto output')
-        print 'Adding version HISTORY keywords to primary header...'
+
         self.addDrizKeywords(prihdu.header,versions)
 
         if scihdr:
