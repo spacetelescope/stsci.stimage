@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.6.2 (19 April 2005)'
+__version__ = '2.6.3 (5 May 2005)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -1158,6 +1158,41 @@ help file.
 
             # Update assocation table with shiftfile information if available.
             self._checkAndUpdateAsn(driz_asn_file, self.shiftfile)
+
+            # If data has been thrown out due to input files having EXPTIMEs of 0,
+            # we will need to create a new assocation table with the excluded
+            # files removed.
+            if (len(self.excludedFileList) > 0):
+                # Create the name of the new assocation table
+                newAsnTable = self.input[:self.input.find('.fits')]+"_exptime0_asn.fits"
+                
+                # Open the current input association table
+                table = pyfits.open(self.input)
+                
+                # Get the number of rows for the current table
+                numrows = len(table[1].data)
+                
+                # Create a new pyfits table object
+                newtable=pyfits.new_table(table[1].columns, nrows=numrows-len(self.excludedFileList))
+
+                # Create a new excludes list
+                newExcludeList = []
+                for item in self.excludedFileList:
+                    newExcludeList.append(item[:item.find('_')])
+                    
+                # Iterate over the exising table excluding the entries for files in the newExcludeList
+                j=0
+                for i in range(numrows):
+                    if table[1].data.field(0)[i] not in newExcludeList:
+                        newtable.data[j]=table[1].data[i]
+                        j=j+1
+                        
+                # Write out the new assocation table to disk
+                newtable.writeto(newAsnTable)
+                
+                # Designate the new assocation table to be passed to PyDrizzle
+                driz_asn_file = newAsnTable
+
 
         # Case 3: Only one file given as input. len(self.files) == 1.
         elif (len(self.files) == 1):
