@@ -1548,9 +1548,10 @@ help file.
                 # Now have image_manager remove all image products
                 self.image_manager.removeMDrizProducts()
                 
-            # Remove the self.zeroExptimeAsnTable file if it exisits
-            if os.path.exists(self.zeroExptimeAsnTable):
-                os.remove(self.zeroExptimeAsnTable)
+            # Remove the self.zeroExptimeAsnTable file if it exists
+            if self.zeroExptimeAsnTable != None:
+                if os.path.exists(self.zeroExptimeAsnTable):
+                    os.remove(self.zeroExptimeAsnTable)
 
         if self.pars.switches['timing']:
             self.steps.reportTimes()
