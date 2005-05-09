@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.6.3 (5 May 2005)'
+__version__ = '2.6.4 (9 May 2005)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -235,6 +235,11 @@ help file.
         self.numASNfiles,self.parseSTISflag,self.parseWFPC2flag, \
         self.translatedNames, self.translatedNameOrder, self.excludedFileList \
             = self._parseInput(input,output)
+
+        # Initialize attribute for zero exposure time asn table.  Will only
+        # be created if the input association file containings members whose
+        # EXPTIME value is zero
+        self.zeroExptimeAsnTable = None
             
         # We need to make certain that we have not thrown out all of the data
         # because of the zero exposure time problem.
@@ -1165,6 +1170,11 @@ help file.
             if (len(self.excludedFileList) > 0):
                 # Create the name of the new assocation table
                 newAsnTable = self.input[:self.input.find('.fits')]+"_exptime0_asn.fits"
+                self.zeroExptimeAsnTable = newAsnTable
+
+                # Remove the self.zeroExptimeAsnTable file if it exisits
+                if os.path.exists(self.zeroExptimeAsnTable):
+                    os.remove(self.zeroExptimeAsnTable)
                 
                 # Open the current input association table
                 table = pyfits.open(self.input)
@@ -1178,7 +1188,7 @@ help file.
                 # Create a new excludes list
                 newExcludeList = []
                 for item in self.excludedFileList:
-                    newExcludeList.append(item[:item.find('_')])
+                    newExcludeList.append(item[:item.rfind('_')])
                     
                 # Iterate over the exising table excluding the entries for files in the newExcludeList
                 j=0
@@ -1537,6 +1547,10 @@ help file.
 
                 # Now have image_manager remove all image products
                 self.image_manager.removeMDrizProducts()
+                
+            # Remove the self.zeroExptimeAsnTable file if it exisits
+            if os.path.exists(self.zeroExptimeAsnTable):
+                os.remove(self.zeroExptimeAsnTable)
 
         if self.pars.switches['timing']:
             self.steps.reportTimes()
