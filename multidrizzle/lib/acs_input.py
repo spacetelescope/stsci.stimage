@@ -50,7 +50,7 @@ class ACSInputImage (InputImage):
         self.platescale = platescale
         
         # Effective gain to be used in the driz_cr step.  Since the
-        # ACS images have already benn converted to electons
+        # ACS images have already been converted to electrons,
         # the effective gain is 1.
         self._effGain = 1
 
@@ -102,6 +102,10 @@ class WFCInputImage (ACSInputImage):
         self.full_shape = (4096,2048)
         self.platescale = platescale
 
+        if ( self.extn == 'sci,1') : # get cte direction, which depends on which chip but is independent of amp 
+            self.cte_dir = -1    
+        if ( self.extn == 'sci,2') : 
+            self.cte_dir = 1   
 
 class HRCInputImage (ACSInputImage):
 
@@ -111,6 +115,10 @@ class HRCInputImage (ACSInputImage):
         self.full_shape = (1024,1024)
         self.platescale = platescale
 
+        if ( self.amp == 'A' or self.amp == 'B' ) : # cte direction depends on amp (but is independent of chip)
+             self.cte_dir = 1   
+        if ( self.amp == 'C' or self.amp == 'D' ) :
+             self.cte_dir = -1   
 
 class SBCInputImage (ACSInputImage):
 
@@ -119,6 +127,10 @@ class SBCInputImage (ACSInputImage):
         self.full_shape = (1024,1024)
         self.platescale = platescale
         self.instrument = 'ACS/SBC'
+
+        # no cte correction for SBC so set cte_dir=0.
+        print('\nWARNING: No cte correction will be made for this SBC data.\n')
+        self.cte_dir = 0       
 
     def setInstrumentParameters(self, instrpars, pri_header):
         """ Sets the instrument parameters.

@@ -18,7 +18,7 @@
 #               parameter the readnoise, instead of the gain.  -- CJH
 #           Version 0.1.29 05/27/04 -- Modified setInstrumentParameters inheritence in
 #               order to support ACS/SBC data.  - CJH/WJH/IB
-#           Version 0.1.30 06/07/04 -- Turned memory maping back on by default.  -- CJH
+#           Version 0.1.30 06/07/04 -- Turned memory mapping back on by default.  -- CJH
 #           Version 0.1.31 06/29/04 -- Modified import of imagestats. -- CJH
 #           Version 0.1.32 06/29/04 -- Modified imports to remove dependence on pytools package -- CJH
 #           Version 0.1.33 07/08/04 -- pdated Dictionary key names -- CJH
@@ -39,7 +39,7 @@
 #               specific-- CJH
 #           Version 0.1.39 09/30/04 -- Modified the doDrizCR method to pass the input file's primary + extension
 #               header to the cor and cr mask file creation methods for inclusion in the resulting fits file.
-#           Version 1.0.0 11/03/04 -- Removed the modificiation to getExptime that was added in version 0.1.38.
+#           Version 1.0.0 11/03/04 -- Removed the modification to getExptime that was added in version 0.1.38.
 #               This fix to this problem will now be addressed points in multidrizzle where scaling occurs.  This
 #               allows for a more accurate treatment of image weighting by pydrizzle.
 
@@ -90,6 +90,12 @@ class InputImage:
         self._effGain = None
         self.static_badval = 64
         self.static_mask = None
+        self.cte_dir = 1 
+
+        try:  # read amplifier to be used for HRC or STIS/CCD.
+           self.amp = fileutil.getKeyword(input,'CCDAMP')
+        except:  # set default if keyword missing    
+           self.amp = 'C'  # STIS default should be 'D' but 'C' and 'D' have the same readout direction so it's okay
         
         # Define the platescale and reference plate scale for the detector.
         self.platescale = platescale
@@ -345,6 +351,10 @@ class InputImage:
                             _deriv_array,
                             mask_array,
                             gain = self.getEffGain(),
+                            grow = drizcrpars['driz_cr_grow'],                                             
+                            ctegrow = drizcrpars['driz_cr_ctegrow'],
+                            ctedir = self.cte_dir, 
+                            amp = self.amp,
                             rn = self.getReadNoise(),
                             SNR = drizcrpars['driz_cr_snr'],
                             backg = self.getSubtractedSky(),
@@ -369,7 +379,7 @@ class InputImage:
                 __tmpDriz_cr.createcorrfile(corr_file,self.header)
             if (cr_file != None):
                 __tmpDriz_cr.createcrmaskfile(cr_file,self.header)
-
+ 
             del __tmpDriz_cr
 
         finally:
