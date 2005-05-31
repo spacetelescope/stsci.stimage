@@ -10,7 +10,7 @@ def run(fname):
     """ Runs quickDeriv on a Python list of input files."""
     print "Running quickDeriv on ", fname
 
-    # OPEN THE INPUT IMAGE IN READ ONLY MODE USING MERMORY MAPPING
+    # OPEN THE INPUT IMAGE IN READ ONLY MODE USING MEMORY MAPPING
     img = pyfits.open(fname,mode='readonly', memmap=1)
 
     # calling qderiv with the assumption that the 
@@ -55,7 +55,7 @@ def test(inputFile):
 
         print "WORKING ON FILE ", line
 
-        # OPEN THE INPUT IMAGE IN READ ONLY MODE USING MERMORY MAPPING
+        # OPEN THE INPUT IMAGE IN READ ONLY MODE USING MEMORY MAPPING
         img = pyfits.open(line,mode='readonly', memmap=1)
 
         absderiv = quickDeriv.qderiv(img["SCI"].data)
