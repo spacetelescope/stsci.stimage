@@ -124,6 +124,11 @@ class CCDInputImage(STISInputImage):
         self.instrument = 'STIS/CCD'
         self.full_shape = (1024,1024)
         self.platescale = platescale
+  
+        if ( self.amp == 'D' or self.amp == 'C' ) : # cte direction depends on amp 
+             self.cte_dir =  1 
+        if ( self.amp == 'A' or self.amp == 'B' ) :
+            self.cte_dir =  -1  
 
 class NUVInputImage(STISInputImage):
     def __init__(self, input, dqname, platescale, memmap=1):
@@ -131,6 +136,10 @@ class NUVInputImage(STISInputImage):
         self.instrument = 'STIS/NUV-MAMA'
         self.full_shape = (1024,1024)
         self.platescale = platescale
+
+        # no cte correction for STIS/NUV-MAMA so set cte_dir=0.
+        print('\nWARNING: No cte correction will be made for this STIS/NUV-MAMA data.\n')
+        self.cte_dir = 0  
 
     def setInstrumentParameters(self, instrpars, pri_header):
         """ This method overrides the superclass to set default values into
@@ -200,6 +209,10 @@ class FUVInputImage(STISInputImage):
         self.instrument = 'STIS/FUV-MAMA'
         self.full_shape = (1024,1024)
         self.platescale = platescale
+
+        # no cte correction for STIS/FUV-MAMA so set cte_dir=0.
+        print('\nWARNING: No cte correction will be made for this STIS/FUV-MAMA data.\n')
+        self.cte_dir = 0  
 
     def setInstrumentParameters(self, instrpars, pri_header):
         """ This method overrides the superclass to set default values into

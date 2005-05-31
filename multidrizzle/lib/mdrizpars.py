@@ -168,6 +168,8 @@ class MDrizPars (HasTraits):
             'driz_cr_corr':Trait(False, true_boolean, editor=bit_editor),
             'driz_cr_snr': Trait('3.5 3.0',TraitString()), 
             'driz_cr_scale':Trait('1.2 0.7',TraitString()),
+            'driz_cr_grow':Trait(1,TraitRange(1,10)),  
+            'driz_cr_ctegrow':Trait(0,TraitRange(0,30)),
             'driz_final_wht_type':Trait('EXP',enum_wht, editor=text_editor),
             'driz_final_outnx':Trait('',AnyValue), 
             'driz_final_outny':Trait('',AnyValue),
@@ -229,7 +231,7 @@ class MDrizPars (HasTraits):
                 'blot_interp', 'blot_sinscl',
                 label='Blot'),
             TraitGroup('driz_cr',
-                'driz_cr_corr','driz_cr_snr', 'driz_cr_scale',
+                'driz_cr_corr','driz_cr_snr', 'driz_cr_scale', 'driz_cr_grow', 'driz_cr_ctegrow', 
                 label='Driz CR'),
             TraitGroup('driz_combine','driz_final_wht_type',
                 'driz_final_outnx', 'driz_final_outny',
@@ -265,7 +267,7 @@ class MDrizPars (HasTraits):
             'combine_hthresh', 'combine_grow',
             'blot_interp', 'blot_sinscl',
             'driz_cr_corr','driz_cr_snr', 'driz_cr_scale','driz_final_wht_type',
-            'driz_final_outnx', 'driz_final_outny',
+            'driz_final_outnx', 'driz_final_outny', 'driz_cr_grow', 'driz_cr_ctegrow',
             'driz_final_kernel', 'driz_final_wt_scl', 'driz_final_pixfrac',
             'driz_final_scale', 'driz_final_rot',
             'driz_final_fillval', 'driz_final_bits',
@@ -493,7 +495,7 @@ class MDrizPars (HasTraits):
             _name = rec.array.names[indx]
             _format = rec.array.formats[indx]
             _value = rec.field(_name)
-            
+             
             # Translate names from MDRIZTAB columns names to 
             # input parameter names found in IRAF par file.
             #

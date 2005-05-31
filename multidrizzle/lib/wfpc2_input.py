@@ -38,7 +38,9 @@ class WFPC2InputImage (InputImage):
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
         
-        self.platescale = platescale
+        self.platescale = platescale 
+
+        self.cte_dir = -1    # independent of amp, chip   
         
         # Effective gain to be used in the driz_cr step.  Since the
         # images are arlready to have been convered to electrons
