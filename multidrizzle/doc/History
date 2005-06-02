@@ -1,5 +1,10 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.6.4: 05/06/05 -- CJH
+    Modified the fix to the EXPTIME zero problem in Multidrizzle 2.6.3 to
+    remove delete the temporary assocation table that was created when
+    processing has completed.
+
 Version 2.6.3: 05/05/05 -- CJH
     Modified _setupAssocation to handle the case where memebers of an ACS 
     assocation file need to be removed from the assocation table passed to 
