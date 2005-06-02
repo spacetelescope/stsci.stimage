@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.6.4 (9 May 2005)'
+__version__ = '2.6.5 (31 May 2005)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -181,7 +181,8 @@ help file.
                     'combine_nlow', 'combine_nhigh','combine_lthresh',
                     'combine_hthresh','combine_grow','nsigma1','nsigma2' ]
 
-    drizcr_keys = ['driz_cr_snr','driz_cr_scale', 'driz_cr_corr']
+    drizcr_keys = ['driz_cr_snr','driz_cr_scale', 'driz_cr_corr',
+                   'driz_cr_grow','driz_cr_ctegrow']    
     
     blot_keys = ['blot_interp','blot_sinscl']
     
@@ -1390,7 +1391,7 @@ help file.
             warningmsg =  "\n#########################################\n"
             warningmsg += "#                                       #\n"
             warningmsg += "# WARNING:                              #\n"
-            warningmsg += "#  The exisiting assocation table,      #\n"
+            warningmsg += "#  The existing assocation table,      #\n"
             warningmsg += "           " + str(name) + '\n'
             warningmsg += "#  is being replaced by Multidrizzle.   #\n"
             warningmsg += "#                                       #\n"

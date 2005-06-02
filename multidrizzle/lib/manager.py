@@ -1,5 +1,5 @@
 #
-#   Authors: Warren Hack, Ivo Busko, Christopher Hanley
+#   Authors: Warren Hack, Ivo Busko, Christopher Hanley, David Grumm
 #   Program: manager.py
 #   Purpose: Class Used to drive all algorithmic operations within Multidrizzle.
 #   History:
@@ -994,10 +994,13 @@ class ImageManager:
         
         # Print out the parameters provided by the interface
         print "USER PARAMETERS:"
-        print "driz_cr       =  True"
-        print "driz_cr_corr  = ",drizcrpars['driz_cr_corr']
-        print "driz_cr_snr   = ",drizcrpars['driz_cr_snr']
-        print "driz_cr_scale = ",drizcrpars['driz_cr_scale']
+        print "driz_cr         =  True"
+        print "driz_cr_corr    = ",drizcrpars['driz_cr_corr']
+        print "driz_cr_snr     = ",drizcrpars['driz_cr_snr']
+        print "driz_cr_scale   = ",drizcrpars['driz_cr_scale']
+        print "driz_cr_grow    = ",drizcrpars['driz_cr_grow']      
+        print "driz_cr_ctegrow = ",drizcrpars['driz_cr_ctegrow']   
+
         print "\n"
         
         try:
