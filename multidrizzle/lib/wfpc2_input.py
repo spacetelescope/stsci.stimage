@@ -21,8 +21,9 @@
 #               user to turn off the DQ array update during the Driz_CR step. -- CJH
 #           Version 0.5.0 11/03/04 -- Removed overloaded methods that were identical
 #               to the methods specified in input_image.py.  -- CJH
+#           Version 1.0.0 06/02/05 -- Sets direction of CTE tail for cosmic rays -- DMG
 
-__version__ = '0.5.0'
+__version__ = '1.0.0'
 
 import pydrizzle
 from pydrizzle import fileutil

@@ -13,8 +13,14 @@
 #           Version 0.2.2 09/15/04 -- Modified the setInstrumentParameters to treat
 #               a user cr bit input value of zero as a None.  This allows the
 #               user to turn off the DQ array update during the Driz_CR step. -- CJH
-#           Version 0.2.3 09/21/04 -- 
-__version__ = '0.2.3'
+#           Version 0.2.3 09/21/04 --
+#           Version 1.0.0 06/02/05 -- Calculates amp-dependent direction of CTE tails
+#               for cosmic rays for STIS/CCD 
+
+
+
+
+__version__ = '1.0.0'
 
 import pydrizzle
 from pydrizzle import fileutil

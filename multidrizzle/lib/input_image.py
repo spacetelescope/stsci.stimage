@@ -42,8 +42,10 @@
 #           Version 1.0.0 11/03/04 -- Removed the modification to getExptime that was added in version 0.1.38.
 #               This fix to this problem will now be addressed points in multidrizzle where scaling occurs.  This
 #               allows for a more accurate treatment of image weighting by pydrizzle.
+#           Version 1.1.0 06/02/05 -- Added parameters driz_cr_grow and driz_cr_ctegrow for CTE masking of cosmic
+#               rays. -- DMG
 
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 
 import pyfits
 
@@ -379,7 +381,7 @@ class InputImage:
                 __tmpDriz_cr.createcorrfile(corr_file,self.header)
             if (cr_file != None):
                 __tmpDriz_cr.createcrmaskfile(cr_file,self.header)
- 
+
             del __tmpDriz_cr
 
         finally:

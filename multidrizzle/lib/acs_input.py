@@ -1,5 +1,5 @@
 #
-#   Authors: Warren Hack, Ivo Busko, Christopher Hanley
+#   Authors: Warren Hack, Ivo Busko, Christopher Hanley, David Grumm
 #   Program: acs_input.py
 #   Purpose: Class used to model ACS specific instrument data.
 #   History:
@@ -28,9 +28,10 @@
 #               gain and readnoise values by user input.  Also modified handling
 #               of an input CR bit value of 0 to be converted to a None type.  This
 #               allows the DQ array update step to be turned off in DRIZ_CR.
- 
+#           Version 1.0.0 06/02/05 -- Calculates direction of CTE tail for cosmic rays
+#               for each ACS instrument, which may depend on chip and/or amp  
 
-__version__ = '0.1.15'
+__version__ = '1.0.0'
 
 import pydrizzle
 from pydrizzle import fileutil

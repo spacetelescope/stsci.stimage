@@ -64,6 +64,10 @@
 #                                       that it is executed regardless of any of the other preMedian steps
 #                                       being executed.  This is to allow for a Multidrizzle restart capability at the
 #                                       Blot step. -- CJH
+#           Version 1.6.0,  06/02/05 -- Added parameters driz_cr_grow and driz_cr_ctegrow for CTE masking of cosmic
+#                                       rays. -- DMG
+
+
 # Import Numarray functionality
 import numarray.image.combine as combine
 import numarray as N
@@ -94,7 +98,7 @@ from static_mask import StaticMask
 import nimageiter
 from nimageiter import ImageIter,computeBuffRows
 
-__version__ = '1.3.0'
+__version__ = '1.6.0'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 

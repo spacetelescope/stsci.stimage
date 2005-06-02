@@ -1,5 +1,5 @@
 #
-#   Authors: Christopher Hanley
+#   Authors: Christopher Hanley, David Grumm
 #   Program: nicmos_input.py
 #   Purpose: Class used to model NICMOS specific instrument data.
 #   History:
@@ -13,8 +13,9 @@
 #               value of 0. -- CJH
 #           Version 1.0.0 01/18/05 -- Updated converte2electrons and updateMDRIZSKY to work
 #               with NICMOS data in both units of counts and counts/second           
-
-__version__ = '1.0.0'
+#           Version 1.1.0 06/02/05 -- Calculates direction of CTE tail for cosmic rays
+#               (not needed for NICMOS)
+__version__ = '1.1.0'
 
 import pydrizzle
 from pydrizzle import fileutil

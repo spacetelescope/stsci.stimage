@@ -15,7 +15,7 @@ from pydrizzle.traits102.tktrait_sheet import TraitEditorBoolean, \
 
 from procstep import ProcSteps
 
-def toBoolean(flag):
+def toBoolean(flag): 
     if (flag == 1):
         return True
     return False

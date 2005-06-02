@@ -33,6 +33,8 @@
 #                                   input's primary + extension header
 # 05 Apr 2005 -- Version 0.2.0 -- Modified the cor and cr mask file creation methods to remove extension specific
 #                                   keywords from the header it creates. -- CJH
+# 02 Jun 2005 -- Version 1.0.0 -- Added parameters driz_cr_grow and driz_cr_ctegrow for CTE masking of cosmic 
+#                                   rays. -- DMG
 
 # Import external packages
 import numarray as N
@@ -42,7 +44,7 @@ import os
 from numarray import * 
 
 # Version
-__version__ = '0.2.0'
+__version__ = '1.0.0'
 
 class DrizCR:
     """mask blemishes in dithered data by comparison of an image
