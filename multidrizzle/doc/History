@@ -1,5 +1,10 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.6.5: 06/02/05 -- DMG
+    Added parameters driz_cr_grow and driz_cr_ctegrow to mask cte tails
+    in cosmic rays using an instrument-dependent calculation of the direction
+    of the cte tail.
+    
 Version 2.6.4: 05/06/05 -- CJH
     Modified the fix to the EXPTIME zero problem in Multidrizzle 2.6.3 to
     remove delete the temporary assocation table that was created when
