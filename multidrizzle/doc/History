@@ -1,5 +1,13 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.6.6: 06/20/05 -- WJH
+    (OPR 53859)
+    The manager 'createMedian' method in the ImageManger class (manager.py) 
+    was modified to use a new IterFitsFile class for each input and a new
+    image iterator based on the IterFitsFile class, FileIter.  These new classes
+    manage the file I/O internally for each input, only opening/closing upon
+    each request for data so that only 1 file handle remains open at any one
+    time regardless of the number of inputs.
 Version 2.6.5: 06/02/05 -- DMG
     Added parameters driz_cr_grow and driz_cr_ctegrow to mask cte tails
     in cosmic rays using an instrument-dependent calculation of the direction

@@ -96,7 +96,9 @@ from minmed import minmed
 import static_mask
 from static_mask import StaticMask
 import nimageiter
-from nimageiter import ImageIter,computeBuffRows
+from nimageiter import ImageIter,computeBuffRows,FileIter
+import iterfile
+from iterfile import IterFitsFile
 
 __version__ = '1.6.0'
 
@@ -734,24 +736,22 @@ class ImageManager:
         for p in self.assoc.parlist:
             # Extract the single drizzled image.
             if p['group'] == '1':
-                #_file = fileutil.openImage(p['outsingle'], memmap=1, mode='readonly')
-                _file = fileutil.openImage(p['outsingle'], mode='readonly')
+                _file = IterFitsFile(p['outsingle'])
                 self.single_handles.append(_file)
                 #self.single_list.append(_file[0].data)
 
                 # If it exists, extract the corresponding weight images
                 if (fileutil.findFile(p['outsweight'])):
-                    #_weight_file = fileutil.openImage(p['outsweight'], memmap=1, mode='readonly')
-                    _weight_file = fileutil.openImage(p['outsweight'], mode='readonly')
-                    #print 'Outsweight filename: ',p['outsweight']
+
+                    _weight_file = IterFitsFile(p['outsweight'])
                     self.weight_handles.append(_weight_file)
-                    #self.weight_list.append(_weight_file[0].data)
-                    tmp_mean_value = ImageStats(_weight_file[0].data,lower=1e-8,lsig=None,usig=None,fields="mean",nclip=0)
+                    tmp_mean_value = ImageStats(_weight_file.data,lower=1e-8,lsig=None,usig=None,fields="mean",nclip=0)
+                    
                     _wht_mean.append(tmp_mean_value.mean * 0.7)
                     # Clear the memory used by reading in the whole data array for
                     # computing the mean.  This requires that subsequent access to
                     # the data values happens through the 'section' attribute of the HDU.
-                    del _weight_file[0].data
+                    #del _weight_file.data
 
                 # Extract instrument specific parameters and place in lists
                 
@@ -774,17 +774,17 @@ class ImageManager:
                 __readnoiseList.append(p['image'].getReadNoise())
 
                 print "reference sky value for image ",p['image'].rootname," is ", p['image'].getreferencesky()
-
-
+            #
+            # END Loop over input image list
+            #
+                
         # create an array for the median output image
-        __medianOutputImage = N.zeros(self.single_handles[0][0].data.shape,self.single_handles[0][0].data.type())
+        __medianOutputImage = N.zeros(self.single_handles[0].shape,self.single_handles[0].type())
+
         # create the master list to be used by the image iterator
         __masterList = []
-        #__masterList.append(__medianOutputImage)
-        for _element in self.single_handles:
-            __masterList.append(_element[0])
-        for _element in self.weight_handles:
-            __masterList.append(_element[0])
+        __masterList.extend(self.single_handles)
+        __masterList.extend(self.weight_handles)
 
         print '\n'
 
@@ -798,8 +798,6 @@ class ImageManager:
         # Specify the location of the wht image sections
         __startWht = len(self.single_handles)+__startDrz
         __endWht = __startWht + len(self.weight_handles)
-
-        # We only want to print this out once...
 
         # Fire up the image iterator
         #
@@ -824,16 +822,11 @@ class ImageManager:
             _delta_rows = int((_overlap+1 - _lastrows)/_niter)
             if _delta_rows < 1: _delta_rows = 1
             _bufsize += (_imgarr.shape[1]*_imgarr.itemsize()) * _delta_rows
-        
-        for __imageSectionsList,__prange in ImageIter(__masterList,overlap=_overlap,bufsize=_bufsize):
-            #print 'processing rows in range: ',__prange
+        __masterList[0].close()
+        del _imgarr
 
-            # For section syntax, it returns a numarray object of the
-            # exact values pulled from the file, so we need to explicitly
-            # perform byteswapping to account for FITS convention little-endian
-            # platforms (such as Intel/Linux).
-            #for img in __imageSectionsList:
-            #    img.byteswap()
+        for __imageSectionsList,__prange in FileIter(__masterList,overlap=_overlap,bufsize=_bufsize):
+            #print 'processing rows in range: ',__prange
 
             if __newmasks:
                 """ Build new masks from single drizzled images. """
@@ -916,10 +909,7 @@ class ImageManager:
             self.weight_mask_list = None
 
         # Write out the combined image
-        #self._writeCombinedImage(__masterList[__medianOutputImageSection], self.medianfile)
         self._writeCombinedImage(__medianOutputImage, self.medianfile)
- #       self._writeCombinedImage(__medianOutput,'test_median_file.fits')
- #       self._writeCombinedImage(__minOutput,'test_minimum_file.fits')
 
         #finally:
             # Always close any files opened to produce median image; namely,
