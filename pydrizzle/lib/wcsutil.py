@@ -42,9 +42,17 @@ DEFAULT_PREFIX = 'O'
 # 30-Mar-2005 WJH: 'read_archive' needed to be modified to use existing prefix
 #                   found in header, if one exists, for computing archive pscale.
 #
+# 20-Jun-2005 WJH: Support for constant-value arrays using NPIX/PIXVALUE added to
+#                   class.  The output reference WCS now creates a constant-value
+#                   array for the extension as well in order to be FITS compliant.
+#                   WCS keywords now get written out in a set order to be FITS compliant.
+#                   New method, get_orient, added to always allow access to computed
+#                   orientation regardless of orientat keyword value.
+#
 
 
-__version__ = '0.9.1 (30-Mar-2005)'
+
+__version__ = '0.9.2 (20-June-2005)'
 
 def help():
     print 'wcsutil Version '+str(__version__)+':\n'
@@ -156,6 +164,7 @@ class WCSObject:
             get_archiveke(keyword)     - return archived value for WCS keyword
             set_pscale()               - set pscale attribute for object
             compute_pscale(cd11,cd21)  - compute pscale value
+            get_orient()               - return orient computed from CD matrix
             updateWCS(pixel_scale=None,orient=None,refpos=None,refval=None,size=None)
                                        - reset entire WCS based on given values
             xy2rd(pos)                 - compute RA/Dec position for given (x,y) tuple
@@ -185,6 +194,7 @@ class WCSObject:
         # Initialize wcs dictionaries:
         #   wcsdef - default values for new images
         #   wcstrans - translation table from header keyword to attribute
+        #   wcskeys  - keywords in the order they should appear in the header
         self.wcsdef = {'crpix1':0.0,'crpix2':0.0,'crval1':0.0,'crval2':0.0,'cd11':1.0,
                 'cd12':1.0,'cd21':1.0,'cd22':1.0,'orient':1.0,'naxis1':0,'naxis2':0,'pscale':1.0,
                 'postarg1':0.0,'postarg2':0.0,'pa_obs':0.0,
@@ -193,6 +203,10 @@ class WCSObject:
             'CD1_1':'cd11','CD1_2':'cd12','CD2_1':'cd21','CD2_2':'cd22',
             'ORIENTAT':'orient', 'NAXIS1':'naxis1','NAXIS2':'naxis2',
             'pixel scale':'pscale','CTYPE1':'ctype1','CTYPE2':'ctype2'}
+        self.wcskeys = ['NAXIS1','NAXIS2','CRPIX1','CRPIX2',
+                        'CRVAL1','CRVAL2','CTYPE1','CTYPE2',
+                        'CD1_1','CD1_2','CD2_1','CD2_2',
+                        'ORIENTAT']
         # Now, read in the CRPIX1/2, CRVAL1/2, CD1/2_1/2 keywords.
         # Simplistic, but easy to understand what you are asking for.
 
@@ -248,16 +262,31 @@ class WCSObject:
                 else:
                     self.orient = None
 
+                if _header['naxis'] == 0 and _header.has_key('pixvalue'):
+
+                # Check for existence of NPIX/PIXVALUE keywords
+                # which represent a constant array extension
+                    self.naxis1 = _header['npix1']
+                    self.naxis2 = _header['npix2']
+                    self.pixvalue = _header['pixvalue']
+                else:
+                    self.naxis1 = _header['naxis1']
+                    self.naxis2 = _header['naxis2']
+                    self.pixvalue = None
+
+                self.npix1 = self.naxis1
+                self.npix2 = self.naxis2
+
                 for key in self.wcstrans.keys():
                     _dkey = self.wcstrans[key]
-                    if _dkey != 'pscale' and _dkey != 'orient':
+                    if _dkey not in ['pscale','orient','naxis1','naxis2']:
                         self.__dict__[_dkey] = _header[key]
-                self.new = no
 
+                self.new = no
             except:
                 print 'Could not find WCS keyword: ',_dkey
                 raise IOError,'Image %s does not contain all required WCS keywords!' % self.rootname
-            self
+
             # Now, try to read in POSTARG keyword values, if they exist...
             try:
                 self.postarg1 = _header['postarg1']
@@ -285,8 +314,7 @@ class WCSObject:
 
         # Make sure reported 'orient' is consistent with CD matrix
         # while preserving the original 'ORIENTAT' keyword value
-        if self.orient:
-            self.orientat = self.orient
+        self.orientat = self.orient
 
         self.orient = RADTODEG(N.arctan2(self.cd12,self.cd22))
 
@@ -379,6 +407,10 @@ class WCSObject:
     def compute_pscale(self,cd11,cd21):
         """ Compute the pixel scale based on active WCS values. """
         return N.sqrt(N.power(cd11,2)+N.power(cd21,2)) * 3600.
+
+    def get_orient(self):
+        """ Return the computed orientation based on CD matrix. """
+        return RADTODEG(N.arctan2(self.cd12,self.cd22))
 
     def updateWCS(self, pixel_scale=None, orient=None,refpos=None,refval=None,size=None):
         """
@@ -543,7 +575,7 @@ class WCSObject:
         # Find out whether this needs to be rotated to align with
         # reference frame.
 
-        _delta = self.orient - orient
+        _delta = self.get_orient() - orient
         if _delta == 0.:
             return
 
@@ -874,8 +906,6 @@ class WCSObject:
                 if newkey != 'opscale':
                     _orig_key = self.revert[newkey]
                     _extn.header[_orig_key] = _extn.header[newkey]
-            fimg.close()
-            del fimg
         elif _prepend:
             for key in self.wcstrans.keys():
                 # Get new keyword name based on old keyname
@@ -887,36 +917,60 @@ class WCSObject:
                         _extn.header[key] = _extn.header[_okey]
                     else:
                         print 'No original WCS values found. Exiting...'
-                        fimg.close()
-                        del fimg
                         break
         else:
             print 'No original WCS values found. Exiting...'
-            fimg.close()
-            del fimg
+
+        fimg.close()
+        del fimg
 
     def createReferenceWCS(self,refname,overwrite=yes):
         """ Write out the values of the WCS keywords to the NEW
             specified image 'fitsname'.
 
         """
+        hdu = self.createWcsHDU()
         # If refname already exists, delete it to make way for new file
-        if os.path.exists(refname) and overwrite==yes: os.remove(refname)
+        if os.path.exists(refname):
+            if overwrite==yes:
+                # Remove previous version and re-create with new header
+                os.remove(refname)
+                hdu.writeto(refname)
+            else:
+                # Append header to existing file
+                oldhdu = pyfits.open(refname,mode='append')
+                oldhdu.append(hdu)
+                oldhdu.close()
+                del oldhdu
+        else:
+            # No previous file, so generate new one from scratch
+            hdu.writeto(refname)
 
-        # Open image as writable FITS object
-        _extn = pyfits.PrimaryHDU()
+        # Clean up
+        del hdu
+
+    def createWcsHDU(self):
+        """ Generate a WCS header object that can be used to
+            populate a reference WCS HDU.
+        """
+        hdu = pyfits.ImageHDU()
+        hdu.header.update('EXTNAME','WCS')
+        hdu.header.update('EXTVER',1)
+        # Now, update original image size information
+        hdu.header.update('WCSAXES',2,comment="number of World Coordinate System axes")
+        hdu.header.update('NPIX1',self.naxis1,comment="Length of array axis 1")
+        hdu.header.update('NPIX2',self.naxis2,comment="Length of array axis 2")
+        hdu.header.update('PIXVALUE',0.0,comment="values of pixels in array")
 
         # Write out values to header...
-        for key in self.wcstrans.keys():
+        excluded_keys = ['naxis1','naxis2']
+        for key in self.wcskeys:
             _dkey = self.wcstrans[key]
-            if _dkey != 'pscale':
-                _extn.header.update(key,self.__dict__[_dkey])
-        _extn.header['NAXIS'] = 0
+            if _dkey not in excluded_keys:
+                hdu.header.update(key,self.__dict__[_dkey])
 
-        # Close the file
-        _extn.writeto(refname)
-        del _extn
 
+        return hdu
 
     def _buildNewKeyname(self,key,prepend):
         """ Builds a new keyword based on original keyword name and

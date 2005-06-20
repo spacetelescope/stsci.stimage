@@ -57,7 +57,7 @@ EXTLIST =  ['_crj.fits','_flt.fits','_sfl.fits','_cal.fits','_raw.fits','.c0h','
 
 BLANK_ASNDICT = {'output':None,'order':[],'members':{'abshift':no,'dshift':no}}
 
-__version__ = '1.0.3 (19-April-2005)'
+__version__ = '1.1.0 (11-May-2005)'
 
 def help():
     print __doc__
@@ -117,6 +117,40 @@ def convertDate(date):
 #
 #
 #################
+def verifyWriteMode(files):
+    """ Checks whether files are writable. It is up to the
+        calling routine to raise an Exception, if desired.
+
+        This function returns True, if all files are writable
+        and False, if any are not writable.  In addition, for
+        all files found to not be writable, it will print out
+        the list of names of affected files.
+    """
+    # Start by insuring that input is a list of filenames,
+    # if only a single filename has been given as input,
+    # convert it to a list with len == 1.
+    if not isinstance(files, list): files = [files]
+
+    # Keep track of the name of each file which is not writable
+    not_writable = []
+    writable = True
+    # Check each file in input list
+    for fname in files:
+        try:
+            f = open(fname,'a')
+            f.close()
+            del f
+        except:
+            not_writable.append(fname)
+            writable = False
+    if not writable:
+        print 'The following file(s) do not have write permission!'
+        for fname in not_writable:
+            print '    ',fname
+
+    return writable
+
+
 def getFilterNames(header,filternames=None):
     """
     Returns a comma-separated string of filter names extracted from the
@@ -790,6 +824,7 @@ def defaultModel():
 
     # Used in Pattern.computeOffsets()
     refpix = {}
+    refpix['empty_model'] = yes
     refpix['XREF'] = None
     refpix['YREF'] = None
     refpix['V2REF'] = 0.
@@ -948,6 +983,8 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
         err_str = '\nProblem finding row in IDCTAB! Could not find row matching:\n'
         err_str += '        CHIP: '+str(detchip)+'\n'
         err_str += '     FILTERS: '+filter1+','+filter2+'\n'
+        ftab.close()
+        del ftab
         raise LookupError,err_str
     else:
         print '- IDCTAB: Distortion model from row',str(row+1),'for chip',detchip,':',filter1.strip(),'and',filter2.strip()
@@ -1196,8 +1233,9 @@ def readShiftFile(filename):
     being written into the 'XOFFSET'/'YOFFSET' columns of the output ASN table.
     If no values are given for ROT or SCALE, then a value of None will be used.
     """
-    lines = []
-    sdict = {'frame':'input','refimage':None,'units':'pixels','form':'absolute'}
+
+    sdict = {'frame':'input','refimage':None,'units':'pixels',
+             'form':'absolute','order':[]}
 
     fshift = open(filename,'r')
     flines = fshift.readlines()
@@ -1293,6 +1331,9 @@ def readShiftFile(filename):
         # Ignore commentary lines that begin with '#'
         if line.find("#") < 0 and line.strip() != '':
             lsplit = line.split()
+            # Keep track of the order which files are listed
+            sdict['order'].append(lsplit[0])
+            # Assign shift values
             sdict[lsplit[0]] = [float(lsplit[xoffindx]),float(lsplit[yoffindx])]
             # Add rotation, if present
             if rotindx != None:
@@ -1563,6 +1604,19 @@ def readAsnTable(fname,output=None,prodonly=yes):
                     _dshift_units = colunits[i]
             # Default to shifts in pixels, not arcseconds
             if _dshift_units == '': _dshift_units = 'pixels'
+            # Read in frame of shift provided in ASN table
+            try:
+                _shift_frame = ftab[0].header['shframe']
+            except KeyError:
+                # Default to input pixel frame for shifts
+                _shift_frame = 'input'
+            try:
+                _refimage = ftab[0].header['refimage']
+            except KeyError:
+                _refimage = None
+            # Record frame and units in dictionary
+            memdict['shift_frame'] = _shift_frame
+            memdict['refimage'] = _refimage
 
         else:
             memdict['delta_x'] = 0.

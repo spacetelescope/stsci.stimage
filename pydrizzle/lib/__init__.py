@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.5.1 (25-April-2005)"
+__version__ = "5.5.3 (15-June-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -153,11 +153,15 @@ class Pattern:
         # keyword values and setup PyFITS object
         # as self.header and self.image_handle
         #
-        self.getHeaderHandle()
+        image_handle = self.getHeaderHandle()
 
         # Determine type of input image and syntax needed to read data
         self.imtype = imtype.Imtype(filename,handle=self.image_handle,
                                     dqsuffix=self.pars['dqsuffix'])
+
+        # Keep file I/O localized to same method/routine
+        if image_handle:
+            image_handle.close()
 
         if self.header and self.header.has_key(self.DETECTOR_NAME):
             self.detector = self.header[self.DETECTOR_NAME]
@@ -198,13 +202,16 @@ class Pattern:
             _hdr = None
 
         # Set attribute to point to these products
-        self.image_handle = _handle
+        self.image_handle = None
         self.header = _hdr
+
+        return _handle
 
     def closeHandle(self):
         """ Closes image_handle. """
         if self.image_handle:
             self.image_handle.close()
+            #print 'Closing file handle for image: ',self.name
         self.image_handle = None
 
 
@@ -255,6 +262,7 @@ class Pattern:
 
     def applyAsnShifts(self):
         """ Apply ASN Shifts to each member and the observations product. """
+        _prod_geo = self.product.geometry
         _geo = self.product.geometry.wcslin
         _geo0 = self.product.geometry.wcslin.copy()
 
@@ -285,8 +293,6 @@ class Pattern:
             _wcs_copy = _mem_wcs.copy()
             _mem_orient = member.geometry.wcs.orient
 
-            #if _delta_crpix[0] == 0. and _delta_crpix[1] == 0.: continue
-
             # Remember secondary shifts from ASN table
             member.geometry.gpar_xsh = _delta_crpix[0]
             member.geometry.gpar_ysh = _delta_crpix[1]
@@ -298,8 +304,6 @@ class Pattern:
             # Compute the pixel position of the input reference image in
             # reference WCS
             _oxy1 = _mem_geo.wtraxy((_mem_wcs.crpix1   ,_mem_wcs.crpix2   ),_geo0)
-            _oxy2 = _mem_geo.wtraxy((_mem_wcs.crpix1+1.,_mem_wcs.crpix2   ),_geo0)
-            _oxy3 = _mem_geo.wtraxy((_mem_wcs.crpix1   ,_mem_wcs.crpix2+1.),_geo0)
 
             # Compute new CRPIX values for original WCS model to use for
             # removing change in orientation from this shift. WJH
@@ -307,8 +311,6 @@ class Pattern:
 
             # Use 'xy2rd' to convert these pixel positions to RA/Dec
             ra1,dec1 = _geo.xy2rd((_oxy1[0],_oxy1[1]))
-            ra2,dec2 = _geo.xy2rd((_oxy2[0],_oxy2[1]))
-            ra3,dec3 = _geo.xy2rd((_oxy3[0],_oxy3[1]))
 
             # Convert these numbers into a new WCS
             _mem_wcs.crval1 = ra1
@@ -320,26 +322,6 @@ class Pattern:
             reference position.
 
             """
-            # Rigorously work out the new CD matrix, via the tangent plane
-            ra1 = DEGTORAD(ra1)
-            ra2 = DEGTORAD(ra2)
-            ra3 = DEGTORAD(ra3)
-            dec1 = DEGTORAD(dec1)
-            dec2 = DEGTORAD(dec2)
-            dec3 = DEGTORAD(dec3)
-
-            bot2 = sin(dec2)*sin(dec1) + cos(dec2)*cos(dec1)*cos(ra2-ra1)
-            bot3 = sin(dec3)*sin(dec1) + cos(dec3)*cos(dec1)*cos(ra3-ra1)
-
-            # Go to tangent plane positions
-            _mem_wcs.cd11 = RADTODEG(cos(dec2) * sin(ra2-ra1) / bot2 )
-            _mem_wcs.cd12 = RADTODEG(cos(dec3) * sin(ra3-ra1) / bot3 )
-            _mem_wcs.cd21 = RADTODEG( (sin(dec2)*cos(dec1) - cos(dec2)*sin(dec1)*cos(ra2-ra1)) / bot2 )
-            _mem_wcs.cd22 = RADTODEG((sin(dec3)*cos(dec1) - cos(dec3)*sin(dec1)*cos(ra3-ra1)) / bot3 )
-
-            _mem_wcs.orient = fileutil.RADTODEG(N.arctan2(_mem_wcs.cd12,_mem_wcs.cd22))
-            _mem_wcs.pscale = N.sqrt(N.power(_mem_wcs.cd11,2) +N.power(_mem_wcs.cd21,2))*3600.
-
             #
             # Compute change in orientation due to change in CRPIX.
             # This delta gets introduced due to the use of the updated
@@ -348,14 +330,22 @@ class Pattern:
             # observations with large delta shifts. WJH 5-May-2004
             #
             _ref_wcs = _mem_wcs.copy()
+            _orig_orient = _ref_wcs.get_orient()
             _ref_wcs.crpix1 += _oxy1o[0] - _oxy1[0]
             _ref_wcs.crpix2 += _oxy1o[1] - _oxy1[1]
             _ref_wcs.recenter()
-            _mem_wcs.rotateCD(_mem_wcs.orient + (_ref_wcs.orient - _mem_wcs.orient))
+
+            _new_orient = _ref_wcs.get_orient()
+            _delta_orient = _new_orient - _orig_orient
+            _final_orient = _new_orient - _delta_rot
+
+            _mem_wcs.rotateCD(_final_orient)
+            _mem_wcs.orient = _mem_orient - _delta_orient
 
             """
             Finish updating CD matrix
             """
+
             # Make sure updates get translated back to undistorted WCS's
             _mem_geo.undistortWCS()
 
@@ -486,7 +476,6 @@ class Pattern:
                     # Compute delta RA,Dec for output frame ref point
                     # using given pixel shifts
                     _dcrpix = N.dot((_out_wcs.crpix1-_delta_x, _out_wcs.crpix2-_delta_y),_rotmat)
-
                     _refcrval = _out_wcs.xy2rd((_dcrpix[0],_dcrpix[1]))
                     _dcrval = ((_out_wcs.crval1 - _refcrval[0] ),
                                (_out_wcs.crval2 - _refcrval[1] ))
@@ -623,7 +612,6 @@ class Pattern:
                     # uncentered output
                     _refpix['XDELTA'] -= _nref[0]/2.
                     _refpix['YDELTA'] -= _nref[1]/2.
-
         #
         # TROLL computation not needed, as this get corrected for both
         # in 'recenter()' and in 'wcsfit'...
@@ -728,7 +716,6 @@ class Pattern:
         _out_wcs.crpix2 = _crpix[1] - _delta_crpix[1]/2.
 
         _out_wcs.recenter()
-
         """
         # Update the size and rotated position of reference pixel
         _cen = (_out_wcs.naxis1/2.,_out_wcs.naxis2/2.)
@@ -1463,7 +1450,7 @@ class WFPCObservation(Pattern):
         for i in range(self.nmembers):
             _extname = self.imtype.makeSciName(i+1,section=self.pars['section'])
 
-            _detnum = fileutil.getKeyword(_extname,self.DETECTOR_NAME,handle=self.image_handle)
+            _detnum = fileutil.getKeyword(_extname,self.DETECTOR_NAME)
 
             # Start by looking for the corresponding WFPC2 'c1h' files
             _dqfile = self._findDQFile()
@@ -1750,6 +1737,9 @@ class DitherProduct(Pattern):
         # Specify that this product comes represents a dither product
         # not just a single observation product.
         _field.dither = yes
+
+        # Copy the new reference WCS into the product WCS
+        self.product.geometry.wcs = _field.wcs.copy()
 
         parlist = []
         for member in self.members:
@@ -2279,6 +2269,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 asndict = fileutil.buildAsnDict(input, output=output,shiftfile=shiftfile)
             else:
                 asndict = fileutil.readAsnTable(input,output=output,prodonly=prodonly)
+
             # Build output filename
             if output == None:
                 output = fileutil.buildNewRootname(asndict['output'],extn='_drz.fits')
@@ -2664,10 +2655,10 @@ More help on SkyField objects and their parameters can be obtained using:
                 del _pxg,_pyg
 
 
-                if _nimg == 0:
+                #if _nimg == 0:
                     # Only update the WCS from drizzling the
                     # first image in the list, just like IRAF DRIZZLE
-                    drutil.updateWCS(_inwcs,_wcs)
+                #    drutil.updateWCS(_inwcs,_wcs)
 
                 # Increment number of chips processed for single output
                 _numchips += 1
@@ -2744,6 +2735,7 @@ More help on SkyField objects and their parameters can be obtained using:
         # parameters based on the reference image.
         new_parlist = self.observation.buildPars(ref=_ref)
 
+
         # Copy the parameters from the new parlist into the existing
         # parlist (self.parlist) to preserve any changes/updates made
         # to the parlist externally to PyDrizzle.
@@ -2807,6 +2799,7 @@ def _buildOutputFits(sci,wht,fname,ctx=None,extlist=['SCI','ERR','DQ']):
     fimg.append(whthdu)
     fimg.append(ctxhdu)
     fimg.close()
+    del fimg
 
 # End of 'runDrizzle'
 def help():

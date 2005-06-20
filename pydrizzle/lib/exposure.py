@@ -13,6 +13,8 @@
 #                   the use of DGEO files.  --  CJH
 #           0.1.3 -- Removed expansion of DGEOFILE path to avoid reporting
 #                   pipeline directories in output drizzle keywords. -- WJH
+#           0.1.4 -- Implemented support for providing subarray sections
+#                   of DGEOFILEs for subarray exposures.
 #
 import os
 import buildmask, fileutil, drutil,wcsutil,arrdriz
@@ -25,7 +27,7 @@ import numarray as N
 yes = True  # 1
 no = False  # 0
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 #################
 #
@@ -94,21 +96,32 @@ class Exposure:
             self.chip = str(_chip)
             # Keep track of any distortion correction images provided
             # for this chip
-            self.dgeoname = fileutil.getKeyword(expname,'DGEOFILE')
+            self.dgeoname = fileutil.getKeyword(expname,'DGEOFILE',handle=handle)
             self.xgeoim,self.ygeoim = self.getDGEOExtn()
-            self.plam = float(fileutil.getKeyword(expname,'PHOTPLAM')) / 10.
-            if self.plam == None:
-                # Setup a default value in case this keyword does not exist
-                self.plam = 555.
             if self.exptime == None:
                 self.exptime = float(_header['EXPTIME'])
                 if self.exptime == 0.: self.exptime = 1.0
+            #
+            # Extract photometric transformation keywords
+            #    If they do not exist, use default values of 0 and 1
+            #
+            self.plam = float(fileutil.getKeyword(expname,'PHOTPLAM',handle=handle)) / 10.
+            if self.plam == None:
+                # Setup a default value in case this keyword does not exist
+                self.plam = 555.
+            self.photzpt = float(fileutil.getKeyword(expname,'PHOTZPT',handle=handle))
+            if self.photzpt == None: self.photzpt = 0.0
+            self.photflam = float(fileutil.getKeyword(expname,'PHOTFLAM',handle=handle))
+            if self.photflam == None: self.photflam = 1.0
+
         else:
             _chip = 1
             _header = None
             self.chip = str(_chip)
             # Set a default value for pivot wavelength
             self.plam = 555.
+            self.photzpt = 0.0
+            self.photflam = 1.0
             if self.exptime == None:
                 self.exptime = 1.
 
@@ -258,8 +271,12 @@ class Exposure:
         #
         # coord for image array reference pixel in full chip coords
         #
-        _xref = self.geometry.wcs.chip_xref
-        _yref = self.geometry.wcs.chip_yref
+        if not self.geometry.model.refpix.has_key('empty_model'):
+            _xref = self.geometry.wcs.chip_xref
+            _yref = self.geometry.wcs.chip_yref
+        else:
+            _xref = None
+            _yref = None
 
         # If we have a subarray, pass along the offset reference position
         _delta = not (self.geometry.wcslin.subarray)
@@ -318,6 +335,7 @@ class Exposure:
             If no DGEOFILE is specified, it will return
             empty 2x2 arrays.
         """
+
         # Instantiate array objects for distortion correction image arrays
         if self.xgeoim == '':
             # No distortion image specified.
@@ -333,15 +351,21 @@ class Exposure:
             # Access the extensions which correspond to this Exposure
             _xgname,_xgext = fileutil.parseFilename(self.xgeoim)
             _ygname,_ygext = fileutil.parseFilename(self.ygeoim)
-            #print 'xgname,xgext: ',_xgname,_xgext
-            #print ' based on input name of: ',self.xgeoim
 
             _pxgext = fileutil.getExtn(_xgfile,extn=_xgext)
             _pygext = fileutil.getExtn(_xgfile,extn=_ygext)
 
             # Copy out the numarray objects for output
-            _pxg = _pxgext.data.copy()
-            _pyg = _pygext.data.copy()
+            _ltv1 = int(self.geometry.wcs.offset_x)
+            _ltv2 = int(self.geometry.wcs.offset_y)
+            if _ltv1 != 0. or _ltv2 != 0.:
+                # subarray section only
+                _pxg = _pxgext.data[_ltv2:_ltv2+self.naxis2,_ltv1:_ltv1+self.naxis1].copy()
+                _pyg = _pygext.data[_ltv2:_ltv2+self.naxis2,_ltv1:_ltv1+self.naxis1].copy()
+            else:
+                # full array
+                _pxg = _pxgext.data.copy()
+                _pyg = _pygext.data.copy()
 
             # Close file handles now...
             _xgfile.close()

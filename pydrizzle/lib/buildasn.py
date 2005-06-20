@@ -65,6 +65,8 @@ WJH, 15 Nov 2004 (0.9.3)
 WJH, 20 Dec 2004 (0.9.4)
     Added 'writeAsnDict' to output the ASN table dictionary read in using
     'readAsnTable' to a file.
+WJH, 11 May 2005 (0.9.5)
+    Modified to append reference WCS extension if given in shiftfile.
 """
 
 import os, sre, types, copy
@@ -87,7 +89,7 @@ TABLE_DATA = {'units':None,'frame':None,'xsh':None,'ysh':None,
             'dx':None,'dy':None,'rot':None,'scl':None,
             'name':None,'mtype':None,'mprsnt':None}
 
-__version__ = '0.9.4 (20-Dec-2004)'
+__version__ = '0.9.5 (11-May-2005)'
 
 _prihdr = pyfits.Header([pyfits.Card('SIMPLE', pyfits.TRUE,'Fits standard'),
                 pyfits.Card('BITPIX  ',                    16 ,' Bits per pixel'),
@@ -188,6 +190,12 @@ def buildAsnTable(asnroot,suffix=None,shiftfile=None,verbose='no'):
     fasn.writeto(_output)
     fasn.close()
     del fasn
+
+    # Now, add reference WCS extension, if given in shiftfile
+    if refimage != None:
+        whdu = wcsutil.WCSObject(refimage)
+        whdu.createReferenceWCS(_output,overwrite=no)
+        del whdu
 
     # Generate output product name
     dthprod = _buildNewRootname(asnroot,extn='_drz',suffix='_asn')

@@ -388,6 +388,7 @@ class ObsGeometry:
 
         if not new:
             self.wcs = wcsutil.WCSObject(rootname,header=self.header)
+            self.wcs.recenter()
             self.wcslin = self.wcs.copy()
 
             # Based on the filetype, open the correct geometry model
@@ -623,7 +624,10 @@ class ObsGeometry:
 
         _ab,_cd = drutil.wcsfit(self,wcs)
         _orient = fileutil.RADTODEG(N.arctan2(_ab[1],_cd[0]))
-        _scale = N.sqrt(abs(_ab[1]*_cd[1] - _ab[0]*_cd[0]))
+        _scale = wcs.pscale/self.wcslin.pscale
+        _rot = _orient - wcs.orient
+        _xoff = _ab[2]
+        _yoff = _cd[2]
         _rot_mat = drutil.buildRotMatrix(_orient)
 
         if isinstance(pixpos, types.TupleType):
@@ -636,9 +640,14 @@ class ObsGeometry:
         _delta[:,0] = _delta_x
         _delta[:,1] = _delta_y
 
-        _xy_corr = N.dot(_delta,_rot_mat) * _scale
-        _delta[:,0] = _xy_corr[:,0] + _ab[2] + wcs.naxis1/2.
-        _delta[:,1] = _xy_corr[:,1] + _cd[2] + wcs.naxis2/2.
+        _xp = wcs.naxis1/2. +1.0
+        _yp = wcs.naxis2/2. +1.0
+        _xt = _xoff + _xp
+        _yt = _yoff + _yp
+
+        _xy_corr = N.dot(_delta,_rot_mat) / _scale
+        _delta[:,0] = _xy_corr[:,0] + _xt
+        _delta[:,1] = _xy_corr[:,1] + _yt
 
         if len(pixpos) == 1:
             return _delta[0]

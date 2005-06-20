@@ -3,19 +3,21 @@
 
 W.J. Hack 25 Jul 2002
     Initial Version
+Version 0.5 (11-May-2005) (WJH) - Updated to package reference WCS as extension
+                of ASN table when a shiftfile has been provided.
 
 """
-import string
+import os,string
 import pyfits, numarray
 
 import pydrizzle
-from pydrizzle import buildasn,fileutil
+from pydrizzle import buildasn,fileutil,wcsutil
 
 IDCKEYS = {'WFPC2':'cubic','ACS':'idctab','STIS':'cubic','NICMOS':'cubic','detector':'idctab'}
 yes = True
 no = False
 
-__version__ = '0.4b (6-Oct-2003)'
+__version__ = '0.5 (11-May-2005)'
 
 def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
     rot=None, frame="input", units="pixels", output=None, mode="replace"):
@@ -73,6 +75,7 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
 
     print 'updateAsnTable Version ',__version__
 
+    _tmpname = 'buildasn_'+tabname
     # Start by opening the ASN table
     _asntab = pyfits.open(tabname,'update')
 
@@ -127,7 +130,7 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
     # Find row which corresponds to input image
     _rownum = 0
     for row in _asntab[1].data:
-        if string.find(rootname,string.lower(row.field('MEMNAME'))) > -1:
+        if string.find(rootname,row.field('MEMNAME')) > -1:
             _row = row
             break
         _rownum += 1
@@ -194,7 +197,6 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
         _asntab.close()
         return
 
-
     if _update:
         # Offset columns exist, just update the values in the table
         if mode == 'sum':
@@ -229,33 +231,40 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
 
         # Build the column objects for the table
         #_xc,_yc,_rc = buildasn._makeOffsetColumns(_xsh,_ysh,_rot)
-        _xc = pyfits.Column(name=_colx,format='1r',unit=_tab_units,array=_xsh)
-        _yc = pyfits.Column(name=_coly,format='1r',unit=_tab_units,array=_ysh)
-        _asndefs = _asntab[1].get_coldefs()
-        _asndefs.add_col(_xc)
-        _asndefs.add_col(_yc)
+        _xc = pyfits.Column(name=_colx,format='E',unit=_tab_units,array=_xsh)
+        _yc = pyfits.Column(name=_coly,format='E',unit=_tab_units,array=_ysh)
+        _newcols = _asntab[1].columns + _xc
+        _newcols += _yc
+        #_asndefs = _asntab[1].get_coldefs()
+        #_asndefs.add_col(_xc)
+        #_asndefs.add_col(_yc)
 
         # If rotation column does NOT exist,
         if _add_rot:
             _rot = numarray.zeros(_numrows,type=numarray.Float32)
             if rot != None:
                 _rot[_rownum] = rot
-            _rc = pyfits.Column(name='ROTATION',format='1r',unit='degrees',array=_rot)
+            _rc = pyfits.Column(name='ROTATION',format='E',unit='degrees',array=_rot)
             #  add newly created column
-            _asndefs.add_col(_rc)
+            #_asndefs.add_col(_rc)
+            _newcols += _rc
         else:
-            # else, update existing column directly.
+            # else, update exij8bt06010_asn.fits column directly.
             _asntab[1].data.field('ROTATION')[_rownum] = rot
 
-        _asnhdu = pyfits.new_table(_asndefs)
+        _asnhdu = pyfits.new_table(_newcols)
+        _asnhdu.writeto(_tmpname)
         # remove old data
-        del _asntab[1]
+        #del _asntab[1]
         # add table extension with old data and new columns
-        _asntab.append(_asnhdu)
+        #_asntab.append(_asnhdu)
 
     # Close and clean-up
     _asntab.close()
     del _asntab
+    if os.path.exists(_tmpname):
+        os.remove(tabname)
+        os.rename(_tmpname,tabname)
 
 def _getExposure(img,output,frame,idckey):
 
@@ -300,10 +309,14 @@ def _getExposure(img,output,frame,idckey):
 
     return _wcs
 
-def updateShifts(tabname,shiftfile, mode='replace'):
+def updateShifts(tabname,shiftfile, mode='replace',clean=no):
     """ Update an ASN table with shifts provided in shiftfile.
         The 'units', 'frame', and 'reference' will all be derived
         from the shiftfile itself, with defaults set by 'readShiftFile'.
+
+        If 'clean' == yes, then remove the shiftfile and any
+        reference WCS file after they have been used
+        to update the ASN table.
     """
 
     # Read in the shifts from the shiftfile
@@ -337,15 +350,36 @@ def updateShifts(tabname,shiftfile, mode='replace'):
 
     # For each rootname in ASN table, apply shifts from shiftfile
     for mname in fnames:
+        _lname = mname.lower()
         for key in sdict.keys():
             # Is this key the one that goes with 'mname'?
-            if key.find(mname) > -1:
+            if key.find(_lname) > -1:
                 _s = sdict[key]
 
                 updateAsnTable(tabname,mname,xsh=_s[0],ysh=_s[1],rot=_s[2],
                     form=sdict['form'],frame=_frame,units=_units,
                     output=_reference,mode=mode)
 
+    # If we have a new reference image, update header keyword to point
+    # to appended WCS object
+    if _reference != None:
+        # Append reference WCS to ASN table
+        whdu = wcsutil.WCSObject(_reference)
+        whdu.createReferenceWCS(tabname,overwrite=no)
+        # Now update ASN header to point to new reference WCS
+        ftab = pyfits.open(tabname,mode='update')
+        ftab['primary'].header.update('refimage', tabname+"[wcs]")
+        ftab.close()
+        del ftab
+        del whdu
+
+    # If user specifies, remove shiftfile and reference WCS
+    # after it has been appended to ASN table.
+    if clean == yes:
+        os.remove(shiftfile)
+        if _reference != None:
+            _refname,_refextn = fileutil.parseFilename(_reference)
+            os.remove(_refname)
 
 def help():
     print updateAsnTable.__doc__

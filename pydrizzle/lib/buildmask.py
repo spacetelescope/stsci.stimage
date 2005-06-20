@@ -75,7 +75,7 @@ def buildMaskImage(rootname,bitvalue,output,extname='DQ',extver=1):
         fileutil.removeFile(maskname)
 
     # Open input file with DQ array
-    fdq = fileutil.openImage(rootname,memmap=1,mode='readonly')
+    fdq = fileutil.openImage(rootname,memmap=0,mode='readonly')
     try:
         _extn = fileutil.findExtname(fdq,extname,extver=extver)
         if _extn == None:

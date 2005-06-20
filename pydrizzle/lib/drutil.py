@@ -590,7 +590,7 @@ def wcsfit(img_geom, ref):
     distortion model and the coeffs used by 'drizzle'.
 
     Parameters:
-        img      - Exposure instance for input image
+        img      - ObsGeometry instance for input image
         ref_wcs  - Undistorted WCSObject instance for output frame
     """
     # Define objects that we need to use for the fit...
@@ -629,10 +629,6 @@ def wcsfit(img_geom, ref):
     #       - X/Y positions in reference frame: _cpix_xyref
     abxt,cdyt = fitlin(_cpix_xyc,_cpix_xyref)
 
-    # We need to subtract 1 from CRPIX value here to account for
-    # offset introduced in 'drizzle' with 'align=center'
-    #abxt[2] -= ref_wcs.crpix1 - 1.0
-    #cdyt[2] -= ref_wcs.crpix2 - 1.0
     # This correction affects the final fit when you are fitting
     # a WCS to itself (no distortion coeffs), so it needs to be
     # taken out in the coeffs file by modifying the zero-point value.
