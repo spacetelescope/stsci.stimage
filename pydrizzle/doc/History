@@ -1,4 +1,44 @@
 ### PyDrizzle Revision Changes
+Version 5.5.3a (22-June-2005) WJH
+      - Offset of (1.0,1.0) applied during computation of undistorted WCS was removed
+        to align with 'drizzle' computation.  
+Version 5.5.3 (15-June-2005) WJH
+      - (OPR 53859) 
+        Modified Pattern class to NOT keep the file handles open outside of the __init__
+        method. This allows it to support arbitrary numbers of input files without
+        running into any filehandle (descriptor) limitations of the OS.
+      - (OPR 53860)
+        Bugs in how the shifts were applied to member WCS information were fixed; namely,
+        problems with 'wtraxy' and use of the new WCS extension to the ASN table.
+        The 'wtraxy' method now exactly reproduces (again?) the results from the 
+        'drizzle' task for the same input. Also, shifted WCS keywords no longer based
+        on distortion corrected WCS, but rather input WCS frame.  This eliminates
+        residual offsets/rotations found when applying any shift to data. 
+      - The WCSObject class was modified to support empty extensions such as the
+        ERR and DQ extensions of RAW ACS images, where no array or NAXIS1/2
+        keywords are used.  Instead, NPIX1/2 and PIXVALUE record the array size.
+        Those keywords then get passed along as NAXIS1/2 for WCS operations.  The 
+        reference WCS object writes out empty extensions using NPIX1/2 and PIXVALUE 
+        that should pass OPUS_fitsverify (since RAW file's ERR and DQ arrays do). 
+      - The WCSObject class also had 'get_orient' method added to return the
+        orientation computed directly from the CD matrix instead of relying on 
+        orientat keyword.  
+      - WCS keywords for reference WCS HDU now get written out in a specific order 
+        which is more FITS compliant.
+      - WCS for final product not updated based on 'drizzle' product, in order to 
+        correctly apply distortion correction when predicting output pixel positions.
+
+Version 5.5.2 (1-June-2005) WJH
+      - (OPR 53756)
+        Subarray exposures required subarray sections of DGEOFILES, instead of
+        full arrays.
+      - (OPR 53757)
+        WCS for all exposures gets recentered upon reading in order to properly
+        support subarray exposures where the CRPIX value falls outside the image.
+      - Photometric transformation values read from the header of each exposure has
+        been added as attributes to the Exposure class to support transformation of
+        the image data into magnitudes.
+
 Version 5.5.1 (25-April-2005) WJH
       - (OPR 53461)
         Resetting the output frame using the SkyField object now works when

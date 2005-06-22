@@ -2655,10 +2655,10 @@ More help on SkyField objects and their parameters can be obtained using:
                 del _pxg,_pyg
 
 
-                #if _nimg == 0:
+                if _nimg == 0:
                     # Only update the WCS from drizzling the
                     # first image in the list, just like IRAF DRIZZLE
-                #    drutil.updateWCS(_inwcs,_wcs)
+                    drutil.updateWCS(_inwcs,_wcs)
 
                 # Increment number of chips processed for single output
                 _numchips += 1

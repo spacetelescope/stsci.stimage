@@ -618,6 +618,7 @@ class ObsGeometry:
         Made this function compatible with list input, as well as single
         tuple input.
         """
+
         # Insure that input wcs is centered for proper results
         # Added 1-Dec-2004.
         wcs.recenter()
@@ -625,9 +626,9 @@ class ObsGeometry:
         _ab,_cd = drutil.wcsfit(self,wcs)
         _orient = fileutil.RADTODEG(N.arctan2(_ab[1],_cd[0]))
         _scale = wcs.pscale/self.wcslin.pscale
-        _rot = _orient - wcs.orient
         _xoff = _ab[2]
         _yoff = _cd[2]
+        _naxis = (self.wcs.naxis1,self.wcs.naxis2)
         _rot_mat = drutil.buildRotMatrix(_orient)
 
         if isinstance(pixpos, types.TupleType):
@@ -640,8 +641,8 @@ class ObsGeometry:
         _delta[:,0] = _delta_x
         _delta[:,1] = _delta_y
 
-        _xp = wcs.naxis1/2. +1.0
-        _yp = wcs.naxis2/2. +1.0
+        _xp = _naxis[0]/2. + 1.0
+        _yp = _naxis[1]/2. + 1.0
         _xt = _xoff + _xp
         _yt = _yoff + _yp
 
@@ -760,7 +761,7 @@ class ObsGeometry:
         else:
             _cen = (shape[0]/2. + 0.5,shape[1]/2. + 0.5)
 
-        _xy = N.array([(_cpix1,_cpix2),(_cpix1+1.,_cpix2),(_cpix1,_cpix2+1.)],type=N.Float64) - (1.0,1.0)
+        _xy = N.array([(_cpix1,_cpix2),(_cpix1+1.,_cpix2),(_cpix1,_cpix2+1.)],type=N.Float64)
 
         #
         _xdelta = self.model.refpix['XDELTA']
@@ -809,11 +810,6 @@ class ObsGeometry:
 
         _naxis1 = int(ceil(N.maximum.reduce(_wcorners[:,0]))) - _xmin
         _naxis2 = int(ceil(N.maximum.reduce(_wcorners[:,1]))) - _ymin
-
-        # Added '+2' to match computation performed by 'getRange'
-        # This added 1 row on each edge and keeps the image centered
-        # Removed to insure that when no distortion coeffs are provided, the
-        # unity model reproduces the same output as input.
         self.wcslin.naxis1 = int(_naxis1)
         self.wcslin.naxis2 = int(_naxis2)
 
