@@ -628,7 +628,8 @@ class ObsGeometry:
         _scale = wcs.pscale/self.wcslin.pscale
         _xoff = _ab[2]
         _yoff = _cd[2]
-        _naxis = (self.wcs.naxis1,self.wcs.naxis2)
+        # changed from self.wcs.naxis[1/2]
+        _naxis = (wcs.naxis1,wcs.naxis2)
         _rot_mat = drutil.buildRotMatrix(_orient)
 
         if isinstance(pixpos, types.TupleType):
