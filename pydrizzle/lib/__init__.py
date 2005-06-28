@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.5.3 (15-June-2005)"
+__version__ = "5.5.3b (28-June-2005)"
 
 # For History of changes and updates, see 'History'
 

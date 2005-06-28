@@ -67,6 +67,10 @@ WJH, 20 Dec 2004 (0.9.4)
     'readAsnTable' to a file.
 WJH, 11 May 2005 (0.9.5)
     Modified to append reference WCS extension if given in shiftfile.
+WJH, 28 June 2005 (0.9.5a)
+    New 'order' keyword in dictionary from reading the shift file now used
+        to index files.
+
 """
 
 import os, sre, types, copy
@@ -89,7 +93,7 @@ TABLE_DATA = {'units':None,'frame':None,'xsh':None,'ysh':None,
             'dx':None,'dy':None,'rot':None,'scl':None,
             'name':None,'mtype':None,'mprsnt':None}
 
-__version__ = '0.9.5 (11-May-2005)'
+__version__ = '0.9.5a (28-June-2005)'
 
 _prihdr = pyfits.Header([pyfits.Card('SIMPLE', pyfits.TRUE,'Fits standard'),
                 pyfits.Card('BITPIX  ',                    16 ,' Bits per pixel'),
@@ -318,19 +322,19 @@ def _findRefFile(sdict,flist):
     """
     min_shift = 99999.
     reffile = None
-    for img in sdict.keys():
-        if type(sdict[img]) == types.ListType:
-            offx = sdict[img][0]
-            offy = sdict[img][1]
-            shift = numarray.sqrt(pow(offx,2) + pow(offy,2))
 
-            if shift < min_shift:
-                min_shift = shift
-                reffile = img
+    for img in sdict['order']:
+        offx = sdict[img][0]
+        offy = sdict[img][1]
+        shift = numarray.sqrt(pow(offx,2) + pow(offy,2))
 
-            for fl in flist:
-                if fl[0].find(reffile) > -1:
-                    reffile = fl[0]
+        if shift < min_shift:
+            min_shift = shift
+            reffile = img
+
+        for fl in flist:
+            if fl[0].find(reffile) > -1:
+                reffile = fl[0]
 
     return reffile
 
@@ -354,31 +358,30 @@ def _computeDeltaShifts(sdict,ref_file,flist):
     del fref
     pscale = pow((pow(float(ref_cd[0]),2)+pow(float(ref_cd[1]),2)),0.5) * 3600.
 
-    for img in sdict.keys():
+    for img in sdict['order']:
         for fl in flist:
             if fl[0].find(img) > -1:
                 imgname = fl[0]
-                # Only work with entries associated with images
-                if type(sdict[img]) == types.ListType:
-                    # Open science image
-                    fimg = pyfits.open(imgname)
-                    scihdr = fimg['SCI',1].header
-                    # Extract commanded position from image header
-                    img_pos = (scihdr['CRVAL1'],scihdr['CRVAL2'])
-                    # Done with image: close and delete FITS object
-                    fimg.close()
-                    del fimg
 
-                    # Compute commanded shift here: image minus reference
-                    # This has to be in units of pixels
-                    pos = (numarray.array(img_pos) - numarray.array(ref_pos))/pscale
-                    pos = pos * 3600. * numarray.cos(ref_pos[1]) * numarray.array([-1.0,1.0])
+                # Open science image
+                fimg = pyfits.open(imgname)
+                scihdr = fimg['SCI',1].header
+                # Extract commanded position from image header
+                img_pos = (scihdr['CRVAL1'],scihdr['CRVAL2'])
+                # Done with image: close and delete FITS object
+                fimg.close()
+                del fimg
 
-                    # Compute delta offset: total minus commanded
-                    delta_pos = numarray.array((sdict[img][0],sdict[img][1])) - pos
+                # Compute commanded shift here: image minus reference
+                # This has to be in units of pixels
+                pos = (numarray.array(img_pos) - numarray.array(ref_pos))/pscale
+                pos = pos * 3600. * numarray.cos(ref_pos[1]) * numarray.array([-1.0,1.0])
 
-                    # Replace total shift with delta in shift dictionary
-                    sdict[img].append(tuple(delta_pos))
+                # Compute delta offset: total minus commanded
+                delta_pos = numarray.array((sdict[img][0],sdict[img][1])) - pos
+
+                # Replace total shift with delta in shift dictionary
+                sdict[img].append(tuple(delta_pos))
 
 # Build table rows from input data
 def _buildTableRows(filelist, shiftdict, dthprod):
@@ -399,7 +402,7 @@ def _buildTableRows(filelist, shiftdict, dthprod):
         # and name provided in shiftfile
         # (which could only be a rootname, or other partial)
         #
-        for sfile in shiftdict.keys():
+        for sfile in shiftdict['order']:
             if file.find(sfile) > -1:
                 file = sfile
                 found = 1

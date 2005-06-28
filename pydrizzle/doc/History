@@ -1,4 +1,8 @@
 ### PyDrizzle Revision Changes
+Version 5.5.3b (28-June-2005) WJH
+      - The new 'order' key in the shift dictionary created from reading a shiftfile
+        now supported by 'buildasn', and used exclusively for accessing entries for
+        each input file.
 Version 5.5.3a (22-June-2005) WJH
       - Offset of (1.0,1.0) applied during computation of undistorted WCS was removed
         to align with 'drizzle' computation.  
