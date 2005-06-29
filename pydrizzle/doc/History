@@ -1,4 +1,8 @@
 ### PyDrizzle Revision Changes
+Version 5.5.4 (29-June-2005) WJH
+      - Multiple WCS extensions are not created when running 'createReferenceWCS'
+        method of WCSObject.
+        
 Version 5.5.3b (28-June-2005) WJH
       - The new 'order' key in the shift dictionary created from reading a shiftfile
         now supported by 'buildasn', and used exclusively for accessing entries for

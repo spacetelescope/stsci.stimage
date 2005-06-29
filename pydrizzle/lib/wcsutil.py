@@ -49,10 +49,14 @@ DEFAULT_PREFIX = 'O'
 #                   New method, get_orient, added to always allow access to computed
 #                   orientation regardless of orientat keyword value.
 #
+# 29-June-2005 WJH: Multiple WCS extensions are not created when running
+#                   'createReferenceWCS'.
+#
 
 
 
-__version__ = '0.9.2 (20-June-2005)'
+
+__version__ = '0.9.3 (29-June-2005)'
 
 def help():
     print 'wcsutil Version '+str(__version__)+':\n'
@@ -938,8 +942,13 @@ class WCSObject:
                 hdu.writeto(refname)
             else:
                 # Append header to existing file
+                wcs_append = True
                 oldhdu = pyfits.open(refname,mode='append')
-                oldhdu.append(hdu)
+                for e in oldhdu:
+                    if e.header.has_key('extname') and e.header['extname'] == 'WCS':
+                        wcs_append = False
+                if wcs_append == True:
+                    oldhdu.append(hdu)
                 oldhdu.close()
                 del oldhdu
         else:
