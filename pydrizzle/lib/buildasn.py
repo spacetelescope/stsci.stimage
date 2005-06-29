@@ -170,7 +170,7 @@ def buildAsnTable(asnroot,suffix=None,shiftfile=None,verbose='no'):
         shframe = shiftdict['frame']
         refimage = shiftdict['refimage']
     else:
-        shiftdict = {'units':'pixels','frame':'input'}
+        shiftdict = {'units':'pixels','frame':'input','order':{}}
         shframe = None
         refimage = None
 
