@@ -199,7 +199,7 @@ def buildAsnTable(asnroot,suffix=None,shiftfile=None,verbose='no'):
     # Now, add reference WCS extension, if given in shiftfile
     if refimage != None:
         whdu = wcsutil.WCSObject(refimage)
-        whdu.createReferenceWCS(_output,overwrite=no)
+        whdu.createReferenceWCS(_output,overwrite=False)
         del whdu
 
     # Generate output product name
