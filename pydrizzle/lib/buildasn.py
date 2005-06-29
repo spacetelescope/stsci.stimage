@@ -81,6 +81,7 @@ import pyfits
 import numarray
 
 from fileutil import readShiftFile,buildRootname
+from pydrizzle import wcsutil
 
 # List of supported default file types
 # It will look for these file types by default
