@@ -1643,10 +1643,11 @@ C Allocate the memory arrays and return the pointers, check for
 C error status
 
 C Single line buffers for input data and weight images
-      CALL UDMGET(DNX,6,PDATA,ISTAT)
-      IF(ISTAT.NE.0) RETURN
 
       CALL UDMGET(DNX,6,PWEI,ISTAT)
+      IF(ISTAT.NE.0) RETURN
+
+      CALL UDMGET(DNX,6,PDATA,ISTAT)
       IF(ISTAT.NE.0) RETURN
 
 C Note that the next three, as they are subsets of the output
@@ -1698,8 +1699,9 @@ C Scratch buffer space - the larger of the input and output
       CALL UDMGET(DNX,7,PXOB,ISTAT)
       IF(ISTAT.NE.0) RETURN
 
-      CALL UDMGET(DNX,7,PYOB,ISTAT)
+      CALL UDMGET(DNX,7,PYOB,ISTAT)      
       IF(ISTAT.NE.0) RETURN
+      
 
 C If we get here all is well
       ISTAT=0
@@ -1787,6 +1789,10 @@ C Set default values
             XCO(I)=0.0D0
             YCO(I)=0.0D0
          ENDDO
+C To avoid problems later set the linear terms to the identity, not
+C just zero (added, Richard Hook, July 2005)
+         XCO(2)=1.0D0 
+         YCO(3)=1.0D0
          CONUM=1
          COTY=0
       ELSE
