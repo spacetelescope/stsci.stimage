@@ -285,14 +285,15 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
     getgeo_(coeffs, &idd, &lam, &coty, &c__100, &conum, xco, yco, clen, &
 	    istat, (ftnlen)80);
     if (istat != 0) {
-	return ret_val;
+    ret_val = (real) istat;
+    return ret_val;
     }
 /* Set DISIM logical based on whether distortion images have */
 /*  been passed in for use or not. */
     if (*xgdim == 2 && *ygdim == 2) {
 	disim = FALSE_;
     } else {
-	disim = TRUE_;
+	disim = TRUE_; 
     }
 /* Setup reasonable defaults for the drizzling */
 /*      XMIN=1 */

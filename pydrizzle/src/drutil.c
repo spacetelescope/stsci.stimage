@@ -1361,7 +1361,6 @@ doublereal mgf2_(doublereal *lam)
     xg_dim1 = *xgdim;
     xg_offset = 1 + xg_dim1;
     xg -= xg_offset;
-
     /* Function Body */
     if (s_cmp(align, "corner", (ftnlen)8, (ftnlen)6) == 0) {
 	xcen = (doublereal) (*dnx / 2) + .5f;
@@ -1411,12 +1410,14 @@ doublereal mgf2_(doublereal *lam)
 /* Here is some new code to support the WCS option */
 /* first we work out a linear transformation from input to */
 /* out */
+
     if (*usewcs) {
 	wcslin_(&wcsin[1], &wcsout[1], &xcen, &ycen, coty, conum, &xco[1], &
 		yco[1], disim, &xg[xg_offset], &yg[yg_offset], xgdim, ygdim, &
 		xc, &yc, &xs, &ys, &xt, &yt);
 	*rotfir = TRUE_;
     }
+
 /* Check for the presence of "refpix" additional information */
 /* in the coefficients */
 /* If it is, set a flag and offset again */
@@ -1576,6 +1577,7 @@ doublereal mgf2_(doublereal *lam)
 		    xcorn += (doublereal) xg[ix + iy * xg_dim1];
 		    ycorn += (doublereal) yg[ix + iy * yg_dim1];
 		}
+        
 /* Apply the linear transform */
 /* There are two ways this can be done - shift then */
 /* rotate or rotate then shift */
@@ -1641,7 +1643,7 @@ doublereal mgf2_(doublereal *lam)
 		if (*disim) {
 		    ix = (integer) (x + xcen);
 		    iy = (integer) (y + ycen);
-		    xcorn += (doublereal) xg[ix + iy * xg_dim1];
+            xcorn += (doublereal) xg[ix + iy * xg_dim1];
 		    ycorn += (doublereal) yg[ix + iy * yg_dim1];
 		}
 /* Apply the linear transform */
@@ -1713,7 +1715,7 @@ doublereal mgf2_(doublereal *lam)
 		if (*disim) {
 		    ix = (integer) (x + xcen);
 		    iy = (integer) (y + ycen);
-		    xcorn += (doublereal) xg[ix + iy * xg_dim1];
+            xcorn += (doublereal) xg[ix + iy * xg_dim1];
 		    ycorn += (doublereal) yg[ix + iy * yg_dim1];
 		}
 /* Apply the linear transform */
@@ -3148,6 +3150,7 @@ L140:
 	    r__1 = 1.f / *expin;
 	    mulc_(&data[data_offset], dnx, ny, &r__1);
 	}
+    
 /* Loop over input lines */
 	y = (doublereal) (*ystart);
 	i__1 = *ny;
@@ -3180,6 +3183,7 @@ L140:
 		    yib[x1 + 1] = 0.;
 /* Transform onto the output grid */
 		    i__2 = x2 - x1 + 1;
+
 		    drival_(&xib[x1], &yib[x1], &i__2, dnx, dny, onx, ony, &
 			    c_true, xsh, ysh, rot, scale, align, rotfir, 
 			    secpar, xsh2, ysh2, rot2, xscale, yscale, shfr2, 
@@ -3557,6 +3561,7 @@ L140:
 		    yi[x1 + 1 + (yi_dim1 << 2)] = -dh;
 /* Transform onto the output grid */
 		    i__2 = x2 - x1 + 1;
+                        
 		    drival_(&xi[x1 + xi_dim1], &yi[x1 + yi_dim1], &i__2, dnx, 
 			    dny, onx, ony, &c_true, xsh, ysh, rot, scale, 
 			    align, rotfir, secpar, xsh2, ysh2, rot2, xscale, 
@@ -3565,7 +3570,7 @@ L140:
 			    pxg_offset], &pyg[pyg_offset], xgdim, ygdim, &xo[
 			    x1 + xo_dim1], &yo[x1 + yo_dim1], (ftnlen)8, (
 			    ftnlen)8);
-		    i__2 = x2 - x1 + 1;
+  		    i__2 = x2 - x1 + 1;
 		    drival_(&xi[x1 + (xi_dim1 << 1)], &yi[x1 + (yi_dim1 << 1)]
 			    , &i__2, dnx, dny, onx, ony, &c_true, xsh, ysh, 
 			    rot, scale, align, rotfir, secpar, xsh2, ysh2, 
@@ -3678,6 +3683,7 @@ L140:
 			if (nhit == 0) {
 			    ++(*nmiss);
 			}
+
 		    }
 /* End of the kernel "case" blocks */
 		}
@@ -3692,6 +3698,7 @@ L140:
 	*nskip = *dny;
 	*nmiss = *dnx * *dny;
     }
+    
 /* Set good status if we get this far */
     *istat = 0;
     return 0;
@@ -3760,12 +3767,18 @@ L140:
 /* Set up a single point at the reference pixel to map the reference point */
     xin[0] = wcsin[1];
     yin[0] = wcsin[3];
+    olddis = *disim;
+    if (xin[0] < 0 || xin[0] >= *dnx || yin[0] < 0 || yin[0] >= *dny) {
+        *disim = FALSE_;
+    }
 /* Transform */
     drival_(xin, yin, &c__1, dnx, dny, onx, ony, &c_false, xsh, ysh, rot, 
 	    scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 
 	    shfr2, rotf2, usewcs, &wcsin[1], &wcsout[1], coty, conum, &xco[1],
 	     &yco[1], disim, &pxg[pxg_offset], &pyg[pyg_offset], xgdim, ygdim,
 	     xout, yout, (ftnlen)8, (ftnlen)8);
+    *disim = olddis;
+
 /* We can immediately set the reference point on the sky */
     wcsout[1] = xout[0];
     wcsout[3] = yout[0];
@@ -3783,11 +3796,13 @@ L140:
     *coty = 1;
     olddis = *disim;
     *disim = FALSE_;
+
     drival_(xin, yin, &c__3, dnx, dny, onx, ony, &c_false, xsh, ysh, rot, 
 	    scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 
 	    shfr2, rotf2, usewcs, &wcsin[1], &wcsout[1], coty, conum, &xco[1],
 	     &yco[1], disim, &pxg[pxg_offset], &pyg[pyg_offset], xgdim, ygdim,
 	     xout, yout, (ftnlen)8, (ftnlen)8);
+
 /* Restore order */
     *coty = scoty;
     *disim = olddis;
