@@ -17,10 +17,10 @@ IDCKEYS = {'WFPC2':'cubic','ACS':'idctab','STIS':'cubic','NICMOS':'cubic','detec
 yes = True
 no = False
 
-__version__ = '0.5 (11-May-2005)'
+__version__ = '0.6 (18-July-2005)'
 
 def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
-    rot=None, frame="input", units="pixels", output=None, mode="replace"):
+    rot=None, scale=None, frame="input", units="pixels", output=None, mode="replace"):
     """ Updates an existing ASN table with shifts in arcseconds of RA and Dec.
         Parameters:
             tabname     - name of ASN table to be updated
@@ -28,6 +28,7 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
             xsh         - X shift from nominal to be applied
             ysh         - Y shift from nominal to be applied
             rot         - additional rotation to be applied
+            scale       - scale factor to be applied
             form        - specifies how shifts are computed:
                             absolute (default) or delta
             frame       - specifies whether xsh/ysh are given in terms of
@@ -94,6 +95,7 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
     #
     _update = no
     _add_rot = yes
+    _add_scale = yes
     _colnum = 0
     for name in _asntab[1].columns.names:
         if name == _colx:
@@ -112,6 +114,10 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
     for name in _asntab[1].columns.names:
         if name == 'ROTATION':
             _add_rot = no
+            break
+    for name in _asntab[1].columns.names:
+        if name == 'SCALE':
+            _add_scale = no
             break
 
     # Get the shift frame and refimage if present
@@ -162,6 +168,8 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
             _delta_yoff = ysh
             if rot == None:
                 rot = 0.
+            if scale == None:
+                scale = 1.0
 
         elif units.find('pixels') > -1 and _tab_units.find('arcsec') > -1:
             #
@@ -171,7 +179,11 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
 
             # If there is any additional rotation, account for it first
             if rot != None:
-                _wcs.updateWCS(orient=_wcs.orient+rot)
+                if scale != None:
+                    pscale = scale * _wcs.pscale
+                else:
+                    pscale = None
+                _wcs.updateWCS(orient=_wcs.orient+rot,pixel_scale=pscale)
 
             # determine delta CRVALs from CRPIX+(xsh,ysh)
             _rd_delta = _wcs.xy2rd((_wcs.crpix1+xsh,_wcs.crpix2+ysh))
@@ -185,7 +197,11 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
             _wcs = _getExposure(img,_tab_refimg,_tab_frame,_key)
             # If there is any additional rotation, account for it first
             if rot != None:
-                _wcs.updateWCS(orient=_wcs.orient+rot)
+                if scale != None:
+                    pscale = scale * _wcs.pscale
+                else:
+                    pscale = None
+                _wcs.updateWCS(orient=_wcs.orient+rot,pixel_scale=pscale)
 
             _xy_delta = _wcs.rd2xy((_wcs.crval1+xsh,_wcs.crval2+ysh))
             _delta_xoff = (_xy_delta[0] - _wcs.crpix1)
@@ -203,21 +219,26 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
             _shift_xoff = _asntab[1].data.field(_colx)[_rownum]
             _shift_yoff = _asntab[1].data.field(_coly)[_rownum]
             _shift_rot = _asntab[1].data.field('ROTATION')[_rownum]
+            _shift_scale = _asntab[1].data.field('SCALE')[_rownum]
 
             # Account for INDEF values in table
             # Logic: If set to INDEF, adding 1.0 will not change its value
             if _shift_xoff+1.0 == _shift_xoff: _shift_xoff = 0.
             if _shift_yoff+1.0 == _shift_yoff: _shift_yoff = 0.
             if _shift_rot+1.0 == _shift_rot : _shift_rot = 0.
+            if _shift_scale+1.0 == _shift_scale: _shift_scale = 1.0
         else:
             _shift_xoff = 0.
             _shift_yoff = 0.
             _shift_rot = 0.
+            _shift_scale = 1.
 
         _asntab[1].data.field(_colx)[_rownum] = _shift_xoff + _delta_xoff
         _asntab[1].data.field(_coly)[_rownum] = _shift_yoff + _delta_yoff
         if rot != None:
             _asntab[1].data.field('ROTATION')[_rownum] = _shift_rot + rot
+        if scale != None:
+            _asntab[1].data.field('SCALE')[_rownum] = _shift_scale * scale
     else:
         # We need to add the extra columns to the table
         # Build arrays for each additional column
@@ -249,8 +270,19 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
             #_asndefs.add_col(_rc)
             _newcols += _rc
         else:
-            # else, update exij8bt06010_asn.fits column directly.
+            # else, update column directly.
             _asntab[1].data.field('ROTATION')[_rownum] = rot
+
+        # If scaling column does NOT exist,
+        if _add_scale:
+            _scale = numarray.zeros(_numrows,type=numarray.Float32)
+            if scale != None:
+                _scale[_rownum] = scale
+            _sc = pyfits.Column(name='SCALE',format='E',unit='',array=_scale)
+            _newcols += _sc
+        else:
+            # else, update column directly.
+            _asntab[1].data.field('SCALE')[_rownum] = scale
 
         _asnhdu = pyfits.new_table(_newcols)
         _asnhdu.writeto(_tmpname)
@@ -357,7 +389,7 @@ def updateShifts(tabname,shiftfile, mode='replace',clean=no):
                 _s = sdict[key]
 
                 updateAsnTable(tabname,mname,xsh=_s[0],ysh=_s[1],rot=_s[2],
-                    form=sdict['form'],frame=_frame,units=_units,
+                    scale=_s[3],form=sdict['form'],frame=_frame,units=_units,
                     output=_reference,mode=mode)
 
     # If we have a new reference image, update header keyword to point

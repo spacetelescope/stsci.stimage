@@ -1,4 +1,9 @@
 ### PyDrizzle Revision Changes
+Version 5.5.4a (18-July-2005) WJH
+      - Code to update ASN tables with shift info from shiftfile was updated to
+        also update scale changes as well. No operational PyDrizzle code affected
+        as this code never gets called in this manner in the pipeline.
+        
 Version 5.5.4 (29-June-2005) WJH
       - Multiple WCS extensions are not created when running 'createReferenceWCS'
         method of WCSObject.
