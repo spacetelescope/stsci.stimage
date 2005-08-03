@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.5.4 (29-June-2005)"
+__version__ = "5.5.5 (2-Aug-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -168,16 +168,6 @@ class Pattern:
         else:
             self.detector = 'detector'
 
-        # Read in date-obs from primary header
-        if self.header:
-            if self.header.has_key('date-obs'):
-                self.dateobs = self.header['date-obs']
-            elif self.header.has_key('date_obs'):
-                self.dateobs = self.header['date_obs']
-            else:
-                self.dateobs = None
-        else:
-            self.dateobs = None
 
     def getHeaderHandle(self):
         """ Sets up the PyFITS image handle and Primary header
@@ -257,7 +247,7 @@ class Pattern:
 
             self.members.append(Exposure(_sciname, idckey=self.idckey, dqname=_dqname,
                     mask=_masklist, pa_key=self.pa_key, parity=self.PARITY[detector],
-                    dateobs=self.dateobs, idcdir=self.pars['idcdir'],
+                    idcdir=self.pars['idcdir'],
                     handle=self.image_handle,extver=i+1,exptime=self.exptime[0]))
 
     def applyAsnShifts(self):
@@ -1486,7 +1476,7 @@ class WFPCObservation(Pattern):
 
             self.members.append(Exposure(_extname, idckey=self.idckey, dqname=_dqname,
                 mask=_masklist, parity=self.PARITY[str(i+1)],
-                idcdir=self.pars['idcdir'], dateobs=self.dateobs,
+                idcdir=self.pars['idcdir'],
                 rot=_chip1_rot, handle=self.image_handle, extver=_detnum,
                 exptime=self.exptime[0]))
 
@@ -2620,6 +2610,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 #
                 _dny = plist['blotny']
                 # Call 'drizzle' to perform image combination
+
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
                             _outctx[_planeid], _uniqid, ystart, 1, 1, _dny,
                             plist['xsh'],plist['ysh'], 'output','output',

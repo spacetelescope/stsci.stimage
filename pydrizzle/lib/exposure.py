@@ -45,7 +45,7 @@ class Exposure:
 
     def __init__(self,expname, handle=None, dqname=None, idckey=None,
                     new=no,wcs=None,mask=None,pa_key=None, parity=None,
-                    idcdir=None, rot=None, extver=1, dateobs=None, exptime=None):
+                    idcdir=None, rot=None, extver=1, exptime=None):
 
         # This name should be formatted for use in image I/O
         self.name = fileutil.osfn(expname)
@@ -114,6 +114,16 @@ class Exposure:
             self.photflam = float(fileutil.getKeyword(expname,'PHOTFLAM',handle=handle))
             if self.photflam == None: self.photflam = 1.0
 
+            # Read in date-obs from primary header
+            if _header:
+                if _header.has_key('date-obs'):
+                    self.dateobs = _header['date-obs']
+                elif _header.has_key('date_obs'):
+                    self.dateobs = _header['date_obs']
+                else:
+                    self.dateobs = None
+            else:
+                self.dateobs = None
         else:
             _chip = 1
             _header = None
@@ -122,11 +132,11 @@ class Exposure:
             self.plam = 555.
             self.photzpt = 0.0
             self.photflam = 1.0
+            self.dateobs = None
             if self.exptime == None:
                 self.exptime = 1.
 
         self.parity = parity
-        self.dateobs = dateobs
         self.header = _header
         self.extver = extver
 
@@ -230,14 +240,21 @@ class Exposure:
         _xrange = (_wc[:,0].min(),_wc[:,0].max())
         _yrange = (_wc[:,1].min(),_wc[:,1].max())
 
+        self.xzero = int(_xrange[0] - 1)
+        self.yzero = int(_yrange[0] - 1)
+        if self.xzero < 0: self.xzero = 0
+        if self.yzero < 0: self.yzero = 0
+
         _out_naxis1 = int(ceil(_xrange[1]) - floor(_xrange[0]))
         _out_naxis2 = int(ceil(_yrange[1]) - floor(_yrange[0]))
+        _max_x = _out_naxis1 + self.xzero
+        _max_y = _out_naxis2 + self.yzero
+        if _max_x > self.product_wcs.naxis1: _out_naxis1 -= (_max_x - self.product_wcs.naxis1)
+        if _max_y > self.product_wcs.naxis2: _out_naxis2 -= (_max_y - self.product_wcs.naxis2)
 
         self.chip_shape = (_out_naxis1,_out_naxis2)
-        self.xzero = int(_xrange[0])
-        self.yzero = int(_yrange[0])
-        self.xsh2 = (self.product_wcs.naxis1 - _out_naxis1)/2 - self.xzero
-        self.ysh2 = (self.product_wcs.naxis2 - _out_naxis2)/2 - self.yzero
+        self.xsh2 = int(ceil((self.product_wcs.naxis1 - _out_naxis1)/2.)) - self.xzero
+        self.ysh2 = int(ceil((self.product_wcs.naxis2 - _out_naxis2)/2.)) - self.yzero
 
     def getShape(self):
         """
