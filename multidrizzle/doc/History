@@ -1,5 +1,15 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.6.7: 09/08/05 -- WJH
+    The 'wt_scl' values used for IVM and ERR weight type specifications
+    now gets computed as (plist['exptime']**2/plist['scale']**4) rather than
+    just the exptime.  This comes as a result of Anton Koekemoer's testing.
+    
+    Update to PyDrizzle 5.5.6 as well, which includes (among other things)
+    changes to properly register output with reference image when 'refimage' 
+    has been specified and setting up blot output images with sizes specific
+    to each input (OPR 54414).
+    
 Version 2.6.6: 06/20/05 -- WJH
     (OPR 53859)
     The manager 'createMedian' method in the ImageManger class (manager.py) 

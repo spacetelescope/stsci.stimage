@@ -1160,12 +1160,12 @@ class ImageManager:
             print("\ndrizzle "+p['data']+" "+p['outdata']+
                   " in_mask="+p['driz_mask']+" outweig="+p['outweight']+
                   " xsh="+xsh_str+" ysh="+ysh_str+" rot="+rot_str+
-                  " coeffs='"+p['coeffs']+"' wt_scl='"+p['wt_scl']+"'"+
+                  " coeffs='"+p['coeffs']+"' wt_scl='"+str(p['wt_scl'])+"'"+
                   " xgeoim='"+p['xgeoim']+"' ygeoim='"+p['ygeoim']+"'\n")
             runlog.write("drizzle "+p['data']+" "+p['outdata']+
                          " in_mask="+p['driz_mask']+" outweig="+p['outweight']+
                          " xsh="+xsh_str+" ysh="+ysh_str+" rot="+rot_str+
-                         " coeffs='"+p['coeffs']+"' wt_scl='"+p['wt_scl']+"'"+
+                         " coeffs='"+p['coeffs']+"' wt_scl='"+str(p['wt_scl'])+"'"+
                          " xgeoim='"+p['xgeoim']+"' ygeoim='"+p['ygeoim']+"'\n")
 
 
@@ -1268,6 +1268,10 @@ class ImageManager:
 
             mask.close()
             ivm.close()
+            
+            # Update 'wt_scl' parameter to match use of IVM file
+            parlistentry['wt_scl'] = pow(parlistentry['exptime'],2)/pow(parlistentry['scale'],4)
+            
         else:
             errorstr =  "#########################################\n"
             errorstr += "#                                       #\n"
@@ -1310,6 +1314,10 @@ class ImageManager:
 
             mask.close()
             err.close()
+
+            # Update 'wt_scl' parameter to match use of IVM file
+            parlistentry['wt_scl'] = pow(parlistentry['exptime'],2)/pow(parlistentry['scale'],4)
+
         except:
             if (parlistentry['image'].instrument.find('WFPC2') > -1 ):
             # If we were unable to find an 'ERR' extension to apply, one possible reason was that

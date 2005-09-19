@@ -166,7 +166,7 @@ class OutputImage:
         prihdu = pyfits.PrimaryHDU(header=prihdr,data=None)
 
         # Start by updating PRIMARY header keywords...
-        prihdu.header.update('EXTEND',pyfits.TRUE)
+        prihdu.header.update('EXTEND',pyfits.TRUE,after='NAXIS')
         prihdu.header.update('NEXTEND',nextend)
         prihdu.header.update('FILENAME', self.output)
 

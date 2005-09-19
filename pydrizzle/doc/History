@@ -1,4 +1,23 @@
 ### PyDrizzle Revision Changes
+Version 5.5.6 (19-Sept-2005) WJH/CJH
+      - (OPR 54414) 
+        Output arrays for blot get initialized for each input, with the
+        size specific to each image rather than just 1 size for all 
+        blotted images (as it was before). This supports combining images
+        taken with different sizes without crashing MultiDrizzle.
+      - (OPR 54251)
+        FITS compliance requires that the EXTEND keyword be placed in the
+        primary header IMMEDIATELY after the last NAXIS or NAXISn keyword.
+        This modification was made in 'outputimage' using the 'after'
+        switch to the update method for adding the EXTEND keyword.
+      - Generation of a product matched to a reference image did not produce
+        proper alignment.  This was corrected by shifting the refimage WCS
+        crpix positions by 1 pixel each to align with 'drizzle align=center' 
+        convention.
+Version 5.5.5 (2-Aug-2005) WJH
+      - Moved the input of the date-obs keyword from the Pattern class to the
+        Exposure class to simplify the use of Exposure class by 'xytosky' and 
+        any other external task. 
 Version 5.5.4a (18-July-2005) WJH
       - Code to update ASN tables with shift info from shiftfile was updated to
         also update scale changes as well. No operational PyDrizzle code affected

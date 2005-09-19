@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.5.5 (2-Aug-2005)"
+__version__ = "5.5.6 (19-Sept-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -1954,6 +1954,10 @@ class SkyField:
             self.wcs = wcsutil.WCSObject("New",new=yes)
         else:
             self.wcs = wcs.copy()
+            # Need to adjust WCS to match the 'drizzle' task
+            # align=center conventions. WJH 29-Aug-2005
+            self.wcs.crpix1 -= 1.0
+            self.wcs.crpix2 -= 1.0
             self.wcs.recenter()
 
         self.wcs.updateWCS(size=shape,pixel_scale=psize)
@@ -2356,13 +2360,12 @@ More help on SkyField objects and their parameters can be obtained using:
             # Run blot on data...
             #
 
-            plist = self.parlist[0]
-            _insci = N.zeros((plist['outny'],plist['outnx']),N.Float32)
-            _outsci = N.zeros((plist['blotny'],plist['blotnx']),N.Float32)
             _hdrlist = []
 
             for plist in self.parlist:
 
+                _insci = N.zeros((plist['outny'],plist['outnx']),N.Float32)
+                _outsci = N.zeros((plist['blotny'],plist['blotnx']),N.Float32)
                 _hdrlist.append(plist)
                 # Open input image as PyFITS object
                 if plist['outsingle'] != plist['outdata']:
@@ -2448,7 +2451,8 @@ More help on SkyField objects and their parameters can be obtained using:
 
                 del _pxg,_pyg
 
-            del _insci,_outsci,_outimg
+                del _insci,_outsci
+            del _outimg
 
         else:
             #
