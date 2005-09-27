@@ -32,7 +32,8 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.4a (pre-release, 8 Mar 2005)"
+__version__="0.5 (15 Sep 2005)"
+
 #History:
 # Bugfix,21 Jan 05, Laidler
 #    - make all paths & filenames more robust via osfn
@@ -354,7 +355,7 @@ class Exposure:
         if not pars.readsaaper:
             self.h.update('SCNPSCL',
                           pars.scale,
-                          'scale factor used to construct persistence image',
+                          'scale factor used to construct persistence img',
                           before=lastkey)
             self.h.update('SCNPMDN',
                           pars.saaper_median,
@@ -581,7 +582,7 @@ def clean(usr_imgfile,usr_outfile,pars=None):
     img.getscales(saaper,mask,pars)
     final=img.apply_domains(saaper,badmask)
 
-    if img.update:
+    if 1: #img.update:
         img.data=final
         img.update_header(pars)
         img.writeto(outfile)
