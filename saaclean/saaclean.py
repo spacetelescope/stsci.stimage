@@ -33,6 +33,8 @@ from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
 __version__="0.5 (15 Sep 2005)"
+### Warning warning warning, this is listed in the __init__.py ALSO.
+### Change it in both places!!!!!!
 
 #History:
 # Bugfix,21 Jan 05, Laidler
@@ -545,6 +547,7 @@ def flat_saaper(saaper,img):
 #....................................................................
 def clean(usr_imgfile,usr_outfile,pars=None):
     print "saaclean version %s"%__version__
+    print "Input file: %s"%usr_imgfile
     imgfile=osfn(usr_imgfile)
     outfile=osfn(usr_outfile)
     if pars is None:
