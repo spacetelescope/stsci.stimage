@@ -98,7 +98,7 @@ class MDrizPars (HasTraits):
                         'point': 'point',
                         'gaussian': 'gaussian',
                         'turbo': 'turbo',
-                        'tophap':'tophat',
+                        'tophat':'tophat',
                         'lanczos3': 'lanczos3'}) 
                         )
     enum_wht = Trait('',TraitPrefixMap({
