@@ -11,6 +11,9 @@ C
 C This version modified for callable and STSDAS DRIZZLE simultaneously 
 C Warren Hack, STScI, 17-June-2004 
 C
+C Added 'BALLME' and 'BUHEAD' to support both 'wblot' and 'blot' 
+C simultaneously.   WJH, STScI, 7-Oct-2005
+C
 C History:
 C
 C The module GOLDH was transferred from drizzle as it is also
@@ -1643,11 +1646,10 @@ C Allocate the memory arrays and return the pointers, check for
 C error status
 
 C Single line buffers for input data and weight images
-
-      CALL UDMGET(DNX,6,PWEI,ISTAT)
+      CALL UDMGET(DNX,6,PDATA,ISTAT)
       IF(ISTAT.NE.0) RETURN
 
-      CALL UDMGET(DNX,6,PDATA,ISTAT)
+      CALL UDMGET(DNX,6,PWEI,ISTAT)
       IF(ISTAT.NE.0) RETURN
 
 C Note that the next three, as they are subsets of the output
@@ -2267,6 +2269,204 @@ C an extra X and Y
       XCO(2)=XCO(2)+1.0D0
       YCO(3)=YCO(3)+1.0D0
 
+      ISTAT=0
+      RETURN
+      END
+      SUBROUTINE BUHEAD(ID,VERS,DATA,OUTDAT,COEFFS,XGEOIM,YGEOIM,
+     :      SHFTUN,MISVAL,
+     :      EXPKEY,EXPSTR,ALIGN,INUN,OUTUN,
+     :      SHFTFR,INTERP,LAM,SCALE,ROT,XSH,YSH,
+     :      SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,OUTNX,OUTNY)
+C
+C Update the header of the output image with all the
+C parameters of the current BLOT run.
+C
+C Updated in December 2001 to include the secondary geometric parameters
+C
+      IMPLICIT NONE
+
+      INTEGER ID,OUTNX,OUTNY,ISTAT
+      CHARACTER*80 DATA
+      CHARACTER*80 OUTDAT,COEFFS,XGEOIM,YGEOIM
+      CHARACTER*7 INTERP
+      CHARACTER*8 SHFTFR,SHFTUN,EXPKEY,ALIGN,INUN,OUTUN
+      CHARACTER*80 EXPSTR
+      CHARACTER*(*) VERS
+      DOUBLE PRECISION LAM,SCALE,ROT
+      DOUBLE PRECISION DROT,XSH,YSH,XSHI,YSHI
+      REAL MISVAL
+
+C Secondary geometrical parameters, added in V1.5
+      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE
+      CHARACTER*8 SHFR2
+      LOGICAL SECPAR
+
+C Constants
+      DOUBLE PRECISION PI
+      PARAMETER (PI=3.1415926536)
+
+      CALL UHDAST(ID,'BLOTVER',VERS,
+     :            'Blot, task version',0,ISTAT)
+      
+      CALL UHDAST(ID,'BLOTDATA',DATA(1:64),
+     :            'Blot, input data image',0,ISTAT)
+
+      CALL UHDAST(ID,'BLOTOUTDA',OUTDAT(1:64),
+     :            'Blot, output data image',0,ISTAT)
+
+      CALL UHDAST(ID,'BLOTCOEFF',COEFFS(1:64),
+     :            'Blot, coefficients file name ',0,ISTAT)
+
+      CALL UHDAST(ID,'BLOTXGIM',XGEOIM(1:64),
+     :            'Blot, X distortion image name ',0,ISTAT)
+
+      CALL UHDAST(ID,'BLOTYGIM',YGEOIM(1:64),
+     :            'Blot, Y distortion image name ',0,ISTAT)
+
+      CALL UHDASD(ID,'BLOTLAM',LAM,
+     : 'Blot, wavelength applied for transformation (nm)',
+     :  0,ISTAT)
+
+      CALL UHDASD(ID,'BLOTSCALE',SCALE,
+     : 'Blot, scale (pixel size) of input image',0,ISTAT)
+
+C Convert the rotation angle back to degrees
+      DROT=ROT/PI*180.0D0
+
+      CALL UHDASD(ID,'BLOTROT',DROT,
+     :  'Blot, rotation angle, degrees clockwise',0,ISTAT)
+
+C Check the SCALE and units
+      IF(SHFTUN.EQ.'input') THEN
+         XSHI=XSH/SCALE
+         YSHI=YSH/SCALE
+      ELSE
+         XSHI=XSH
+         YSHI=YSH
+      ENDIF
+
+      CALL UHDASD(ID,'BLOTXSH',XSHI,
+     :  'Blot, X shift applied',0,ISTAT)
+
+      CALL UHDASD(ID,'BLOTYSH',YSHI,
+     :  'Blot, Y shift applied',0,ISTAT)
+
+      CALL UHDAST(ID,'BLOTSHFU',SHFTUN,
+     : 'Blot, units used for shifts (output or input pixels)',
+     :            0,ISTAT)
+
+      CALL UHDAST(ID,'BLOTINUN',INUN,
+     : 'Blot, units of input image (counts or cps)',
+     :            0,ISTAT)
+
+      CALL UHDAST(ID,'BLOTOUUN',OUTUN,
+     : 'Blot, units for output image (counts or cps)',
+     :            0,ISTAT)
+
+      CALL UHDAST(ID,'BLOTSHFF',SHFTFR,
+     : 'Blot, frame in which shifts were applied',0,ISTAT)
+
+      CALL UHDASI(ID,'BLOTONX',OUTNX,
+     :  'Blot, X size of output image',0,ISTAT)
+
+      CALL UHDASI(ID,'BLOTONY',OUTNY,
+     :  'Blot, Y size of output image',0,ISTAT)
+
+      CALL UHDAST(ID,'BLOTINT',INTERP,
+     :  'Blot, interpolation method used',0,ISTAT)
+
+      CALL UHDASR(ID,'BLOTFILVA',MISVAL,
+     :  'Blot, value assigned to invalid pixels',0,ISTAT)
+
+      CALL UHDAST(ID,'BLOTEXKY',EXPKEY,
+     :  'Blot, exposure time keyword in input header',0,ISTAT)
+
+      CALL UHDAST(ID,'BLOTEXOU',EXPSTR,
+     :  'Blot, exposure time for output image',0,ISTAT)
+
+C If there are secondary parameters add these too
+      IF(SECPAR) THEN
+         CALL UHDASB(ID,'BLOTSECP',.TRUE.,
+     :  'Blot, there are secondary geometric parameters',0,ISTAT)
+
+         CALL UHDASD(ID,'BLOTXSCL',XSCALE,
+     :  'Blot, Secondary X scale applied',0,ISTAT)
+
+         CALL UHDASD(ID,'BLOTYSCL',YSCALE,
+     :  'Blot, Secondary Y scale applied',0,ISTAT)
+
+         CALL UHDASD(ID,'BLOTXSH2',XSH2,
+     :  'Blot, Secondary X shift applied',0,ISTAT)
+
+         CALL UHDASD(ID,'BLOTYSH2',YSH2,
+     :  'Blot, Secondary Y shift applied',0,ISTAT)
+
+C Convert the rotation angle back to degrees
+         DROT=ROT2/PI*180.0D0
+
+         CALL UHDASD(ID,'BLOTROT2',DROT,
+     :  'Blot, secondary rotation angle, degrees anticlockwise',
+     :   0,ISTAT)
+  
+         CALL UHDAST(ID,'BLOTSFF2',SHFR2,
+     : 'Blot, frame in which secondary shifts were applied',
+     :            0,ISTAT)
+
+      ELSE
+         CALL UHDASB(ID,'BLOTSECP',.FALSE.,
+     :  'Blot, there are no secondary geometric parameters',0,ISTAT)
+      ENDIF
+
+      RETURN
+      END
+
+      SUBROUTINE BALLME(DNX,DNY,ONX,ONY,NSX,NSY,PBUFF,
+     :            PDATA,PNDAT,PXIN,PYIN,PXOUT,PYOUT,ISTAT)
+C
+C Allocate the dynamic memory arrays needed for Blot.
+C
+C This routine was added and the corresponding calls removed from
+C the main module, December 2002
+C
+      IMPLICIT NONE
+
+      INTEGER DNX,DNY,ONX,ONY,NSX,NSY
+      INTEGER PDATA,PNDAT,PBUFF
+      INTEGER PXIN,PYIN,PXOUT,PYOUT
+      INTEGER ISTAT
+
+C Set all the pointers to zero to start with - if they stay that
+C way we can assume the allocation has failed
+      PDATA=0
+      PNDAT=0
+      PBUFF=0
+      PXIN=0
+      PYIN=0
+      PXOUT=0
+      PYOUT=0
+
+C Allocate the memory arrays and return the pointers, check for
+C error status
+      CALL UDMGET(NSX*NSY,6,PDATA,ISTAT)
+      IF(ISTAT.NE.0) RETURN
+
+      CALL UDMGET(ONX*ONY,6,PNDAT,ISTAT)
+      IF(ISTAT.NE.0) RETURN
+
+      CALL UDMGET(DNX,6,PBUFF,ISTAT)
+
+      CALL UDMGET(ONX*4,7,PXIN,ISTAT)
+      IF(ISTAT.NE.0) RETURN
+
+      CALL UDMGET(ONX*4,7,PYIN,ISTAT)
+      IF(ISTAT.NE.0) RETURN
+
+      CALL UDMGET(ONX*4,7,PXOUT,ISTAT)
+      IF(ISTAT.NE.0) RETURN
+
+      CALL UDMGET(ONX*4,7,PYOUT,ISTAT)
+      IF(ISTAT.NE.0) RETURN
+      
       ISTAT=0
       RETURN
       END
