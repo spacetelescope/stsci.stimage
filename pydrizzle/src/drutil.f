@@ -3033,6 +3033,15 @@ C Set up a single point at the reference pixel to map the reference point
       XIN(1)=WCSIN(1)
       YIN(1)=WCSIN(3)
 
+C Verify that Reference pixel falls within distortion correction image
+C If not, turn off use of distortion correction image
+      OLDDIS = DISIM
+      IF (XIN(1).LT.1 .OR. 
+     :    XIN(1).GT.DNX .OR.
+     :    YIN(1).LT.1 .OR.
+     :    YIN(1).GT.DNY) THEN
+         DISIM = .FALSE.
+      ENDIF
 C Transform
       CALL DRIVAL(XIN,YIN,1,DNX,DNY,ONX,ONY,.FALSE.,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
@@ -3040,7 +3049,7 @@ C Transform
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,YGDIM,
      :            XOUT,YOUT)
-
+      DISIM = OLDDIS
 C We can immediately set the reference point on the sky
       WCSOUT(1)=XOUT(1)
       WCSOUT(3)=YOUT(1)

@@ -118,6 +118,7 @@ tdriz(PyObject *obj, PyObject *args)
     Py_DECREF(wei);
     Py_DECREF(out);
     Py_DECREF(wht);
+
     Py_DECREF(con);
     Py_DECREF(wcsin);
     Py_DECREF(pxg);
@@ -195,7 +196,7 @@ tblot(PyObject *obj, PyObject *args)
     istat = tblot_(NA_OFFSETDATA(img), NA_OFFSETDATA(out), 
                     &xmin,&xmax, &ymin,&ymax,
                     &nx,&ny, &onx,&ony, &xsh,&ysh, &rot,&scale, 
-                    &kscale, &xsh2,&ysh2,&xscale,&yscale,&rot2, &shfr2,
+                    &kscale, &xsh2,&ysh2,&xscale,&yscale,&rot2, shfr2,
                     NA_OFFSETDATA(pxg),NA_OFFSETDATA(pyg),
                     &xgdim,&ygdim,
                     align, interp, coeffs, &ef, &misval, &sinscl, 
