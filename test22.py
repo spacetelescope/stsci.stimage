@@ -21,7 +21,7 @@ def test22():
 	'parseinput']
 
     required_versions = {
-        'numdisplay':   '0.2.0',
+        'numdisplay':   '1.1',
         'fitsdiff' :    '1.3',
         'pydrizzle':    '5.5.6',
         'imageiter':    '0.1',
