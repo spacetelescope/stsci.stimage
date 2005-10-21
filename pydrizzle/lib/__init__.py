@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.5.6 (19-Sept-2005)"
+__version__ = "5.6.0 (21-Oct-2005)"
 
 # For History of changes and updates, see 'History'
 
@@ -2181,7 +2181,7 @@ More help on SkyField objects and their parameters can be obtained using:
     def __init__(self, input, output=None, field=None, units=None, section=None,
         kernel=None,pixfrac=None,bits_final=0,bits_single=0,
         wt_scl='exptime',fillval=0.,idckey='',
-        idcdir=DEFAULT_IDCDIR,memmap=1,dqsuffix=None,prodonly=yes,shiftfile=None):
+        idcdir=DEFAULT_IDCDIR,memmap=0,dqsuffix=None,prodonly=yes,shiftfile=None):
 
         if idcdir == None: idcdir = DEFAULT_IDCDIR
 

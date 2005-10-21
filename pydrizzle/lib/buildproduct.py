@@ -252,7 +252,7 @@ def getTemplates(fname,extlist):
             template = fname[:_indx]
         else:
             template = fname
-        ftemplate = pyfits.open(template,mode='readonly',memmap=1)
+        ftemplate = pyfits.open(template,mode='readonly',memmap=0)
 
         # Setup which keyword we will use to select each
         # extension...
