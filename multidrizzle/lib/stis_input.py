@@ -33,8 +33,8 @@ class STISInputImage (InputImage):
 
     SEPARATOR = '_'
 
-    def __init__(self, input,dqname,platescale,memmap=1):
-        InputImage.__init__(self,input,dqname,platescale,memmap=1)
+    def __init__(self, input,dqname,platescale,memmap=0):
+        InputImage.__init__(self,input,dqname,platescale,memmap=0)
         
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 8192
@@ -125,8 +125,8 @@ class STISInputImage (InputImage):
 
 class CCDInputImage(STISInputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=1):
-        STISInputImage.__init__(self,input,dqname,platescale,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=0):
+        STISInputImage.__init__(self,input,dqname,platescale,memmap=0)
         self.instrument = 'STIS/CCD'
         self.full_shape = (1024,1024)
         self.platescale = platescale
@@ -137,8 +137,8 @@ class CCDInputImage(STISInputImage):
             self.cte_dir =  -1  
 
 class NUVInputImage(STISInputImage):
-    def __init__(self, input, dqname, platescale, memmap=1):
-        STISInputImage.__init__(self,input,dqname,platescale,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=0):
+        STISInputImage.__init__(self,input,dqname,platescale,memmap=0)
         self.instrument = 'STIS/NUV-MAMA'
         self.full_shape = (1024,1024)
         self.platescale = platescale
@@ -210,8 +210,8 @@ class NUVInputImage(STISInputImage):
             pass
 
 class FUVInputImage(STISInputImage):
-    def __init__(self, input, dqname, platescale, memmap=1):
-        STISInputImage.__init__(self,input,dqname,platescale,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=0):
+        STISInputImage.__init__(self,input,dqname,platescale,memmap=0)
         self.instrument = 'STIS/FUV-MAMA'
         self.full_shape = (1024,1024)
         self.platescale = platescale

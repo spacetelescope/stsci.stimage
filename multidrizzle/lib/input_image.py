@@ -69,7 +69,7 @@ class InputImage:
        types of images
     '''
 
-    def __init__(self, input,dqname,platescale,memmap=1):
+    def __init__(self, input,dqname,platescale,memmap=0):
         # These will always be populated by the appropriate
         # sub-class, however, this insures that these attributes
         # are not overlooked/forgotten.
@@ -238,7 +238,7 @@ class InputImage:
             later on.
         """
         # Open input image and get pointer to SCI data
-        __handle = fileutil.openImage(self.name,mode='readonly',memmap=1)
+        __handle = fileutil.openImage(self.name,mode='readonly',memmap=self.memmap)
         __sciext = fileutil.getExtn(__handle,extn=self.extn)
 
         # Add SCI array to static mask
@@ -302,7 +302,7 @@ class InputImage:
     def subtractSky(self):
         try:
             try:
-                _handle = fileutil.openImage(self.name,mode='update',memmap=0)
+                _handle = fileutil.openImage(self.name,mode='update',memmap=self.memmap)
                 _sciext = fileutil.getExtn(_handle,extn=self.extn)
                 print "%s (computed sky,subtracted sky) : (%f,%f)"%(self.name,self.getComputedSky(),self.getSubtractedSky())
                 N.subtract(_sciext.data,self.getSubtractedSky(),_sciext.data)
@@ -318,7 +318,7 @@ class InputImage:
             filename = self.name
             
         try:
-            _handle = fileutil.openImage(filename,mode='update',memmap=0)
+            _handle = fileutil.openImage(filename,mode='update',memmap=self.memmap)
         except:
             raise IOError, "Unable to open %s for sky level computation"%filename
         try:
@@ -344,7 +344,7 @@ class InputImage:
             _deriv_array = quickDeriv.qderiv(blotted_array)
 
             # Open input image and get pointer to SCI data
-            __handle = fileutil.openImage(self.name,mode='readonly',memmap=1)
+            __handle = fileutil.openImage(self.name,mode='readonly',memmap=self.memmap)
             __scihdu = fileutil.getExtn(__handle,extn=self.extn)
             
             __tmpDriz_cr = driz_cr.DrizCR(__scihdu.data,
@@ -370,7 +370,7 @@ class InputImage:
                 # In the case of WFPC2 input, no DQ file may have been provided.
                 # For ACS, there will always be DQ array information in the FLT file.
                 if fileutil.findFile(self.dqfile_fullname):
-                    __dqhandle = fileutil.openImage(self.dqfile_name,mode='update',memmap=1)
+                    __dqhandle = fileutil.openImage(self.dqfile_name,mode='update',memmap=self.memmap)
                     __dqarray = fileutil.getExtn(__dqhandle,extn=self.dqfile_extn)
                     __tmpDriz_cr.updatedqarray(__dqarray.data,self.getCRbit())
                     __dqhandle.close()

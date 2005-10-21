@@ -34,8 +34,8 @@ class WFPC2InputImage (InputImage):
 
     SEPARATOR = '_'
 
-    def __init__(self, input,dqname,platescale,memmap=1):
-        InputImage.__init__(self,input,dqname,platescale,memmap=1)
+    def __init__(self, input,dqname,platescale,memmap=0):
+        InputImage.__init__(self,input,dqname,platescale,memmap=0)
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
         
@@ -183,8 +183,8 @@ class WFPC2InputImage (InputImage):
 
 class WF2InputImage (WFPC2InputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=1):
-        WFPC2InputImage.__init__(self,input,dqname,platescale, memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=0):
+        WFPC2InputImage.__init__(self,input,dqname,platescale, memmap=0)
         self.instrument = 'WFPC2/WF2'
         self.platescale = platescale #0.0996 #arcsec / pixel
         
@@ -200,8 +200,8 @@ class WF2InputImage (WFPC2InputImage):
 
 class WF3InputImage (WFPC2InputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=1):
-        WFPC2InputImage.__init__(self, input, dqname, platescale, memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=0):
+        WFPC2InputImage.__init__(self, input, dqname, platescale, memmap=0)
         self.instrument = 'WFPC2/WF3'
         self.platescale = platescale #0.0996 #arcsec / pixel
 
@@ -217,8 +217,8 @@ class WF3InputImage (WFPC2InputImage):
 
 class WF4InputImage (WFPC2InputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=1):
-        WFPC2InputImage.__init__(self, input, dqname, platescale, memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=0):
+        WFPC2InputImage.__init__(self, input, dqname, platescale, memmap=0)
         self.instrument = 'WFPC2/WF4'
         self.platescale = platescale #0.0996 #arcsec / pixel
 
@@ -234,8 +234,8 @@ class WF4InputImage (WFPC2InputImage):
 
 class PCInputImage (WFPC2InputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=1):
-        WFPC2InputImage.__init__(self,input,dqname,platescale,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=0):
+        WFPC2InputImage.__init__(self,input,dqname,platescale,memmap=0)
         self.instrument = 'WFPC2/PC'
         self.platescale = platescale #0.0455 #arcsec / pixel
 

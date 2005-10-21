@@ -44,8 +44,8 @@ class ACSInputImage (InputImage):
 
     SEPARATOR = '_'
 
-    def __init__(self, input,dqname,platescale,memmap=1):
-        InputImage.__init__(self,input,dqname,platescale,memmap=1)
+    def __init__(self, input,dqname,platescale,memmap=0):
+        InputImage.__init__(self,input,dqname,platescale,memmap=0)
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
         self.platescale = platescale
@@ -97,8 +97,8 @@ class ACSInputImage (InputImage):
 
 class WFCInputImage (ACSInputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=1):
-        ACSInputImage.__init__(self,input,dqname,platescale,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=0):
+        ACSInputImage.__init__(self,input,dqname,platescale,memmap=0)
         self.instrument = 'ACS/WFC'
         self.full_shape = (4096,2048)
         self.platescale = platescale
@@ -110,8 +110,8 @@ class WFCInputImage (ACSInputImage):
 
 class HRCInputImage (ACSInputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=1):
-        ACSInputImage.__init__(self, input, dqname, platescale,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=0):
+        ACSInputImage.__init__(self, input, dqname, platescale,memmap=0)
         self.instrument = 'ACS/HRC'        
         self.full_shape = (1024,1024)
         self.platescale = platescale
@@ -123,8 +123,8 @@ class HRCInputImage (ACSInputImage):
 
 class SBCInputImage (ACSInputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=1):
-        ACSInputImage.__init__(self,input,dqname,platescale,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=0):
+        ACSInputImage.__init__(self,input,dqname,platescale,memmap=0)
         self.full_shape = (1024,1024)
         self.platescale = platescale
         self.instrument = 'ACS/SBC'

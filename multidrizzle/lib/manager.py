@@ -136,7 +136,7 @@ class ImageManager:
         self.static_file = static_file
 
         # Establish a default memory mapping behavior
-        self.memmap = 1
+        self.memmap = 0
 
         # Global static mask.
         self.static_mask = None
@@ -1017,8 +1017,8 @@ class ImageManager:
                         _corr_file = None
                         _cr_file = None
 
-                    __blot_handle = fileutil.openImage(p['outblot'], memmap=1, mode='readonly')
-                    __mask_handle = fileutil.openImage(p['image'].maskname, mode='update') #, memmap=1)
+                    __blot_handle = fileutil.openImage(p['outblot'], memmap=0, mode='readonly')
+                    __mask_handle = fileutil.openImage(p['image'].maskname, mode='update') #, memmap=0)
 
                     p['image'].runDrizCR(__blot_handle[0].data, __mask_handle[0].data,
                                         drizcrpars, skypars, _corr_file, _cr_file)

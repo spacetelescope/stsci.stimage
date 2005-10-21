@@ -10,8 +10,8 @@ def run(fname):
     """ Runs quickDeriv on a Python list of input files."""
     print "Running quickDeriv on ", fname
 
-    # OPEN THE INPUT IMAGE IN READ ONLY MODE USING MEMORY MAPPING
-    img = pyfits.open(fname,mode='readonly', memmap=1)
+    # OPEN THE INPUT IMAGE IN READ ONLY MODE 
+    img = pyfits.open(fname,mode='readonly', memmap=0)
 
     # calling qderiv with the assumption that the 
     # input file is a simple FITS file.
@@ -55,8 +55,8 @@ def test(inputFile):
 
         print "WORKING ON FILE ", line
 
-        # OPEN THE INPUT IMAGE IN READ ONLY MODE USING MEMORY MAPPING
-        img = pyfits.open(line,mode='readonly', memmap=1)
+        # OPEN THE INPUT IMAGE IN READ ONLY MODE
+        img = pyfits.open(line,mode='readonly', memmap=0)
 
         absderiv = quickDeriv.qderiv(img["SCI"].data)
 

@@ -28,8 +28,8 @@ class NICMOSInputImage (InputImage):
 
     SEPARATOR = '_'
 
-    def __init__(self, input,dqname,platescale,memmap=1):
-        InputImage.__init__(self,input,dqname,platescale,memmap=1)
+    def __init__(self, input,dqname,platescale,memmap=0):
+        InputImage.__init__(self,input,dqname,platescale,memmap=0)
         
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
@@ -190,8 +190,8 @@ class NICMOSInputImage (InputImage):
 
 class NIC1InputImage(NICMOSInputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=1):
-        NICMOSInputImage.__init__(self,input,dqname,platescale,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=0):
+        NICMOSInputImage.__init__(self,input,dqname,platescale,memmap=0)
         self.instrument = 'NICMOS/1'
         self.full_shape = (256,256)
         self.platescale = platescale
@@ -200,8 +200,8 @@ class NIC1InputImage(NICMOSInputImage):
         self._rdnoise = 27.5
 
 class NIC2InputImage(NICMOSInputImage):
-    def __init__(self, input, dqname, platescale, memmap=1):
-        NICMOSInputImage.__init__(self,input,dqname,platescale,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=0):
+        NICMOSInputImage.__init__(self,input,dqname,platescale,memmap=0)
         self.instrument = 'NICMOS/2'
         self.full_shape = (256,256)
         self.platescale = platescale
@@ -210,8 +210,8 @@ class NIC2InputImage(NICMOSInputImage):
         self._rdnoise = 27.5
 
 class NIC3InputImage(NICMOSInputImage):
-    def __init__(self, input, dqname, platescale, memmap=1):
-        NICMOSInputImage.__init__(self,input,dqname,platescale,memmap=1)
+    def __init__(self, input, dqname, platescale, memmap=0):
+        NICMOSInputImage.__init__(self,input,dqname,platescale,memmap=0)
         self.instrument = 'NICMOS/3'
         self.full_shape = (256,256)
         self.platescale = platescale
