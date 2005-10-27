@@ -23,18 +23,18 @@ def test22():
     required_versions = {
         'numdisplay':   '1.1',
         'fitsdiff' :    '1.3',
-        'pydrizzle':    '5.5.6',
+        'pydrizzle':    '5.6.0',
         'imageiter':    '0.1',
         'imagestats':   '1.0.0',
         'irafglob':     '1.0',
         'makewcs':      '0.7.0',
-        'multidrizzle': '2.6.7',
+        'multidrizzle': '2.7.0',
         'nimageiter':   '0.5',
-        'numarray':     '1.3.3',
+        'numarray':     '1.4',
         'numcombine':   '0.3.0',
         'pyfits':       '1.0',
         'readgeis' :    '1.8',
-	'parseinput':	'0.1.4'
+	'parseinput':	'0.1.5'
         }
 
 
