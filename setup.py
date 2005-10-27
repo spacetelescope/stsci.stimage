@@ -31,55 +31,30 @@ for a in args:
 f2cpar = string.join(f2cparams)
 par = string.join(params)
 f2cpackages = ['pydrizzle']
-packages = ['pyraf', 'numdisplay', 'imagestats', 'multidrizzle']
+packages = ['pyraf', 'numdisplay', 'imagestats', 'multidrizzle', 'saaclean', 'pyfits', 'pytools']
 topdir = os.getcwd()
 
-def getDataDir(args):
-    for a in args:
-        if string.find(a, '--home=') == 0:
-            dir = os.path.abspath(string.split(a, '=')[1])
-            data_dir = os.path.join(dir, 'lib/python')
-        elif string.find(a, '--prefix=') == 0:
-            dir = os.path.abspath(string.split(a, '=')[1])
-            data_dir = os.path.join(dir, 'lib', python_exec, 'site-packages')
-        elif a.startswith('--install-data='):
-            dir = os.path.abspath(string.split(a, '=')[1])
-            data_dir = dir
-        else:
-            data_dir = os.path.join(sys.prefix, 'lib', python_exec, 'site-packages')
-    return data_dir
 
 def dosetup():
     r = setup(
         name="STScI Python Software",
-        version="2.0",
+        version="2.2",
         description="",
         author="Science Software Branch, STScI",
         maintainer_email="help@stsci.edu",
         url="http://www.stsci.edu/resources/software_hardware/index_html?category=Data_Analysis",
-        py_modules = ['pyfits', 'readgeis', 'fitsdiff', 'imageiter', 'irafglob',  'makewcs', 'nimageiter', 'numcombine', 'versioninfo', 'parseinput']
         )
     for p in packages:
         os.chdir(topdir)
         os.chdir(p)
         os.system(python_exec + " setup.py install " + par)
     for p in f2cpackages:
+	print "Installing %s\n", p
         os.chdir(topdir)
         os.chdir(p)
         os.system(python_exec + " setup.py install " + f2cpar)
 
     return r
-
-
-def copy_doc(data_dir, args):
-    if 'install' in args:
-        doc_dir = os.path.join(data_dir,'doc')
-        if os.path.exists(doc_dir):
-	    try:
-                shutil.rmtree(doc_dir)
-            except:
-                print "Error removing doc directory\n"
-	shutil.copytree('doc', doc_dir)
 
 
 def main():
@@ -90,11 +65,7 @@ def main():
             os.chdir(p)
             os.system(python_exec + " setup.py --help ")
     else:
-        data_dir = getDataDir(args)
-
         dosetup()
-        os.chdir(topdir)
-        copy_doc(data_dir, args)
 
 
 
