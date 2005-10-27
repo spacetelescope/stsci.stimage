@@ -18,7 +18,9 @@ def test22():
         'numcombine',
         'pyfits',
         'readgeis',
-	'parseinput']
+	'parseinput',
+	'saaclean',
+	'iterfile']
 
     required_versions = {
         'numdisplay':   '1.1',
@@ -30,11 +32,13 @@ def test22():
         'makewcs':      '0.7.0',
         'multidrizzle': '2.7.0',
         'nimageiter':   '0.5',
-        'numarray':     '1.4',
+        'numarray':     '1.4.0',
         'numcombine':   '0.3.0',
         'pyfits':       '1.0',
         'readgeis' :    '1.8',
-	'parseinput':	'0.1.5'
+	'parseinput':	'0.1.5',
+	'saaclean':	'0.5',
+	'iterfile':	'0.1'
         }
 
 
