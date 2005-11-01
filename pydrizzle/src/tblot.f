@@ -93,7 +93,7 @@ C Keep quiet
       ENDIF
 
 C First announce the version
-      VERS='Callable BLOT Version 0.5 (4th April 2005)'
+      VERS='Callable BLOT Version 0.6 (1st Nov 2005)'
 
       CALL UMSPUT('+ '//VERS,1,0,ISTAT)
 

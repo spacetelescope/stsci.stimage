@@ -142,7 +142,7 @@ C Logical flags
 C-- Start of executable code
 
 C First announce the version
-      VERS='BLOT Version 3.4 (25th June 2004)'
+      VERS='BLOT Version 3.4.1 (1st Nov 2005)'
 
       CALL UMSPUT('+ '//VERS,1,0,ISTAT)
 

@@ -14,7 +14,7 @@
 
 /* Common Block Declarations */
 
-extern struct {
+struct {
     logical verbose;
 } verbose_;
 
@@ -136,8 +136,8 @@ static integer c__100 = 100;
 	verbose_1.verbose = FALSE_;
     }
 /* First announce the version */
-    s_copy(vers, "Callable BLOT Version 0.5 (4th April 2005)", (ftnlen)45, (
-	    ftnlen)42);
+    s_copy(vers, "Callable BLOT Version 0.6 (1st Nov 2005)", (ftnlen)45, (
+	    ftnlen)40);
 /* Writing concatenation */
     i__1[0] = 2, a__1[0] = "+ ";
     i__1[1] = 45, a__1[1] = vers;

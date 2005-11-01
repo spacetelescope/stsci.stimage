@@ -1,4 +1,16 @@
 ### PyDrizzle Revision Changes
+Version 5.6.0 (1-Nov-2005) WJH
+      - 'drizzle' code was corrected to properly run 'sinc' kernel
+        for blotting. Required changes to indexing of taper in 'bieval'
+        and in hard-coding the scratch arrays 'taper','ac','ar' in 'inter2d'.
+        This upgraded 'callable blot' to '0.6' and STSDAS blot to 3.4.1.
+        
+Version 5.6.0 (25-Oct-2005) WJH
+      - Release version for STScI_Python 2.2 and STSDAS 3.4
+      - Applying shifts to input exposures resulted in a shift of 1.,1. 
+        in the output product.  This offset was removed by adding 1,1 
+        to the crpix values of the shifted WCS in '_applyShifts()'.
+
 Version 5.5.6 (19-Sept-2005) WJH/CJH
       - (OPR 54414) 
         Output arrays for blot get initialized for each input, with the

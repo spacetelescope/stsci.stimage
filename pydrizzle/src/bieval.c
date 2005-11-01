@@ -395,7 +395,9 @@
     static real px, py, dx2, dxn, dyn, sdx, sum;
     static integer offj, offk, minj, mink, maxj, maxk;
     static real sumx, sumy;
-    static integer index, nsinc, lastpt;
+    static integer index, nsinc;
+    static real halfpi;
+    static integer lastpt;
     static real sconst;
 
 /* real   coeff[ARB]     # 1D array of coefficients */
@@ -428,8 +430,9 @@
     /* Function Body */
     nsinc = (*nconv - 1) / 2;
 /*     Compute the constants for the cosine bell taper. */
+    halfpi = 1.5707963267948966192f;
 /* Computing 2nd power */
-    r__1 = 1.5707963267948966192f / nsinc;
+    r__1 = halfpi / nsinc;
     sconst = r__1 * r__1;
     a2 = -.4967f;
     a4 = .03705f;
@@ -444,7 +447,7 @@
 	    dx2 = sconst * j * j;
 /* Computing 2nd power */
 	    r__1 = a2 * dx2 + 1.f + a4 * dx2 * dx2;
-	    taper[j + nsinc] = sdx * (r__1 * r__1);
+	    taper[j + nsinc + 1] = sdx * (r__1 * r__1);
 	    sdx = -sdx;
 	}
     }

@@ -403,12 +403,15 @@ C
       real ax, ay, px, py
       real sum, sumx, sumy
       real dx2
+      real halfpi
+
       save
 C     Compute original sinc truncation length
       nsinc = (nconv - 1) / 2
       
 C     Compute the constants for the cosine bell taper.
-      sconst = (1.5707963267948966192 / nsinc) ** 2
+      halfpi = 1.5707963267948966192
+      sconst = ( halfpi / nsinc) ** 2
       a2 = -0.49670
       a4 = 0.03705
 
@@ -421,12 +424,12 @@ C	   of the sinc interpolator into the taper array.
          sdx = -1.0
          do j = -nsinc, nsinc 
             dx2 = sconst * j * j
-            taper(j+nsinc) = sdx * (1.0 + a2 * dx2 + 
+            taper(j+nsinc+1) = sdx * (1.0 + a2 * dx2 + 
      *      a4 * dx2 * dx2) ** 2
             sdx = -sdx
          ENDDO
       ENDIF
-         
+   
       do i = 1, npts 
 C     	   define the fractional pixel interpolation.
          nx = nint (x(i))

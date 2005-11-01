@@ -38,6 +38,11 @@ C
 C  Used for SPLINE3 option
 C      integer kx, ky
 C      real tmp(19*19)
+C  Used for SINC option
+      real taper(15), ac(15), ar(15)
+      integer nconv
+      
+      nconv = 15
 
 C Define common terms
          nx = int(x)
@@ -288,8 +293,14 @@ C          yval = yindex + 1 + (y - ny)
 C         call iibis3 (coeff, 0, rowleh, xval, yval, value, 1)
 C         nrievl = (value)
       ELSE IF (INTERE.EQ.6 .OR. INTERE.EQ.7) THEN
-         call iinisc (datain, 0, lendan, nypix, x, y, value, 1, 15, 0
-     *      .001, 0.001, scale)
+
+C      subroutine iinisc (coeff, firstt, lencof, lenary, x, y, zfit, 
+C    * npts, nconv, taper, ac, ar, mindx, mindy, scale)
+C      where
+C      nconv = 2 * nsinc + 1 and nsinc = sinc truncation length   
+
+      call iinisc (datain, 0, lendan, nypix, x, y, value, 1, nconv, 
+     *      taper, ac, ar, 0.001, 0.001, scale)
          nrievl = (value)
                   
       ENDIF

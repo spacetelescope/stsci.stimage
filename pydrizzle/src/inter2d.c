@@ -18,8 +18,7 @@ static real c_b2 = 2.f;
 static real c_b3 = -1.f;
 static integer c__0 = 0;
 static integer c__1 = 1;
-static integer c__15 = 15;
-static real c_b25 = .001f;
+static real c_b24 = .001f;
 
 doublereal nrievl_(real *x, real *y, real *datain, integer *nxpix, integer *
 	nypix, integer *lendan, integer *intere, real *scale)
@@ -29,15 +28,18 @@ doublereal nrievl_(real *x, real *y, real *datain, integer *nxpix, integer *
     real ret_val;
 
     /* Local variables */
-    static integer i__, j, nx, ny;
+    static integer i__, j;
+    static real ac[15], ar[15];
+    static integer nx, ny;
     static real sx, sy, tx, ty, xval, yval, coeff[361]	/* was [19][19] */, 
-	    hold21, hold12, hold22, value;
+	    hold21, hold12, hold22, taper[15], value;
+    static integer nconv;
     extern /* Subroutine */ int wsumr_(real *, real *, real *, integer *, 
 	    real *, real *), iibip3_(real *, integer *, integer *, real *, 
 	    real *, real *, integer *), iibip5_(real *, integer *, integer *, 
 	    real *, real *, real *, integer *), iinisc_(real *, integer *, 
 	    integer *, integer *, real *, real *, real *, integer *, integer *
-	    , real *, real *, real *);
+	    , real *, real *, real *, real *, real *, real *);
     static integer rowleh, xindex, yindex, nterms, lastrw, firstw;
 
 /* NRIEVAL -- Procedure to evaluate the 2D interpolant at a given value */
@@ -59,13 +61,15 @@ doublereal nrievl_(real *x, real *y, real *datain, integer *nxpix, integer *
 /*  Used for SPLINE3 option */
 /*      integer kx, ky */
 /*      real tmp(19*19) */
-/* Define common terms */
+/*  Used for SINC option */
     /* Parameter adjustments */
     datain_dim1 = *lendan;
     datain_offset = 1 + datain_dim1;
     datain -= datain_offset;
 
     /* Function Body */
+    nconv = 15;
+/* Define common terms */
     nx = (integer) (*x);
     ny = (integer) (*y);
 /* Nearest neighbour */
@@ -323,8 +327,12 @@ doublereal nrievl_(real *x, real *y, real *datain, integer *nxpix, integer *
 /*         call iibis3 (coeff, 0, rowleh, xval, yval, value, 1) */
 /*         nrievl = (value) */
     } else if (*intere == 6 || *intere == 7) {
+/*      subroutine iinisc (coeff, firstt, lencof, lenary, x, y, zfit, */
+/*    * npts, nconv, taper, ac, ar, mindx, mindy, scale) */
+/*      where */
+/*      nconv = 2 * nsinc + 1 and nsinc = sinc truncation length */
 	iinisc_(&datain[datain_offset], &c__0, lendan, nypix, x, y, &value, &
-		c__1, &c__15, &c_b25, &c_b25, scale);
+		c__1, &nconv, taper, ac, ar, &c_b24, &c_b24, scale);
 	ret_val = value;
     }
     return ret_val;
