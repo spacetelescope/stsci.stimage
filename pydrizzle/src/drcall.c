@@ -14,7 +14,7 @@
 
 /* Common Block Declarations */
 
-extern struct {
+struct {
     logical verbose;
 } verbose_;
 
