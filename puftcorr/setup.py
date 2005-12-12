@@ -25,8 +25,8 @@ def dolocal():
 def dosetup():
     r = setup(name = "puftcorr",
               version = "0.1",
-              description = "Estimates and removes estimating and removing 'Mr. Staypuft' signal from a NICMOS exposure.",
-              author = "",
+              description = "Estimates and removes 'Mr. Staypuft' signal from a NICMOS exposure.",
+              author = "Howard Bushouse",
               author_email = "help@stsci.edu",
               platforms = ["Linux","Solaris","Mac OS X"],
               packages=['puftcorr'],
