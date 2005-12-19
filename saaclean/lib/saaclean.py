@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.5 (15 Sep 2005)"
+__version__="0.6dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -99,6 +99,12 @@ class Domain:
       
 
     def striplowerthan(self,factor):
+        """self.pp is defined in Exposure.getscales
+        It contains the (bin, stddev, mode) for the statistical analysis.
+        striplowerthan(factor) examines the stddev column only, and replaces
+        all values of the stddev that are less than factor*the zeroth bin,
+        with the maximum stddev.
+        """
         p1=self.pp[1,:]
         uu=numarray.where(p1 < factor*p1[0])
         if uu[0].nelements != 0:
@@ -154,20 +160,28 @@ class Exposure:
         self.q4=slice(0,128),slice(128,256)
 
 
-        
+        print "Using DQ extension for badpix"
         try:
-##             if self.badfile.startswith('nref$'):
-##                 prefix,root=self.badfile.split('$',1)
-##                 self.badfile=iraf.osfn(prefix+'$')+root
-            
-            f2=pyfits.open(self.badfile)
-            self.badpix=f2[3].data
-            f2.close()
-        except IOError,e:
+            self.badpix=f['dq',1].data
+        except KeyError,e:
             print e
-            print "Bad pixel image not read"
-            print "Bad pixel image filename obtained from ",self.filename
-            self.badpix=None
+            print 'DQ extension not found for %s'%imgfile
+            print 'defaulting to maskfile'
+            self.badpix = None
+
+ #       print "self.badpix.shape = ",self.badpix.shape
+            
+        if self.badpix is None:
+            print "failing over to ",self.badfile
+            try:
+                f2=pyfits.open(self.badfile)
+                self.badpix=f2['dq',1].data
+                f2.close()
+            except IOError,e:
+                print e
+                print "Bad pixel image not read"
+                print "Bad pixel image filename obtained from ",self.filename
+                self.badpix=None
 
     def writeto(self,outname):
         f=pyfits.open(self.filename)
