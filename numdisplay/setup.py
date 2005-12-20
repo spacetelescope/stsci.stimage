@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, string, os.path 
+import sys, string, os.path
 from distutils.core import setup
 from distutils.sysconfig import *
 from distutils.command.install import install
@@ -23,16 +23,16 @@ def getDataDir(args):
         else:
             data_dir = os.path.join(sys.prefix, 'lib', python_exec, 'site-packages/numdisplay')
     return data_dir
-                
+
 def copy_doc(data_dir, args):
     if 'install' in args:
         doc_dir = os.path.join(data_dir,'doc')
         if os.path.exists(doc_dir):
-	    try:
+            try:
                 shutil.rmtree(doc_dir)
             except:
                 print "Error removing doc directory\n"
-	shutil.copytree('doc', doc_dir)
+        shutil.copytree('doc', doc_dir)
 
 
 
@@ -69,8 +69,8 @@ if __name__ == '__main__' :
         license = "http://www.stsci.edu/resources/software_hardware/pyraf/LICENSE",
      platforms = ["any"],
         packages = ['numdisplay'],
-	package_dir={'numdisplay':''},
-	data_files = [(data_dir, ['imtoolrc'])]
+        package_dir={'numdisplay':''},
+        data_files = [(data_dir, ['imtoolrc']), (data_dir, ['LICENSE.txt'])]
         )
 
     copy_doc(data_dir, args)

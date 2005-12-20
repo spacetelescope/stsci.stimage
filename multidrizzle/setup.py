@@ -50,7 +50,7 @@ def copy_doc(data_dir, args):
         #os.mkdir(doc_dir)
 	shutil.copytree('doc', doc_dir)
 
-def dosetup():
+def dosetup(data_dir):
     r = setup(name = "multidrizzle",
               version = "2.3.6",
               description = "Automated process for HST image combination and cosmic-ray rejection",
@@ -59,7 +59,9 @@ def dosetup():
               license = "http://www.stsci.edu/resources/software_hardware/pyraf/LICENSE",
               platforms = ["Linux","Solaris","Mac OS X"],
               packages=['multidrizzle'],
-              package_dir={'multidrizzle':'lib'})
+              package_dir={'multidrizzle':'lib'},
+              data_files = [(data_dir,['lib/LICENSE.txt'])]
+              )
 
     return r
 
@@ -67,7 +69,7 @@ def main():
     args = sys.argv
     dolocal()
     data_dir = getDataDir(args)
-    dosetup()
+    dosetup(data_dir)
     copy_doc(data_dir, args)
 
 

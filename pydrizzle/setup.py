@@ -23,7 +23,7 @@ def dolocal():
             dir =  os.path.abspath(a.split("=")[1])
             sys.argv.extend([
                 "--install-lib="+dir,
-		"--install-data="+os.path.join(dir,"pydrizzle")
+                "--install-data="+os.path.join(dir,"pydrizzle")
                 ])
             sys.argv.remove(a)
 
@@ -87,7 +87,7 @@ def getExtensions(f2cdirs,args):
     return ext
 
 
-def dosetup(ext):
+def dosetup(data_dir, ext):
     r = setup(name = "pydrizzle",
               version = "5.2.6",
               description = "Geometrically correct and combine images using Drizzle",
@@ -97,6 +97,7 @@ def dosetup(ext):
               platforms = ["Linux","Solaris", "MacOS X"],
               packages=['pydrizzle','pydrizzle/traits102'],
               package_dir={'pydrizzle':'lib','pydrizzle/traits102':'traits102'},
+              data_files = [(data_dir,['lib/LICENSE.txt'])],
               ext_modules=ext)
     return r
 
@@ -104,11 +105,11 @@ def copy_doc(data_dir, args):
     if 'install' in args:
         doc_dir = os.path.join(data_dir,'doc')
         if os.path.exists(doc_dir):
-	    try:
+            try:
                 shutil.rmtree(doc_dir)
             except:
                 print "Error removing doc directory\n"
-	shutil.copytree('doc', doc_dir)
+        shutil.copytree('doc', doc_dir)
 
 
 def main():
@@ -117,7 +118,7 @@ def main():
     data_dir = getDataDir(args)
     f2cdirs = getF2CDirs(args)
     ext = getExtensions(f2cdirs,args)
-    dosetup(ext)
+    dosetup(data_dir, ext)
     copy_doc(data_dir, args)
 
 if __name__ == "__main__":
