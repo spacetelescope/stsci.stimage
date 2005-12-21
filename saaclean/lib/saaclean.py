@@ -32,11 +32,16 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.6dev"
+__version__="0.61dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
 #History:
+# Enhancement, 21 Dec 05, Laidler
+#    - add chi2 output to header keyword set. This involved changing
+#      the signature of the parabola_min function to return the chi2.
+# Enhancement, 19 Dec 05, Laidler
+#    - use DQ extension for bad pixels
 # Bugfix,21 Jan 05, Laidler
 #    - make all paths & filenames more robust via osfn
 # Bugfix,20 Jan 05, Laidler:
@@ -303,7 +308,7 @@ class Exposure:
                 maxx=min(ubest+5,len(dom.pp[0])-1)
                 thedata=[(dom.pp[0,i],dom.pp[1,i]) for i in range(minx,maxx+1)]
                 #print thedata
-                best=parabola_min(thedata,best)
+                best,dom.chi2=parabola_min(thedata,best)
                # best=parabola1(dom.pp[0,minx:maxx],pp[1,minx:maxx],minguess=best)
                # best=parabola1(dom.pp[0,minx:maxx],pp[1,minx:maxx],minguess=best)
 
@@ -386,11 +391,11 @@ class Exposure:
                       before=lastkey)
         self.h.update('SCNHNPIX',
                       self.domains['high'].npix,
-                      'Number of pixels in high signal domain',
+                      'Number of pixels in high signal domain (HSD)',
                       before=lastkey)
         self.h.update('SCNLNPIX',
                       self.domains['low'].npix,
-                      'Number of pixels in low signal domain',
+                      'Number of pixels in low signal domain (LSD)',
                       before=lastkey)
         self.h.add_blank('',before=lastkey)
         
@@ -401,6 +406,10 @@ class Exposure:
                       before=lastkey)
         for k in self.domains:
             HorL=k[0].upper()
+            self.h.update('SCN%sCHI2'%HorL,
+                          self.domains[k].chi2,
+                          '%sSD chi squared for parabola fit'%HorL,
+                     before=lastkey)
             self.h.update('SCN%sSCL'%HorL,
                           self.domains[k].scale,
                           '%sSD scale factor for min noise'%HorL,
@@ -459,7 +468,7 @@ def parabola_min(thedata, startguess):
     guesscoeff=(100,startguess,0.1)
     fitcoeff,chi2=LeastSquares.leastSquaresFit(parabola_model,guesscoeff,thedata)
     print "chi2 for parabola fit = ",chi2
-    return fitcoeff[1]
+    return fitcoeff[1],chi2
 #..................................................................................
 #Not tested or used anywhere yet
 def gausspoly_model(coeffs,t):
