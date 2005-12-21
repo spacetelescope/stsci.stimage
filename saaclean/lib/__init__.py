@@ -23,4 +23,4 @@ Dependencies:
           imagestats v0.2.1
 """
 from saaclean import * #reveals everything
-__version__="0.5 (15 Sep 2005)"
+__version__="0.63dev (21 Dec 2005)"

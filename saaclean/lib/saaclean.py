@@ -32,11 +32,14 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.61dev"
+__version__="0.63dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
 #History:
+# Enhancement, 21 Dec 05, Laidler
+#  use header value of ADCGAIN in place of GAINPLOT
+#  add new CRTHRESH, NOISETHRESH, BINSIGFRAC parameters
 # Enhancement, 21 Dec 05, Laidler
 #    - add chi2 output to header keyword set. This involved changing
 #      the signature of the parabola_min function to return the chi2.
@@ -64,8 +67,9 @@ __version__="0.61dev"
 #.........................................................................
 
 class params:
-    def __init__(self,scale=0.54,wf1=0.7,wf2=0.3,gainplot=5.4,
+    def __init__(self,scale=0.54,wf1=0.7,wf2=0.3,
                  stepsize=0.008,thresh=None,hirange=0.4,lorange=0.25,dofit=1,
+                 crthresh=0.3, noisethresh=1.0, binsigfrac=0.3,
                  readsaaper='False',writesaaper='True',saaperfile='saaper.fits',
                  flatsaaper='True',flatsaaperfile=None,
                  maskfile=None,darkpath=None,diagfile=None):
@@ -78,12 +82,17 @@ class params:
         self.flatsaaper=flatsaaper
         self.flatsaaperfile=osfn(flatsaaperfile)
         self.maskfile=osfn(maskfile)
-        self.gainplot=gainplot
+#        self.gainplot=gainplot
         self.stepsize=stepsize
         self.thresh=thresh
         self.hirange=hirange
         self.lorange=lorange
         self.dofit=dofit
+
+        self.crthresh=crthresh
+        self.noisethresh=noisethresh
+        self.binsigfrac=binsigfrac
+        
         self.darkpath=osfn(darkpath)
         self.diagfile=osfn(diagfile)
 
@@ -153,6 +162,7 @@ class Exposure:
         self.camera=h['camera']
         self.saa_time=h['saa_time']
         self.badfile=osfn(h['maskfile'])
+        self.gainplot=h['adcgain']
  
         self.inq1=slice(10,118),slice(10,118)              
         self.inq2=slice(10+128,118+128),slice(10,118)      
@@ -296,7 +306,7 @@ class Exposure:
                 temp=imstat(dif[umask],binwidth=0.01,nclip=3,fields='stddev,mode') #sigma=100
                 dom.pp[:,index]=i,temp.stddev,temp.mode
                 index+=1
-            dom.striplowerthan(0.3)
+            dom.striplowerthan(pars.binsigfrac)
             if pars.diagfile:
                 dom.writeto(pars.diagfile+'_'+dom.name+'_signal_domain.dat')
             ubest,umode=dom.getmin()
@@ -319,27 +329,27 @@ class Exposure:
 
             #print "   zero-mode scale factor is       : ",dom.pp[0,umode]
             print "   min-noise (best) scale factor is: ",dom.scale
-            print "   effective noise at this factor (electrons at gain %f): %f"%(pars.gainplot,dom.pp[1,ubest]*pars.gainplot)
+            print "   effective noise at this factor (electrons at gain %f): %f"%(self.gainplot,dom.pp[1,ubest]*self.gainplot)
             print "   noise reduction (percent)       : ",dom.nr
 
-    def apply_domains(self,saaper,badmask):
+    def apply_domains(self,saaper,badmask,noisethresh):
         final=self.data.copy()
         hdom,ldom=self.domains['high'],self.domains['low']
         self.update=1
-        if hdom.nr >= 1.0 and ldom.nr >= 1.0:
+        if hdom.nr >= noisethresh and ldom.nr >= noisethresh:
             print "\n Applying noise reduction in both domains "
             self.appstring='both'
             final[ldom.pixlist]= self.data[ldom.pixlist]-(saaper[ldom.pixlist]*ldom.scale*badmask[ldom.pixlist])
             final[hdom.pixlist]= self.data[hdom.pixlist]-(saaper[hdom.pixlist]*hdom.scale*badmask[hdom.pixlist])
-        elif hdom.nr > 1.0 and ldom.nr < 1.0:
+        elif hdom.nr > noisethresh and ldom.nr < noisethresh:
             print "\n Applying noise reduction in high domain only "
             self.appstring='high only'
             final[hdom.pixlist]= self.data[hdom.pixlist]-(saaper[hdom.pixlist]*hdom.scale*badmask[hdom.pixlist])
-        elif hdom.nr < 1.0 and ldom.nr >= 1.0:
+        elif hdom.nr < noisethresh and ldom.nr >= noisethresh:
             print "\n...Noise reduction in high domain < 1%: applying low scale everywhere"
             self.appstring='low everywhere'
             final=self.data-(saaper*ldom.scale*badmask)
-        elif hdom.nr < 1.0 and ldom.nr < 1.0:
+        elif hdom.nr < noisethresh and ldom.nr < noisethresh:
             print "\n*** Noise reduction < 1 %, not applying"
             self.appstring='none'
             self.update=0
@@ -400,10 +410,10 @@ class Exposure:
         self.h.add_blank('',before=lastkey)
         
         #Describe the results in each domain
-        self.h.update('SCNGAIN',
-                      pars.gainplot,
-                      'gain used for effective noise calculations',
-                      before=lastkey)
+##         self.h.update('SCNGAIN',
+##                       self.gainplot,
+##                       'gain used for effective noise calculations',
+##                       before=lastkey)
         for k in self.domains:
             HorL=k[0].upper()
             self.h.update('SCN%sCHI2'%HorL,
@@ -416,7 +426,7 @@ class Exposure:
                       before=lastkey)
             bestloc=self.domains[k].bestloc
             self.h.update('SCN%sEFFN'%HorL,
-                          self.domains[k].pp[1,bestloc]*pars.gainplot,
+                          self.domains[k].pp[1,bestloc]*self.gainplot,
                           '%sSD effective noise at SCNGAIN'%HorL,
                           before=lastkey)
             self.h.update('SCN%sNRED'%HorL,
@@ -529,13 +539,13 @@ def make_saaper(im1,im2,dark,pars,crthresh=1):
     #Combine the data
     saaper=((im1.data*pars.wf1) + (im2.data/pars.scale)*pars.wf2)
     #Correct for CRs
-    if crthresh:
+    if pars.crthresh:
         a=im1.data-(im2.data/pars.scale)
-        u1=numarray.where(a > 0.3)
+        u1=numarray.where(a > pars.crthresh)
         saaper[u1]=im2.data[u1]/pars.scale
 
         a=(im2.data/pars.scale) - im1.data
-        u2=numarray.where(a > 0.3)
+        u2=numarray.where(a > pars.crthresh)
         saaper[u2]=im1.data[u2]
     if pars.writesaaper and pars.saaperfile:
         writeimage(saaper,pars.saaperfile)        
@@ -606,7 +616,7 @@ def clean(usr_imgfile,usr_outfile,pars=None):
     print "Threshold for hi/lo: ",img.thresh
     print "Npixels hi/lo: ",len(img.domains['high'].pixlist[0]),len(img.domains['low'].pixlist[0])
     img.getscales(saaper,mask,pars)
-    final=img.apply_domains(saaper,badmask)
+    final=img.apply_domains(saaper,badmask,pars.noisethresh)
 
     if 1: #img.update:
         img.data=final
