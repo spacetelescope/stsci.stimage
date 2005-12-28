@@ -1,5 +1,11 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.7.1: 12/27/05 -- CJH
+    In the driz_cr module, we have added a message to warn users that the 
+    SNR and scale parameters only use 2 input values when more than two
+    values are provided.  This was done to address an issue where users
+    believed that they could input any number of values.
+
 Version 2.6.7: 09/08/05 -- WJH
     The 'wt_scl' values used for IVM and ERR weight type specifications
     now gets computed as (plist['exptime']**2/plist['scale']**4) rather than
