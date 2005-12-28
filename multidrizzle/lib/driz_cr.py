@@ -35,6 +35,8 @@
 #                                   keywords from the header it creates. -- CJH
 # 02 Jun 2005 -- Version 1.0.0 -- Added parameters driz_cr_grow and driz_cr_ctegrow for CTE masking of cosmic 
 #                                   rays. -- DMG
+# 28 Dec 2005 -- Version 1.0.1 -- Added warning message to warn users that the SNR and scale parameters only use 2
+#                                   input values. -- CJH
 
 # Import external packages
 import numarray as N
@@ -44,7 +46,7 @@ import os
 from numarray import * 
 
 # Version
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 class DrizCR:
     """mask blemishes in dithered data by comparison of an image
@@ -82,10 +84,30 @@ class DrizCR:
         self.__blotDerivImg = blotDerivImg
 
         __SNRList = SNR.split()
+        if (len(__SNRList) > 2):
+            errorstr =  "\n\n###############################################\n"
+            errorstr += "#                                             #\n"
+            errorstr += "# WARNING:                                    #\n"
+            errorstr += "#  driz_cr_snr uses only two input values!    #\n"
+            errorstr += "#                                             #\n"
+            errorstr += "#  Additional input values have been ignored! #\n"
+            errorstr += "#                                             #\n"
+            errorstr += "###############################################\n\n"
+            print errorstr
         self.__snr1  = float(__SNRList[0])
         self.__snr2 = float(__SNRList[1])
 
         __scaleList = scale.split()
+        if (len(__scaleList) > 2):
+            errorstr =  "\n\n###############################################\n"
+            errorstr += "#                                             #\n"
+            errorstr += "# WARNING:                                    #\n"
+            errorstr += "#  driz_cr_scale uses only two input values!  #\n"
+            errorstr += "#                                             #\n"
+            errorstr += "#  Additional input values have been ignored! #\n"
+            errorstr += "#                                             #\n"
+            errorstr += "###############################################\n\n"
+            print errorstr
         self.__mult1 = float(__scaleList[0])
         self.__mult2 = float(__scaleList[1])
 
