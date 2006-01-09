@@ -1,5 +1,12 @@
 Multidrizzle Revision History
 -----------------------------
+Version 2.7.2: 01/09/06 -- WJH
+    (OPR 54944)
+    MultiDrizzle was modified to treat ACS (and STIS) images which have
+    NGOODPIX == 0 as if they had EXPTIME==0.  This usually only happens
+    when the entire image gets saturated as detected by CALACS (or CALSTIS),
+    and would cause 'createMedian' to crash when included.
+    
 Version 2.7.1: 12/27/05 -- CJH
     In the driz_cr module, we have added a message to warn users that the 
     SNR and scale parameters only use 2 input values when more than two

@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.7.1 (28 Dec 2005)'
+__version__ = '2.7.2 (4 Jan 2006)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -778,6 +778,41 @@ help file.
                     msgstr += "####################################\n"
                     print msgstr   
                     excludedFileList.append(inputfile)
+                elif (fileutil.getKeyword(inputfile,'instrume') == 'ACS') 
+                      or fileutil.getKeyword(inputfile,'instrume') == 'STIS': 
+                    # Only for ACS, and STIS, check NGOODPIX
+                    # If all pixels are 'bad' on all chips, exclude this image
+                    # from further processing. 
+                    # Similar checks requiring comparing 'driz_sep_bits' against
+                    # WFPC2 c1f.fits arrays and NICMOS DQ arrays will need to be
+                    # done separately (and later).
+                    _file = fileutil.openImage(inputfile)
+                    _ngood = 0
+                    for extn in _file:
+                        if extn.header.has_key('EXTNAME') and extn.header['EXTNAME'] == 'SCI':
+                            _ngood += extn.header['NGOODPIX']
+                    _file.close()
+                    
+                    if (_ngood == 0):
+                        msgstr =  "####################################\n"
+                        msgstr += "#                                  #\n"
+                        msgstr += "# WARNING:                         #\n"
+                        msgstr += "#  NGOODPIX keyword value of 0 in  #\n"
+                        msgstr += "         " + str(inputfile) +"\n"
+                        msgstr += "#  has been detected.  Images with #\n"
+                        msgstr += "#  no valid pixels will not be     #\n"
+                        msgstr += "#  used during processing.  If you #\n"
+                        msgstr += "#  wish this file to be used in    #\n"
+                        msgstr += "#  processing, please check its DQ #\n"
+                        msgstr += "#  array and reset driz_sep_bits   #\n"
+                        msgstr += "#  and final_bits parameters       #\n"
+                        msgstr += "#  to accept flagged pixels.       #\n"
+                        msgstr += "#                                  #\n"
+                        msgstr += "####################################\n"
+                        print msgstr   
+                        excludedFileList.append(inputfile)
+                    else:
+                        newfilelist.append(inputfile)    
                 else:
                     newfilelist.append(inputfile)    
 
