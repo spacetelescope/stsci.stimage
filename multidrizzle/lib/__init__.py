@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.7.2 (4 Jan 2006)'
+__version__ = '2.7.1 (10 Jan 2006)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -778,7 +778,7 @@ help file.
                     msgstr += "####################################\n"
                     print msgstr   
                     excludedFileList.append(inputfile)
-                elif (fileutil.getKeyword(inputfile,'instrume') == 'ACS') 
+                elif (fileutil.getKeyword(inputfile,'instrume') == 'ACS') \
                       or fileutil.getKeyword(inputfile,'instrume') == 'STIS': 
                     # Only for ACS, and STIS, check NGOODPIX
                     # If all pixels are 'bad' on all chips, exclude this image
