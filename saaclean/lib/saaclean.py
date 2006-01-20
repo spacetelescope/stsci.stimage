@@ -32,11 +32,17 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.63dev"
+__version__="0.65dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
 #History:
+# Enhancements, 20 Jan 06, Laidler
+#   - replaced infile by calcfile and targfile
+#   - allow applying correction to a file other than that on which it
+#     was computed
+#   - added "clobber" parameter to control clobber behavior on all
+#     output files.
 # Enhancement, 21 Dec 05, Laidler
 #  use header value of ADCGAIN in place of GAINPLOT
 #  add new CRTHRESH, NOISETHRESH, BINSIGFRAC parameters
@@ -71,6 +77,7 @@ class params:
                  stepsize=0.008,thresh=None,hirange=0.4,lorange=0.25,dofit=1,
                  crthresh=0.3, noisethresh=1.0, binsigfrac=0.3,
                  readsaaper='False',writesaaper='True',saaperfile='saaper.fits',
+                 clobber='False',
                  flatsaaper='True',flatsaaperfile=None,
                  maskfile=None,darkpath=None,diagfile=None):
         self.scale=scale
@@ -79,6 +86,7 @@ class params:
         self.writesaaper=writesaaper
         self.readsaaper=readsaaper
         self.saaperfile=osfn(saaperfile)
+        self.clobber=clobber
         self.flatsaaper=flatsaaper
         self.flatsaaperfile=osfn(flatsaaperfile)
         self.maskfile=osfn(maskfile)
@@ -130,7 +138,11 @@ class Domain:
         umode=numarray.where(self.pp[2,:] == self.pp[2,:].min())[0][0]
         return ubest, umode
 
-    def writeto(self,filename):
+    def writeto(self,filename,clobber=False):
+        if not clobber:
+            if os.path.exists(filename):
+                raise IOError, "%s already exists: aborting\n"%filename
+        #if clobber=True or file does not exist, proceed anyhow    
         f=open(filename,'w')
         f.write('# '+self.name+'\n')
         f.write('# Pixels in this domain: '+`len(self.pixlist)`+'\n')
@@ -198,11 +210,11 @@ class Exposure:
                 print "Bad pixel image filename obtained from ",self.filename
                 self.badpix=None
 
-    def writeto(self,outname):
+    def writeto(self,outname,clobber=False):
         f=pyfits.open(self.filename)
         f[self.extnum].data=self.data
         f[0].header=self.h #update the primary header
-        f.writeto(outname)
+        f.writeto(outname,clobber=clobber)
 
     def dark_subtract(self,dark):
         self.data=(self.data-dark)/self.exptime
@@ -262,7 +274,7 @@ class Exposure:
 ##             raise ValueError, "Bad camera value"
 
         
-    def getmask(self,dim=256,border=3,writename='mask.dat'):
+    def getmask(self,dim=256,border=3,writename='mask.dat',clobber=False):
         """Computes a mask to use for pixels to omit"""
         mask=numarray.zeros((dim,dim),'Float32')
         badmask=numarray.ones((dim,dim),'Float32')
@@ -280,7 +292,7 @@ class Exposure:
         mask[:,dim-border:dim]=1
 
         if writename:
-            writeimage(mask,writename)
+            writeimage(mask,writename,clobber=clobber)
         return mask,badmask
 
     def getscales(self,saaper,mask,pars):
@@ -308,7 +320,7 @@ class Exposure:
                 index+=1
             dom.striplowerthan(pars.binsigfrac)
             if pars.diagfile:
-                dom.writeto(pars.diagfile+'_'+dom.name+'_signal_domain.dat')
+                dom.writeto(pars.diagfile+'_'+dom.name+'_signal_domain.dat',clobber=pars.clobber)
             ubest,umode=dom.getmin()
             best=dom.pp[0,ubest]
 
@@ -332,8 +344,11 @@ class Exposure:
             print "   effective noise at this factor (electrons at gain %f): %f"%(self.gainplot,dom.pp[1,ubest]*self.gainplot)
             print "   noise reduction (percent)       : ",dom.nr
 
-    def apply_domains(self,saaper,badmask,noisethresh):
-        final=self.data.copy()
+    def apply_domains(self,saaper,badmask,noisethresh,appimage=None):
+        if appimage is not None: 
+            final=appimage
+        else:
+            final=self.data.copy()
         hdom,ldom=self.domains['high'],self.domains['low']
         self.update=1
         if hdom.nr >= noisethresh and ldom.nr >= noisethresh:
@@ -458,14 +473,14 @@ def osfn(filename):
     newfilename=os.environ[symbol]+'/'+rest    
     return newfilename
 
-def writeimage(image, filename, comment=None):
+def writeimage(image, filename, comment=None,clobber=False):
   hdulist=pyfits.HDUList()
   hdu=pyfits.PrimaryHDU()
   hdu.data=image
   if (comment is not None):
     hdu.header.add_comment(comment)
   hdulist.append(hdu)
-  hdulist.writeto(filename)
+  hdulist.writeto(filename,clobber=clobber)
 
 #..........................................................................
 # Math functions
@@ -548,7 +563,7 @@ def make_saaper(im1,im2,dark,pars,crthresh=1):
         u2=numarray.where(a > pars.crthresh)
         saaper[u2]=im1.data[u2]
     if pars.writesaaper and pars.saaperfile:
-        writeimage(saaper,pars.saaperfile)        
+        writeimage(saaper,pars.saaperfile,clobber=pars.clobber)        
     return saaper
 
 
@@ -578,10 +593,19 @@ def flat_saaper(saaper,img):
 #....................................................................
 # The "main" program
 #....................................................................
-def clean(usr_imgfile,usr_outfile,pars=None):
+def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     print "saaclean version %s"%__version__
-    print "Input file: %s"%usr_imgfile
-    imgfile=osfn(usr_imgfile)
+    print "Input files: %s %s"%(usr_calcfile,usr_targfile)
+    imgfile=osfn(usr_calcfile)
+    targfile=osfn(usr_targfile)
+    if imgfile != targfile:
+        #then we'll need the data from the targfile
+        tfile=pyfits.open(targfile)
+        appimage=tfile['sci'].data.copy()
+    else:
+        #we'll apply it to the same file
+        appimage=None
+        
     outfile=osfn(usr_outfile)
     if pars is None:
         pars=params()
@@ -593,12 +617,12 @@ def clean(usr_imgfile,usr_outfile,pars=None):
         print "Using scale factor of ",pars.scale," to construct persistence image"
 
     img=Exposure(imgfile)
-    mask,badmask=img.getmask(writename=pars.maskfile)
+    mask,badmask=img.getmask(writename=pars.maskfile,clobber=pars.clobber)
     saaper,mm=flat_saaper(saaper,img)
     pars.saaper_median=mm
     
     if pars.flatsaaperfile:
-        writeimage(saaper,pars.flatsaaperfile)
+        writeimage(saaper,pars.flatsaaperfile,clobber=pars.clobber)
 
     if pars.thresh is None:
         img.thresh=3.5*imstat(saaper,binwidth=0.01,nclip=10,fields='stddev').stddev  #3.5 sigm dividing point on statistics
@@ -616,11 +640,12 @@ def clean(usr_imgfile,usr_outfile,pars=None):
     print "Threshold for hi/lo: ",img.thresh
     print "Npixels hi/lo: ",len(img.domains['high'].pixlist[0]),len(img.domains['low'].pixlist[0])
     img.getscales(saaper,mask,pars)
-    final=img.apply_domains(saaper,badmask,pars.noisethresh)
+
+    final=img.apply_domains(saaper,badmask,pars.noisethresh,appimage=appimage)
 
     if 1: #img.update:
         img.data=final
         img.update_header(pars)
-        img.writeto(outfile)
+        img.writeto(outfile,clobber=pars.clobber)
 
     return saaper,img
