@@ -1,41 +1,37 @@
 from distutils.core import setup
-import sys, os.path, string, shutil
+import sys, os.path
+from distutils import sysconfig
 
+#ver = sys.version_info
+#python_exec = 'python' + str(ver[0]) + '.' + str(ver[1])
+pythonlib = sysconfig.get_python_lib()
+ver = sysconfig.get_python_version()
+pythonver = 'python' + ver
+data_dir = os.path.join(pythonlib, 'saaclean')
 
-ver = sys.version_info
-python_exec = 'python' + str(ver[0]) + '.' + str(ver[1])
+args = sys.argv[:]
 
+for a in args:
+    if a.startswith('--local='):
+        dir = os.path.abspath(a.split("=")[1])
+        sys.argv.append('--install-lib=%s' % dir)
+        data_dir = os.path.join(dir, 'puftcorr')
+        #remove --local from both sys.argv and args
+        args.remove(a)
+        sys.argv.remove(a)
+    elif a.startswith('--home='):
+        data_dir = os.path.join(os.path.abspath(a.split('=')[1]), 'lib', 'python', 'puftcorr')
+        args.remove(a)
+    elif a.startswith('--prefix='):
+        data_dir = os.path.join(os.path.abspath(a.split('=')[1]), 'lib', pythonver, 'site-packages', 'puftcorr')
+        args.remove(a)
+    elif a.startswith('--install-data='):
+        data_dir = os.path.abspath(a.split('=')[1])
+        args.remove(a)
+    elif a.startswith('bdist_wininst'):
+        install.INSTALL_SCHEMES['nt']['data'] = install.INSTALL_SCHEMES['nt']['purelib']
+        args.remove(a)
 
-def dolocal():
-    """Adds a command line option --local=<install-dir> which is an abbreviation for
-    'put all of puftcorr in <install-dir>/puftcorr'."""
-    if "--help" in sys.argv:
-        print >>sys.stderr
-        print >>sys.stderr, " options:"
-        print >>sys.stderr, "--local=<install-dir>    same as --install-lib=<install-dir>"
-    for a in sys.argv:
-        if a.startswith("--local="):
-            dir =  os.path.abspath(a.split("=")[1])
-            sys.argv.extend([
-                "--install-lib="+dir,
-                "--install-data="+os.path.join(dir,"puftcorr")
-                ])
-            sys.argv.remove(a)
-
-def getDataDir(args):
-    for a in args:
-        if string.find(a, '--home=') == 0:
-            dir = string.split(a, '=')[1]
-            data_dir = os.path.join(dir, 'lib/python/puftcorr')
-        elif string.find(a, '--prefix=') == 0:
-            dir = string.split(a, '=')[1]
-            data_dir = os.path.join(dir, 'lib', python_exec, 'site-packages/puftcorr')
-        elif a.startswith('--install-data='):
-            dir = string.split(a, '=')[1]
-            data_dir = dir
-        else:
-            data_dir = os.path.join(sys.prefix, 'lib', python_exec, 'site-packages/puftcorr')
-    return data_dir
 
 
 def dosetup(data_dir):
@@ -51,15 +47,18 @@ def dosetup(data_dir):
 	      data_files = [(data_dir,['lib/LICENSE.txt'])])
 		
 
-    return r
-
-def main():
-    args = sys.argv
-    dolocal()
-    data_dir = getDataDir(args)
-    dosetup(data_dir)
 
 
 if __name__ == "__main__":
-    main()
+    setup(name = "puftcorr",
+    	      version = "0.1",
+              description = "Estimates and removes 'Mr. Staypuft' signal from a NICMOS exposure.",
+              author = "Howard Bushouse",
+              author_email = "help@stsci.edu",
+	      license = "http://www.stsci.edu/resources/software_hardware/pyraf/LICENSE",
+              platforms = ["Linux","Solaris","Mac OS X"],
+              packages=['puftcorr'],
+              package_dir={'puftcorr':'lib'},
+	      data_files = [(data_dir,['lib/LICENSE.txt'])])
+	
 
