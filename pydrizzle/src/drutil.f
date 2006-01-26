@@ -1246,10 +1246,9 @@ C Note that XIN and YIN are used differently!
          ENDIF
 
 C If we have a distortion image we add here
-C (missing XD,YD offsets corrected, January 2006)
          IF(DISIM) THEN
-            IX=NINT(X+XD+XCEN)
-            IY=NINT(Y+YD+YCEN)
+            IX=INT(X+XCEN)
+            IY=INT(Y+YCEN)
             XCORN=XCORN+DBLE(XG(IX,IY))
             YCORN=YCORN+DBLE(YG(IX,IY))
          ENDIF
@@ -2238,8 +2237,6 @@ C
       DOUBLE PRECISION XIB(DNX),YIB(DNX),XOB(DNX),YOB(DNX)
       DOUBLE PRECISION R2,ES,EFAC,NSIG,XCEN,YCEN
       DOUBLE PRECISION OVER
-C New variable added to fix 10th-anniversary bug. 24-Jan-2006 WJH
-      DOUBLE PRECISION TEM
 
 C Some things are still single
       REAL VC,WTSCL,D,DOW,DD
@@ -2899,19 +2896,6 @@ C clockwise order
           JACO=0.5*((XOUT(2)-XOUT(4))*(YOUT(1)-YOUT(3)) -
      :              (XOUT(1)-XOUT(3))*(YOUT(2)-YOUT(4)))
 
-C Richard Hook, Jan 2006. If the Jacobian is
-C negative the later boxer routine will fail. This happens
-C if the coefficients introduce a flip. To avoid this we reverse
-C two values
-          IF(JACO.LT.0.0D0) THEN
-             JACO=JACO*-1.0D0
-             TEM=XOUT(2)
-             XOUT(2)=XOUT(4)
-             XOUT(4)=TEM
-             TEM=YOUT(2)
-             YOUT(2)=YOUT(4)
-             YOUT(4)=TEM
-          ENDIF
           NHIT=0
 
 C Allow for stretching because of scale change
