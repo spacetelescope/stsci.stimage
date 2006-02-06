@@ -3,7 +3,8 @@
 import sys, os.path 
 from distutils.core import setup
 from distutils.sysconfig import *
-from distutils.command.install import install
+#from distutils.command.install import install
+from distutils.command.install_data import install_data
 
 pythonlib = get_python_lib(plat_specific=1)
 ver = get_python_version()
@@ -15,23 +16,19 @@ args = sys.argv[:]
 for a in args:
     if a.startswith('--local='):
         dir = os.path.abspath(a.split("=")[1])
-        sys.argv.append('--install-lib=%s' % dir)
-        data_dir = os.path.join(dir, 'numdisplay')
+        sys.argv.extend([
+                "--install-lib="+dir,
+                ])
         #remove --local from both sys.argv and args
         args.remove(a)
         sys.argv.remove(a)
-    elif a.startswith('--home='):
-        data_dir = os.path.join(os.path.abspath(a.split('=')[1]), 'lib', 'python', 'numdisplay')
-        args.remove(a)
-    elif a.startswith('--prefix='):
-        data_dir = os.path.join(os.path.abspath(a.split('=')[1]), 'lib', pythonver, 'site-packages', 'numdisplay')
-        args.remove(a)
-    elif a.startswith('--install-data='):
-        data_dir = os.path.abspath(a.split('=')[1])
-        args.remove(a)
-    elif a.startswith('bdist_wininst'):
-        install.INSTALL_SCHEMES['nt']['data'] = install.INSTALL_SCHEMES['nt']['purelib']
-        args.remove(a)
+
+class smart_install_data(install_data):
+    def run(self):
+        #need to change self.install_dir to the library dir
+        install_cmd = self.get_finalized_command('install')
+        self.install_dir = getattr(install_cmd, 'install_lib')
+        return install_data.run(self)
 
 if __name__ == '__main__' :
 
@@ -43,9 +40,10 @@ if __name__ == '__main__' :
         maintainer_email="help@stsci.edu",
         url="",
         license = "http://www.stsci.edu/resources/software_hardware/pyraf/LICENSE",
-     platforms = ["any"],
+        platforms = ["any"],
         packages = ['numdisplay'],
 	package_dir={'numdisplay':''},
-	data_files = [(data_dir, ['imtoolrc'])]
+        cmdclass = {'install_data':smart_install_data},
+        data_files = [('numdisplay',['imtoolrc', 'LICENSE.txt'])]
         )
 

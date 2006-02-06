@@ -1,6 +1,7 @@
 from distutils.core import setup, Extension
 import sys, string, os.path, shutil
 from distutils import sysconfig
+from distutils.command.install_data import install_data
 
 if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'alpha',0):
     raise SystemExit, "Python 2.3 or later required to build pydrizzle."
@@ -34,12 +35,19 @@ args = sys.argv[:]
 for a in args:
     if a.startswith('--local='):
         dir = os.path.abspath(a.split("=")[1])
-        sys.argv.append('--install-lib=%s' % dir)
-        data_dir = os.path.join(dir, 'pydrizzle')
+        sys.argv.extend([
+                "--install-lib="+dir,
+                ])
         #remove --local from both sys.argv and args
         args.remove(a)
         sys.argv.remove(a)
 
+class smart_install_data(install_data):
+    def run(self):
+        #need to change self.install_dir to the library dir
+        install_cmd = self.get_finalized_command('install')
+        self.install_dir = getattr(install_cmd, 'install_lib')
+        return install_data.run(self)
 
 def getF2CDirs(args):
     """ Defines the location of the F2C include and library directories. """
@@ -91,24 +99,12 @@ def dosetup(ext):
               platforms = ["Linux","Solaris", "MacOS X", "Windows"],
               packages=['pydrizzle','pydrizzle/traits102'],
               package_dir={'pydrizzle':'lib','pydrizzle/traits102':'traits102'},
+              cmdclass = {'install_data':smart_install_data},
+              data_files = [('pydrizzle',['lib/LICENSE.txt'])],
               ext_modules=ext)
     return r
 
-def copy_doc(data_dir, args):
-    if 'install' in args:
-        doc_dir = os.path.join(data_dir,'doc')
-        if os.path.exists(doc_dir):
-	    try:
-                shutil.rmtree(doc_dir)
-            except:
-                print "Error removing doc directory\n"
-	shutil.copytree('doc', doc_dir)
 
-
-def main():
-    getF2CDirs(args)
-    ext = getExtensions()
-    dosetup(ext)
 
 if __name__ == "__main__":
     getF2CDirs(args)

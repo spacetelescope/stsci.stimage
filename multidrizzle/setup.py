@@ -12,15 +12,23 @@ pythonlib = sysconfig.get_python_lib(plat_specific=1)
 
 args = sys.argv[:]
 
+
 for a in args:
     if a.startswith('--local='):
         dir = os.path.abspath(a.split("=")[1])
-        sys.argv.append('--install-lib=%s' % dir)
-        data_dir = os.path.join(dir, 'numdisplay')
+        sys.argv.extend([
+                "--install-lib="+dir,
+                ])
         #remove --local from both sys.argv and args
         args.remove(a)
         sys.argv.remove(a)
 
+class smart_install_data(install_data):
+    def run(self):
+        #need to change self.install_dir to the library dir
+        install_cmd = self.get_finalized_command('install')
+        self.install_dir = getattr(install_cmd, 'install_lib')
+        return install_data.run(self)
 
 setup(name = "multidrizzle",
       version = "2.3.6",
@@ -30,7 +38,10 @@ setup(name = "multidrizzle",
       license = "http://www.stsci.edu/resources/software_hardware/pyraf/LICENSE",
       platforms = ["Linux","Solaris","Mac OS X", "Windows"],
       packages=['multidrizzle'],
-      package_dir={'multidrizzle':'lib'})
+      package_dir={'multidrizzle':'lib'},
+      cmdclass = {'install_data':smart_install_data},
+      data_files = [('multidrizzle',['lib/LICENSE.txt'])],
+      )
 
 
 
