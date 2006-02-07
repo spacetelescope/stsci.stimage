@@ -31,6 +31,7 @@ for a in args:
         dir = os.path.abspath(a.split("=")[1])
 	sys.argv.extend([
                 "--install-lib="+dir,
+                "--install-scripts=%s" % os.path.join(dir,"pyraf"),
                 ])
 	sys.argv.remove(a)
         args.remove(a)
