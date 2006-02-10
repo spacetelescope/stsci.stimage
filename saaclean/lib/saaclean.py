@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.71dev"
+__version__="0.72dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -324,6 +324,7 @@ class Exposure:
             fitmask[dom.pixlist]=0
             #Then set the mask-defined bad pixels to one so we don't use them
             #(Notice there's no use of "self.badpix" here, wonder why not?)
+            #Ah! It's because self.badpix was already used in *making* that mask. OK.
             badpix=numarray.where(mask == 1)
             fitmask[badpix]=1
             #Finally, choose only those pixels where it's set to zero.
@@ -672,15 +673,16 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
         writeimage(saaper,pars.flatsaaperfile,clobber=pars.clobber)
 
     if pars.thresh is None:
-        img.thresh=3.5*imstat(saaper,binwidth=0.01,nclip=10,fields='stddev').stddev  #3.5 sigm dividing point on statistics
+#        img.thresh=3.5*imstat(saaper,binwidth=0.01,nclip=10,fields='stddev').stddev  #3.5 sigm dividing point on statistics
+        img.thresh=3.5*imstat(img.data,binwidth=0.01,nclip=10,fields='stddev').stddev  #3.5 sigm dividing point on statistics
     else:
         img.thresh=pars.thresh
     
     img.domains={'high':Domain('high',
-                               numarray.where(saaper > img.thresh),
+                               numarray.where(img.data > img.thresh),
                                pars.hirange),
                  'low' :Domain('low',
-                               numarray.where(saaper <= img.thresh),
+                               numarray.where(img.data <= img.thresh),
                                pars.lorange)
                  }
     #This is promising but we really should use something like img[img.mask].data,
@@ -715,7 +717,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
   
     if 1: #img.update:
         img.data=final
-        img.update_header(pars,tag='0.71d sub-dq')
+        img.update_header(pars,tag='0.72d: imthresh')
         img.writeto(outfile,clobber=pars.clobber)
 
     return saaper,img
