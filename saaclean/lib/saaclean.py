@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.70dev"
+__version__="0.71dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -147,8 +147,8 @@ class Domain:
         f.write('# '+self.name+'\n')
         f.write('# Pixels in this domain: '+`len(self.pixlist)`+'\n')
         f.write('#  1  scale factor  \n')
-        f.write('#  2  mode   \n')
-        f.write('#  3  sigma  \n')
+        f.write('#  2  sigma   \n')
+        f.write('#  3  mode  \n')
         for i in range(len(self.pp[0])):
             f.write('%f   %f    %f\n' % (self.pp[0,i],self.pp[1,i],self.pp[2,i]))
         f.close()
@@ -318,10 +318,15 @@ class Exposure:
             stepval=[pars.stepsize*i for i in xrange(sz1)]
 
             #there's got to be a better way to do this!
+            #Make a mask & fill it all with ones
             fitmask=numarray.ones(mask.shape)
-            badpix=numarray.where(mask == 1)
+            #Then make the pixels we want be set to zero
             fitmask[dom.pixlist]=0
-            fitmask[badpix]=0
+            #Then set the mask-defined bad pixels to one so we don't use them
+            #(Notice there's no use of "self.badpix" here, wonder why not?)
+            badpix=numarray.where(mask == 1)
+            fitmask[badpix]=1
+            #Finally, choose only those pixels where it's set to zero.
             umask=numarray.where(fitmask == 0)
 
             dom.pp=numarray.zeros((3,int(dom.range/pars.stepsize)+1),'Float32')
@@ -710,7 +715,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
   
     if 1: #img.update:
         img.data=final
-        img.update_header(pars,tag='0.70d sub-dq')
+        img.update_header(pars,tag='0.71d sub-dq')
         img.writeto(outfile,clobber=pars.clobber)
 
     return saaper,img
