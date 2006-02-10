@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.72dev"
+__version__="0.73dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -672,9 +672,12 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     if pars.flatsaaperfile:
         writeimage(saaper,pars.flatsaaperfile,clobber=pars.clobber)
 
+    mask,badmask=img.getmask(writename=None)
+    img.apply_mask(mask)
+
     if pars.thresh is None:
 #        img.thresh=3.5*imstat(saaper,binwidth=0.01,nclip=10,fields='stddev').stddev  #3.5 sigm dividing point on statistics
-        img.thresh=3.5*imstat(img.data,binwidth=0.01,nclip=10,fields='stddev').stddev  #3.5 sigm dividing point on statistics
+        img.thresh=3.5*imstat(img.masked_data,binwidth=0.01,nclip=10,fields='stddev').stddev  #3.5 sigm dividing point on statistics
     else:
         img.thresh=pars.thresh
     
@@ -688,8 +691,6 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     #This is promising but we really should use something like img[img.mask].data,
     #so we don't include the masked-out pixels in the domain. They were excluded
     #from the saaper already in the construction process. Or maybe not??
-    mask,badmask=img.getmask(writename=None)
-    img.apply_mask(mask)
     img.ddomains={'high':Domain('high',
                                numarray.where(img.masked_data > img.thresh),
                                pars.hirange),
@@ -717,7 +718,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
   
     if 1: #img.update:
         img.data=final
-        img.update_header(pars,tag='0.72d: imthresh')
+        img.update_header(pars,tag='0.73d: maskedimthresh')
         img.writeto(outfile,clobber=pars.clobber)
 
     return saaper,img
