@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.65dev"
+__version__="0.70dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -189,7 +189,15 @@ class Exposure:
 
         print "Using DQ extension for badpix"
         try:
-            self.badpix=f['dq',1].data
+            self.dq=f['dq',1].data
+            if self.dq is not None:
+                dqmask = 1+16+32+64+128+256 #selected values
+                self.nonsourcemask=numarray.bitwise_and(self.dq, dqmask+1024) #exclude sources
+                self.nonsourceidx=numarray.where(self.nonsourcemask == 0)
+                self.nonsource=self.data[self.nonsourceidx]
+                self.badpix=numarray.bitwise_and(self.dq, dqmask)
+            else:
+                self.badpix=None
         except KeyError,e:
             print e
             print 'DQ extension not found for %s'%imgfile
@@ -295,6 +303,11 @@ class Exposure:
             writeimage(mask,writename,clobber=clobber)
         return mask,badmask
 
+    def apply_mask(self,mask):
+        goodpix=numarray.where(mask == 0)
+        self.masked_data = self.data[goodpix]
+        
+
     def getscales(self,saaper,mask,pars):
         
         cal=self.data*self.exptime
@@ -344,6 +357,16 @@ class Exposure:
             print "   effective noise at this factor (electrons at gain %f): %f"%(self.gainplot,dom.pp[1,ubest]*self.gainplot)
             print "   noise reduction (percent)       : ",dom.nr
 
+    def qa_result(self,checkimage):
+##         fom=self.nonsource.stddev() - checkimage[self.nonsourceidx].stddev()
+##         if fom < 0:
+##             raise ValueError, "Sky stddev increased: aborting"
+
+        new = imstat(checkimage[self.nonsourceidx],binwidth=0.01,nclip=10,fields='stddev').stddev
+        old = imstat(self.nonsource,binwidth=0.01,nclip=10,fields='stddev').stddev
+        
+        self.fom = 1.0 - new/old
+
     def apply_domains(self,saaper,badmask,noisethresh,appimage=None):
         if appimage is not None: 
             final=appimage
@@ -373,7 +396,7 @@ class Exposure:
             
         return final
 
-    def update_header(self,pars):
+    def update_header(self,pars,tag='default'):
         """ Update the FITS header with all this good stuff we've done"""
 
         #Start with the last keyword, for ease of applying.
@@ -448,11 +471,29 @@ class Exposure:
                           self.domains[k].nr,
                           '%sSD  noise reduction (percent)'%HorL,
                           before=lastkey)
+            self.h.update('SCNFOM',
+                              self.fom,
+                              'Figure of merit: 1-(newsigma/origsigma',
+                              before=lastkey)
+            self.h.update('SCNPXFOM',
+                              self.npix_fom,
+                              'Figure of merit: pixratios',
+                              before=lastkey)
+            self.h.update('SCNTAG',
+                          tag,
+                          'Tag/description of this version',
+                          before=lastkey)
 
         
 #..........................................................................
 # Exception definitions
 class NoPersistError(exceptions.Exception):
+    pass
+class BadThreshError(exceptions.Exception):
+    pass
+class NegScaleError(exceptions.Exception):
+    pass
+class InsuffImprovement(exceptions.Exception):
     pass
 #..........................................................................
 #Helper functions:
@@ -588,6 +629,7 @@ def flat_saaper(saaper,img):
         saaper=((saaper-mm)*flat.data) + mm
     return saaper,mm
 
+        
 
 
 #....................................................................
@@ -636,16 +678,39 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
                                numarray.where(saaper <= img.thresh),
                                pars.lorange)
                  }
+    #This is promising but we really should use something like img[img.mask].data,
+    #so we don't include the masked-out pixels in the domain. They were excluded
+    #from the saaper already in the construction process. Or maybe not??
+    mask,badmask=img.getmask(writename=None)
+    img.apply_mask(mask)
+    img.ddomains={'high':Domain('high',
+                               numarray.where(img.masked_data > img.thresh),
+                               pars.hirange),
+                 'low' :Domain('low',
+                               numarray.where(img.masked_data <= img.thresh),
+                               pars.lorange)
+                 }
 
     print "Threshold for hi/lo: ",img.thresh
     print "Npixels hi/lo: ",len(img.domains['high'].pixlist[0]),len(img.domains['low'].pixlist[0])
+    img.npix_fom=(float(img.domains['low'].npix)/img.domains['high'].npix)/(
+        float(img.ddomains['low'].npix)/img.ddomains['high'].npix)
+    
     img.getscales(saaper,mask,pars)
 
     final=img.apply_domains(saaper,badmask,pars.noisethresh,appimage=appimage)
+    if appimage:
+        #then apply it to the input image too, for QA purposes
+        checkimage=img.apply_domains(saaper,badmask,pars.noisethresh)
+    else:
+        checkimage=final
 
+
+    img.qa_result(checkimage)
+  
     if 1: #img.update:
         img.data=final
-        img.update_header(pars)
+        img.update_header(pars,tag='0.70d sub-dq')
         img.writeto(outfile,clobber=pars.clobber)
 
     return saaper,img
