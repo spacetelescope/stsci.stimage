@@ -701,8 +701,11 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
 
     print "Threshold for hi/lo: ",img.thresh
     print "Npixels hi/lo: ",len(img.domains['high'].pixlist[0]),len(img.domains['low'].pixlist[0])
-    img.npix_fom=(float(img.domains['low'].npix)/img.domains['high'].npix)/(
-        float(img.ddomains['low'].npix)/img.ddomains['high'].npix)
+    try:
+        img.npix_fom=(float(img.domains['low'].npix)/img.domains['high'].npix)/(
+            float(img.ddomains['low'].npix)/img.ddomains['high'].npix)
+    except ZeroDivisionError:
+        img.npix_fom=-99
     
     img.getscales(saaper,mask,pars)
 
