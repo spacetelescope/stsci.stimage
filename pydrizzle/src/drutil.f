@@ -1246,9 +1246,10 @@ C Note that XIN and YIN are used differently!
          ENDIF
 
 C If we have a distortion image we add here
+C (missing XD,YD offsets corrected, January 2006)
          IF(DISIM) THEN
-            IX=INT(X+XCEN)
-            IY=INT(Y+YCEN)
+            IX=INT(X+XCEN+XD)
+            IY=INT(Y+YCEN+YD)
             XCORN=XCORN+DBLE(XG(IX,IY))
             YCORN=YCORN+DBLE(YG(IX,IY))
          ENDIF
@@ -2236,7 +2237,7 @@ C
       DOUBLE PRECISION XI(DNX,4),YI(DNX,4),XO(DNX,4),YO(DNX,4)
       DOUBLE PRECISION XIB(DNX),YIB(DNX),XOB(DNX),YOB(DNX)
       DOUBLE PRECISION R2,ES,EFAC,NSIG,XCEN,YCEN
-      DOUBLE PRECISION OVER
+      DOUBLE PRECISION OVER,TEM
 
 C Some things are still single
       REAL VC,WTSCL,D,DOW,DD
@@ -2895,6 +2896,15 @@ C Note that this expression expects the points to be in
 C clockwise order
           JACO=0.5*((XOUT(2)-XOUT(4))*(YOUT(1)-YOUT(3)) -
      :              (XOUT(1)-XOUT(3))*(YOUT(2)-YOUT(4)))
+          IF (JACO.LT.0.0D0) THEN
+             JACO = JACO*1.0D0
+             TEM=XOUT(2)
+             XOUT(2)=XOUT(4)
+             XOUT(4)=TEM
+             TEM=YOUT(2)
+             YOUT(2)=YOUT(4)
+             YOUT(4)=TEM
+          ENDIF
 
           NHIT=0
 

@@ -1570,9 +1570,10 @@ doublereal mgf2_(doublereal *lam)
 		    ycorn = y + yd;
 		}
 /* If we have a distortion image we add here */
+/* (missing XD,YD offsets corrected, January 2006) */
 		if (*disim) {
-		    ix = (integer) (x + xcen);
-		    iy = (integer) (y + ycen);
+		    ix = (integer) (x + xcen + xd);
+		    iy = (integer) (y + ycen + yd);
 		    xcorn += (doublereal) xg[ix + iy * xg_dim1];
 		    ycorn += (doublereal) yg[ix + iy * yg_dim1];
 		}
@@ -2929,7 +2930,7 @@ L140:
     static integer ix, lx, ly, iy;
     static doublereal xx, yy, pfo;
     static integer nxa, nya, nxi, nyi;
-    static doublereal xin[4], yin[4], xxi, xxa, yyi, yya;
+    static doublereal xin[4], yin[4], xxi, xxa, yyi, yya, tem;
     static real dow;
     static doublereal sdp, pfo2, efac, jaco, xcen, ycen;
     extern /* Subroutine */ int mulc_(real *, integer *, integer *, real *);
@@ -3609,6 +3610,15 @@ L140:
 			jaco = ((xout[1] - xout[3]) * (yout[0] - yout[2]) - (
 				xout[0] - xout[2]) * (yout[1] - yout[3])) * 
 				.5f;
+			if (jaco < 0.) {
+			    jaco *= 1.;
+			    tem = xout[1];
+			    xout[1] = xout[3];
+			    xout[3] = tem;
+			    tem = yout[1];
+			    yout[1] = yout[3];
+			    yout[3] = tem;
+			}
 			nhit = 0;
 /* Allow for stretching because of scale change */
 			d__ = data[i__ + j * data_dim1] * (real) s2;
