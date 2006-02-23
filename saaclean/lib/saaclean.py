@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.73dev"
+__version__="0.73.2dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -157,9 +157,13 @@ class Domain:
 class Exposure:
     """ Stores a collection of keywords and the image data for an exposure. """
     
-    def __init__(self,imgfile):
+    def __init__(self,imgfile,nickname=None):
         
         self.filename=osfn(imgfile)
+        if nickname is None:
+            self.nickname=self.filename
+        else:
+            self.nickname=nickname
         f=pyfits.open(self.filename)
         self.f=f
         h=f[0].header
@@ -187,7 +191,7 @@ class Exposure:
         self.q4=slice(0,128),slice(128,256)
 
 
-        print "Using DQ extension for badpix"
+        print self.nickname, ": using DQ extension for badpix"
         try:
             self.dq=f['dq',1].data
             if self.dq is not None:
@@ -616,8 +620,8 @@ def make_saaper(im1,im2,dark,pars,crthresh=1):
 
 def get_dark_data(imgfile,darkpath):
     saafiles=get_postsaa_darks(imgfile)
-    im1=Exposure(saafiles[0])
-    im2=Exposure(saafiles[1])
+    im1=Exposure(saafiles[0],nickname='saa_im1')
+    im2=Exposure(saafiles[1],nickname='saa_im2')
     dark=getdark(im1.camera,darkpath)
     return im1,im2,dark
 
@@ -629,7 +633,7 @@ def flat_saaper(saaper,img):
 ##         if flatname.startswith('nref$'):
 ##             prefix,root=flatname.split('$',1)
 ##             flatname=iraf.osfn(prefix+'$')+root
-        flat=Exposure(flatname)
+        flat=Exposure(flatname,nickname='flatfile')
 
         print "median used in flatfielding: ",mm
         saaper=((saaper-mm)*flat.data) + mm
@@ -664,7 +668,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
         saaper=make_saaper(im1,im2,dark,pars)
         print "Using scale factor of ",pars.scale," to construct persistence image"
 
-    img=Exposure(imgfile)
+    img=Exposure(imgfile,nickname='sci image')
     mask,badmask=img.getmask(writename=pars.maskfile,clobber=pars.clobber)
     saaper,mm=flat_saaper(saaper,img)
     pars.saaper_median=mm
@@ -706,6 +710,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
             float(img.ddomains['low'].npix)/img.ddomains['high'].npix)
     except ZeroDivisionError:
         img.npix_fom=-99
+        raise BadThreshError,"Zero pixels found in high signal domain"
     
     img.getscales(saaper,mask,pars)
 
