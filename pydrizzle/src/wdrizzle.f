@@ -216,6 +216,8 @@ C        as pointers, and modified the code to use the same routines for
 C        both the callable interface and STSDAS interface. Based on 
 C        Version 3.32 from Richard.
 C              Warren Hack, STScI, 25th June 2004
+C V3.4.1- added correction for 'wdrizzle' bug and Jacobian bug reported
+C        by M. Kuemmel. Warren Hack, STScI, 24 Feb 2006
 C
 C--
       IMPLICIT NONE
@@ -323,7 +325,7 @@ C First initialise the logical flags
       ODND=.FALSE.
       COPALL=.TRUE.
 
-      VERS='WDRIZZLE Version 3.4 (June 25rd 2004)'
+      VERS='WDRIZZLE Version 3.4.1 (Feb 24th 2006)'
 
 C Announce the version
       CALL UMSPUT('+ '//VERS,1,0,ISTAT)

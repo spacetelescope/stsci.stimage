@@ -315,7 +315,7 @@ C First initialise the logical flags
       ODND=.FALSE.
       COPALL=.TRUE.
 
-      VERS='DRIZZLE Version 3.4.1 (Dec 20th 2004)'
+      VERS='DRIZZLE Version 3.4.1 (Feb 24th 2006)'
 
 C Announce the version
       CALL UMSPUT('+ '//VERS,1,0,ISTAT)
