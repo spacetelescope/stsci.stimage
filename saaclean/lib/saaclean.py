@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.73.2dev"
+__version__="0.73.3dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -390,9 +390,10 @@ class Exposure:
             final[ldom.pixlist]= self.data[ldom.pixlist]-(saaper[ldom.pixlist]*ldom.scale*badmask[ldom.pixlist])
             final[hdom.pixlist]= self.data[hdom.pixlist]-(saaper[hdom.pixlist]*hdom.scale*badmask[hdom.pixlist])
         elif hdom.nr > noisethresh and ldom.nr < noisethresh:
-            print "\n Applying noise reduction in high domain only "
+            print "\n Applying noise reduction in high domain only "            
             self.appstring='high only'
             final[hdom.pixlist]= self.data[hdom.pixlist]-(saaper[hdom.pixlist]*hdom.scale*badmask[hdom.pixlist])
+            
         elif hdom.nr < noisethresh and ldom.nr >= noisethresh:
             print "\n...Noise reduction in high domain < 1%: applying low scale everywhere"
             self.appstring='low everywhere'
@@ -715,7 +716,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     img.getscales(saaper,mask,pars)
 
     final=img.apply_domains(saaper,badmask,pars.noisethresh,appimage=appimage)
-    if appimage:
+    if appimage is not None:
         #then apply it to the input image too, for QA purposes
         checkimage=img.apply_domains(saaper,badmask,pars.noisethresh)
     else:
@@ -726,7 +727,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
   
     if 1: #img.update:
         img.data=final
-        img.update_header(pars,tag='0.73d: maskedimthresh')
+        img.update_header(pars,tag='0.73.3d: appimage bugfix')
         img.writeto(outfile,clobber=pars.clobber)
 
     return saaper,img
