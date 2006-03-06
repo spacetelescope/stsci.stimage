@@ -15,6 +15,8 @@ from pydrizzle.traits102.tktrait_sheet import TraitEditorBoolean, \
 
 from procstep import ProcSteps
 
+__version__ = '1.0.0 (23 Feb 2006)'
+
 def toBoolean(flag): 
     if (flag == 1):
         return True
@@ -120,6 +122,12 @@ class MDrizPars (HasTraits):
                         'poly5': 'poly5',
                         'sinc':'sinc'}) 
                         )
+
+    enum_finalunits = Trait('cps',TraitPrefixMap({ 
+                        'cps': 'cps',
+                        'counts': 'counts'}) 
+                        )
+    
     text_editor = TraitEditorText()
 
     __traits__ = {'input':Trait('flt.fits',TraitString()),
@@ -128,6 +136,7 @@ class MDrizPars (HasTraits):
             'refimage':Trait('',AnyValue),
             'runfile':'multidrizzle.run',
             'workinplace':Trait(False, true_boolean, editor=bit_editor),
+            'updatewcs':Trait(True, true_boolean, editor=bit_editor),   
             'context':Trait(True, true_boolean, editor=bit_editor), 
             'clean':Trait(False, true_boolean, editor=bit_editor),
             'group':Trait('',AnyValue),
@@ -179,7 +188,8 @@ class MDrizPars (HasTraits):
             'driz_final_scale':Trait('',AnyValue), 
             'driz_final_rot':Trait(0.0,AnyValue),
             'driz_final_fillval':Trait('INDEF',TraitString()),
-            'driz_final_bits':Trait(0,AnyValue), 
+            'driz_final_bits':Trait(0,AnyValue),
+            'driz_final_units':Trait('cps',enum_finalunits, editor=text_editor),  
             'gain':Trait('',AnyValue), 
             'gnkeyword':Trait('',AnyValue),
             'rdnoise':Trait('',AnyValue), 
@@ -201,7 +211,7 @@ class MDrizPars (HasTraits):
             TraitGroup(
             TraitGroup(
                 'input','output','mdriztab','refimage','runfile',
-                'workinplace','context', 'clean','group', 
+                'workinplace','context', 'clean','group', 'updatewcs',  
                 'ra', 'dec','coeffs', 'build', 'shiftfile','staticfile',
                 'timing',
                 label='Init'),
@@ -238,7 +248,7 @@ class MDrizPars (HasTraits):
                 'driz_final_kernel', 'driz_final_wt_scl', 
                 'driz_final_pixfrac','driz_final_scale', 
                 'driz_final_rot', 'driz_final_fillval',
-                'driz_final_bits',
+                'driz_final_bits', 'driz_final_units',
                 label='Final Drizzle'),
             TraitGroup(
                 'gain', 'gnkeyword','rdnoise', 'rnkeyword', 
@@ -252,7 +262,7 @@ class MDrizPars (HasTraits):
     switches_list = ['static', 'skysub', 'driz_separate',
             'median', 'blot', 'driz_cr', 'driz_combine','timing']
             
-    master_list = ['mdriztab','refimage','runfile','workinplace',
+    master_list = ['mdriztab','refimage','runfile','workinplace','updatewcs', 
             'context', 'clean','group', 'bits', 'ra', 'dec',
             'coeffs', 'build', 'shiftfile', 
             'staticfile', 'static_sig', 
@@ -270,7 +280,7 @@ class MDrizPars (HasTraits):
             'driz_final_outnx', 'driz_final_outny', 'driz_cr_grow', 'driz_cr_ctegrow',
             'driz_final_kernel', 'driz_final_wt_scl', 'driz_final_pixfrac',
             'driz_final_scale', 'driz_final_rot',
-            'driz_final_fillval', 'driz_final_bits',
+            'driz_final_fillval', 'driz_final_bits', 'driz_final_units',
             'gain', 'gnkeyword','rdnoise', 'rnkeyword', 
             'exptime','expkeyword', 'crbit']
     #
@@ -341,6 +351,7 @@ class MDrizPars (HasTraits):
     
         # Verify that all inputs correspond to keywords in the
         # master dictionary, otherwise, raise an exception
+        
         self.verifyInput(dict)
 
         # Copy values for input keywords into master dictionary
@@ -371,8 +382,7 @@ class MDrizPars (HasTraits):
         if 'bits' in dict.keys():
             if 'driz_final_bits' not in dict.keys():
                 self.master_pars['driz_final_bits'] = int(dict['bits'])
-                self.master_pars['driz_sep_bits'] = None                
-          
+                self.master_pars['driz_sep_bits'] = None
  
     def verifyInput(self,dict):
         """ Verifies that all entries provided in the input dictionary
@@ -381,7 +391,7 @@ class MDrizPars (HasTraits):
             If there are mismatches, then it will report those errant
             keywords and raise an Exception. This comparison will be 
             case-insensitive, for simplicity.
-        """
+        """        
         if dict != None:
             _err_str = 'MultiDrizzle inputs which are not recognized:\n'
             _num_invalid = 0
@@ -449,7 +459,7 @@ class MDrizPars (HasTraits):
         if keylist != None:
             for kw in keylist:
                 _driz_dict[kw] = self.master_pars[kw]
-        
+
         return _driz_dict
         
     def getParList(self,keylist,prefix=None):
