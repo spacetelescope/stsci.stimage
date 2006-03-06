@@ -44,7 +44,7 @@
 #                                       a default weighting scheme -- CJH
 #           Version 1.1.0,  12/03/04 -- Modified the static_mask steps fix a bug in accepting a user supplied
 #                                       static mask file.
-#           Version 1.2.0,  01/13/05 -- Modified the static_mask and driz_sep steps to allow for seperate masks for
+#           Version 1.2.0,  01/13/05 -- Modified the static_mask and driz_sep steps to allow for separate masks for
 #                                       the single and final drizzle steps.  --- CJH/WJH
 #           Version 1.2.1,  02/10/05 -- Modified the final drizzle step to reset the value of the context image in
 #                                       the par file.  This is to correct a bug in which the context image is created
@@ -66,6 +66,9 @@
 #                                       Blot step. -- CJH
 #           Version 1.6.0,  06/02/05 -- Added parameters driz_cr_grow and driz_cr_ctegrow for CTE masking of cosmic
 #                                       rays. -- DMG
+#           Version 1.7.0   02/23/06 -- Added parameter updatewcs to optionally call makewcs within checkInputFiles,
+#                                       and parameter final_units to optionally set the final drizzle output units
+#                                       to either counts or counts/second. -- DMG
 
 
 # Import Numarray functionality
@@ -100,7 +103,7 @@ from nimageiter import ImageIter,computeBuffRows,FileIter
 import iterfile
 from iterfile import IterFitsFile
 
-__version__ = '1.6.0'
+__version__ = '1.7.0'
 
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
@@ -128,11 +131,12 @@ class ImageManager:
         same ImageManager object without worrying about opening or trying to close
         the same image more than once.
     """
-    def __init__(self, assoc, context, instrpars, workinplace, static_file):
+    def __init__(self, assoc, context, instrpars, workinplace, static_file, updatewcs):  
         self.context = context
         self.assoc = assoc
         self.output = self.assoc.output
         self.workinplace = workinplace
+        self.updatewcs = updatewcs 
         self.static_file = static_file
 
         # Establish a default memory mapping behavior
@@ -473,7 +477,7 @@ class ImageManager:
             __handle.close()
             del __handle
         
-            # If there is going to be a sepearte mask for the single drizzle step and it is different
+            # If there is going to be a separate mask for the single drizzle step and it is different
             # from the mask used for the final drizzle step it will also need to be updated with the 
             # static mask information
             if ( ((p['image'].singlemaskname != None) and (p['image'].singlemaskname != '')) and (p['image'].singlemaskname != p['image'].maskname) ):
@@ -626,7 +630,7 @@ class ImageManager:
         #
         self.assoc.resetPars(field=_sky_field,
                             pixfrac=pars['pixfrac'],
-                            kernel=pars['kernel'])
+                            kernel=pars['kernel']) 
 
     def doDrizSeparate(self, pars):
 
@@ -692,7 +696,7 @@ class ImageManager:
         # Print out the parameters provided by the interface
         print "USER PARAMETERS:"
         print "median          =  True"
-        print "median_newmaks  = ",medianpars['newmasks']
+        print "median_newmasks  = ",medianpars['newmasks']
         print "combine_type    = ",medianpars['type']  
         print "combine_nsigma  = ",medianpars['nsigma1']," ",medianpars['nsigma2']
         print "combine_nlow    = ",medianpars['nlow']
@@ -826,7 +830,6 @@ class ImageManager:
         del _imgarr
 
         for __imageSectionsList,__prange in FileIter(__masterList,overlap=_overlap,bufsize=_bufsize):
-            #print 'processing rows in range: ',__prange
 
             if __newmasks:
                 """ Build new masks from single drizzled images. """
@@ -879,12 +882,6 @@ class ImageManager:
             # DO NUMCOMBINE
             else:
                 # Create the combined array object using the numcombine task
-                #print "length of imageSectionsList = ", len(__imageSectionsList)
-                #print "length of weight_mask_list = ", len(self.weight_mask_list)
-                #print "startdrz,endriz = " , __startDrz,",",__endDrz
-                #print __imageSectionsList[__endDrz].info()
-                #print __imageSectionsList[__endDrz]
-                #print self.weight_mask_list[1]
                 __result = numCombine(__imageSectionsList[__startDrz:__endDrz],
                                         numarrayMaskList=self.weight_mask_list,
                                         combinationType=__type.lower(),
@@ -1042,7 +1039,7 @@ class ImageManager:
         _new_field = None
 
         # Make sure parameters are set to original values
-        self.assoc.resetPars()
+        self.assoc.resetPars()   
 
         if drizpars['refimage'] != '' and drizpars['refimage'] != None:
             # Use the following if the refimage isn't actually going to be
@@ -1086,9 +1083,9 @@ class ImageManager:
 
         # Now, reset parameters to final values
         # We always want to insure that pixfrac and kernel are reset
-        self.assoc.resetPars(field=_new_field,
+        self.assoc.resetPars(field=_new_field, 
                     pixfrac=drizpars['pixfrac'], 
-                    kernel=drizpars['kernel'])
+                    kernel=drizpars['kernel'], units=drizpars['units'] ) 
                     
         if _new_field != None:
             # Restore the 'image' parameters to the newly updated parlist
@@ -1259,12 +1256,10 @@ class ImageManager:
             mask = fileutil.openImage(parlistentry['image'].maskname,mode='update')
             ivm =  fileutil.openImage(parlistentry['ivmname'],mode='readonly')
 
-            print "Applying IVM file ",parlistentry['ivmname']," to mask file ",parlistentry['image'].maskname
             ivmfile = fileutil.getExtn(ivm,extn)
             
             # Multiply the IVM file by the input mask in place.        
             mask[0].data = ivmfile.data * mask[0].data
-
 
             mask.close()
             ivm.close()
@@ -1310,7 +1305,6 @@ class ImageManager:
 
             # Multiply the scaled ERR file by the input mask in place.        
             mask[0].data = 1/(errfile.data)**2 * mask[0].data
-
 
             mask.close()
             err.close()
