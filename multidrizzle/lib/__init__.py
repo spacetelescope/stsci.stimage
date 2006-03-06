@@ -36,7 +36,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.7.1 (10 Jan 2006)'
+__version__ = '2.7.2 (23 Feb 2006)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -168,7 +168,7 @@ help file.
     """
     init_keys = ['mdriztab','runfile','workinplace',
                 'context','clean','shiftfile','staticfile',
-                'static_sig','coeffs']
+                'static_sig','coeffs'] 
 
     driz_keys = ['refimage','group','ra','dec','build']
     
@@ -190,6 +190,7 @@ help file.
                  input      = '*flt.fits',
                  output     = None,
                  editpars   = False,
+                 updatewcs  = True, 
                  **input_dict):
 
         timestamp()
@@ -281,13 +282,15 @@ help file.
 
         # Check input files.  This is the private method used to call the 
         # MAKEWCS application.  MAKEWCS is used to recompute and update the
-        # WCS for input images
-        self._checkInputFiles(self.files)
+        # WCS for input images, which updatewcs makes optional
+        self.updatewcs = updatewcs   
+        self._checkInputFiles(self.files, updatewcs)
 
         # Initialize the master parameter dictionary.
         # This needs to be done after any input file conversion
         # since it needs to be able to open the file to read the
         # MDRIZTAB keyword, if this parameter is set to TRUE.
+
         self.pars = mdrizpars.MDrizPars(self.input, self.output, 
                             dict=input_dict,files=self.files)
             
@@ -330,7 +333,7 @@ help file.
             # exited with a return without actually completing it's normal
             # processing.  This exit from Multidrizzle is to allow for 
             # the stopping of execution withour raising an acception.  This
-            # keeps the HST pipeline from crashing because of a rasied
+            # keeps the HST pipeline from crashing because of a raised
             # reception.  This state likely occured because all of the input
             # images the user provided to Multidrizzle were excluded from
             # processing because of problems with the data (like a 0 EXPTIME
@@ -362,7 +365,7 @@ help file.
         # Finalize building PyDrizzle and instrument parameters.
         # If not defined by the user, use defaults.
         self.driz_sep_pars = self.pars.getDrizPars(prefix='driz_sep',keylist=self.driz_keys)
-        self.driz_final_pars = self.pars.getDrizPars(prefix='driz_final',keylist=self.driz_keys)        
+        self.driz_final_pars = self.pars.getDrizPars(prefix='driz_final',keylist=self.driz_keys) 
         self.instrpars = self.pars.getParList(self.instr_keys)
         
         # Finish massaging median pars parameters to account for 
@@ -449,16 +452,17 @@ help file.
             print "WARNING:  Value of MDRIZSKY is in units of input data sci extensions."
             print "********************\n\n"
        
-        # Extract bits value from master dictionary for use in setupAssociation
+        # Extract bits value and final units from master dictionary for use in setupAssociation
         self.driz_sep_bits = self.pars.master_pars['driz_sep_bits']
-        self.final_bits = self.pars.master_pars['driz_final_bits']        
+        self.final_bits = self.pars.master_pars['driz_final_bits']
+        self.final_units = self.pars.master_pars['driz_final_units']
         
         # Build association object
         association = self._setupAssociation()
 
         # Build the manager object.
-
-        self.image_manager = ImageManager(association, self.context, self.instrpars, self.workinplace, self.staticfile)
+        self.image_manager = ImageManager(association, self.context, self.instrpars, self.workinplace, \
+                                          self.staticfile, self.updatewcs) 
 
         # Do unit conversion of the 'sci' data if necessary
         self.image_manager.doUnitConversions()
@@ -895,6 +899,7 @@ help file.
         print "refimage  = ", self.driz_sep_pars['refimage']
         print "runfile = ", self.runfile
         print "workinplace = ", self.workinplace
+        print "updatewcs = ", self.updatewcs
         print "coeffs = ", self.coeffs
         print "context = ", self.context
         print "clean  = ", self.clean
@@ -940,7 +945,7 @@ help file.
         print "\n"
 
     def _printDictEntries(self,prefix,dict):
-        # Define list of items that is to be handeled as a special printing case.
+        # Define list of items that is to be handled as a special printing case.
         itemlist = ['newmasks','ra','dec','build','group','coeffs','nsigma1','nsigma2']
         
         sortedkeys = dict.keys()
@@ -999,18 +1004,19 @@ help file.
                 # Copy file into new filename
                 shutil.copyfile(_img,_copy)
 
-    def _checkInputFiles(self, files):
+    def _checkInputFiles(self, files, updatewcs):
 
         """ Checks input files before they are required later. """
 
         """ Checks that MAKEWCS is run on any ACS image in 'files' list. """
         for p in files:
-
+            
             if fileutil.getKeyword(p,'idctab') != None:
                 if fileutil.getKeyword(p,'PA_V3') != None:
                     # Update the CD matrix using the new IDCTAB
-                    # Not perfect, but it removes majority of errors...
-                    makewcs.run(image=p)
+                    # Not perfect, but it removes majority of errors...                   
+                     if updatewcs == True: makewcs.run(image=p)   # optionally update wcs 
+                    
                 elif (os.path.exists(p[0:p.find('_')]+'_spt.fits')):
                     msgstr =  "\n########################################\n"
                     msgstr += "#                                      #\n"
@@ -1042,8 +1048,9 @@ help file.
                         img[0].header.update("PA_V3",float(pa_v3))
                         # Close the input file.
                         img.close()
-                        # Run makewcs
-                        makewcs.run(image=p)
+                        # Optionally run makewcs                        
+                        if updatewcs == True: makewcs.run(image=p) 
+                        
                     except:
                         # We have failed to add the PA_V3 value to the
                         # input file.  Raise an exception and give up.
@@ -1524,7 +1531,7 @@ help file.
             # exited with a return without actually completing it's normal
             # processing.  This exit from Multidrizzle is to allow for 
             # the stopping of execution withour raising an acception.  This
-            # keeps the HST pipeline from crashing because of a rasied
+            # keeps the HST pipeline from crashing because of a raised
             # reception.  This state likely occured because all of the input
             # images the user provided to Multidrizzle were excluded from
             # processing because of problems with the data (like a 0 EXPTIME
