@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.73.3dev"
+__version__="0.85dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -681,16 +681,20 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     img.apply_mask(mask)
 
     if pars.thresh is None:
-#        img.thresh=3.5*imstat(saaper,binwidth=0.01,nclip=10,fields='stddev').stddev  #3.5 sigm dividing point on statistics
-        img.thresh=3.5*imstat(img.masked_data,binwidth=0.01,nclip=10,fields='stddev').stddev  #3.5 sigm dividing point on statistics
+        #Define threshold *on persistence image*
+        #Add the mean, for heaven's sake.
+        saaperstat = imstat(saaper,binwidth=0.01,nclip=10,fields='stddev,mean')
+        img.thresh=saaperstat.mean + 3.5*saaperstat.stddev  #3.5 sigm dividing point on statistics
+#        img.thresh=3.5*imstat(img.masked_data,binwidth=0.01,nclip=10,fields='stddev').stddev  #3.5 sigm dividing point on statistics
     else:
         img.thresh=pars.thresh
-    
+
+    #Apply threshold *to persistence image*
     img.domains={'high':Domain('high',
-                               numarray.where(img.data > img.thresh),
+                               numarray.where(saaper > img.thresh),
                                pars.hirange),
                  'low' :Domain('low',
-                               numarray.where(img.data <= img.thresh),
+                               numarray.where(saaper <= img.thresh),
                                pars.lorange)
                  }
     #This is promising but we really should use something like img[img.mask].data,
@@ -727,7 +731,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
   
     if 1: #img.update:
         img.data=final
-        img.update_header(pars,tag='0.73.3d: appimage bugfix')
+        img.update_header(pars,tag='%s: addmean'%__version__)
         img.writeto(outfile,clobber=pars.clobber)
 
     return saaper,img
