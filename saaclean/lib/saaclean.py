@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.85dev"
+__version__="0.86dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -90,7 +90,6 @@ class params:
         self.flatsaaper=flatsaaper
         self.flatsaaperfile=osfn(flatsaaperfile)
         self.maskfile=osfn(maskfile)
-#        self.gainplot=gainplot
         self.stepsize=stepsize
         self.thresh=thresh
         self.hirange=hirange
@@ -254,8 +253,6 @@ class Exposure:
         self.data[self.q3]=self.data[self.q3]-m[2]
         self.data[self.q4]=self.data[self.q4]-m[3]
 
-#        raise UserError,"debug entry"
-
 
         #"special handling of middle col/row"
         if self.camera < 3:
@@ -352,7 +349,7 @@ class Exposure:
                 minx=max(ubest-5,0)
                 maxx=min(ubest+5,len(dom.pp[0])-1)
                 thedata=[(dom.pp[0,i],dom.pp[1,i]) for i in range(minx,maxx+1)]
-                #print thedata
+
                 best,dom.chi2=parabola_min(thedata,best)
                # best=parabola1(dom.pp[0,minx:maxx],pp[1,minx:maxx],minguess=best)
                # best=parabola1(dom.pp[0,minx:maxx],pp[1,minx:maxx],minguess=best)
@@ -367,15 +364,6 @@ class Exposure:
             print "   effective noise at this factor (electrons at gain %f): %f"%(self.gainplot,dom.pp[1,ubest]*self.gainplot)
             print "   noise reduction (percent)       : ",dom.nr
 
-    def qa_result(self,checkimage):
-##         fom=self.nonsource.stddev() - checkimage[self.nonsourceidx].stddev()
-##         if fom < 0:
-##             raise ValueError, "Sky stddev increased: aborting"
-
-        new = imstat(checkimage[self.nonsourceidx],binwidth=0.01,nclip=10,fields='stddev').stddev
-        old = imstat(self.nonsource,binwidth=0.01,nclip=10,fields='stddev').stddev
-        
-        self.fom = 1.0 - new/old
 
     def apply_domains(self,saaper,badmask,noisethresh,appimage=None):
         if appimage is not None: 
@@ -482,19 +470,14 @@ class Exposure:
                           self.domains[k].nr,
                           '%sSD  noise reduction (percent)'%HorL,
                           before=lastkey)
-            self.h.update('SCNFOM',
-                              self.fom,
-                              'Figure of merit: 1-(newsigma/origsigma',
-                              before=lastkey)
-            self.h.update('SCNPXFOM',
-                              self.npix_fom,
-                              'Figure of merit: pixratios',
-                              before=lastkey)
-            self.h.update('SCNTAG',
-                          tag,
-                          'Tag/description of this version',
-                          before=lastkey)
-
+##................................................................       
+## Only needed for testing: removed for release
+##................................................................       
+##             self.h.update('SCNTAG',
+##                           tag,
+##                           'Tag/description of this version',
+##                           
+##................................................................       
         
 #..........................................................................
 # Exception definitions
@@ -681,11 +664,10 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     img.apply_mask(mask)
 
     if pars.thresh is None:
-        #Define threshold *on persistence image*
-        #Add the mean, for heaven's sake.
+        #Define threshold *on persistence image* as
+        # (mean + 3.5*stddev)
         saaperstat = imstat(saaper,binwidth=0.01,nclip=10,fields='stddev,mean')
-        img.thresh=saaperstat.mean + 3.5*saaperstat.stddev  #3.5 sigm dividing point on statistics
-#        img.thresh=3.5*imstat(img.masked_data,binwidth=0.01,nclip=10,fields='stddev').stddev  #3.5 sigm dividing point on statistics
+        img.thresh=saaperstat.mean + 3.5*saaperstat.stddev  
     else:
         img.thresh=pars.thresh
 
@@ -697,37 +679,15 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
                                numarray.where(saaper <= img.thresh),
                                pars.lorange)
                  }
-    #This is promising but we really should use something like img[img.mask].data,
-    #so we don't include the masked-out pixels in the domain. They were excluded
-    #from the saaper already in the construction process. Or maybe not??
-    img.ddomains={'high':Domain('high',
-                               numarray.where(img.masked_data > img.thresh),
-                               pars.hirange),
-                 'low' :Domain('low',
-                               numarray.where(img.masked_data <= img.thresh),
-                               pars.lorange)
-                 }
 
     print "Threshold for hi/lo: ",img.thresh
     print "Npixels hi/lo: ",len(img.domains['high'].pixlist[0]),len(img.domains['low'].pixlist[0])
-    try:
-        img.npix_fom=(float(img.domains['low'].npix)/img.domains['high'].npix)/(
-            float(img.ddomains['low'].npix)/img.ddomains['high'].npix)
-    except ZeroDivisionError:
-        img.npix_fom=-99
+    if (img.domains['high'].npix == 0):
         raise BadThreshError,"Zero pixels found in high signal domain"
-    
     img.getscales(saaper,mask,pars)
 
     final=img.apply_domains(saaper,badmask,pars.noisethresh,appimage=appimage)
-    if appimage is not None:
-        #then apply it to the input image too, for QA purposes
-        checkimage=img.apply_domains(saaper,badmask,pars.noisethresh)
-    else:
-        checkimage=final
 
-
-    img.qa_result(checkimage)
   
     if 1: #img.update:
         img.data=final
