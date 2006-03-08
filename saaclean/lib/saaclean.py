@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.86dev"
+__version__="0.87dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -77,6 +77,7 @@ class params:
                  stepsize=0.008,thresh=None,hirange=0.4,lorange=0.25,dofit=1,
                  crthresh=0.3, noisethresh=1.0, binsigfrac=0.3,
                  readsaaper='False',writesaaper='True',saaperfile='saaper.fits',
+                 fitthresh='True',histbinwidth=0.01, histclip=10,
                  clobber='False',
                  flatsaaper='True',flatsaaperfile=None,
                  maskfile=None,darkpath=None,diagfile=None):
@@ -95,6 +96,10 @@ class params:
         self.hirange=hirange
         self.lorange=lorange
         self.dofit=dofit
+
+        self.fitthresh=fitthresh
+        self.histbinwidth=histbinwidth
+        self.histclip=histclip
 
         self.crthresh=crthresh
         self.noisethresh=noisethresh
@@ -417,7 +422,7 @@ class Exposure:
         
         #Then describe the persistence image:
         self.h.update('SAAPERS',
-                      pars.saaperfile,
+                      os.path.basename(pars.saaperfile),
                       'SAA persistence image',
                       before=lastkey)
         if not pars.readsaaper:
@@ -604,8 +609,8 @@ def make_saaper(im1,im2,dark,pars,crthresh=1):
 
 def get_dark_data(imgfile,darkpath):
     saafiles=get_postsaa_darks(imgfile)
-    im1=Exposure(saafiles[0],nickname='saa_im1')
-    im2=Exposure(saafiles[1],nickname='saa_im2')
+    im1=Exposure(saafiles[0],nickname='postsaa dark #1')
+    im2=Exposure(saafiles[1],nickname='postsaa dark #2')
     dark=getdark(im1.camera,darkpath)
     return im1,im2,dark
 
@@ -663,13 +668,18 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     mask,badmask=img.getmask(writename=None)
     img.apply_mask(mask)
 
-    if pars.thresh is None:
+    if pars.fitthresh:
         #Define threshold *on persistence image* as
         # (mean + 3.5*stddev)
-        saaperstat = imstat(saaper,binwidth=0.01,nclip=10,fields='stddev,mean')
+        saaperstat = imstat(saaper,
+                            binwidth=pars.histbinwidth,
+                            nclip=pars.histclip,
+                            fields='stddev,mean')
         img.thresh=saaperstat.mean + 3.5*saaperstat.stddev  
     else:
         img.thresh=pars.thresh
+
+    print "Threshold for hi/lo: ",img.thresh
 
     #Apply threshold *to persistence image*
     img.domains={'high':Domain('high',
@@ -680,7 +690,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
                                pars.lorange)
                  }
 
-    print "Threshold for hi/lo: ",img.thresh
+
     print "Npixels hi/lo: ",len(img.domains['high'].pixlist[0]),len(img.domains['low'].pixlist[0])
     if (img.domains['high'].npix == 0):
         raise BadThreshError,"Zero pixels found in high signal domain"
