@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.87dev"
+__version__="0.88dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -369,7 +369,10 @@ class Exposure:
             print "   effective noise at this factor (electrons at gain %f): %f"%(self.gainplot,dom.pp[1,ubest]*self.gainplot)
             print "   noise reduction (percent)       : ",dom.nr
 
-
+            #Apply a sensibility check
+            if dom.scale < 0:
+                raise NegScaleError, "ERROR: Best scale factor for %s domain is negative"%dom.name
+            
     def apply_domains(self,saaper,badmask,noisethresh,appimage=None):
         if appimage is not None: 
             final=appimage
@@ -692,8 +695,12 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
 
 
     print "Npixels hi/lo: ",len(img.domains['high'].pixlist[0]),len(img.domains['low'].pixlist[0])
+
+    #Do some checking for sensible results
     if (img.domains['high'].npix == 0):
-        raise BadThreshError,"Zero pixels found in high signal domain"
+        raise BadThreshError,"ERROR: Zero pixels found in high signal domain."
+    if (img.domains['high'].npix > img.domains['low'].npix):
+        raise BadThreshError,"ERROR: Number of high domain pixels exceeds the number of low domain pixels"
     img.getscales(saaper,mask,pars)
 
     final=img.apply_domains(saaper,badmask,pars.noisethresh,appimage=appimage)
@@ -701,7 +708,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
   
     if 1: #img.update:
         img.data=final
-        img.update_header(pars,tag='%s: addmean'%__version__)
+        img.update_header(pars)
         img.writeto(outfile,clobber=pars.clobber)
 
     return saaper,img
