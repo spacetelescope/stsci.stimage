@@ -1571,9 +1571,10 @@ doublereal mgf2_(doublereal *lam)
 		}
 /* If we have a distortion image we add here */
 /* (missing XD,YD offsets corrected, January 2006) */
+/* (Removed the offsets because they cause a segfault, March, 2006) */
 		if (*disim) {
-		    ix = (integer) (x + xcen + xd);
-		    iy = (integer) (y + ycen + yd);
+		    ix = (integer) (x + xcen);
+		    iy = (integer) (y + ycen);
 		    xcorn += (doublereal) xg[ix + iy * xg_dim1];
 		    ycorn += (doublereal) yg[ix + iy * yg_dim1];
 		}

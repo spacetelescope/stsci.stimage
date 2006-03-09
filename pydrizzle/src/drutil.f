@@ -1247,9 +1247,10 @@ C Note that XIN and YIN are used differently!
 
 C If we have a distortion image we add here
 C (missing XD,YD offsets corrected, January 2006)
+C (Removed the offsets because they cause a segfault, March, 2006)
          IF(DISIM) THEN
-            IX=INT(X+XCEN+XD)
-            IY=INT(Y+YCEN+YD)
+            IX=INT(X+XCEN)
+            IY=INT(Y+YCEN)
             XCORN=XCORN+DBLE(XG(IX,IY))
             YCORN=YCORN+DBLE(YG(IX,IY))
          ENDIF
