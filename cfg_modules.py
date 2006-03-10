@@ -1,7 +1,7 @@
 import shutil, os, os.path
 
-PYFITS_MODULES = ['pyfits', 'fitsdiff', 'readgeis']
-PYTOOLS_MODULES = ['imageiter', 'nimageiter', 'numcombine', 'versioninfo', 'makewcs', 'irafglob', 'parseinput','iterfile']
+PYFITS_MODULES = ['pyfits']
+PYTOOLS_MODULES = ['imageiter', 'nimageiter', 'numcombine', 'versioninfo', 'makewcs', 'irafglob', 'parseinput','iterfile', 'fitsdiff', 'readgeis']
 
 
 for f in PYFITS_MODULES:
