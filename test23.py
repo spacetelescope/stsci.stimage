@@ -28,7 +28,7 @@ def test23():
         'fitsdiff' :    '1.3',
         'pydrizzle':    '5.6.0',
         'imageiter':    '0.1',
-        'imagestats':   '1.0.0',
+        'imagestats':   '1.0.1',
         'irafglob':     '1.0',
         'makewcs':      '0.7.0',
         'multidrizzle': '2.7.2',
