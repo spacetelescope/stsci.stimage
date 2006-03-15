@@ -47,6 +47,14 @@ ps_files = []
 DATA_FILES = glob.glob( os.path.join(pdf_dir, '*'))
 DATA_FILES.extend(glob.glob( os.path.join(ps_dir, '*')))
 
+todel = []
+for l in DATA_FILES:
+    if 'CVS' in l:
+        todel.append(l)
+
+if todel != []:
+    for l in todel:
+        DATA_FILES.remove(l)
 
 for l in os.listdir(html_dir):
     if l.endswith('api'):
@@ -64,7 +72,7 @@ for l in os.listdir(ps_dir):
     if l.endswith('ps'):
         ps_files.append(l)
     else:
-        pas
+        pass
         
 def copy_doc(args):
     if 'install' in args:
