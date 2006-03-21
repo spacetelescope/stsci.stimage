@@ -77,7 +77,7 @@ class params:
                  stepsize=0.008,thresh=None,hirange=0.4,lorange=0.25,dofit=1,
                  crthresh=0.3, noisethresh=1.0, binsigfrac=0.3,
                  readsaaper='False',writesaaper='True',saaperfile='saaper.fits',
-                 fitthresh='True',histbinwidth=0.01, histclip=10,
+                 fitthresh='True',histbinwidth=0.01, nclip=10,
                  clobber='False',
                  flatsaaper='True',flatsaaperfile=None,
                  maskfile=None,darkpath=None,diagfile=None):
@@ -99,7 +99,7 @@ class params:
 
         self.fitthresh=fitthresh
         self.histbinwidth=histbinwidth
-        self.histclip=histclip
+        self.nclip=nclip
 
         self.crthresh=crthresh
         self.noisethresh=noisethresh
@@ -676,7 +676,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
         # (mean + 3.5*stddev)
         saaperstat = imstat(saaper,
                             binwidth=pars.histbinwidth,
-                            nclip=pars.histclip,
+                            nclip=pars.nclip,
                             fields='stddev,mean')
         img.thresh=saaperstat.mean + 3.5*saaperstat.stddev  
     else:
