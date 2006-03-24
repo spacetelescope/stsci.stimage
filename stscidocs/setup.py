@@ -27,13 +27,6 @@ for a in args:
         args.remove(a)
         sys.argv.remove(a)
 
-"""
-class smart_install_data(install_data):
-    def run(self):
-        install_cmd = self.get_finalized_command('install')
-        data_dir.append(getattr(install_cmd, 'install_lib'))
-        self.install_dir = getattr(install_cmd, 'install_lib')
-"""
 
 class smart_install_data(install_data):
     def run(self):
@@ -149,8 +142,8 @@ if __name__ == '__main__' :
     setup(
         name="stscidocs",
         version="0.1",
-        description="Package for displaying stsci_python documentation",
-        author="Astronomy Tools And Applications Branch, STScI",
+        description="STSCI_PYTHON documentation",
+        author="Nadia Dencheva",
         maintainer_email="help@stsci.edu",
         url="http://www.stsci.edu/resources/software_hardware/index_html?category=Data_Analysis",
         license = "http://www.stsci.edu/resources/software_hardware/pyraf/LICENSE",
@@ -160,7 +153,7 @@ if __name__ == '__main__' :
         cmdclass = {'install_data':smart_install_data},
 	data_files = [('stscidocs', '')]
         )
-    #gidd=get_install_data_dir(install_data)
+
     ddir = os.path.join(data_dir[0], 'stscidocs')
     copy_doc(args)
     print 'data_dir', data_dir
