@@ -13,9 +13,9 @@ Usage: import stscidocs
 def help():
     print __doc__
 
-html_dirs = []
-pdf_files = []
-ps_files = []
+#html_dirs = []
+#pdf_files = []
+#ps_files = []
 
 
 name = __name__
@@ -27,10 +27,10 @@ index_path = 'file://' + path
 
 def viewdocs():
     try:
-        webbrowser.open_new(index_path)
+        webbrowser.open(index_path, new=1)
     except:
         print "There was a problem displaying the documentation.\n"
         print "To view the web pages, please point your browser at this url:\n"
         print index_path
 
-#viewdocs()
+viewdocs()

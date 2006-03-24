@@ -27,73 +27,60 @@ for a in args:
         args.remove(a)
         sys.argv.remove(a)
 
+"""
+class smart_install_data(install_data):
+    def run(self):
+        install_cmd = self.get_finalized_command('install')
+        data_dir.append(getattr(install_cmd, 'install_lib'))
+        self.install_dir = getattr(install_cmd, 'install_lib')
+"""
+
 class smart_install_data(install_data):
     def run(self):
         #need to change self.install_dir to the library dir
         install_cmd = self.get_finalized_command('install')
         data_dir.append(getattr(install_cmd, 'install_lib'))
         self.install_dir = getattr(install_cmd, 'install_lib')
-        return install_data.run(self)
 
 cwd = os.getcwd()
-pdf_dir = os.path.join(cwd, 'pdf')
-ps_dir = os.path.join(cwd, 'ps')
-html_dir = os.path.join(cwd, 'html')
 
-html_files = []
-pdf_files = []
-ps_files = []
+pkgpaths = {}
 
-DATA_FILES = glob.glob( os.path.join(pdf_dir, '*'))
-DATA_FILES.extend(glob.glob( os.path.join(ps_dir, '*')))
 
-todel = []
-for l in DATA_FILES:
-    if 'CVS' in l:
-        todel.append(l)
-
-if todel != []:
-    for l in todel:
-        DATA_FILES.remove(l)
-
-for l in os.listdir(html_dir):
-    if l.endswith('api'):
-        html_files.append(l)
+for l in os.listdir(cwd):
+    print l
+    if l.endswith('_pkg'):
+        pkgpaths[l] = l.rstrip('_pkg')
     else:
         pass
 
-for l in os.listdir(pdf_dir):       
-    if l.endswith('.pdf'):
-        pdf_files.append(l)
-    else:
-        pass
-
-for l in os.listdir(ps_dir):        
-    if l.endswith('ps'):
-        ps_files.append(l)
-    else:
-        pass
-        
 def copy_doc(args):
     if 'install' in args:
-        for p in html_files:
+        for p in pkgpaths.keys():
             doc_dir = os.path.join(data_dir[0], 'stscidocs', p)
             if os.path.exists(doc_dir):
                 try:
                     shutil.rmtree(doc_dir)
-                except:
+                except OSError:
                     print "Error removing old doc directory %s from installation directory\n" % p
-            shutil.copytree(os.path.join(html_dir, p), doc_dir)
+            shutil.copytree(p, doc_dir)
+        doc_dir = os.path.join(data_dir[0], 'stscidocs', 'user_docs')
+        if os.path.exists(doc_dir):
+            try:
+                shutil.rmtree(doc_dir)
+            except OSError:
+                print "Error removing old doc directory %s from installation directory\n" % p
+        shutil.copytree('user_docs', doc_dir)
 
 
 def write_index(data_dir):
     header = """
     <HTML> 
     <HEAD>
-    <TITLE> STSCI PYTHON SOFTWARE DOCUMENTATION </TITLE>
+    <TITLE> STSCI_PYTHON SOFTWARE DOCUMENTATION </TITLE>
     </HEAD>
     <BODY>
-    <h3>STSCI PYTHON SOFTWARE DOCUMENTATION </h3>
+    <center><h3>STSCI_PYTHON SOFTWARE DOCUMENTATION </h3></center>
     """
 
 
@@ -105,38 +92,53 @@ def write_index(data_dir):
     path = os.path.join(cwd, 'index.html')
     f = open(path, 'w')
     f.writelines(header)
-    #PDF FILES
-    f.write("<h3>PDF FILES</h3> ")
-    f.write("<table>\n")
-    for p in pdf_files:
-        f.write("<tr><td> \n")
-        ppath =  '<a href=\"file://' + os.path.join(data_dir, p)+'\"' + "> %s </a>" % p
-        f.write(ppath)
-        f.write('\n</td></tr><p>')
+
+    f.write('<table align="center" width="100%" cellpadding="0" cellspacing="2">\n')
+
+    f.write('<tr> <td valign="top"> <table align="center">\n')
+
+    f.write('<tr><th class="tableheader"><h3> API Documentation </h3></th></tr>\n')
+
+    f.write("<tr><td><ul>")
+    for p in pkgpaths.keys():
+        htmlpath =  '<a href="file://' + os.path.join(data_dir, p, pkgpaths[p]+'_api', 'index.html')+'" > %s </a> &nbsp;' % 'html'
+        pdfpath =  '<a href="file://' + os.path.join(data_dir, p, pkgpaths[p]+'.pdf')+'" > %s </a> &nbsp;' % 'pdf'
+        pspath =  '<a href="file://' + os.path.join(data_dir, p, pkgpaths[p]+'.ps')+'" > %s </a> &nbsp;' % 'ps'
+        title = pkgpaths[p]+' api <br>'
+
+        f.write("<li> \n")
+        f.write(title)
+        f.write(htmlpath)
+        f.write(pdfpath)
+        f.write(pspath)
+        f.write('\n</li><p>')
+    f.write('</ul></td></tr>')
     f.write("</table>\n\n")
 
-    #POSTSCRIPT FILES
-    f.write("<h3>POSTSCIPT FILES</h3> ")
-    f.write("<table>\n")
-    for p in ps_files:
-        f.write("<tr><td> \n")
-        ppath =  '<a href=\"file://' + os.path.join(data_dir, p)+'\"' + "> %s </a>" % p
-        f.write(ppath)
-        f.write('\n</td></tr><p>')
-    f.write("</table>\n\n")
-
-    #HTML DOCS
-    f.write("<h3>api documentation</h3> ")
-    f.write("<table>\n")
-    for p in html_files:
-        f.write("<tr><td> \n")
-        #f.write(p)
-        #f.write(" \n </td><td> \n")
-        ppath =  '<a href=\"file://' + os.path.join(data_dir, p, 'index.html')+'\"' + "> %s </a>" % p
-        f.write(ppath)
-        f.write('\n</td></tr><p>')
-    f.write("</table>\n\n")
-
+    f.write('</td>\n')
+    f.write('<td valign="top"> <table align="center">\n')
+    f.write('<tr> <th class="tableheader"><h3>Documentation For Users</h3></th></tr>\n')
+    f.write('<tr><td>')
+    f.write('<ul>')
+    """
+    for l in os.listdir('user_docs'):
+        path = '<a href="file://' + os.path.join(data_dir, 'user_docs', l)+'" > %s </a>' % l
+        f.write('<li>')
+        f.write(path)
+        f.write('</li>\n')
+    """
+    f.write('<li> <a href="file://' + os.path.join(data_dir, 'user_docs', 'pyraf_tutorial.pdf')+'" > %s </a> </li><p>' % "PyRAF Tutorial")
+    f.write('<li><a href="file://' + os.path.join(data_dir, 'user_docs', 'pyraf_guide.pdf')+'" > %s </a></li><p>' % "PyRAF Programmer's Guide" )
+    f.write('<li><a href="file://' + os.path.join(data_dir, 'user_docs', 'pydatatut.pdf')+'" > %s </a> </li><p>' % "Interactive Data Analysis with Python Tutorial" )
+    f.write('<li> <a href="file://' + os.path.join(data_dir, 'user_docs', 'pyfits_users_manual.pdf')+'" > %s </a> </li><p>' % "PyFITS Users Manual")
+    f.write('<li> <a href="file://' + os.path.join(data_dir, 'user_docs', 'numarray-1.5-1.pdf')+'" > %s </a></li><p>' % "Numarray Manual")
+    f.write('<li> <a href="file://' + os.path.join(data_dir, 'user_docs', 'SynphotManual.pdf')+'" > %s </a></li><p>' % "Synphot Users Guide" )
+    f.write('<li> <a href="file://' + os.path.join(data_dir, 'user_docs', 'MultiDrizzle_Ch1.pdf')+'" > %s </a> </li><p>' % "Multidrizzle Users Guide")
+    f.write("<ul>")
+    f.write('</td></tr>\n')
+    f.write('</table>')
+    f.write('</td></tr>')
+    f.write('</table>')
     f.writelines(footer)
     f.close()
     
@@ -156,11 +158,13 @@ if __name__ == '__main__' :
         packages = ['stscidocs'],
 	package_dir={'stscidocs':'lib'},
         cmdclass = {'install_data':smart_install_data},
-	data_files = [('stscidocs', DATA_FILES)]
+	data_files = [('stscidocs', '')]
         )
+    #gidd=get_install_data_dir(install_data)
     ddir = os.path.join(data_dir[0], 'stscidocs')
     copy_doc(args)
     print 'data_dir', data_dir
     write_index(ddir)
     shutil.copyfile('./index.html', os.path.join(ddir, 'index.html'))
+
 
