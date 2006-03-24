@@ -1,5 +1,5 @@
 from distutils.core import Extension
-import sys, os.path, glob
+import sys, os.path, glob, string, commands
 
 PYRAF_DATA_FILES = ['pyraf/data/blankcursor.xbm', 'pyraf/data/epar.optionDB', 'pyraf/data/pyraflogo_rgb_web.gif', 'pyraf/lib/LICENSE.txt']
 
