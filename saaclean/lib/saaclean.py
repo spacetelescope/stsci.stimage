@@ -182,6 +182,7 @@ class Exposure:
         self.camera=h['camera']
         self.saa_time=h['saa_time']
         self.badfile=osfn(h['maskfile'])
+        self.tdkfile=osfn(h.get('saadfile'))
         self.gainplot=h['adcgain']
  
         self.inq1=slice(10,118),slice(10,118)              
@@ -577,13 +578,26 @@ def get_postsaa_darks(imgfile):
         f2.close()
         return saa_files
 
-def getdark(camera,darkpath):
+def getdark(camera,tdkfile,darkpath):
     """ Get the right dark file for a given NICMOS camera.
     This is definitely not the right way to do this."""
     dfile={1:'c1_saadarkref_drk.fits',
            2:'c2_saadarkref_drk.fits',
            3:'c3_saadarkref_drk.fits'}
-    thefile=os.path.abspath(darkpath)+'/'+dfile[camera]
+    darkpath=os.path.abspath(darkpath)+'/'
+    defaultfile=darkpath+dfile[camera]
+    #Choose which file to use
+    if tdkfile:
+        altfile=darkpath+os.path.basename(tdkfile)
+        if os.path.isfile(tdkfile):
+            thefile=tdkfile
+        elif os.path.isfile(altfile):
+            thefile=altfile
+        else:
+            thefile=defaultfile
+    else:
+        thefile=defaultfile
+    #Return the data from it
     f=pyfits.open(thefile)
     ans= f[1].data
     f.close()
@@ -614,7 +628,7 @@ def get_dark_data(imgfile,darkpath):
     saafiles=get_postsaa_darks(imgfile)
     im1=Exposure(saafiles[0],nickname='postsaa dark #1')
     im2=Exposure(saafiles[1],nickname='postsaa dark #2')
-    dark=getdark(im1.camera,darkpath)
+    dark=getdark(im1.camera,im1.tdkfile,darkpath)
     return im1,im2,dark
 
 def flat_saaper(saaper,img):
