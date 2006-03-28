@@ -15,7 +15,7 @@ if numarray.__version__ < "1.1":
 if sys.platform != 'win32':
     imagestats_libraries = ['m']
 else:
-    imagestats_libraries = ['']
+    imagestats_libraries = []
 
 pythoninc = sysconfig.get_python_inc()
 
@@ -23,10 +23,11 @@ pythoninc = sysconfig.get_python_inc()
 IMAGESTATS_EXTENSIONS = [NumarrayExtension('imagestats.buildHistogram', \
                         ['imagestats/src/buildHistogram.c'],
                         include_dirs = [pythoninc],
-                        libraries = ['m']),
+                        libraries = imagestats_libraries),
                         NumarrayExtension('imagestats.computeMean', \
                         ['imagestats/src/computeMean.c'],
                         include_dirs = [pythoninc],
-                        libraries = ['m'])]
+                        libraries = imagestats_libraries)
+                        ]
 
 

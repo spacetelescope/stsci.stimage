@@ -38,7 +38,7 @@ def test23():
         'pyfits':       '1.0.1',
         'readgeis' :    '1.8',
 	'parseinput':	'0.1.5',
-	'saaclean':	'0.88dev',
+	'saaclean':	'0.9',
 	'iterfile':	'0.1',
 	'puftcorr':	'0.1'
         }

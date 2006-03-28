@@ -1,8 +1,6 @@
 from distutils import sysconfig
 from distutils.core import Extension
 import sys, os.path, string
-f2c_inc_dir = []
-f2c_lib_dir = []
 
 if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'alpha',0):
     raise SystemExit, "Python 2.3 or later required to build pydrizzle."
@@ -15,6 +13,17 @@ except:
     
 if numarray.__version__ < "1.1":
     raise SystemExit, "Numarray 1.1 or later required to build pydrizzle."
+
+f2c_inc_dir = []
+f2c_lib_dir = []
+
+if sys.platform != 'win32':
+    pydrizzle_libraries = ['f2c', 'm']
+    EXTRA_LINK_ARGS = []
+else:
+    pydrizzle_libraries = ['vcf2c']
+    EXTRA_LINK_ARGS = ['/NODEFAULTLIB:MSVCRT']
+
 
 pythoninc = sysconfig.get_python_inc()
 pydrizzle_inc_dirs = []
@@ -40,10 +49,12 @@ def getF2CDirs(args):
             else:
                 raise SystemExit, "f2c.h needed to build pydrizzle."
             if os.path.exists(os.path.join(f2cdir, 'libf2c.a')) or \
-                   os.path.exists(os.path.join(f2cdir, 'libf2c.so')):
+                   os.path.exists(os.path.join(f2cdir, 'libf2c.so')) or \
+                   os.path.exists(os.path.join(f2cdir, 'vcf2c.lib')) :
                 f2c_lib_dir.append(f2cdir)
             elif os.path.exists(os.path.join(f2cdir, 'lib','libf2c.a')) or \
-                     os.path.eists(os.path.join(f2cdir, 'lib','libf2c.so')):
+                     os.path.exists(os.path.join(f2cdir, 'lib','libf2c.so')) or \
+                     os.path.exists(os.path.join(f2cdir, 'lib','vcf2c.lib')) :
                 f2c_lib_dir.append(os.path.join(f2cdir, 'lib'))
             else:
                 raise SystemExit, "libf2c needed to build pydrizzle."
@@ -60,5 +71,8 @@ PYDRIZZLE_EXTENSIONS = [NumarrayExtension("pydrizzle.arrdriz", \
                 'pydrizzle/src/bieval.c'],
                 include_dirs = [pythoninc] + f2c_inc_dir,
                 library_dirs = f2c_lib_dir,
-                libraries=['f2c','m'])]
+                extra_link_args=EXTRA_LINK_ARGS,
+                libraries=pydrizzle_libraries)]
+
+                
 
