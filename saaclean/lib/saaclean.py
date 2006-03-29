@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.88dev"
+__version__="0.91dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -404,14 +404,17 @@ class Exposure:
             
         return final
 
-    def update_header(self,pars,tag='default'):
+    def update_header(self,pars,tag='default',header=None):
         """ Update the FITS header with all this good stuff we've done"""
 
         #Start with the last keyword, for ease of applying.
         
+        if header is None:
+            header=self.h
+            
         #Describe what was applied
         lastkey='SCNAPPLD'
-        self.h.update(lastkey,
+        header.update(lastkey,
                       self.appstring,
                       'to which domains was SAA cleaning applied',
                       after='SAACRMAP')
@@ -420,40 +423,40 @@ class Exposure:
         #Then work forward from the beginning of the section:
         
         #First put in a comment card as a separator
-        self.h.add_blank('',before=lastkey)
-        self.h.add_blank('      / SAA_CLEAN output keywords',before=lastkey)
-        self.h.add_blank('',before=lastkey)
+        header.add_blank('',before=lastkey)
+        header.add_blank('      / SAA_CLEAN output keywords',before=lastkey)
+        header.add_blank('',before=lastkey)
         
         #Then describe the persistence image:
-        self.h.update('SAAPERS',
+        header.update('SAAPERS',
                       os.path.basename(pars.saaperfile),
                       'SAA persistence image',
                       before=lastkey)
         if not pars.readsaaper:
-            self.h.update('SCNPSCL',
+            header.update('SCNPSCL',
                           pars.scale,
                           'scale factor used to construct persistence img',
                           before=lastkey)
-            self.h.update('SCNPMDN',
+            header.update('SCNPMDN',
                           pars.saaper_median,
                           'median used in flatfielding persistence image',
                           before=lastkey)
-        self.h.add_blank('',before=lastkey)
+        header.add_blank('',before=lastkey)
         
         #Describe the domains
-        self.h.update('SCNTHRSH',
+        header.update('SCNTHRSH',
                       self.thresh,
                       'Threshold dividing high & low signal domains',
                       before=lastkey)
-        self.h.update('SCNHNPIX',
+        header.update('SCNHNPIX',
                       self.domains['high'].npix,
                       'Number of pixels in high signal domain (HSD)',
                       before=lastkey)
-        self.h.update('SCNLNPIX',
+        header.update('SCNLNPIX',
                       self.domains['low'].npix,
                       'Number of pixels in low signal domain (LSD)',
                       before=lastkey)
-        self.h.add_blank('',before=lastkey)
+        header.add_blank('',before=lastkey)
         
         #Describe the results in each domain
 ##         self.h.update('SCNGAIN',
@@ -462,20 +465,20 @@ class Exposure:
 ##                       before=lastkey)
         for k in self.domains:
             HorL=k[0].upper()
-            self.h.update('SCN%sCHI2'%HorL,
+            header.update('SCN%sCHI2'%HorL,
                           self.domains[k].chi2,
                           '%sSD chi squared for parabola fit'%HorL,
                      before=lastkey)
-            self.h.update('SCN%sSCL'%HorL,
+            header.update('SCN%sSCL'%HorL,
                           self.domains[k].scale,
                           '%sSD scale factor for min noise'%HorL,
                       before=lastkey)
             bestloc=self.domains[k].bestloc
-            self.h.update('SCN%sEFFN'%HorL,
+            header.update('SCN%sEFFN'%HorL,
                           self.domains[k].pp[1,bestloc]*self.gainplot,
                           '%sSD effective noise at SCNGAIN'%HorL,
                           before=lastkey)
-            self.h.update('SCN%sNRED'%HorL,
+            header.update('SCN%sNRED'%HorL,
                           self.domains[k].nr,
                           '%sSD  noise reduction (percent)'%HorL,
                           before=lastkey)
@@ -655,15 +658,17 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     print "saaclean version %s"%__version__
     print "Input files: %s %s"%(usr_calcfile,usr_targfile)
     imgfile=osfn(usr_calcfile)
+    img=Exposure(imgfile,nickname='sci image')
     targfile=osfn(usr_targfile)
     if imgfile != targfile:
         #then we'll need the data from the targfile
-        tfile=pyfits.open(targfile)
-        appimage=tfile['sci'].data.copy()
+        targ=Exposure(targfile,nickname='target image')
+        appimage=targ.data.copy()
     else:
         #we'll apply it to the same file
+        targ=img
         appimage=None
-        
+
     outfile=osfn(usr_outfile)
     if pars is None:
         pars=params()
@@ -674,7 +679,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
         saaper=make_saaper(im1,im2,dark,pars)
         print "Using scale factor of ",pars.scale," to construct persistence image"
 
-    img=Exposure(imgfile,nickname='sci image')
+
     mask,badmask=img.getmask(writename=pars.maskfile,clobber=pars.clobber)
     saaper,mm=flat_saaper(saaper,img)
     pars.saaper_median=mm
@@ -721,8 +726,8 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
 
   
     if 1: #img.update:
-        img.data=final
-        img.update_header(pars)
-        img.writeto(outfile,clobber=pars.clobber)
+        targ.data=final
+        img.update_header(pars,header=targ.h)
+        targ.writeto(outfile,clobber=pars.clobber)
 
     return saaper,img
