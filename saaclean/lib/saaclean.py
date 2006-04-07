@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.91dev"
+__version__="0.92dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -379,29 +379,40 @@ class Exposure:
             final=appimage
         else:
             final=self.data.copy()
+
+        saacorr=numarray.zeros(final.shape,'Float32')
+        
         hdom,ldom=self.domains['high'],self.domains['low']
         self.update=1
         if hdom.nr >= noisethresh and ldom.nr >= noisethresh:
             print "\n Applying noise reduction in both domains "
             self.appstring='both'
-            final[ldom.pixlist]= self.data[ldom.pixlist]-(saaper[ldom.pixlist]*ldom.scale*badmask[ldom.pixlist])
-            final[hdom.pixlist]= self.data[hdom.pixlist]-(saaper[hdom.pixlist]*hdom.scale*badmask[hdom.pixlist])
+            saacorr[ldom.pixlist]=saaper[ldom.pixlist]*(ldom.scale*badmask[ldom.pixlist])
+            saacorr[hdom.pixlist]=saaper[hdom.pixlist]*(hdom.scale*badmask[hdom.pixlist])
+
         elif hdom.nr > noisethresh and ldom.nr < noisethresh:
             print "\n Applying noise reduction in high domain only "            
             self.appstring='high only'
-            final[hdom.pixlist]= self.data[hdom.pixlist]-(saaper[hdom.pixlist]*hdom.scale*badmask[hdom.pixlist])
+            saacorr[hdom.pixlist]=saaper[hdom.pixlist]*(hdom.scale*badmask[hdom.pixlist])
             
         elif hdom.nr < noisethresh and ldom.nr >= noisethresh:
             print "\n...Noise reduction in high domain < 1%: applying low scale everywhere"
             self.appstring='low everywhere'
-            final=self.data-(saaper*ldom.scale*badmask)
+            saacorr=saaper*(ldom.scale*badmask)
+            
         elif hdom.nr < noisethresh and ldom.nr < noisethresh:
             print "\n*** Noise reduction < 1 %, not applying"
             self.appstring='none'
             self.update=0
         else:
             raise ValueError,"Huh?? hi_nr, lo_nr: %f %f"%(hdom.nr,ldom.nr) 
+
+        if self.appstring != 'none':
+            final=final-saacorr
             
+##         import futil
+##         futil.writeimage(saacorr,'scaled_sapper.fits')
+        
         return final
 
     def update_header(self,pars,tag='default',header=None):
