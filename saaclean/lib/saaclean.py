@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.92dev"
+__version__="0.93dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -236,22 +236,27 @@ class Exposure:
     def dark_subtract(self,dark):
         self.data=(self.data-dark)/self.exptime
 
-        
+
     def pedskyish(self):
         """ Performs something like the IRAF pedsky task, but with a bit more
         sophistication in handling the central row and column"""
         
         #Compute the median for each quadrant independently
-        m=numarray.array([imstat(self.data[self.inq1],nclip=1,binwidth=0.01,fields='median').median,
-                          imstat(self.data[self.inq2],nclip=1,binwidth=0.01,fields='median').median,
-                          imstat(self.data[self.inq3],nclip=1,binwidth=0.01,fields='median').median,
-                          imstat(self.data[self.inq4],nclip=1,binwidth=0.01,fields='median').median])
-        #print "file ",self.filename
-        #print "raw m",m
-        temp=imstat(m,nclip=1,binwidth=0.01,fields='median')
-        #print "stats: mean/median/mode ",temp.mean,temp.median,temp.mode
-        m=m-temp.median
-        #print "after sub",m        
+##         m=numarray.array([imstat(self.data[self.inq1],nclip=0,binwidth=0.01,fields='median').median,
+##                           imstat(self.data[self.inq2],nclip=0,binwidth=0.01,fields='median').median,
+##                           imstat(self.data[self.inq3],nclip=0,binwidth=0.01,fields='median').median,
+##                           imstat(self.data[self.inq4],nclip=0,binwidth=0.01,fields='median').median])
+
+        m=numarray.array([median(self.data[self.inq1]),
+                         median(self.data[self.inq2]),
+                         median(self.data[self.inq3]),
+                         median(self.data[self.inq4])])
+        print "file ",self.filename
+        print "raw m",m
+##      temp=imstat(m,nclip=1,binwidth=0.01,fields='mean,median')
+        print "stats: mean/median",m.mean,median(m)
+        m=m-median(m)
+        print "after sub",m        
 
         #Subtract the median from each quadrant
         self.data[self.q1]=self.data[self.q1]-m[0]
@@ -542,6 +547,9 @@ def writeimage(image, filename, comment=None,clobber=False):
 
 #..........................................................................
 # Math functions
+def median(a):
+    return numarray.sort(a.flat)[a.nelements() / 2]
+
 def parabola_model(coeffs,t):
     r=coeffs[0]*(t-coeffs[1])**2 + coeffs[2]
     return r
