@@ -254,7 +254,7 @@ class Exposure:
         print "file ",self.filename
         print "raw m",m
 ##      temp=imstat(m,nclip=1,binwidth=0.01,fields='mean,median')
-        print "stats: mean/median",m.mean,median(m)
+        print "stats: mean/median",m.mean(),median(m)
         m=m-median(m)
         print "after sub",m        
 
