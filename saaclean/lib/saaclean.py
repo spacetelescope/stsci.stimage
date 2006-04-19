@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.93dev"
+__version__="0.94dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -226,7 +226,10 @@ class Exposure:
                 print "Bad pixel image not read"
                 print "Bad pixel image filename obtained from ",self.filename
                 self.badpix=None
-
+                
+        #Don't leave file handles hanging around
+        self.f.close()
+        
     def writeto(self,outname,clobber=False):
         f=pyfits.open(self.filename)
         f[self.extnum].data=self.data
@@ -692,7 +695,9 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     if pars is None:
         pars=params()
     if pars.readsaaper:
-        saaper=pyfits.open(pars.saaperfile)[0].data
+        sfile=pyfits.open(pars.saaperfile)[0].data
+        saaper=sfile[0].data
+        sfile.close()
     else:
         im1,im2,dark=get_dark_data(imgfile,pars.darkpath)
         saaper=make_saaper(im1,im2,dark,pars)
@@ -749,4 +754,5 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
         img.update_header(pars,header=targ.h)
         targ.writeto(outfile,clobber=pars.clobber)
 
+    
     return saaper,img
