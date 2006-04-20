@@ -32,7 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.94dev"
+__version__="0.95dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -329,59 +329,68 @@ class Exposure:
         acc=saaper*self.exptime
 
         for dom in self.domains.values():
-            sz1=int(dom.range/pars.stepsize)+1
-            stepval=[pars.stepsize*i for i in xrange(sz1)]
+            try:
+                sz1=int(dom.range/pars.stepsize)+1
+                stepval=[pars.stepsize*i for i in xrange(sz1)]
 
-            #there's got to be a better way to do this!
-            #Make a mask & fill it all with ones
-            fitmask=numarray.ones(mask.shape)
-            #Then make the pixels we want be set to zero
-            fitmask[dom.pixlist]=0
-            #Then set the mask-defined bad pixels to one so we don't use them
-            #(Notice there's no use of "self.badpix" here, wonder why not?)
-            #Ah! It's because self.badpix was already used in *making* that mask. OK.
-            badpix=numarray.where(mask == 1)
-            fitmask[badpix]=1
-            #Finally, choose only those pixels where it's set to zero.
-            umask=numarray.where(fitmask == 0)
+                #there's got to be a better way to do this!
+                #Make a mask & fill it all with ones
+                fitmask=numarray.ones(mask.shape)
+                #Then make the pixels we want be set to zero
+                fitmask[dom.pixlist]=0
+                #Then set the mask-defined bad pixels to one so we don't use them
+                #(Notice there's no use of "self.badpix" here, wonder why not?)
+                #Ah! It's because self.badpix was already used in *making* that mask. OK.
+                badpix=numarray.where(mask == 1)
+                fitmask[badpix]=1
+                #Finally, choose only those pixels where it's set to zero.
+                umask=numarray.where(fitmask == 0)
 
-            dom.pp=numarray.zeros((3,int(dom.range/pars.stepsize)+1),'Float32')
-            index=0
-            for i in stepval:
-                dif=cal-(acc*i)
-                temp=imstat(dif[umask],binwidth=0.01,nclip=3,fields='stddev,mode') #sigma=100
-                dom.pp[:,index]=i,temp.stddev,temp.mode
-                index+=1
-            dom.striplowerthan(pars.binsigfrac)
-            if pars.diagfile:
-                dom.writeto(pars.diagfile+'_'+dom.name+'_signal_domain.dat',clobber=pars.clobber)
-            ubest,umode=dom.getmin()
-            best=dom.pp[0,ubest]
+                dom.pp=numarray.zeros((3,int(dom.range/pars.stepsize)+1),'Float32')
+                index=0
+                for i in stepval:
+                    dif=cal-(acc*i)
+                    temp=imstat(dif[umask],binwidth=0.01,nclip=3,fields='stddev,mode') #sigma=100
+                    dom.pp[:,index]=i,temp.stddev,temp.mode
+                    index+=1
+                dom.striplowerthan(pars.binsigfrac)
+                if pars.diagfile:
+                    dom.writeto(pars.diagfile+'_'+dom.name+'_signal_domain.dat',clobber=pars.clobber)
+                ubest,umode=dom.getmin()
+                best=dom.pp[0,ubest]
 
-            print "\nResults summary for %s domain:"%dom.name
-            if pars.dofit:
-                minx=max(ubest-5,0)
-                maxx=min(ubest+5,len(dom.pp[0])-1)
-                thedata=[(dom.pp[0,i],dom.pp[1,i]) for i in range(minx,maxx+1)]
+                print "\nResults summary for %s domain:"%dom.name
+                if pars.dofit:
+                    minx=max(ubest-5,0)
+                    maxx=min(ubest+5,len(dom.pp[0])-1)
+                    thedata=[(dom.pp[0,i],dom.pp[1,i]) for i in range(minx,maxx+1)]
 
-                best,dom.chi2=parabola_min(thedata,best)
-               # best=parabola1(dom.pp[0,minx:maxx],pp[1,minx:maxx],minguess=best)
-               # best=parabola1(dom.pp[0,minx:maxx],pp[1,minx:maxx],minguess=best)
+                    best,dom.chi2=parabola_min(thedata,best)
+                   # best=parabola1(dom.pp[0,minx:maxx],pp[1,minx:maxx],minguess=best)
+                   # best=parabola1(dom.pp[0,minx:maxx],pp[1,minx:maxx],minguess=best)
 
-            dom.nr=(1.0-dom.pp[1,ubest]/dom.pp[1,0])*100
-            dom.scale=best
-            dom.bestloc=ubest
+                dom.nr=(1.0-dom.pp[1,ubest]/dom.pp[1,0])*100
+                dom.scale=best
+                dom.bestloc=ubest
 
 
-            #print "   zero-mode scale factor is       : ",dom.pp[0,umode]
-            print "   min-noise (best) scale factor is: ",dom.scale
-            print "   effective noise at this factor (electrons at gain %f): %f"%(self.gainplot,dom.pp[1,ubest]*self.gainplot)
-            print "   noise reduction (percent)       : ",dom.nr
+                #print "   zero-mode scale factor is       : ",dom.pp[0,umode]
+                print "   min-noise (best) scale factor is: ",dom.scale
+                print "   effective noise at this factor (electrons at gain %f): %f"%(self.gainplot,dom.pp[1,ubest]*self.gainplot)
+                print "   noise reduction (percent)       : ",dom.nr
 
-            #Apply a sensibility check
-            if dom.scale < 0:
-                raise NegScaleError, "ERROR: Best scale factor for %s domain is negative"%dom.name
-            
+                #Apply a sensibility check
+                if dom.scale < 0:
+                    raise NegScaleError, "ERROR: Best scale factor for %s domain is negative"%dom.name
+            except ValueError,e:
+                print "Error calculating scale for %s domain"%dom.name
+                print str(e)
+                print "No correction can be calculated for this domain"
+                dom.nr = 0
+                dom.scale = 0
+                dom.bestloc=0
+                dom.chi2=0
+                
     def apply_domains(self,saaper,badmask,noisethresh,appimage=None):
         if appimage is not None: 
             final=appimage
@@ -740,8 +749,8 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     print "Npixels hi/lo: ",len(img.domains['high'].pixlist[0]),len(img.domains['low'].pixlist[0])
 
     #Do some checking for sensible results
-    if (img.domains['high'].npix == 0):
-        raise BadThreshError,"ERROR: Zero pixels found in high signal domain."
+##     if (img.domains['high'].npix == 0):
+##         raise BadThreshError,"ERROR: Zero pixels found in high signal domain."
     if (img.domains['high'].npix > img.domains['low'].npix):
         raise BadThreshError,"ERROR: Number of high domain pixels exceeds the number of low domain pixels"
     img.getscales(saaper,mask,pars)
