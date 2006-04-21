@@ -30,9 +30,10 @@ import os
 import exceptions
 import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
+from imagestats.histogram1d import histogram1d
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.95dev"
+__version__="0.96dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -254,12 +255,12 @@ class Exposure:
                          median(self.data[self.inq2]),
                          median(self.data[self.inq3]),
                          median(self.data[self.inq4])])
-        print "file ",self.filename
-        print "raw m",m
+##      print "file ",self.filename
+##      print "raw m",m
 ##      temp=imstat(m,nclip=1,binwidth=0.01,fields='mean,median')
-        print "stats: mean/median",m.mean(),median(m)
+##      print "stats: mean/median",m.mean(),median(m)
         m=m-median(m)
-        print "after sub",m        
+##      print "after sub",m        
 
         #Subtract the median from each quadrant
         self.data[self.q1]=self.data[self.q1]-m[0]
@@ -572,18 +573,80 @@ def parabola_min(thedata, startguess):
     fitcoeff,chi2=LeastSquares.leastSquaresFit(parabola_model,guesscoeff,thedata)
     print "chi2 for parabola fit = ",chi2
     return fitcoeff[1],chi2
-#..................................................................................
-#Not tested or used anywhere yet
+#............................................................................
+#Functions for gauss-poly fitting of the persistence image histogram
+def gausspoly_eval(coeffs,t):
+    z=(t-coeffs[1])/coeffs[2]
+    zz=-1*(z**2/2.)
+    r=coeffs[0]*numarray.exp(zz) + coeffs[3] + coeffs[4]*t + coeffs[5]*t**2
+    return r
+    
 def gausspoly_model(coeffs,t):
     import math
     z=(t-coeffs[1])/coeffs[2]
-    r=coeffs[0]*math.exp(-(z**2)/2) + coeffs[3] + coeffs[4]*t + coeffs[5]*t**2
+    zz=-1*(z**2/2.)
+    r=coeffs[0]*zz.exp() + coeffs[3] + coeffs[4]*t + coeffs[5]*t**2
     return r
 
-def gaussfit(thedata,startguess):
-    guesscoeff=(100,startguess,0.1) #probably wrong
-    fitcoeff,chi2=LeastSquares.leastSquaresFit(gausspoly_model,guesscoeff,thedata)
-    return r
+def gausspoly_fit(thedata,guesscoeff):
+    #coeffs are:
+    #  amplitude of gaussian: guess max(data)
+    #  center of gaussian: guess mode(data)
+    #  sigma of gaussian: guess stddev(data)
+    #  constant: guess 0.1
+    #  linear term: guess 0.1
+    #  quadratic term: guess 0.0
+    fitcoeff,chi2=LeastSquares.leastSquaresFit(gausspoly_model,
+                                               guesscoeff,
+                                               thedata)
+    return fitcoeff, chi2
+
+#...........................................................................
+def thresh_from_gausspoly_fit(saa, binwidth=0.5, nclip=3):
+    """ Some massaging of the SAApersistence image histogram is
+    performed in order to obtain an optimal fit.
+    Unfortunately this involves some magic numbers taken from
+    the IDL code."""
+    #Work in a bigger dynamic range space
+    im=saa*500.0
+
+    #Compute the histogram
+    hnbins=int( (10000+100)/binwidth) + 1
+    h=histogram1d(im,hnbins,binwidth,-100)
+    xloc=numarray.arange(h.nbins)*h.binWidth+h.minValue
+
+    #Select out only the data range we're interested in
+    #Take a first guess at the standard deviation
+    idx=((im >= -100) & (im <= 10000))
+    yy=imstat(im[idx],binwidth=0.1,nclip=3,fields='stddev')
+
+    #Set up the data we're going to fit
+    if hnbins > 600:
+        numpoints=600
+    else:
+        numpoints=hnbins
+        
+    thedata = [(xloc[i],h.histogram[i]) for i in range(numpoints)]
+    t=xloc[0:numpoints]
+    
+    #Now set up the start guesses
+    hmax=h.histogram[0:numpoints].max()
+    hbinmax=xloc[h.histogram[0:numpoints].argmax()]
+    startguess=[hmax, 
+                xloc[h.histogram[0:numpoints].argmax()],
+                yy.stddev,
+                0.1, 0.1, 0.0]
+    
+    #and do the fitting
+    coeffs,chi2=gausspoly_fit(thedata,startguess)
+
+    #Compute the threshold based on the fit.
+    #Don't forget to divide out the magic-number to convert back
+    #to the original scale.
+    thresh=(coeffs[1] + 3.5*abs(coeffs[2]))/500.
+
+    return thresh
+
 #..............................................................................
 # General functions
 #..........................................................................
@@ -724,13 +787,9 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     img.apply_mask(mask)
 
     if pars.fitthresh:
-        #Define threshold *on persistence image* as
-        # (mean + 3.5*stddev)
-        saaperstat = imstat(saaper,
-                            binwidth=pars.histbinwidth,
-                            nclip=pars.nclip,
-                            fields='stddev,mean')
-        img.thresh=saaperstat.mean + 3.5*saaperstat.stddev  
+        img.thresh = thresh_from_gausspoly_fit(saaper,
+                                               binwidth=pars.histbinwidth,
+                                               nclip=pars.nclip)
     else:
         img.thresh=pars.thresh
 
