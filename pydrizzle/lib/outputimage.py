@@ -241,6 +241,18 @@ class OutputImage:
 
             hdu = pyfits.ImageHDU(data=whtarr,header=errhdr,name=extlist[1])
             hdu.header.update('EXTVER',1)
+            if self.wcs:
+                # Update WCS Keywords based on PyDrizzle product's value
+                # since 'drizzle' itself doesn't update that keyword.
+                hdu.header.update('ORIENTAT',self.wcs.orient)
+                hdu.header.update('CD1_1',self.wcs.cd11)
+                hdu.header.update('CD1_2',self.wcs.cd12)
+                hdu.header.update('CD2_1',self.wcs.cd21)
+                hdu.header.update('CD2_2',self.wcs.cd22)
+                hdu.header.update('CRVAL1',self.wcs.crval1)
+                hdu.header.update('CRVAL2',self.wcs.crval2)
+                hdu.header.update('CRPIX1',self.wcs.crpix1)
+                hdu.header.update('CRPIX2',self.wcs.crpix2)
 
             fo.append(hdu)
 
@@ -256,6 +268,18 @@ class OutputImage:
 
             hdu = pyfits.ImageHDU(data=_ctxarr,header=dqhdr,name=extlist[2])
             hdu.header.update('EXTVER',1)
+            if self.wcs:
+                # Update WCS Keywords based on PyDrizzle product's value
+                # since 'drizzle' itself doesn't update that keyword.
+                hdu.header.update('ORIENTAT',self.wcs.orient)
+                hdu.header.update('CD1_1',self.wcs.cd11)
+                hdu.header.update('CD1_2',self.wcs.cd12)
+                hdu.header.update('CD2_1',self.wcs.cd21)
+                hdu.header.update('CD2_2',self.wcs.cd22)
+                hdu.header.update('CRVAL1',self.wcs.crval1)
+                hdu.header.update('CRVAL2',self.wcs.crval2)
+                hdu.header.update('CRPIX1',self.wcs.crpix1)
+                hdu.header.update('CRPIX2',self.wcs.crpix2)
 
             fo.append(hdu)
 
@@ -301,6 +325,18 @@ class OutputImage:
                             hdu.header.ascard.append(_card)
                 hdu.header.update('filename',self.outweight)
                 hdu.header.update('CCDCHIP','-999')
+                if self.wcs:
+                    # Update WCS Keywords based on PyDrizzle product's value
+                    # since 'drizzle' itself doesn't update that keyword.
+                    hdu.header.update('ORIENTAT',self.wcs.orient)
+                    hdu.header.update('CD1_1',self.wcs.cd11)
+                    hdu.header.update('CD1_2',self.wcs.cd12)
+                    hdu.header.update('CD2_1',self.wcs.cd21)
+                    hdu.header.update('CD2_2',self.wcs.cd22)
+                    hdu.header.update('CRVAL1',self.wcs.crval1)
+                    hdu.header.update('CRVAL2',self.wcs.crval2)
+                    hdu.header.update('CRPIX1',self.wcs.crpix1)
+                    hdu.header.update('CRPIX2',self.wcs.crpix2)
 
                 # Add primary header to output file...
                 fwht.append(hdu)
@@ -327,6 +363,18 @@ class OutputImage:
                         if _card.key not in RESERVED_KEYS and hdu.header.has_key(_card.key) == 0:
                             hdu.header.ascard.append(_card)
                 hdu.header.update('filename', self.outcontext)
+                if self.wcs:
+                    # Update WCS Keywords based on PyDrizzle product's value
+                    # since 'drizzle' itself doesn't update that keyword.
+                    hdu.header.update('ORIENTAT',self.wcs.orient)
+                    hdu.header.update('CD1_1',self.wcs.cd11)
+                    hdu.header.update('CD1_2',self.wcs.cd12)
+                    hdu.header.update('CD2_1',self.wcs.cd21)
+                    hdu.header.update('CD2_2',self.wcs.cd22)
+                    hdu.header.update('CRVAL1',self.wcs.crval1)
+                    hdu.header.update('CRVAL2',self.wcs.crval2)
+                    hdu.header.update('CRPIX1',self.wcs.crpix1)
+                    hdu.header.update('CRPIX2',self.wcs.crpix2)
 
                 fctx.append(hdu)
                 fctx.writeto(self.outcontext)

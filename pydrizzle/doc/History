@@ -1,4 +1,9 @@
 ### PyDrizzle Revision Changes
+Version 5.6.1 (28-Apr-2006) WJH
+      - (OPR 55761)
+        WHT and CTX images were not being written out with the same WCS
+        as the SCI extension. This required an update to 'outputimage.py'.
+
 Version 5.6.0 (1-Nov-2005) WJH
       - 'drizzle' code was corrected to properly run 'sinc' kernel
         for blotting. Required changes to indexing of taper in 'bieval'
