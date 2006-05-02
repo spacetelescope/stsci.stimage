@@ -2675,8 +2675,8 @@ More help on SkyField objects and their parameters can be obtained using:
                     # Only update the WCS from drizzling the
                     # first image in the list, just like IRAF DRIZZLE
                     drutil.updateWCS(_inwcs,_wcs)
-                    print '[run] Updated WCS now:'
-                    print _wcs
+                    #print '[run] Updated WCS now:'
+                    #print _wcs
 
                 # Increment number of chips processed for single output
                 _numchips += 1
