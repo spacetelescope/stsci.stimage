@@ -1,4 +1,29 @@
 ### PyDrizzle Revision Changes
+Version 5.6.2 (2-May-2006) WJH
+      - (OPR 55773)
+        Drizzle applies the distortion coefficients to pixel positions
+        relative to the reference position, a position defined as
+        (xsize/2 + 1.0, ysize/2+1.0).  PyDrizzle interprets the
+        distortion coefficients relative to the reference position
+        specified in the IDCTAB itself, which generally comes out to be
+        (xsize/2, ysize/2) for performing computations internally.
+        The coefficients get converted by PyDrizzle from IDCTAB
+        format to an ASCII format which 'drizzle' can understand.
+        This conversion involves writing out the values read in from
+        the IDCTAB after computing the offset necessary for each chip
+        to place them correctly in the output  frame.
+
+        Unfortunately, PyDrizzle wrote out the coefficients based on
+        the same reference position used internally by PyDrizzle,
+        instead of the convention used by 'drizzle'.  As a result,
+        images taken at different rotations would have the distortion
+        model applied with a 1-2 pixel offset rotated by the difference
+        in orientations between the separate exposures.
+
+        Examples of this include combining j8c0b1skq and j8hw16mfq
+        (47 Tuc), as reported by Jennifer Mack, or j93k2asoq and
+        j93k73gcq (Orion) as reported by Eddie Bergeron.
+
 Version 5.6.1 (28-Apr-2006) WJH
       - (OPR 55761)
         WHT and CTX images were not being written out with the same WCS

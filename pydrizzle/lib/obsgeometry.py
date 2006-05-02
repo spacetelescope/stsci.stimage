@@ -110,8 +110,8 @@ class GeometryModel:
 
         if xref != None:
             # Shift coefficients for use with drizzle
-            _xs = xref - self.refpix['XREF']
-            _ys = yref - self.refpix['YREF']
+            _xs = xref - self.refpix['XREF'] + 1.0
+            _ys = yref - self.refpix['YREF'] + 1.0
 
             if _xs != 0 or _ys != 0:
                 cxs,cys= self.shift(cx, cy, _xs, _ys)
@@ -121,8 +121,8 @@ class GeometryModel:
                 # We only want to apply this shift to coeffs
                 # for subarray images.
                 if delta == no:
-                    cxs[0,0] = cxs[0,0] - _xs + 0.5
-                    cys[0,0] = cys[0,0] - _ys + 0.5
+                    cxs[0,0] = cxs[0,0] - _xs
+                    cys[0,0] = cys[0,0] - _ys
 
                 # Now, apply only the difference introduced by the distortion..
                 # i.e., (undistorted - original) shift.
@@ -612,7 +612,7 @@ class ObsGeometry:
         self.model.cx = _xc
         self.model.cy = _yc
 
-    def wtraxy(self,pixpos,wcs):
+    def wtraxy(self,pixpos,wcs,verbose=False):
         """
         Converts input pixel position 'pixpos' into an X,Y position in WCS.
         Made this function compatible with list input, as well as single
@@ -628,6 +628,7 @@ class ObsGeometry:
         _scale = wcs.pscale/self.wcslin.pscale
         _xoff = _ab[2]
         _yoff = _cd[2]
+
         # changed from self.wcs.naxis[1/2]
         _naxis = (wcs.naxis1,wcs.naxis2)
         _rot_mat = drutil.buildRotMatrix(_orient)
@@ -636,16 +637,29 @@ class ObsGeometry:
             pixpos = [pixpos]
 
         _delta_x,_delta_y = self.apply(pixpos)
+        if verbose:
+            print 'Raw corrected position: ',_delta_x,_delta_y
         _delta_x += self.model.refpix['XDELTA']
         _delta_y += self.model.refpix['YDELTA']
+        if verbose:
+            print 'Fully corrected position: ',_delta_x,_delta_y
+
         _delta = N.zeros((len(pixpos),2),N.Float32)
         _delta[:,0] = _delta_x
         _delta[:,1] = _delta_y
 
-        _xp = _naxis[0]/2. + 1.0
-        _yp = _naxis[1]/2. + 1.0
+        # Need to 0.5 offset to xp,yp to compute the offset in the same way that
+        # 'drizzle' computes it.
+        _xp = _naxis[0]/2. + 0.5
+        _yp = _naxis[1]/2. + 0.5
         _xt = _xoff + _xp
         _yt = _yoff + _yp
+
+        if verbose:
+            print 'XSH,YSH: ',_xoff,_yoff
+            print 'XDELTA,YDELTA: ',self.model.refpix['XDELTA'],self.model.refpix['YDELTA']
+            print 'XREF,YREF: ',self.model.refpix['XREF'],self.model.refpix['YREF']
+            print 'xt,yt: ',_xt,_yt,' based on xp,yp: ',_xp,_yp
 
         _xy_corr = N.dot(_delta,_rot_mat) / _scale
         _delta[:,0] = _xy_corr[:,0] + _xt

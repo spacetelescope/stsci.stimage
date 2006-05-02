@@ -17,11 +17,9 @@ tasks.
 
 import string,os,types
 from math import ceil,floor
-#import iraf
 
 import numarray as N
 from numarray import linear_algebra
-#import LinearAlgebra2 # required for matrix inversion in fitlin
 
 import fileutil
 
@@ -607,7 +605,7 @@ def wcsfit(img_geom, ref):
     # Start by setting up an array of points +/-0.5 pixels around CRVAL1,2
     # However, we must shift these positions by 1.0pix to match what
     # drizzle will use as its reference position for 'align=center'.
-    _cpix = (img_wcs.crpix1,img_wcs.crpix2)
+    _cpix = (img_wcs.crpix1+1.0,img_wcs.crpix2+1.0)
     _cpix_arr = N.array([_cpix,(_cpix[0],_cpix[1]+1.),
                        (_cpix[0]+1.,_cpix[1]+1.),(_cpix[0]+1.,_cpix[1])], type=N.Float64)
 

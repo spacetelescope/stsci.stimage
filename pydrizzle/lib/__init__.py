@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.6.1 (28-Apr-2006)"
+__version__ = "5.6.2 (2-May-2006)"
 
 # For History of changes and updates, see 'History'
 
@@ -155,6 +155,11 @@ class Pattern:
         #
         image_handle = self.getHeaderHandle()
 
+        if self.pars['section'] != None:
+            # If a section was specified, then there is only 1 member
+            # for this observation.
+            self.nmembers = 1
+
         # Determine type of input image and syntax needed to read data
         self.imtype = imtype.Imtype(filename,handle=self.image_handle,
                                     dqsuffix=self.pars['dqsuffix'])
@@ -177,10 +182,15 @@ class Pattern:
             set to None and this returns None for header and image_handle.
         """
 
+        _numsci = 0
         if self.name:
             _handle = fileutil.openImage(self.name,mode='readonly',memmap=self.pars['memmap'])
             _fname,_extn = fileutil.parseFilename(self.name)
             _hdr = _handle['PRIMARY'].header.copy()
+            # Count number of SCI extensions
+            for _fext in _handle:
+                if _fext.header.has_key('extname') and _fext.header['extname'] == 'SCI':
+                    _numsci += 1
 
             if _extn > 0:
                 # Append correct extension/chip/group header to PRIMARY...
@@ -194,6 +204,7 @@ class Pattern:
         # Set attribute to point to these products
         self.image_handle = None
         self.header = _hdr
+        self.nmembers = _numsci
 
         return _handle
 
@@ -293,14 +304,14 @@ class Pattern:
             #
             # Compute the pixel position of the input reference image in
             # reference WCS
-            _oxy1 = _mem_geo.wtraxy((_mem_wcs.crpix1   ,_mem_wcs.crpix2   ),_geo0)
+            _oxy1 = _mem_geo.wtraxy((_mem_wcs.crpix1, _mem_wcs.crpix2 ),_geo0)
 
             # Compute new CRPIX values for original WCS model to use for
             # removing change in orientation from this shift. WJH
             _oxy1o = _mem_geo.wtraxy((_mem_wcs.crpix1, _mem_wcs.crpix2),_geo)
 
             # Use 'xy2rd' to convert these pixel positions to RA/Dec
-            ra1,dec1 = _geo.xy2rd((_oxy1[0],_oxy1[1]))
+            ra1,dec1 = _geo.xy2rd((_oxy1[0], _oxy1[1]))
 
             # Convert these numbers into a new WCS
             _mem_wcs.crval1 = ra1
@@ -429,10 +440,10 @@ class Pattern:
                 if _refimage:
                     # Compute delta RA,Dec for output frame ref point
                     # using given pixel shifts
-                    _dcrpix = N.dot((_out_wcs.crpix1 - _delta_x,_out_wcs.crpix2 - _delta_y),_rotmat)
+                    _dcrpix = N.dot((-_delta_x, -_delta_y),_rotmat)
 
                     # CRVAL of output reference frame user shifts were measured from
-                    _refcrval = _out_wcs.xy2rd((_dcrpix[0],_dcrpix[1]))
+                    _refcrval = _out_wcs.xy2rd((_dcrpix[0]+_out_wcs.crpix1,_dcrpix[1]+_out_wcs.crpix2))
                     # Total arcsecond shift for this image
                     _ra_shift = ( (_refcrval[0] - _out_wcs.crval1),
                                   (_refcrval[1] - _out_wcs.crval2))
@@ -465,8 +476,10 @@ class Pattern:
                 if _refimage:
                     # Compute delta RA,Dec for output frame ref point
                     # using given pixel shifts
-                    _dcrpix = N.dot((_out_wcs.crpix1-_delta_x, _out_wcs.crpix2-_delta_y),_rotmat)
-                    _refcrval = _out_wcs.xy2rd((_dcrpix[0],_dcrpix[1]))
+                    #_dcrpix = N.dot((_out_wcs.crpix1-_delta_x, _out_wcs.crpix2-_delta_y),_rotmat)
+                    _dcrpix = N.dot((-_delta_x, -_delta_y),_rotmat)
+
+                    _refcrval = _out_wcs.xy2rd((_dcrpix[0]+_out_wcs.crpix1,_dcrpix[1]+_out_wcs.crpix2))
                     _dcrval = ((_out_wcs.crval1 - _refcrval[0] ),
                                (_out_wcs.crval2 - _refcrval[1] ))
                 else:
@@ -617,7 +630,6 @@ class Pattern:
         _crpix = (meta_wcs.crpix1 + abxt[2], meta_wcs.crpix2 + cdyt[2])
 
         meta_wcs.crval1,meta_wcs.crval2 = meta_wcs.xy2rd(_crpix)
-
         # Insure output WCS has exactly orthogonal CD matrix
         #meta_wcs.rotateCD(meta_wcs.orient+_delta_rot)
         meta_wcs.updateWCS(orient=meta_wcs.orient+_delta_rot)
@@ -1200,7 +1212,9 @@ class ACSObservation(Pattern):
         #  outname, output, outsingle
         self.setNames(filename,output)
 
+        """
         if self.pars['section'] == None:
+            print 'self.nmembers as found by getHeaderHandle:',self.nmembers
             self.nmembers = int(self.header['NEXTEND']) / self.NUM_IMSET
             # In case not all expected extensions are present in the ACS image...
             if self.nmembers == 0: self.nmembers = 1
@@ -1208,6 +1222,7 @@ class ACSObservation(Pattern):
             # If a section was specified, then there is only 1 member
             # for this observation.
             self.nmembers = 1
+        """
 
         # Set EXPTIME for exposure
         self.exptime = self.getExptime()
@@ -1256,13 +1271,14 @@ class STISObservation(Pattern):
         # Set EXPTIME for exposure
         self.exptime = self.getExptime()
 
+        """
         if self.pars['section'] == None:
             self.nmembers = int(self.header['NEXTEND']) / self.NUM_IMSET
         else:
             # If a section was specified, then there is only 1 member
             # for this observation.
             self.nmembers = 1
-
+        """
         # Now, build list of members and initialize them
         self.addMembers(filename)
 
@@ -1331,13 +1347,14 @@ class NICMOSObservation(Pattern):
         # Set EXPTIME for exposure
         self.exptime = self.getExptime()
 
+        """
         if self.pars['section'] == None:
             self.nmembers = int(self.header['NEXTEND']) / self.NUM_IMSET
         else:
             # If a section was specified, then there is only 1 member
             # for this observation.
             self.nmembers = 1
-
+        """
         # Now, build list of members and initialize them
         self.addMembers(filename)
 
@@ -1394,6 +1411,7 @@ class WFPCObservation(Pattern):
         # build output rootnames here...
         self.setNames(filename,output)
 
+        """
         # Determine how many 'chips' make up the observation
         if self.pars['section'] == None:
             if gcount == None:
@@ -1404,7 +1422,7 @@ class WFPCObservation(Pattern):
             # If a section was specified, then there is only 1 member
             # for this observation.
             self.nmembers = 1
-
+        """
         # Set EXPTIME for exposure
         self.exptime = self.getExptime()
 
@@ -2458,7 +2476,10 @@ More help on SkyField objects and their parameters can be obtained using:
             #
             # Perform drizzling...
             #
-            _wcs = self.observation.product.geometry.wcs
+            # Only work on a copy of the product WCS, so that when
+            # this gets updated for the output image, it does not
+            # modify the original WCS computed by PyDrizzle
+            _wcs = self.observation.product.geometry.wcs.copy()
 
             _numctx = {'all':len(self.parlist)}
 #            if single:
@@ -2654,6 +2675,8 @@ More help on SkyField objects and their parameters can be obtained using:
                     # Only update the WCS from drizzling the
                     # first image in the list, just like IRAF DRIZZLE
                     drutil.updateWCS(_inwcs,_wcs)
+                    print '[run] Updated WCS now:'
+                    print _wcs
 
                 # Increment number of chips processed for single output
                 _numchips += 1
