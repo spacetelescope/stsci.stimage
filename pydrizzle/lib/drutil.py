@@ -631,8 +631,8 @@ def wcsfit(img_geom, ref):
     # a WCS to itself (no distortion coeffs), so it needs to be
     # taken out in the coeffs file by modifying the zero-point value.
     #  WJH 17-Mar-2005
-    abxt[2] -= ref_wcs.crpix1
-    cdyt[2] -= ref_wcs.crpix2
+    abxt[2] -= ref_wcs.crpix1 + 0.5
+    cdyt[2] -= ref_wcs.crpix2 + 0.5
 
     return abxt,cdyt
 

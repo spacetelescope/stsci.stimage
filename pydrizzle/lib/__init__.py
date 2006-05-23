@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.6.2 (2-May-2006)"
+__version__ = "5.6.3 (23-May-2006)"
 
 # For History of changes and updates, see 'History'
 
@@ -2343,7 +2343,7 @@ More help on SkyField objects and their parameters can be obtained using:
 
     # Run 'drizzle' here...
     #
-    def run(self,save=no,build=yes,blot=no,single=no,clean=no,interp='linear',sinscl=1.0):
+    def run(self,save=no,build=yes,blot=no,single=no,clean=no,interp='linear',sinscl=1.0, debug=no):
         """Perform drizzle operation on input to create output.
          This method would rely on the buildPars() method for
          the output product to produce correct parameters
@@ -2357,6 +2357,7 @@ More help on SkyField objects and their parameters can be obtained using:
         # Store the value of build set by the user for use, if desired,
         # in the 'clean()' method.
         self.build = build
+        self.debug = debug
 
         print 'PyDrizzle: drizzle task started at ',_ptime()
         _memmap = self.pars['memmap']
@@ -2671,7 +2672,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 del _pxg,_pyg
 
 
-                if _nimg == 0:
+                if _nimg == 0 and self.debug == yes:
                     # Only update the WCS from drizzling the
                     # first image in the list, just like IRAF DRIZZLE
                     drutil.updateWCS(_inwcs,_wcs)
