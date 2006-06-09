@@ -105,13 +105,14 @@ class GeometryModel:
         """
         cx = self.cx/self.pscale
         cy = self.cy/self.pscale
-        x0 = self.refpix['XDELTA']
-        y0 = self.refpix['YDELTA']
+        x0 = self.refpix['XDELTA'] + cx[0,0]
+        y0 = self.refpix['YDELTA'] + cy[0,0]
 
         if xref != None:
             # Shift coefficients for use with drizzle
-            _xs = xref - self.refpix['XREF'] + 1.0
-            _ys = yref - self.refpix['YREF'] + 1.0
+            _xs = xref - self.refpix['XREF'] #+ 1.0
+            _ys = yref - self.refpix['YREF'] #+ 1.0
+
 
             if _xs != 0 or _ys != 0:
                 cxs,cys= self.shift(cx, cy, _xs, _ys)
@@ -129,8 +130,8 @@ class GeometryModel:
                 x0 += cxs[0,0]
                 y0 += cys[0,0]
 
-        self.x0 = x0
-        self.y0 = y0
+        self.x0 = x0 + 1.0
+        self.y0 = y0 + 1.0
 
         # Now, write out the coefficients into an ASCII
         # file in 'drizzle' format.
