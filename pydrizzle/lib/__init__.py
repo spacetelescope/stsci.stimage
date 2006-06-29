@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.6.4 (09-June-2006)"
+__version__ = "5.6.5 (29-June-2006)"
 
 # For History of changes and updates, see 'History'
 
@@ -537,9 +537,7 @@ class Pattern:
 
         # For each member, update WCSLIN to account for chip-to-chip
         # offsets, [X/Y]DELTA in refpix.
-        for member in self.members:
-            member.geometry.undistortWCS(shape=(output_wcs.naxis1,output_wcs.naxis2))
-        output_wcs = self.buildMetachip(update=no)
+
 
         # Update the final output size with the meta-chip size
         self.size = (output_wcs.naxis1,output_wcs.naxis2)

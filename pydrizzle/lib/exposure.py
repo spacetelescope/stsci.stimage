@@ -227,14 +227,14 @@ class Exposure:
 
     def setCorners(self):
         """ Initializes corners for the raw image. """
-        self.corners['raw'] = N.array([(0.,0.),(0.,self.naxis2),(self.naxis1,0.),(self.naxis1,self.naxis2)],type=N.Float64)
+        self.corners['raw'] = N.array([(1.,1.),(1.,self.naxis2),(self.naxis1,1.),(self.naxis1,self.naxis2)],type=N.Float64)
 
     def setSingleOffsets(self):
         """ Computes the zero-point offset and shape of undistorted single chip relative
             to the full final output product metachip.
         """
         _wcs = self.geometry.wcs
-        _corners = N.array([(0.,0.),(0.,_wcs.naxis2),(_wcs.naxis1,0.),(_wcs.naxis1,_wcs.naxis2)])
+        _corners = N.array([(1.,1.),(1.,_wcs.naxis2),(_wcs.naxis1,1.),(_wcs.naxis1,_wcs.naxis2)])
         _wc = self.geometry.wtraxy(_corners,self.product_wcs)
 
         _xrange = (_wc[:,0].min(),_wc[:,0].max())

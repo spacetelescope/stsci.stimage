@@ -462,8 +462,8 @@ class ObsGeometry:
                 self.wcs.delta_refx = self.wcslin.delta_refx = 0.
                 self.wcs.delta_refy = self.wcslin.delta_refy = 0.
                 self.wcs.subarray = self.wcslin.subarray = no
-                self.wcs.chip_xref = int(self.wcs.naxis1/2.)
-                self.wcs.chip_yref = int(self.wcs.naxis2/2.)
+                self.wcs.chip_xref = self.wcs.naxis1/2.
+                self.wcs.chip_yref = self.wcs.naxis2/2.
 
             #
             # Apply VAFACTOR if present in header.
@@ -542,7 +542,7 @@ class ObsGeometry:
 
         # Put input positions into full frame coordinates...
         pixpos = pixpos + N.array((self.wcs.offset_x,self.wcs.offset_y),type=N.Float64)
-        v2,v3 = self.model.apply(pixpos)
+        v2,v3 = self.model.apply(pixpos, scale=pscale)
 
         # If there was no distortion applied to
         # the pixel position, simply shift by new
@@ -567,8 +567,8 @@ class ObsGeometry:
             # For full images, this correction will be ZERO.
             # This offset, though, has to be scaled by the relative plate-scales.
             #
-            v2 = v2 / pscale
-            v3 = v3 / pscale
+            #v2 = v2 / pscale
+            #v3 = v3 / pscale
 
             xpos = v2  + deltax - (self.wcs.delta_refx / _ratio)
             ypos = v3  + deltay - (self.wcs.delta_refy / _ratio)
