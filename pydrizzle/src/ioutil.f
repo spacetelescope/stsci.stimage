@@ -45,7 +45,9 @@ C
 C Modifications to support "refpix" contruct in distortion files
 C   Richard Hook, ST-ECF/ESO/STScI, December 2003
 C
-
+C Image center is calculated as float, not int
+C   Nadia Dencheva July, 2006
+C
       SUBROUTINE GETWCS(ID,WCS,CTYPE1,CTYPE2,ISTAT)
 C
 C Get the WCS header items (8 values) and CTYPE strings
@@ -1404,16 +1406,16 @@ C The units are INPUT pixels on entry to this routine
          OFF=1.0D0
       ENDIF
 
-      CALL UHDASD(ID,STEM//'INXC',DBLE(DNX/2)+OFF,
+      CALL UHDASD(ID,STEM//'INXC',DBLE(DNX/2.0)+OFF,
      :     'Drizzle, reference center of input image (X)',0,ISTAT)
 
-      CALL UHDASD(ID,STEM//'INYC',DBLE(DNY/2)+OFF,
+      CALL UHDASD(ID,STEM//'INYC',DBLE(DNY/2.0)+OFF,
      :     'Drizzle, reference center of input image (Y)',0,ISTAT)
 
-      CALL UHDASD(ID,STEM//'OUXC',DBLE(ONX/2)+OFF,
+      CALL UHDASD(ID,STEM//'OUXC',DBLE(ONX/2.0)+OFF,
      :     'Drizzle, reference center of output image (X)',0,ISTAT)
 
-      CALL UHDASD(ID,STEM//'OUYC',DBLE(ONY/2)+OFF,
+      CALL UHDASD(ID,STEM//'OUYC',DBLE(ONY/2.0)+OFF,
      :     'Drizzle, reference center of output image (Y)',0,ISTAT)
 
 C If there are secondary parameters add these too

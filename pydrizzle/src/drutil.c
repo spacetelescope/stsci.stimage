@@ -85,6 +85,9 @@ static logical c_true = TRUE_;
 
 /* Modifications to support "refpix" contruct in distortion files */
 /*   Richard Hook, ST-ECF/ESO/STScI, December 2003 */
+/* WCSLIN was modified to use all coefficients in the evaluation. */
+/* Image center is calculated with floating point precision. */
+/*   Nadia Dencheva, July 2006 */
 
 /* Subroutine */ int setim_(real *a, integer *nx, integer *ny, real *v)
 {
@@ -997,9 +1000,10 @@ doublereal mgf2_(doublereal *lam)
 
 /* Just use LINEAR terms */
     scoty = *coty;
-    if (*coty > 1) {
-	*coty = 1;
-    }
+
+/*  Why limit the evaluation to only linear terms??? */
+
+/*      IF(COTY.GT.1) COTY=1 */
     for (i__ = 1; i__ <= 4; ++i__) {
 	if (*coty == 3) {
 	    d__1 = xin[i__ - 1] - *xcen + xdoff;
@@ -1364,11 +1368,11 @@ doublereal mgf2_(doublereal *lam)
 
     /* Function Body */
     if (s_cmp(align, "corner", (ftnlen)8, (ftnlen)6) == 0) {
-	xcen = (doublereal) (*dnx / 2) + .5f;
-	ycen = (doublereal) (*dny / 2) + .5f;
+	xcen = (doublereal) (*dnx / 2.f) + .5f;
+	ycen = (doublereal) (*dny / 2.f) + .5f;
     } else {
-	xcen = (doublereal) (*dnx / 2) + 1.f;
-	ycen = (doublereal) (*dny / 2) + 1.f;
+	xcen = (doublereal) (*dnx / 2.f) + 1.f;
+	ycen = (doublereal) (*dny / 2.f) + 1.f;
     }
 /* Calculate some numbers to simplify things later */
     sinth = sin(*rot);
@@ -1393,11 +1397,11 @@ doublereal mgf2_(doublereal *lam)
 	yc2 = costh2;
     }
     if (s_cmp(align, "corner", (ftnlen)8, (ftnlen)6) == 0) {
-	xp = (doublereal) (*onx / 2) + .5;
-	yp = (doublereal) (*ony / 2) + .5;
+	xp = (doublereal) (*onx / 2.f) + .5;
+	yp = (doublereal) (*ony / 2.f) + .5;
     } else {
-	xp = (doublereal) (*onx / 2) + 1.;
-	yp = (doublereal) (*ony / 2) + 1.;
+	xp = (doublereal) (*onx / 2.f) + 1.;
+	yp = (doublereal) (*ony / 2.f) + 1.;
     }
     xt = xoff + xp;
     yt = yoff + yp;
@@ -3046,11 +3050,11 @@ L140:
 /* reference pixel as the reference here */
     if (*usewcs) {
 	if (s_cmp(align, "corner", (ftnlen)8, (ftnlen)6) == 0) {
-	    xcen = (doublereal) (*dnx / 2) + .5f;
-	    ycen = (doublereal) (*dny / 2) + .5f;
+	    xcen = (doublereal) (*dnx / 2.f) + .5f;
+	    ycen = (doublereal) (*dny / 2.f) + .5f;
 	} else {
-	    xcen = (doublereal) (*dnx / 2) + 1.f;
-	    ycen = (doublereal) (*dny / 2) + 1.f;
+	    xcen = (doublereal) (*dnx / 2.f) + 1.f;
+	    ycen = (doublereal) (*dny / 2.f) + 1.f;
 	}
 	xin[0] = xcen;
 	xin[1] = xcen;
@@ -4038,12 +4042,12 @@ L80:
 	return 0;
     }
 /* Set up a 1x1 box at the centre of the output image (three sides only) */
-    xin[0] = (doublereal) (*onx / 2);
-    yin[0] = (doublereal) (*ony / 2);
-    xin[1] = (doublereal) (*onx / 2) + 1.;
-    yin[1] = (doublereal) (*ony / 2);
-    xin[2] = (doublereal) (*onx / 2);
-    yin[2] = (doublereal) (*ony / 2) + 1.;
+    xin[0] = (doublereal) (*onx / 2.f);
+    yin[0] = (doublereal) (*ony / 2.f);
+    xin[1] = (doublereal) (*onx / 2.f) + 1.;
+    yin[1] = (doublereal) (*ony / 2.f);
+    xin[2] = (doublereal) (*onx / 2.f);
+    yin[2] = (doublereal) (*ony / 2.f) + 1.;
 /* Transform */
     drival_(xin, yin, &c__3, onx, ony, dnx, dny, &c_false, xsh, ysh, rot, 
 	    scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 

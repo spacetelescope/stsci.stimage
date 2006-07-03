@@ -49,6 +49,9 @@ C   Richard Hook, ST-ECF/ESO/STScI, October 2003
 C
 C Modifications to support "refpix" contruct in distortion files
 C   Richard Hook, ST-ECF/ESO/STScI, December 2003
+C WCSLIN was modified to use all coefficients in the evaluation.
+C Image center is calculated with floating point precision.
+C   Nadia Dencheva, July 2006
 C
       SUBROUTINE SETIM(A,NX,NY,V)
 C
@@ -752,7 +755,11 @@ C
 C Just use LINEAR terms
 
       SCOTY=COTY
-      IF(COTY.GT.1) COTY=1
+
+C
+C  Why limit the evaluation to only linear terms???
+C
+C      IF(COTY.GT.1) COTY=1
 
       DO I=1,4
        IF(COTY.EQ.3) THEN
@@ -1023,7 +1030,6 @@ C Added "refpix" support using higher values of COTY,
 C    Richard Hook, ST-ECF/STScI, December 2003
 C
       IMPLICIT NONE
-
       INTEGER N,DNX,DNY,ONX,ONY,I
       LOGICAL REG
       DOUBLE PRECISION XIN(N),YIN(N),XOUT(N),YOUT(N)
@@ -1055,11 +1061,11 @@ C Secondary geometrical parameters, added in V1.5
 C--
 
       IF(ALIGN.EQ.'corner') THEN
-         XCEN=DBLE(DNX/2)+0.5
-         YCEN=DBLE(DNY/2)+0.5
+         XCEN=DBLE(DNX/2.0)+0.5
+         YCEN=DBLE(DNY/2.0)+0.5
       ELSE
-         XCEN=DBLE(DNX/2)+1.0
-         YCEN=DBLE(DNY/2)+1.0
+         XCEN=DBLE(DNX/2.0)+1.0
+         YCEN=DBLE(DNY/2.0)+1.0
       ENDIF
 
 C Calculate some numbers to simplify things later
@@ -1089,11 +1095,11 @@ C Secondary ones
       ENDIF
  
       IF(ALIGN.EQ.'corner') THEN
-         XP=DBLE(ONX/2)+0.5D0
-         YP=DBLE(ONY/2)+0.5D0
+         XP=DBLE(ONX/2.0)+0.5D0
+         YP=DBLE(ONY/2.0)+0.5D0
       ELSE
-         XP=DBLE(ONX/2)+1.0D0
-         YP=DBLE(ONY/2)+1.0D0
+         XP=DBLE(ONX/2.0)+1.0D0
+         YP=DBLE(ONY/2.0)+1.0D0
       ENDIF
  
       XT=XOFF+XP
@@ -1107,6 +1113,7 @@ C Set the secondary ones
          YT2=YP2+YSH2
       ENDIF
 
+
 C Here is some new code to support the WCS option
 C first we work out a linear transformation from input to
 C out
@@ -1117,6 +1124,7 @@ C out
      :         XC,YC,XS,YS,XT,YT)
 
          ROTFIR=.TRUE.
+
       ENDIF
 
 C Check for the presence of "refpix" additional information
@@ -1154,6 +1162,8 @@ C for the first point
        X=XSCALE*(XIN(1)-1.0D0-XCEN)
        Y=YSCALE*(YIN(1)+YIN(2)-YCEN)
 
+
+
        DO I=1,N
          X=X+XSCALE
 
@@ -1186,6 +1196,7 @@ C If we have a distortion image we add here
             YCORN=YCORN+DBLE(YG(IX,IY))
          ENDIF
 
+         
 C Apply the linear transform
 C There are two ways this can be done - shift then
 C rotate or rotate then shift
@@ -1355,6 +1366,7 @@ C and now without secondary parameters
             XCORN=X
             YCORN=Y
          ENDIF
+
 
 C If we have a distortion image we add here
          IF(DISIM) THEN
@@ -2290,11 +2302,11 @@ C Note that we use the centre of the image rather than the
 C reference pixel as the reference here
       IF(USEWCS) THEN         
          IF(ALIGN.EQ.'corner') THEN
-            XCEN=DBLE(DNX/2)+0.5
-            YCEN=DBLE(DNY/2)+0.5
+            XCEN=DBLE(DNX/2.0)+0.5
+            YCEN=DBLE(DNY/2.0)+0.5
          ELSE
-            XCEN=DBLE(DNX/2)+1.0
-            YCEN=DBLE(DNY/2)+1.0
+            XCEN=DBLE(DNX/2.0)+1.0
+            YCEN=DBLE(DNY/2.0)+1.0
          ENDIF
 
          XIN(1)=XCEN
@@ -3329,12 +3341,12 @@ C If we have the WCS already just return
       IF(USEWCS) RETURN
 
 C Set up a 1x1 box at the centre of the output image (three sides only)
-      XIN(1)=DBLE(ONX/2)
-      YIN(1)=DBLE(ONY/2)
-      XIN(2)=DBLE(ONX/2)+OFF
-      YIN(2)=DBLE(ONY/2)
-      XIN(3)=DBLE(ONX/2)
-      YIN(3)=DBLE(ONY/2)+OFF
+      XIN(1)=DBLE(ONX/2.0)
+      YIN(1)=DBLE(ONY/2.0)
+      XIN(2)=DBLE(ONX/2.0)+OFF
+      YIN(2)=DBLE(ONY/2.0)
+      XIN(3)=DBLE(ONX/2.0)
+      YIN(3)=DBLE(ONY/2.0)+OFF
 
 C Transform
       CALL DRIVAL(XIN,YIN,3,ONX,ONY,DNX,DNY,.FALSE.,

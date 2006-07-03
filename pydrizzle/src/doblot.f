@@ -78,11 +78,11 @@ C addition correction to separate the distortion induced scale change
          CALL UMSPUT("USEWCS true...\n",1,0,ISTAT)
 
          IF(ALIGN.EQ.'corner') THEN
-            XCEN=DBLE(ONX/2)+0.5
-            YCEN=DBLE(ONY/2)+0.5
+            XCEN=DBLE(ONX/2.0)+0.5
+            YCEN=DBLE(ONY/2.0)+0.5
          ELSE
-            XCEN=DBLE(ONX/2)+1.0
-            YCEN=DBLE(ONY/2)+1.0
+            XCEN=DBLE(ONX/2.0)+1.0
+            YCEN=DBLE(ONY/2.0)+1.0
          ENDIF
 
          XIN(1)=XCEN

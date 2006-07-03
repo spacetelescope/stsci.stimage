@@ -208,7 +208,9 @@ C              Warren Hack, STScI, 25th June 2004
 C
 C V3.4.1 - removed use of distortion images from UPWCS WJH/RH, 20th Dec 2004
 C
-C
+C V3.4.2 - Image center is calculated in floting point precision, not int
+C        This was changed in an attempt to achieve agreement between pydrizzle
+C        and wdrizzle
 C--
       IMPLICIT NONE
 
@@ -315,7 +317,7 @@ C First initialise the logical flags
       ODND=.FALSE.
       COPALL=.TRUE.
 
-      VERS='DRIZZLE Version 3.4.1 (Feb 24th 2006)'
+      VERS='DRIZZLE Version 3.4.2 (July 3rd 2006)'
 
 C Announce the version
       CALL UMSPUT('+ '//VERS,1,0,ISTAT)
@@ -713,11 +715,11 @@ C combinations
             ENDIF
 
             IF(ALIGN.EQ.'corner') THEN
-               OX=DBLE(ONX/2)+0.5D0
-               OY=DBLE(ONY/2)+0.5D0
+               OX=DBLE(ONX/2.0)+0.5D0
+               OY=DBLE(ONY/2.0)+0.5D0
             ELSE
-               OX=DBLE(ONX/2)+1.0D0
-               OY=DBLE(ONY/2)+1.0D0
+               OX=DBLE(ONX/2.0)+1.0D0
+               OY=DBLE(ONY/2.0)+1.0D0
             ENDIF
 
             IF(.NOT.USEWCS) THEN

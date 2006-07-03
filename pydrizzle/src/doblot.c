@@ -148,11 +148,11 @@ static logical c_true = TRUE_;
     if (*usewcs) {
 	umsput_("USEWCS true...\n", &c__1, &c__0, &istat, (ftnlen)15);
 	if (s_cmp(align, "corner", (ftnlen)8, (ftnlen)6) == 0) {
-	    xcen = (doublereal) (*onx / 2) + .5f;
-	    ycen = (doublereal) (*ony / 2) + .5f;
+	    xcen = (doublereal) (*onx / 2.f) + .5f;
+	    ycen = (doublereal) (*ony / 2.f) + .5f;
 	} else {
-	    xcen = (doublereal) (*onx / 2) + 1.f;
-	    ycen = (doublereal) (*ony / 2) + 1.f;
+	    xcen = (doublereal) (*onx / 2.f) + 1.f;
+	    ycen = (doublereal) (*ony / 2.f) + 1.f;
 	}
 	xin[1] = xcen;
 	xin[2] = xcen;

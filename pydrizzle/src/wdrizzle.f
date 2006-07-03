@@ -218,7 +218,10 @@ C        Version 3.32 from Richard.
 C              Warren Hack, STScI, 25th June 2004
 C V3.4.1- added correction for 'wdrizzle' bug and Jacobian bug reported
 C        by M. Kuemmel. Warren Hack, STScI, 24 Feb 2006
-C
+C V3.4.2 - The center of the image is a floating point calculation now, 
+C        not int - this change was made in an attempt to achieve agreement
+C        between pydizzle and wdrizzle
+C         Nadia Dencheva 3 July 2006
 C--
       IMPLICIT NONE
 
@@ -325,7 +328,7 @@ C First initialise the logical flags
       ODND=.FALSE.
       COPALL=.TRUE.
 
-      VERS='WDRIZZLE Version 3.4.1 (Feb 24th 2006)'
+      VERS='WDRIZZLE Version 3.4.2 (Jul 3rd 2006)'
 
 C Announce the version
       CALL UMSPUT('+ '//VERS,1,0,ISTAT)
@@ -723,11 +726,11 @@ C combinations
             ENDIF
 
             IF(ALIGN.EQ.'corner') THEN
-               OX=DBLE(ONX/2)+0.5D0
-               OY=DBLE(ONY/2)+0.5D0
+               OX=DBLE(ONX/2.0)+0.5D0
+               OY=DBLE(ONY/2.0)+0.5D0
             ELSE
-               OX=DBLE(ONX/2)+1.0D0
-               OY=DBLE(ONY/2)+1.0D0
+               OX=DBLE(ONX/2.0)+1.0D0
+               OY=DBLE(ONY/2.0)+1.0D0
             ENDIF
 
             IF(.NOT.USEWCS) THEN
