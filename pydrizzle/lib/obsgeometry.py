@@ -107,7 +107,10 @@ class GeometryModel:
         cy = self.cy/self.pscale
         x0 = self.refpix['XDELTA'] + cx[0,0]
         y0 = self.refpix['YDELTA'] + cy[0,0]
+        xr = self.refpix['XREF']
+        yr = self.refpix['YREF']
 
+        '''
         if xref != None:
             # Shift coefficients for use with drizzle
             _xs = xref - self.refpix['XREF'] + 1.0
@@ -129,7 +132,7 @@ class GeometryModel:
                 # i.e., (undistorted - original) shift.
                 x0 += cxs[0,0]
                 y0 += cys[0,0]
-
+        '''
         self.x0 = x0 #+ 1.0
         self.y0 = y0 #+ 1.0
 
@@ -139,6 +142,7 @@ class GeometryModel:
 
         lines.append('# ACS polynomial distortion coefficients\n')
         lines.append('# Extracted from "%s" \n'%self.name)
+        lines.append('refpix %f %f \n'%(xr,yr))
         if self.norder==3:
             lines.append('cubic\n')
         elif self.norder==4:
@@ -188,8 +192,9 @@ class GeometryModel:
         if self.cx == None:
             return pixpos[:,0],pixpos[:,1]
 
-        _cx = self.cx / scale
-        _cy = self.cy / scale
+        # Apply in the same way that 'drizzle' would...
+        _cx = self.cx / (self.pscale * scale)
+        _cy = self.cy / (self.pscale * scale)
         _convert = no
         _p = pixpos
 
@@ -459,8 +464,9 @@ class ObsGeometry:
             else:
                 self.wcs.offset_x = self.wcslin.offset_x = 0.
                 self.wcs.offset_y = self.wcslin.offset_y = 0.
-                self.wcs.delta_refx = self.wcslin.delta_refx = 0.
-                self.wcs.delta_refy = self.wcslin.delta_refy = 0.
+                # Need to account for off-center reference pixel in distortion coeffs
+                self.wcs.delta_refx = self.wcslin.delta_refx = (self.wcs.naxis1/2.0) - self.model.refpix['XREF']
+                self.wcs.delta_refy = self.wcslin.delta_refy = (self.wcs.naxis2/2.0) - self.model.refpix['YREF']
                 self.wcs.subarray = self.wcslin.subarray = no
                 self.wcs.chip_xref = self.wcs.naxis1/2.
                 self.wcs.chip_yref = self.wcs.naxis2/2.
@@ -489,6 +495,7 @@ class ObsGeometry:
 
             # If no distortion model has been specified,
             # do NOT perform correction for VAFactor either...
+            """
             if _vafactor and idcfile != None:
                 if float(_vafactor) != 1.0:
                     _ra_targ = self.header['RA_TARG']
@@ -500,7 +507,7 @@ class ObsGeometry:
                     else:
                         print 'Velocity aberration correction also requires RA_TARG and DEC_TARG.'
                         print 'No correction applied.'
-
+            """
             # Generate linear WCS to linear CD matrix
             self.undistortWCS()
         else:
@@ -542,7 +549,8 @@ class ObsGeometry:
 
         # Put input positions into full frame coordinates...
         pixpos = pixpos + N.array((self.wcs.offset_x,self.wcs.offset_y),type=N.Float64)
-        v2,v3 = self.model.apply(pixpos, scale=pscale)
+        #v2,v3 = self.model.apply(pixpos, scale=pscale)
+        v2,v3 = self.model.apply(pixpos,scale=_ratio)
 
         # If there was no distortion applied to
         # the pixel position, simply shift by new

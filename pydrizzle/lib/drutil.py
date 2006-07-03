@@ -605,13 +605,11 @@ def wcsfit(img_geom, ref):
     # Start by setting up an array of points +/-0.5 pixels around CRVAL1,2
     # However, we must shift these positions by 1.0pix to match what
     # drizzle will use as its reference position for 'align=center'.
-    _cpix = (img_wcs.crpix1+1.0,img_wcs.crpix2+1.0)
+    _cpix = (img_wcs.crpix1,img_wcs.crpix2)
     _cpix_arr = N.array([_cpix,(_cpix[0],_cpix[1]+1.),
                        (_cpix[0]+1.,_cpix[1]+1.),(_cpix[0]+1.,_cpix[1])], type=N.Float64)
-
     # Convert these positions to RA/Dec
     _cpix_rd = img_wcs.xy2rd(_cpix_arr)
-
     for pix in xrange(len(_cpix_rd[0])):
         _cpix_xyref[pix,0],_cpix_xyref[pix,1] = ref_wcs.rd2xy((_cpix_rd[0][pix],_cpix_rd[1][pix]))
 
@@ -631,8 +629,8 @@ def wcsfit(img_geom, ref):
     # a WCS to itself (no distortion coeffs), so it needs to be
     # taken out in the coeffs file by modifying the zero-point value.
     #  WJH 17-Mar-2005
-    abxt[2] -= ref_wcs.crpix1 + 0.5
-    cdyt[2] -= ref_wcs.crpix2 + 0.5
+    abxt[2] -= ref_wcs.crpix1
+    cdyt[2] -= ref_wcs.crpix2
 
     return abxt,cdyt
 

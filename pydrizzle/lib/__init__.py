@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.6.5 (29-June-2006)"
+__version__ = "5.6.6 (3-July-2006)"
 
 # For History of changes and updates, see 'History'
 
@@ -788,16 +788,17 @@ class Pattern:
             in_wcs_orig = member.geometry.wcs
 
             #_delta_rot = in_wcs.orient - ref_wcs.orient
-            _scale = ref_wcs.pscale / in_wcs.pscale
+            #_scale = ref_wcs.pscale / in_wcs.pscale
 
             # Rigorously compute the orientation changes from WCS
             # information using algorithm provided by R. Hook from WDRIZZLE.
-
             abxt,cdyt = drutil.wcsfit(member.geometry, ref_wcs)
 
             # Compute the rotation between input and reference from fit coeffs.
             _delta_roty = _delta_rot = RADTODEG(N.arctan2(abxt[1],cdyt[0]))
             _delta_rotx = RADTODEG(N.arctan2(abxt[0],cdyt[1]))
+            # Compute scale from fit to allow WFPC2 (and similar) data to be handled correctly
+            _scale = 1./((N.sqrt(abxt[0]**2 + abxt[1]**2)+N.sqrt(cdyt[0]**2+cdyt[1]**2))/2.)
 
             # Correct for additional shifts from shiftfile now
             #_delta_x = abxt[2] + member.geometry.gpar_xsh
@@ -1046,8 +1047,10 @@ class Pattern:
             theta = refp['THETA']
             if theta == None: theta = 0.0
 
-            chipcen = ( memwcs.naxis1/2. + memwcs.offset_x,
-                        memwcs.naxis2/2. + memwcs.offset_y)
+            # Updated chipcen computation to be consistent with 'drizzle'
+            # WJH 30-June-2006
+            chipcen = ( (memwcs.naxis1/2.)+1.0 + memwcs.offset_x,
+                        (memwcs.naxis2/2.)+1.0 + memwcs.offset_y)
             xypos = N.dot(ref_pmat,v2v3-ref_v2v3) / scale + ref_xy
             chiprot = drutil.buildRotMatrix(theta - ref_theta)
 

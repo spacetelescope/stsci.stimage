@@ -1,4 +1,35 @@
 ### PyDrizzle Revision Changes
+Version 5.6.6 (3-July-2006) WJH,ND
+      - Modifications were made to insure that PyDrizzle results and
+        wdrizzle in both 'user' mode and 'wcs' mode.  These modifications
+        included:
+          = removal of extra application of distortion coeffs to WCS in 
+          'buildProduct'.
+          = use scale computed by 'wcsfit' for final parameters, instead 
+          of scale based on undistorted-WCS for input.  This allows WFPC2
+          (and similar) data to be properly scaled in the output frame.
+          = change definition of chip center in 'computeOffsets' 
+          to be consistent with 'drizzle'
+          = added 'debug' parameter to the 'run' method in order to allow
+          for verification of the WCS as it gets updated by PyDrizzle.
+          = reset 'wcsfit' to use 'crpix1/2' values instead of adding 1.0
+          to the values for the fit.
+          = computation of the corners for determining range of output 
+          images now goes from 1 to naxis, rather than 0.
+          = output of distortion coeffs by 'convert' now reports 
+          refpix[XDELTA]+cx[0,0], refpix[YDELTA]+cy[0,0]. 
+          = output coeffs are also NOT shifted anymore. Instead, the 
+          reference pixel, refpix[(X/Y)REF] is written out to the file 
+          as 'refpix'.
+          = coeffs are now applied relative to the model plate scale, then
+          scaled by the output plate scale as needed.
+          = delta_ref(x/y) definitions were updated to include off-center
+          reference positions for the coeffs.
+          = velocity aberration correction of the coeffs has been turned
+          off, as 'makewcs' updates the CD matrix, so it no longer gets applied
+          twice.
+
+          
 Version 5.6.2 (2-May-2006) WJH
       - (OPR 55773)
         Drizzle applies the distortion coefficients to pixel positions
