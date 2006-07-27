@@ -1047,10 +1047,8 @@ class Pattern:
             theta = refp['THETA']
             if theta == None: theta = 0.0
 
-            # Updated chipcen computation to be consistent with 'drizzle'
-            # WJH 30-June-2006
-            chipcen = ( (memwcs.naxis1/2.)+1.0 + memwcs.offset_x,
-                        (memwcs.naxis2/2.)+1.0 + memwcs.offset_y)
+            chipcen = ( (memwcs.naxis1/2.) + memwcs.offset_x,
+                        (memwcs.naxis2/2.) + memwcs.offset_y)
             xypos = N.dot(ref_pmat,v2v3-ref_v2v3) / scale + ref_xy
             chiprot = drutil.buildRotMatrix(theta - ref_theta)
 
@@ -1444,8 +1442,8 @@ class WFPCObservation(Pattern):
 
         # Correct the crpix position of the metachip product
         # in order to account for 'align=center' convention.
-        self.product.geometry.wcs.crpix1 -= 1.0
-        self.product.geometry.wcs.crpix2 -= 1.0
+        #self.product.geometry.wcs.crpix1 -= 1.0
+        #self.product.geometry.wcs.crpix2 -= 1.0
 
 
     def addMembers(self,filename):
@@ -1531,8 +1529,8 @@ class WFPCObservation(Pattern):
             exp.geometry.wcs.orient = meta_orient
             # We need to correct each chip's full-frame reference
             # position to account for 'align=center' convention.
-            exp.geometry.wcs.chip_xref += 1.0
-            exp.geometry.wcs.chip_yref += 1.0
+            #exp.geometry.wcs.chip_xref += 1.0
+            #exp.geometry.wcs.chip_yref += 1.0
 
 
 class DitherProduct(Pattern):
