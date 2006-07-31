@@ -1973,8 +1973,8 @@ class SkyField:
             self.wcs = wcs.copy()
             # Need to adjust WCS to match the 'drizzle' task
             # align=center conventions. WJH 29-Aug-2005
-            self.wcs.crpix1 -= 1.0
-            self.wcs.crpix2 -= 1.0
+            #self.wcs.crpix1 -= 1.0
+            #self.wcs.crpix2 -= 1.0
             self.wcs.recenter()
 
         self.wcs.updateWCS(size=shape,pixel_scale=psize)
