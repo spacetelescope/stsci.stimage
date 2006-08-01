@@ -9,6 +9,8 @@
 # further dependence on the rest of the library.
 # .......... V. G. Laidler, 11 Dec 2003
 #
+# Modified __exp__ to catch the well-known Numeric bug on
+# Solaris platform. V. G. Laidler, 8 August 2006
 
 """This module provides automatic differentiation for functions with
 any number of variables. Instances of the class DerivVar represent the
@@ -185,7 +187,11 @@ class DerivVar:
 	return pow(other, self)
 
     def exp(self):
-	v = Numeric.exp(self.value)
+        #Modified to trap overflow error
+        try:
+            v = Numeric.exp(self.value)
+        except OverflowError:
+            v = 0.0
 	return DerivVar(v, map(lambda x,f=v: f*x, self.deriv))
 
     def log(self):
