@@ -33,11 +33,13 @@ from imagestats import ImageStats as imstat #pyssg lib
 from imagestats.histogram1d import histogram1d
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.96dev"
+__version__="0.96.5dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
 #History:
+# Enhancement, 1 aug 06, Laidler:
+#   - Add a new diagnostic output file for the histogram that is fit
 # Enhancements, 20 Jan 06, Laidler
 #   - replaced infile by calcfile and targfile
 #   - allow applying correction to a file other than that on which it
@@ -790,6 +792,20 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
         img.thresh = thresh_from_gausspoly_fit(saaper,
                                                binwidth=pars.histbinwidth,
                                                nclip=pars.nclip)
+
+        if pars.diagfile:
+            f=open(pars.diagfile+'_iters.txt','w',clobber=pars.clobber)
+            for p in (itertrace):
+                line='   '.join([str(x[0]) for x in p])+"\n"
+                f.write(line)
+            f.close()
+
+            f=open(pars.diagfile+'_hist.txt','w',clobber=pars.clobber)
+            for k in range(len(xvals)):
+                line = "%f   %d\n"%(xvals[k],hist[k])
+                f.write(line)
+            f.close()
+
     else:
         img.thresh=pars.thresh
 
