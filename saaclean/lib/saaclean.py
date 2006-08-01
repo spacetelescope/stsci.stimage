@@ -33,13 +33,11 @@ from imagestats import ImageStats as imstat #pyssg lib
 from imagestats.histogram1d import histogram1d
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.96.5dev"
+__version__="0.96dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
 #History:
-# Enhancement, 1 aug 06, Laidler:
-#   - Add a new diagnostic output file for the histogram that is fit
 # Enhancements, 20 Jan 06, Laidler
 #   - replaced infile by calcfile and targfile
 #   - allow applying correction to a file other than that on which it
@@ -532,6 +530,8 @@ class NegScaleError(exceptions.Exception):
     pass
 class InsuffImprovement(exceptions.Exception):
     pass
+class AlreadyDone(exceptions.Exception):
+    pass
 #..........................................................................
 #Helper functions:
 #-............................................................................
@@ -745,7 +745,17 @@ def flat_saaper(saaper,img):
     return saaper,mm
 
         
+def smartopen(fname,mode,clobber=True):
+    """ Like open, but allows specification of a "clobber"
+    keyword to control whether an exception should be raised
+    if attempting to open a file that already exists. """
 
+    if mode.lower().startswith('w') and not clobber:
+        if os.path.isfile(fname):
+            raise IOError, "%s already exists"%fname
+
+    handle=open(fname,mode)
+    return handle
 
 #....................................................................
 # The "main" program
@@ -765,6 +775,14 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
         targ=img
         appimage=None
 
+    #Check to make sure we're not trying to run the task twice
+    #on the same image
+    already_done=['low everywhere','both','high only']
+    for check in [targ,img]:
+        scnappld=check.h.get('scnappld',None)
+        if scnappld in already_done:
+            raise AlreadyDone, check.filename
+    
     outfile=osfn(usr_outfile)
     if pars is None:
         pars=params()
@@ -792,19 +810,6 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
         img.thresh = thresh_from_gausspoly_fit(saaper,
                                                binwidth=pars.histbinwidth,
                                                nclip=pars.nclip)
-
-        if pars.diagfile:
-            f=open(pars.diagfile+'_iters.txt','w',clobber=pars.clobber)
-            for p in (itertrace):
-                line='   '.join([str(x[0]) for x in p])+"\n"
-                f.write(line)
-            f.close()
-
-            f=open(pars.diagfile+'_hist.txt','w',clobber=pars.clobber)
-            for k in range(len(xvals)):
-                line = "%f   %d\n"%(xvals[k],hist[k])
-                f.write(line)
-            f.close()
 
     else:
         img.thresh=pars.thresh
