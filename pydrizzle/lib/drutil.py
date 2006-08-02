@@ -615,7 +615,7 @@ def wcsfit(img_geom, ref):
 
     # Now, apply distortion model to input image XY positions
     _cpix_xyc = N.zeros((4,2),type=N.Float64)
-    _cpix_xyc[:,0],_cpix_xyc[:,1] = img_geom.apply(_cpix_arr)
+    _cpix_xyc[:,0],_cpix_xyc[:,1] = img_geom.apply(_cpix_arr,order=1)
 
     if in_refpix:
         _cpix_xyc += (in_refpix['XDELTA'], in_refpix['YDELTA'])

@@ -758,8 +758,12 @@ C Just use LINEAR terms
 
 C
 C  Why limit the evaluation to only linear terms???
+C  This fit is only a linear fit, therefore, only linear terms
+C  need to be considered.  When all terms are used, it introduces
+C  slight non-orthogonality of the CD matrix after correction, as
+C  well as additional offsets between the chips.  AK, WJH  1-Aug-2006
 C
-C      IF(COTY.GT.1) COTY=1
+      IF(COTY.GT.1) COTY=1
 
       DO I=1,4
        IF(COTY.EQ.3) THEN
@@ -791,6 +795,7 @@ C Now we have the inputs and outputs and can derive the linear
 C transform between them
 C This is now done in a general way using least squares
 C Double precision version
+
       CALL FITLIN(XOUT,YOUT,X,Y,4,X0,Y0,A,B,C,D,ISTAT)
 
       IF(ISTAT.NE.0) THEN
@@ -1117,7 +1122,7 @@ C Set the secondary ones
 C Here is some new code to support the WCS option
 C first we work out a linear transformation from input to
 C out
-      IF(USEWCS) THEN
+      IF(USEWCS) THEN            
          CALL WCSLIN(WCSIN,WCSOUT,
      :         XCEN,YCEN,COTY,CONUM,
      :         XCO,YCO,DISIM,XG,YG,XGDIM,YGDIM,

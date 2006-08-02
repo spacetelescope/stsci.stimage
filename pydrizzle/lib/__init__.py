@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.6.6 (27-July-2006)"
+__version__ = "5.6.7 (2-Aug-2006)"
 
 # For History of changes and updates, see 'History'
 
@@ -798,7 +798,8 @@ class Pattern:
             _delta_roty = _delta_rot = RADTODEG(N.arctan2(abxt[1],cdyt[0]))
             _delta_rotx = RADTODEG(N.arctan2(abxt[0],cdyt[1]))
             # Compute scale from fit to allow WFPC2 (and similar) data to be handled correctly
-            _scale = 1./((N.sqrt(abxt[0]**2 + abxt[1]**2)+N.sqrt(cdyt[0]**2+cdyt[1]**2))/2.)
+            #_scale = 1./((N.sqrt(abxt[0]**2 + abxt[1]**2)+N.sqrt(cdyt[0]**2+cdyt[1]**2))/2.)
+            _scale = 1./N.sqrt(abxt[0]**2 + abxt[1]**2)
 
             # Correct for additional shifts from shiftfile now
             #_delta_x = abxt[2] + member.geometry.gpar_xsh

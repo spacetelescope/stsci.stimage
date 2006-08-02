@@ -1002,8 +1002,14 @@ doublereal mgf2_(doublereal *lam)
     scoty = *coty;
 
 /*  Why limit the evaluation to only linear terms??? */
+/*  This fit is only a linear fit, therefore, only linear terms */
+/*  need to be considered.  When all terms are used, it introduces */
+/*  slight non-orthogonality of the CD matrix after correction, as */
+/*  well as additional offsets between the chips.  AK, WJH  1-Aug-2006 */
 
-/*      IF(COTY.GT.1) COTY=1 */
+    if (*coty > 1) {
+	*coty = 1;
+    }
     for (i__ = 1; i__ <= 4; ++i__) {
 	if (*coty == 3) {
 	    d__1 = xin[i__ - 1] - *xcen + xdoff;

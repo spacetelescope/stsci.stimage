@@ -180,7 +180,7 @@ class GeometryModel:
         output.close()
 
 
-    def apply(self, pixpos,scale=1.0):
+    def apply(self, pixpos,scale=1.0,order=None):
         """
          Apply coefficients to a pixel position or a list of positions.
           This should be the same for all coefficients tables.
@@ -191,6 +191,9 @@ class GeometryModel:
         """
         if self.cx == None:
             return pixpos[:,0],pixpos[:,1]
+
+        if order is None:
+            order = self.norder
 
         # Apply in the same way that 'drizzle' would...
         _cx = self.cx / (self.pscale * scale)
@@ -212,7 +215,7 @@ class GeometryModel:
         dxy = _p - (self.refpix['XREF'],self.refpix['YREF'])
         # Apply coefficients from distortion model here...
         c = _p * 0.
-        for i in range(self.norder+1):
+        for i in range(order+1):
             for j in range(i+1):
                 c[:,0] = c[:,0] + _cx[i][j] * pow(dxy[:,0],j) * pow(dxy[:,1],(i-j))
                 c[:,1] = c[:,1] + _cy[i][j] * pow(dxy[:,0],j) * pow(dxy[:,1],(i-j))
@@ -522,7 +525,7 @@ class ObsGeometry:
             self.wcs.subarray = self.wcslin.subarray = no
 
 
-    def apply(self, pixpos,delta=None,pscale=None,verbose=no):
+    def apply(self, pixpos,delta=None,pscale=None,verbose=no,order=None):
         """
          This method applies the model to a pixel position
           to calculate the new position.
@@ -550,7 +553,7 @@ class ObsGeometry:
         # Put input positions into full frame coordinates...
         pixpos = pixpos + N.array((self.wcs.offset_x,self.wcs.offset_y),type=N.Float64)
         #v2,v3 = self.model.apply(pixpos, scale=pscale)
-        v2,v3 = self.model.apply(pixpos,scale=_ratio)
+        v2,v3 = self.model.apply(pixpos,scale=_ratio,order=order)
 
         # If there was no distortion applied to
         # the pixel position, simply shift by new
@@ -625,7 +628,7 @@ class ObsGeometry:
         """
         Converts input pixel position 'pixpos' into an X,Y position in WCS.
         Made this function compatible with list input, as well as single
-        tuple input.
+        tuple input..apply
         """
 
         # Insure that input wcs is centered for proper results
@@ -725,7 +728,7 @@ class ObsGeometry:
             tout=self.apply(pos)
 
             # Convert back to NumArray
-            out=N.array(tout,type=N.Float64)
+            out=N.array(tout,type=N.Float64).apply
             out.transpose()
 
             # Work out the shifts matrix

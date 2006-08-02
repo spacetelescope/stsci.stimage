@@ -24,6 +24,7 @@ tdriz(PyObject *obj, PyObject *args)
     PyArrayObject *pxg, *pyg;
     double xsh, ysh, rot, scale, pfract;
     double xsh2, ysh2, rot2, xscale, yscale;
+    double expin;
     char *shfr2;
     long xmin, ymin, uniqid, ystart;
     long nmiss, nskip;
@@ -34,22 +35,14 @@ tdriz(PyObject *obj, PyObject *args)
     float istat;
     long nx,ny,onx,ony,dny;
     long xgdim, ygdim;
-    float expin, wtscl;
+    float wtscl;
     char *fillstr;
     long align_len, kernel_len, coeffs_len;
     long shiftfr_len, shiftun_len, inun_len;
     long vers_len, fillstr_len;
     long shfr2_len;
-/*    
-    extern float tdriz_(float *, float *, float *, float *, int *,
-    int *, int *, int *, int *, int *, int *, int *, int *, int *, 
-    double *, double *, char *, char *, double *, double *, 
-    float *, float *, int *, int *,
-    char *, double *, char *, char *,
-    char *, float *, float *, char *, double *, int *, int *, 
-    int *, int *, char *,
-    int *, int *, int *, int *, int *, int *, int *, int *);
-*/
+
+    
 	extern doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
 	ncon, integer *uniqid, integer *ystart, integer *xmin, integer *ymin, 
 	integer *nx, integer *ny, integer *dny, integer *onx, integer *ony, 
@@ -58,7 +51,7 @@ tdriz(PyObject *obj, PyObject *args)
     doublereal *xsh2,doublereal *ysh2, doublereal *xscale,doublereal *yscale,
     doublereal *rot2, char *shfr2, real *pxg, real *pyg, integer *xgdim, 
     integer *ygdim, char *align, doublereal *pfract, char *kernel, 
-	char *coeffs, char *inun, real *expin, real *wtscl, char *filstr, 
+	char *coeffs, char *inun, doublereal *expin, real *wtscl, char *filstr, 
 	doublereal *wcs, integer *vflag, integer *clen, integer *nmiss, 
 	integer *nskip, char *vers, ftnlen shftfr_len, ftnlen shftun_len,
     ftnlen shfr2_len, ftnlen align_len, ftnlen kernel_len, 
@@ -127,6 +120,93 @@ tdriz(PyObject *obj, PyObject *args)
     return Py_BuildValue("s#ii",vers,vers_len,nmiss,nskip);
 /*    return Py_BuildValue("f",istat); */
 }
+
+
+static PyObject *
+twdriz(PyObject *obj, PyObject *args)
+{
+
+    PyObject *oimg, *owei, *oout, *owht, *owcsin, *owcsout;
+    PyArrayObject *img, *wei, *out, *wht, *wcsin, *wcsout;
+    PyObject *opxg, *opyg;
+    PyArrayObject *pxg, *pyg;
+    double pfract;
+    long xmin, ymin, ystart;
+    long nmiss, nskip;
+    char *kernel;
+    char *coeffs;
+    char vers[80];
+    long vflag;
+    float istat;
+    long nx,ny,onx,ony,dny;
+    long xgdim, ygdim;
+    char *fillstr;
+    long kernel_len, coeffs_len;
+    long vers_len, fillstr_len;
+
+	extern doublereal twdriz_(real *data, real *wei, real *ndat, real *ncou,
+    integer *ystart, integer *nx, integer *ny, integer *dny, integer *onx, integer *ony, 
+	doublereal *wcs, doublereal *wcsout, real *pxg, real *pyg, integer *xgdim, 
+    integer *ygdim, doublereal *pfract, char *kernel, 
+	char *coeffs, char *filstr, integer *vflag, integer *clen, integer *nmiss, 
+	integer *nskip, char *vers, ftnlen kernel_len, 
+    ftnlen coeffs_len, ftnlen filstr_len, ftnlen vers_len);
+	
+    if (!PyArg_ParseTuple(args,"OOOOllllOOOOdssslll",
+            &oimg,&owei,&oout,&owht, &ystart,&xmin,&ymin,&dny, &owcsin, &owcsout,
+            &opxg, &opyg, &pfract, &kernel,&coeffs, &fillstr,
+            &nmiss, &nskip, &vflag)){
+         return PyErr_Format(gl_Error, "arrdriz.twdriz: Invalid Parameters.");
+    }
+    
+    img = (PyArrayObject *)NA_InputArray(oimg, tFloat32, C_ARRAY);
+    wei = (PyArrayObject *)NA_InputArray(owei, tFloat32, C_ARRAY);
+    out = (PyArrayObject *)NA_IoArray(oout, tFloat32, 0);
+    wht = (PyArrayObject *)NA_IoArray(owht, tFloat32, 0);
+
+    wcsin   = (PyArrayObject *)NA_IoArray(owcsin, tFloat64, 0);
+    wcsout  = (PyArrayObject *)NA_IoArray(owcsin, tFloat64, 0);
+    pxg = (PyArrayObject *)NA_InputArray(opxg, tFloat32, C_ARRAY);    
+    pyg = (PyArrayObject *)NA_InputArray(opyg, tFloat32, C_ARRAY);
+
+    nx = img->dimensions[1];
+    ny = img->dimensions[0];
+    onx = out->dimensions[1];
+    ony = out->dimensions[0];   
+    xgdim = pxg->dimensions[1];
+    ygdim = pxg->dimensions[0];
+    
+    kernel_len = 8;
+    coeffs_len = strlen(coeffs)+1;
+    vers_len = 44;
+    fillstr_len = strlen(fillstr) + 1;
+        
+    istat = twdriz_(NA_OFFSETDATA(img), NA_OFFSETDATA(wei), 
+                    NA_OFFSETDATA(out),NA_OFFSETDATA(wht),
+                    &ystart,&nx,&ny, &dny, &onx,&ony,
+                    NA_OFFSETDATA(wcsin), NA_OFFSETDATA(wcsout),  
+                    NA_OFFSETDATA(pxg),NA_OFFSETDATA(pyg),&xgdim, &ygdim,
+                    &pfract, kernel, coeffs, fillstr, 
+                    &vflag, &coeffs_len, 
+                    &nmiss, &nskip, vers, 
+                    kernel_len, coeffs_len, 
+                    fillstr_len, vers_len); 
+    
+    Py_DECREF(img);
+    Py_DECREF(wei);
+    Py_DECREF(out);
+    Py_DECREF(wht);
+
+    Py_DECREF(wcsout);
+    Py_DECREF(wcsin);
+    Py_DECREF(pxg);
+    Py_DECREF(pyg);
+
+    return Py_BuildValue("s#ii",vers,vers_len,nmiss,nskip);
+/*    return Py_BuildValue("f",istat); */
+}
+
+
 static PyObject *
 tblot(PyObject *obj, PyObject *args)
 {
@@ -214,6 +294,7 @@ tblot(PyObject *obj, PyObject *args)
 static PyMethodDef arrdriz_methods[] =
 {
     {"tdriz",  tdriz, METH_VARARGS, "triz(image, weight, output, outweight, xsh, ysh, rot, scale, align, pfract, kernel, coeffs, vflag)"},
+    {"twdriz",  tdriz, METH_VARARGS, "triz(image, weight, output, outweight, ystart, xmin, ymin, dny, wcsin, wcsout,pxg,pyg,pfract, kernel, coeffs, fillstr,nmiss,nskip,vflag)"},
     {"tblot",  tblot, METH_VARARGS, "tblot(image, output, xsh, ysh, rot, scale, align, interp, coeffs, misval, sinscl, vflag)"},
     {0,            0}                             /* sentinel */
 };
