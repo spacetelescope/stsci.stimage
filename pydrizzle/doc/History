@@ -1,4 +1,17 @@
 ### PyDrizzle Revision Changes
+Version 5.6.7 (2-Aug-2006) WJH,ND
+      - PyDrizzle and wdrizzle in 'wcs' mode were finally made identical.
+      Necessary revisions included:
+          - using only the linear terms of the coeffs when applying 
+          'wcsfit'
+          - adding a parameter to 'geom.apply' and 'model.apply' to support
+          specifying how many orders should be applied
+          - only using the X scale in 'buildPars' rather than an average.
+      - A single change was also required in the core drizzle code:
+          - use only the linear terms when performing WCSFIT.
+      - The additional offset of 1,1 in the SkyField object was removed
+      as well.
+      
 Version 5.6.6 (3-July-2006) WJH,ND
       - Modifications were made to insure that PyDrizzle results and
         wdrizzle in both 'user' mode and 'wcs' mode.  These modifications
