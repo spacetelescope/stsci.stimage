@@ -11,7 +11,7 @@ try:
     from numarray.numarrayext import NumarrayExtension
 except:
     raise ImportError("Numarray was not found. It may not be installed or it may not be on your PYTHONPATH\n")
-    
+
 if numarray.__version__ < "1.1":
     raise SystemExit, "Numarray 1.1 or later required to build pydrizzle."
 pythonlib = sysconfig.get_python_lib(plat_specific=1)
@@ -75,10 +75,11 @@ def getF2CDirs(args):
                 f2c_lib_dir.append(os.path.join(f2cdir, 'lib'))
             else:
                 raise SystemExit, "libf2c needed to build pydrizzle."
-            
+
 
 def getExtensions():
-    ext = [NumarrayExtension("pydrizzle.arrdriz",['src/arrdrizmodule.c','src/tdriz.c','src/tblot.c',
+    ext = [NumarrayExtension("pydrizzle.arrdriz",['src/arrdrizmodule.c',
+                                'src/tdriz.c','src/tblot.c','src/twdriz.c',
                                 'src/drutil.c','src/doblot.c','src/drcall.c',
                                 'src/inter2d.c','src/bieval.c'],
                    include_dirs=[pythoninc] + f2c_inc_dir,
@@ -110,4 +111,3 @@ if __name__ == "__main__":
     getF2CDirs(args)
     ext = getExtensions()
     dosetup(ext)
-
