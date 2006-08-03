@@ -1,4 +1,12 @@
 ### PyDrizzle Revision Changes
+Version 5.6.8 (3-Aug-2006) WJH
+      - Specifying an output WCS/SkyField object produced an incorrect
+      product WCS.  The problem stems from 'transformMetachip' as called
+      from 'buildPars'.  This call was deleted and the reference WCS as
+      merged with the default WCS now gets used as the new product WCS
+      directly. Extensive testing still needs to be done to insure that 
+      no other problems are introduced for all the various use cases.
+
 Version 5.6.7 (2-Aug-2006) WJH,ND
       - PyDrizzle and wdrizzle in 'wcs' mode were finally made identical.
       Necessary revisions included:

@@ -32,7 +32,7 @@ from math import *
 
 
 # Version
-__version__ = "5.6.7 (2-Aug-2006)"
+__version__ = "5.6.8 (3-Aug-2006)"
 
 # For History of changes and updates, see 'History'
 
@@ -741,6 +741,7 @@ class Pattern:
         def_wcs = self.product.geometry.wcslin.copy()
 
         if ref != None:
+
             # Extract the total exptime for this output object
             if ref.exptime == None:
                 _texptime = self.exptime
@@ -752,15 +753,18 @@ class Pattern:
             _field = ref
 
             # Transform self.product.geometry.wcs to match ref.wcs
-            self.transformMetachip(_field)
+            #self.transformMetachip(_field)
 
-            if not ref.dither or ref.dither == None:
+            _out_wcs = self.product.geometry.wcs.copy()
+
+            #if not ref.dither or ref.dither == None:
             # Check to make sure we have a complete WCS
             # if not, fill in using the product's default WCS
-                _out_wcs = self.product.geometry.wcs.copy()
+            _field.mergeWCS(_out_wcs)
+            _field.wcs.rootname=def_wcs.rootname
 
-                _field.mergeWCS(_out_wcs)
-                _field.wcs.rootname=def_wcs.rootname
+            self.product.geometry.wcslin = _out_wcs
+            self.product.geometry.wcs = _field.wcs.copy()
 
             # Set reference for computing shifts to be transformed
             # product's WCS
