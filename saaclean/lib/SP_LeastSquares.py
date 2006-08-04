@@ -68,7 +68,11 @@ def leastSquaresFit(model, parameters, data, max_iterations=None):
 
     The function returns a list containing the optimal parameter values
     and the chi-squared value describing the quality of the fit.
+
+    Modified to additionally return a list containing the coefficients
+    for each iteration.
     """
+
     n_param = len(parameters)
     p = ()
     i = 0
@@ -79,6 +83,8 @@ def leastSquaresFit(model, parameters, data, max_iterations=None):
     l = 0.001
     chi_sq, alpha = _chiSquare(model, p, data)
     niter = 0
+    itertrace=[p]
+
     while 1:
 	delta = LA.solve_linear_equations(alpha+l*Numeric.diagonal(alpha)*id,
 					  -0.5*Numeric.array(chi_sq[1]))
@@ -92,10 +98,12 @@ def leastSquaresFit(model, parameters, data, max_iterations=None):
 	    p = next_p
 	    chi_sq = next_chi_sq
 	    alpha = next_alpha
+        itertrace.append(p)
+
         niter = niter + 1
         if max_iterations is not None and niter == max_iterations:
             raise IterationCountExceededError
-    return map(lambda p: p[0], next_p), next_chi_sq[0]
+    return map(lambda p: p[0], next_p), next_chi_sq[0], itertrace
 
 #
 # The important special case of n-th order polynomial fits
