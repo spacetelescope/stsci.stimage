@@ -33,7 +33,7 @@ from imagestats import ImageStats as imstat #pyssg lib
 from imagestats.histogram1d import histogram1d
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.96dev"
+__version__="0.97dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -366,10 +366,10 @@ class Exposure:
                     maxx=min(ubest+5,len(dom.pp[0])-1)
                     thedata=[(dom.pp[0,i],dom.pp[1,i]) for i in range(minx,maxx+1)]
 
-                    best,dom.chi2=parabola_min(thedata,best)
+                    best,dom.chi2,itertrace=parabola_min(thedata,best)
                    # best=parabola1(dom.pp[0,minx:maxx],pp[1,minx:maxx],minguess=best)
                    # best=parabola1(dom.pp[0,minx:maxx],pp[1,minx:maxx],minguess=best)
-
+                       
                 dom.nr=(1.0-dom.pp[1,ubest]/dom.pp[1,0])*100
                 dom.scale=best
                 dom.bestloc=ubest
@@ -532,7 +532,7 @@ class InsuffImprovement(exceptions.Exception):
     pass
 class AlreadyDone(exceptions.Exception):
     pass
-#..........................................................................
+#.............................................................................
 #Helper functions:
 #-............................................................................
 def osfn(filename):
@@ -572,9 +572,9 @@ def parabola_model(coeffs,t):
 def parabola_min(thedata, startguess):
     #We may not need to rescale the data
     guesscoeff=(100,startguess,0.1)
-    fitcoeff,chi2=LeastSquares.leastSquaresFit(parabola_model,guesscoeff,thedata)
+    fitcoeff,chi2,itertrace=LeastSquares.leastSquaresFit(parabola_model,guesscoeff,thedata)
     print "chi2 for parabola fit = ",chi2
-    return fitcoeff[1],chi2
+    return fitcoeff[1],chi2,itertrace
 #............................................................................
 #Functions for gauss-poly fitting of the persistence image histogram
 def gausspoly_eval(coeffs,t):
@@ -582,7 +582,7 @@ def gausspoly_eval(coeffs,t):
     zz=-1*(z**2/2.)
     r=coeffs[0]*numarray.exp(zz) + coeffs[3] + coeffs[4]*t + coeffs[5]*t**2
     return r
-    
+
 def gausspoly_model(coeffs,t):
     import math
     z=(t-coeffs[1])/coeffs[2]
@@ -598,13 +598,15 @@ def gausspoly_fit(thedata,guesscoeff):
     #  constant: guess 0.1
     #  linear term: guess 0.1
     #  quadratic term: guess 0.0
-    fitcoeff,chi2=LeastSquares.leastSquaresFit(gausspoly_model,
+
+    fitcoeff,chi2,itertrace=LeastSquares.leastSquaresFit(gausspoly_model,
                                                guesscoeff,
                                                thedata)
-    return fitcoeff, chi2
+    return fitcoeff, chi2, itertrace
 
 #...........................................................................
-def thresh_from_gausspoly_fit(saa, binwidth=0.5, nclip=3):
+def thresh_from_gausspoly_fit(saa, binwidth=0.5, nclip=3,
+                              diagfile=None, clobber=False):
     """ Some massaging of the SAApersistence image histogram is
     performed in order to obtain an optimal fit.
     Unfortunately this involves some magic numbers taken from
@@ -639,14 +641,43 @@ def thresh_from_gausspoly_fit(saa, binwidth=0.5, nclip=3):
                 yy.stddev,
                 0.1, 0.1, 0.0]
     
-    #and do the fitting
-    coeffs,chi2=gausspoly_fit(thedata,startguess)
+    #Do the fitting
+    coeffs,chi2,itertrace=gausspoly_fit(thedata,startguess)
 
-    #Compute the threshold based on the fit.
+    #and tell us about the results
+    print "\nCoefficients for gauss-poly fit to persistence model histogram:"
+    r=itertrace[-1] #Last iteration
+    
+    print "Gaussian (low signal component) terms:"
+    print "  Amplitude, Mean, Sigma: %f %f %f"%(r[0].value,r[1].value,r[2].value)
+    print "Polynomial terms:"
+    print "  Constant, Linear, Quadratic:%f %f %f"%(r[3].value,r[4].value,r[5].value)
+    print""
+    
+    if diagfile:
+
+        #This prints the histogram that is actually fit
+        f=smartopen(diagfile+'_gp_hist.txt','w',clobber=clobber)
+        for k in range(len(t)):
+            line = "%f   %d\n"%(t[k],h.histogram[k])
+            f.write(line)
+        f.close()
+
+        #and this prints the series of coefficients for each iteration
+        f=smartopen(diagfile+'_gp_iters.txt','w',clobber=clobber)
+        for p in (itertrace):
+            line='   '.join([str(x[0]) for x in p])+"\n"
+            f.write(line)
+        f.close()
+
+##     for k in range(len(itertrace)):
+##         print "Iter %d"%k,itertrace[k]
+
+    #Finally, compute the threshold based on the fit.
     #Don't forget to divide out the magic-number to convert back
     #to the original scale.
+    
     thresh=(coeffs[1] + 3.5*abs(coeffs[2]))/500.
-
     return thresh
 
 #..............................................................................
@@ -744,13 +775,10 @@ def flat_saaper(saaper,img):
         saaper=((saaper-mm)*flat.data) + mm
     return saaper,mm
 
-        
-def smartopen(fname,mode,clobber=True):
-    """ Like open, but allows specification of a "clobber"
-    keyword to control whether an exception should be raised
-    if attempting to open a file that already exists. """
 
-    if mode.lower().startswith('w') and not clobber:
+def smartopen(fname, mode, clobber=True):
+    """ Allows specifying a clobber behavior """
+    if mode.startswith('w') and not clobber:
         if os.path.isfile(fname):
             raise IOError, "%s already exists"%fname
 
@@ -774,6 +802,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
         #we'll apply it to the same file
         targ=img
         appimage=None
+
 
     #Check to make sure we're not trying to run the task twice
     #on the same image
@@ -807,12 +836,14 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     img.apply_mask(mask)
 
     if pars.fitthresh:
-        img.thresh = thresh_from_gausspoly_fit(saaper,
-                                               binwidth=pars.histbinwidth,
-                                               nclip=pars.nclip)
-
+        img.thresh  = thresh_from_gausspoly_fit(saaper,
+                                                binwidth=pars.histbinwidth,
+                                                nclip=pars.nclip,
+                                                diagfile=pars.diagfile,
+                                                clobber=pars.clobber)     
     else:
         img.thresh=pars.thresh
+
 
     print "Threshold for hi/lo: ",img.thresh
 
