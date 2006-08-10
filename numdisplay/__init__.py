@@ -1,7 +1,7 @@
-"""numdisplay: Package for displaying numerix arrays in IRAF-compatible
+"""numdisplay: Package for displaying numarray arrays in IRAF-compatible
                 image display tool such as DS9 or XIMTOOL.
 
-    Displaying a numerix array object involves:
+    Displaying a numarray array object involves:
         1.  Opening the connection to a usable display tool (such as DS9).
 
         2.  Setting the display parameters for the array, such as min and
@@ -9,7 +9,7 @@
             with any offset, scale factor and/or transformation function to be
             applied to the array.
         3.  Applying any transformation to the input array.  This transformation
-            could be a simple numerix ufunc or a user-defined function that
+            could be a simple numarray ufunc or a user-defined function that
             returns a modified array.
 
         4.  Building the byte-scaled version of the transformed array and
@@ -23,7 +23,7 @@
             full image size.
 
         This package provides several methods for controlling the display
-        of the numerix array; namely,
+        of the numarray array; namely,
 
             open(imtdev=None):
                 Open the default display device or the device specified
@@ -82,14 +82,13 @@
         To bring out the fainter features, an offset value of 158 can be added
         to the array to allow a 'log' scaling can be applied to the array values
         using:
-            >>> numdisplay.display(fdata,transform=numerix.log,offset=158.0)
+            >>> numdisplay.display(fdata,transform=numarray.log,offset=158.0)
         To redisplay the image with default full-range scaling:
             >>> numdisplay.display(fdata)
 
 """
 
-import numerix as n
-import math, string
+import numarray, math, string
 import displaydev
 
 try:
@@ -97,7 +96,7 @@ try:
 except ImportError:
     geotrans = None
 
-__version__ = "1.2dev (4-AUG-2006)"
+__version__ = "1.1 (30-Nov-2004)"
 #
 # Version 0.1-alpha: Initial release
 #       WJH 7-Oct-2003
@@ -216,7 +215,7 @@ class NumDisplay:
         _pmax = 200.
         _ny,_nx = image.shape
 
-        bimage = n.zeros((_ny,_nx),dtype=n.uint8)
+        bimage = numarray.zeros((_ny,_nx),numarray.UInt8)
         iz1 = self.z1
         iz2 = self.z2
 
@@ -228,8 +227,7 @@ class NumDisplay:
 
         # Now we can scale the pixels using a linear scale only (for now)
         # Add '1' to clip value to account for zero indexing
-        bimage = n.clip(((image - iz1+1) * scale),_pmin,_pmax)
-        bimage = n.array(bimage,dtype=n.uint8)
+        bimage = numarray.clip(((image - iz1+1) * scale),_pmin,_pmax).astype(numarray.UInt8)
 
         status = 'Image scaled to Z1: '+repr(iz1)+' Z2: '+repr(iz2)+'...'
         return bimage
@@ -268,11 +266,11 @@ class NumDisplay:
     def _transformImage(self, pix):
         """ Apply user-specified scaling to the input array. """
 
-        if isinstance(pix,n.numerix):
+        if isinstance(pix,numarray.numarraycore.NumArray):
 
             if self.zrange:
                 zpix = pix.copy()
-                zpix = n.clip(pix,self.z1,self.z2)
+                zpix = numarray.clip(pix,self.z1,self.z2)
             else:
                 zpix = pix
         else:
@@ -293,7 +291,7 @@ class NumDisplay:
     def display(self, pix, name=None, bufname=None, z1=None, z2=None,
              transform=None, scale=None, offset=None, frame=None):
 
-        """ Displays byte-scaled (UInt8) n to XIMTOOL device.
+        """ Displays byte-scaled (UInt8) numarray to XIMTOOL device.
             This method uses the IIS protocol for displaying the data
             to the image display device, which requires the data to be
             byte-scaled.
@@ -314,16 +312,16 @@ class NumDisplay:
         # If no user specified values are provided, interrogate the array itself
         # for the full range of pixel values
         if self.z1 == None:
-            self.z1 = n.minimum.reduce(n.ravel(pix))
+            self.z1 = numarray.minimum.reduce(numarray.ravel(pix))
         if self.z2 == None:
-            self.z2 = n.maximum.reduce(n.ravel(pix))
+            self.z2 = numarray.maximum.reduce(numarray.ravel(pix))
 
         # If the user has not selected a specific buffer for the display,
         # select and set the frame buffer size based on input image size.
         if bufname != None:
             _d.setFBconfig(None,bufname=bufname)
         else:
-            _ny,_nx = pix.shape
+            _ny,_nx = pix.getshape()
             _d.selectFB(_nx,_ny,reset=1)
 
         # Initialize the specified frame buffer
@@ -344,8 +342,8 @@ class NumDisplay:
         if _z1 == _z2:
             print 'Error encountered during transformation. No transformation applied...'
             bpix = pix
-            self.z1 = n.minimum.reduce(n.ravel(bpix))
-            self.z2 = n.maximum.reduce(n.ravel(bpix))
+            self.z1 = numarray.minimum.reduce(numarray.ravel(bpix))
+            self.z2 = numarray.maximum.reduce(numarray.ravel(bpix))
             # Failsafe in case input image is flat:
             if self.z1 == self.z2:
                 self.z1 -= 1.

@@ -3,6 +3,7 @@
 import sys, os.path
 from distutils.core import setup
 from distutils.sysconfig import *
+#from distutils.command.install import install
 from distutils.command.install_data import install_data
 
 pythonlib = get_python_lib(plat_specific=1)
@@ -33,8 +34,8 @@ if __name__ == '__main__' :
 
     setup(
         name="Numdisplay",
-        version="1.2dev",
-        description="Package for displaying numarray or numpy arrays in DS9",
+        version="1.0",
+        description="Package for displaying numarray arrays in DS9",
         author="Warren Hack",
         maintainer_email="help@stsci.edu",
         url="",

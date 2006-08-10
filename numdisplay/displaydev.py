@@ -32,7 +32,7 @@ $Id$
 
 import os, socket, struct
 
-import numerix as n
+import numarray
 import string
 import imconfig
 
@@ -77,11 +77,11 @@ class ImageWCS:
     _W_USER = 3
 
     def __init__(self,pix,name=None,title=None,z1=None,z2=None):
-        # pix must be a numerix array...
+        # pix must be a numarray array...
         self.a = 1.0
         self.b = self.c = 0.
         self.d = -1.0
-        _shape = pix.shape
+        _shape = pix.getshape()
         # Start assuming full image can fit in frame buffer
         self.tx = _shape[1] / 2.
         self.ty = _shape[0] / 2.
@@ -90,12 +90,12 @@ class ImageWCS:
 
         # Determine full range of pixel values for image
         if not z1:
-            self.z1 = n.minimum.reduce(n.ravel(pix))
+            self.z1 = numarray.minimum.reduce(numarray.ravel(pix))
         else:
             self.z1 = z1
 
         if not z2:
-            self.z2 = n.maximum.reduce(n.ravel(pix))
+            self.z2 = numarray.maximum.reduce(numarray.ravel(pix))
         else:
             self.z2 = z2
 
@@ -366,7 +366,7 @@ class ImageDisplay:
 
         opcode = self._IIS_WRITE | self._PACKED
         frame = 1 << (self.frame-1)
-        nbytes = pix.size * pix.itemsize
+        nbytes = pix.nelements() * pix.itemsize()
         self._writeHeader(opcode,self._MEMORY, -nbytes, x, y, frame, 0)
 
         status = self._write(pix.tostring())
@@ -510,9 +510,9 @@ class ImageDisplay:
 
         """Write request to image display"""
 
-        a = n.array([tid,thingct,subunit,0,x,y,z,t],dtype=n.uint16)
+        a = numarray.array([tid,thingct,subunit,0,x,y,z,t]).astype(numarray.UInt16)
         # Compute the checksum
-        sum = n.add.reduce(a)
+        sum = numarray.add.reduce(a)
         sum = 0xffff - (sum & 0xffff)
         a[3] = sum
         self._write(a.tostring())
