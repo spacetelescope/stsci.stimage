@@ -922,7 +922,7 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
 
     #Determine row from which to get the coefficients.
     # How many rows do we have in the table...
-    fshape = ftab[1].data.getshape()
+    fshape = ftab[1].data.shape
     colnames = ftab[1].data._names
     row = -1
 
@@ -1076,7 +1076,7 @@ def readOfftab(offtab, date, chip=None):
 
     #Determine row from which to get the coefficients.
     # How many rows do we have in the table...
-    fshape = ftab[1].data.getshape()
+    fshape = ftab[1].data.shape
     colnames = ftab[1].data._names
     row = -1
 
@@ -1502,7 +1502,7 @@ def readAsnTable(fname,output=None,prodonly=yes):
     except:
         raise IOError,"Association table '%s' not valid as specified!" % fname
 
-    tablen = ftab[1].data.getshape()[0]
+    tablen = ftab[1].data.shape[0]
     colnames = ftab[1].columns.names
     colunits = ftab[1].columns.units
 
