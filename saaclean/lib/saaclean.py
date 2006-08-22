@@ -33,7 +33,7 @@ from imagestats import ImageStats as imstat #pyssg lib
 from imagestats.histogram1d import histogram1d
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.97dev"
+__version__="0.98dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -150,7 +150,7 @@ class Domain:
         #if clobber=True or file does not exist, proceed anyhow    
         f=open(filename,'w')
         f.write('# '+self.name+'\n')
-        f.write('# Pixels in this domain: '+`len(self.pixlist)`+'\n')
+        f.write('# Pixels in this domain: '+`len(self.pixlist[0])`+'\n')
         f.write('#  1  scale factor  \n')
         f.write('#  2  sigma   \n')
         f.write('#  3  mode  \n')
