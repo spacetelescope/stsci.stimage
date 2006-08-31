@@ -33,7 +33,7 @@ from imagestats import ImageStats as imstat #pyssg lib
 from imagestats.histogram1d import histogram1d
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 
-__version__="0.98dev"
+__version__="0.99dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -605,7 +605,7 @@ def gausspoly_fit(thedata,guesscoeff):
     return fitcoeff, chi2, itertrace
 
 #...........................................................................
-def thresh_from_gausspoly_fit(saa, binwidth=0.5, nclip=3,
+def thresh_from_gausspoly_fit(saa, parbinwidth=0.5, nclip=3,
                               diagfile=None, clobber=False):
     """ Some massaging of the SAApersistence image histogram is
     performed in order to obtain an optimal fit.
@@ -613,6 +613,7 @@ def thresh_from_gausspoly_fit(saa, binwidth=0.5, nclip=3,
     the IDL code."""
     #Work in a bigger dynamic range space
     im=saa*500.0
+    binwidth=parbinwidth*500.0
 
     #Compute the histogram
     hnbins=int( (10000+100)/binwidth) + 1
@@ -837,7 +838,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
 
     if pars.fitthresh:
         img.thresh  = thresh_from_gausspoly_fit(saaper,
-                                                binwidth=pars.histbinwidth,
+                                                parbinwidth=pars.histbinwidth,
                                                 nclip=pars.nclip,
                                                 diagfile=pars.diagfile,
                                                 clobber=pars.clobber)     
