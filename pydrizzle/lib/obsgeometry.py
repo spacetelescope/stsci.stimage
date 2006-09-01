@@ -107,8 +107,12 @@ class GeometryModel:
         cy = self.cy/self.pscale
         x0 = self.refpix['XDELTA'] + cx[0,0]
         y0 = self.refpix['YDELTA'] + cy[0,0]
-        xr = self.refpix['XREF']
-        yr = self.refpix['YREF']
+        #xr = self.refpix['XREF']
+        #yr = self.refpix['YREF']
+        xr = self.refpix['CHIP_XREF']
+        yr = self.refpix['CHIP_YREF']
+
+
 
         '''
         if xref != None:
@@ -139,6 +143,7 @@ class GeometryModel:
         # Now, write out the coefficients into an ASCII
         # file in 'drizzle' format.
         lines = []
+
 
         lines.append('# ACS polynomial distortion coefficients\n')
         lines.append('# Extracted from "%s" \n'%self.name)
@@ -457,13 +462,20 @@ class ObsGeometry:
                 _delta_refx =  (self.wcs.crpix1 + self.wcs.offset_x) - self.model.refpix['XREF']
                 _delta_refy =  (self.wcs.crpix2 + self.wcs.offset_y) - self.model.refpix['YREF']
 
-                #_delta_refx =  self.wcs.offset_x - self.model.refpix['XREF']
-                #_delta_refy =  self.wcs.offset_y - self.model.refpix['YREF']
                 self.wcs.delta_refx = self.wcslin.delta_refx = _delta_refx
                 self.wcs.delta_refy = self.wcslin.delta_refy = _delta_refy
                 self.wcs.subarray = self.wcslin.subarray = yes
                 self.wcs.chip_xref = self.wcs.offset_x + self.wcs.crpix1
                 self.wcs.chip_yref = self.wcs.offset_y + self.wcs.crpix2
+
+                # CHIP_X/YREF will be passed as refpix to drizzle through
+                # the coefficients files. This is necessary to account for the
+                # fact that drizzle applies the model in the image frame
+                # while refpix in the the model is defined in the full frame.
+                # This affects subarrays and polarized observations.
+
+                self.model.refpix['CHIP_XREF'] = self.wcs.crpix1 - self.wcs.delta_refx
+                self.model.refpix['CHIP_YREF'] = self.wcs.crpix2 - self.wcs.delta_refy
             else:
                 self.wcs.offset_x = self.wcslin.offset_x = 0.
                 self.wcs.offset_y = self.wcslin.offset_y = 0.
@@ -473,6 +485,9 @@ class ObsGeometry:
                 self.wcs.subarray = self.wcslin.subarray = no
                 self.wcs.chip_xref = self.wcs.naxis1/2.
                 self.wcs.chip_yref = self.wcs.naxis2/2.
+                self.model.refpix['CHIP_XREF'] = self.model.refpix['XREF']
+                self.model.refpix['CHIP_YREF'] = self.model.refpix['YREF']
+
 
             #
             # Apply VAFACTOR if present in header.

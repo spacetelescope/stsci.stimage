@@ -1,4 +1,15 @@
 ### PyDrizzle Revision Changes
+Version 5.7.0(1-Sep-2006) NMD
+      - This version fixes alignment problems:
+        -- WFPC2 data: The output of Pydrizzle and Wdrizzle in 'wcs' mode 
+           comes out identical. Also dithered WFPC2 images are aligned 
+           correctly. An offset of 1px was introduced in drutil.wcsfit for 
+           wfpc2 images and subarrays
+        --  polarizer observations and subarrays: refpix['CHIP_X/YREF']
+           was introduced and written out as 'refpix' in the coefficients 
+	   files. This is necessary to account for the
+           fact that drizzle applies the model in the image frame
+           while refpix in the the model is defined in the full frame.
 Version 5.6.8 (3-Aug-2006) WJH
       - Specifying an output WCS/SkyField object produced an incorrect
       product WCS.  The problem stems from 'transformMetachip' as called

@@ -613,9 +613,15 @@ def wcsfit(img_geom, ref):
     for pix in xrange(len(_cpix_rd[0])):
         _cpix_xyref[pix,0],_cpix_xyref[pix,1] = ref_wcs.rd2xy((_cpix_rd[0][pix],_cpix_rd[1][pix]))
 
+    # needed to handle correctly subarrays and wfpc2 data
+    if img_wcs.delta_refx == 0.0 and img_wcs.delta_refy == 0.0:
+        offx, offy = (0.0,0.0)
+    else:
+        offx, offy = (1.0, 1.0)
+
     # Now, apply distortion model to input image XY positions
     _cpix_xyc = N.zeros((4,2),type=N.Float64)
-    _cpix_xyc[:,0],_cpix_xyc[:,1] = img_geom.apply(_cpix_arr,order=1)
+    _cpix_xyc[:,0],_cpix_xyc[:,1] = img_geom.apply(_cpix_arr - (offx, offy), order=1)
 
     if in_refpix:
         _cpix_xyc += (in_refpix['XDELTA'], in_refpix['YDELTA'])
@@ -629,8 +635,8 @@ def wcsfit(img_geom, ref):
     # a WCS to itself (no distortion coeffs), so it needs to be
     # taken out in the coeffs file by modifying the zero-point value.
     #  WJH 17-Mar-2005
-    abxt[2] -= ref_wcs.crpix1
-    cdyt[2] -= ref_wcs.crpix2
+    abxt[2] -= ref_wcs.crpix1 + offx
+    cdyt[2] -= ref_wcs.crpix2 + offy
 
     return abxt,cdyt
 
