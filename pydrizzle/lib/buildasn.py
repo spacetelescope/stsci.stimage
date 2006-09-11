@@ -73,7 +73,7 @@ WJH, 28 June 2005 (0.9.5a)
 
 """
 
-import os, sre, types, copy
+import os, re, types, copy
 import time
 import pyfits
 #import numarray,chararray
@@ -255,7 +255,7 @@ def _findFiles(inlist):
 
     if regpatt:
         # compile regular expression
-        _reg = sre.compile(regpatt)
+        _reg = re.compile(regpatt)
 
         for file in _ldir:
             if _reg.match(file) and file.find('_OrIg') < 0:
