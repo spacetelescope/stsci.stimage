@@ -15,7 +15,9 @@
 #               with NICMOS data in both units of counts and counts/second           
 #           Version 1.1.0 06/02/05 -- Calculates direction of CTE tail for cosmic rays
 #               (not needed for NICMOS)
-__version__ = '1.1.0'
+#           Version 1.1.1 09/11/06 -- Fixed bug in convert2electrons for the count/second
+#                case where the value is scaled by the exposure time instead of the gain. -- CJH
+__version__ = '1.1.1'
 
 import pydrizzle
 from pydrizzle import fileutil
@@ -181,7 +183,7 @@ class NICMOSInputImage (InputImage):
             # Multiply the values of the sci extension pixels by the gain.
             print "Converting %s from COUNTS to ELECTRONS"%(self.name)
             # If the exptime is 0 the science image will be zeroed out.
-            conversionFactor = (self.getExpTime()) 
+            conversionFactor = (self.getGain()) 
         N.multiply(__sciext.data,conversionFactor,__sciext.data)        
         
         __handle.close()
