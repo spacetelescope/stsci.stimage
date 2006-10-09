@@ -817,7 +817,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     if pars is None:
         pars=params()
     if pars.readsaaper:
-        sfile=pyfits.open(pars.saaperfile)[0].data
+        sfile=pyfits.open(pars.saaperfile)
         saaper=sfile[0].data
         sfile.close()
     else:
