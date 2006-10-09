@@ -32,6 +32,7 @@ import numarray,pyfits
 from imagestats import ImageStats as imstat #pyssg lib
 from imagestats.histogram1d import histogram1d
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
+import LinearAlgebra #for the exception
 
 __version__="0.99dev"
 ### Warning warning warning, this is listed in the __init__.py ALSO.
@@ -642,9 +643,27 @@ def thresh_from_gausspoly_fit(saa, parbinwidth=0.5, nclip=3,
                 yy.stddev,
                 0.1, 0.1, 0.0]
     
-    #Do the fitting
-    coeffs,chi2,itertrace=gausspoly_fit(thedata,startguess)
-
+    #Do the fitting: with a catch for a linear algebra failure
+    try:
+        coeffs,chi2,itertrace=gausspoly_fit(thedata,startguess)
+    except LinearAlgebra.LinAlgError, e:
+        print """       Encountered Linear Algebra Error
+        during gauss-poly fit of SAA persistence model histogram.
+           Scaled histogram data that was being fit will be printed
+        out in the _gp_hist.txt file for examination.
+           This problem sometimes occurs due to a poor selection of
+        the histbinwidth parameter; you may want to tweak that value.
+        \n"""
+        print str(e)
+        if diagfile is None:
+            diagfile='diag_linalgerr'
+        f=smartopen(diagfile+'_gp_hist.txt','w',clobber=clobber)
+        for k in range(len(t)):
+            line = "%f   %d\n"%(t[k],h.histogram[k])
+            f.write(line)
+        f.close()
+        raise e
+    
     #and tell us about the results
     print "\nCoefficients for gauss-poly fit to persistence model histogram:"
     r=itertrace[-1] #Last iteration
