@@ -22,6 +22,7 @@ import numarray as N
 from numarray import linear_algebra
 
 import fileutil
+from fileutil import buildRotMatrix
 
 # Convenience definitions
 DEGTORAD = fileutil.DEGTORAD
@@ -435,14 +436,6 @@ def rotateCubic(fxy,theta):
 
     return newf
 
-
-def buildRotMatrix(theta):
-    _theta = DEGTORAD(theta)
-    _mrot = N.zeros(shape=(2,2),type=N.Float64)
-    _mrot[0] = (N.cos(_theta),N.sin(_theta))
-    _mrot[1] = (-N.sin(_theta),N.cos(_theta))
-
-    return _mrot
 
 def rotatePos(pos, theta,offset=None,scale=None):
 

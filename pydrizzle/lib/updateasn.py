@@ -11,7 +11,8 @@ import os,string
 import pyfits, numarray
 
 import pydrizzle
-from pydrizzle import buildasn,fileutil,wcsutil
+from pydrizzle import buildasn
+import fileutil,wcsutil
 
 IDCKEYS = {'WFPC2':'cubic','ACS':'idctab','STIS':'cubic','NICMOS':'cubic','detector':'idctab'}
 yes = True
