@@ -33,8 +33,7 @@
 
 __version__ = '1.0.0'
 
-import pydrizzle
-from pydrizzle import fileutil
+import fileutil
 
 
 from input_image import InputImage

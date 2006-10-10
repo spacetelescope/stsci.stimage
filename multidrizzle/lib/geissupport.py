@@ -21,8 +21,7 @@ import pyfits as P
 import readgeis
 from readgeis import readgeis
 import os
-import pydrizzle
-from pydrizzle import fileutil
+import fileutil
 
 __version__ = '0.3.0'
 

@@ -81,7 +81,8 @@ import shutil, os
 
 # Import Pydrizzle
 import pydrizzle
-from pydrizzle import fileutil,drutil,buildmask
+from pydrizzle import drutil,buildmask
+import fileutil, wcsutil
 
 # Import support for specific HST Instruments
 from acs_input import WFCInputImage, HRCInputImage, SBCInputImage
@@ -580,7 +581,7 @@ class ImageManager:
             # Use the following if the refimage isn't actually going to be
             # drizzled, we just want to set up the pydrizzle object
             #
-            _refimg = pydrizzle.wcsutil.WCSObject(pars['refimage'])
+            _refimg = wcsutil.WCSObject(pars['refimage'])
             refimg_wcs = _refimg.copy()
 
             # If the user also specified a rotation to be applied,
@@ -1045,7 +1046,7 @@ class ImageManager:
             # Use the following if the refimage isn't actually going to be
             # drizzled, we just want to set up the pydrizzle object
             #
-            _refimg = pydrizzle.wcsutil.WCSObject(drizpars['refimage'])
+            _refimg = wcsutil.WCSObject(drizpars['refimage'])
             refimg_wcs = _refimg.copy()
 
             # If the user also specified a rotation to be applied,

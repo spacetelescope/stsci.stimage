@@ -7,7 +7,7 @@ import numarray
 import numarray.ieeespecial
 from numarray.ieeespecial import *
 
-from pydrizzle import fileutil
+import fileutil
 from pydrizzle import traits102
 from pydrizzle.traits102 import *
 from pydrizzle.traits102.tktrait_sheet import TraitEditorBoolean, \

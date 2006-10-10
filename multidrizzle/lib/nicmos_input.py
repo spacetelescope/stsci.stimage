@@ -19,8 +19,7 @@
 #                case where the value is scaled by the exposure time instead of the gain. -- CJH
 __version__ = '1.1.1'
 
-import pydrizzle
-from pydrizzle import fileutil
+import fileutil
 import numarray as N
 
 from input_image import InputImage

@@ -49,8 +49,7 @@ __version__ = '1.1.0'
 
 import pyfits
 
-import pydrizzle
-from pydrizzle import fileutil
+import fileutil
 
 import imagestats
 from imagestats import ImageStats

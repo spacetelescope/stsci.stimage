@@ -6,9 +6,10 @@ import os, shutil, sys
 #from numarray.ieeespecial import *
 
 import pydrizzle
-from pydrizzle import drutil, fileutil, buildasn, updateasn
+from pydrizzle import drutil, buildasn, updateasn
 import pyfits
 import readgeis
+import fileutil
 
 import mdzhandler
 import manager

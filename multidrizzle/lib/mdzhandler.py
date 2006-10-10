@@ -10,8 +10,7 @@
 
 import pyfits
 
-import pydrizzle
-from pydrizzle import fileutil
+import fileutil
 
 __version__ = '0.1.02'
 
@@ -31,7 +30,7 @@ def getMultidrizzleParameters(files):
     else:
         raise KeyError, "No MDRIZTAB found in file " + _fileName
 
-    _tableName = pydrizzle.irafvars.osfn(_tableName)
+    _tableName = fileutil.osfn(_tableName)
 
     # Now get the filters from the primary header.
     _filters = fileutil.getFilterNames(_header)
