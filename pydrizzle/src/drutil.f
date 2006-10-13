@@ -1062,7 +1062,7 @@ C Secondary geometrical parameters, added in V1.5
       LOGICAL ROTF2
       DOUBLE PRECISION XUT,YUT,XC2,XS2,YC2,YS2,XT2,YT2,XP2,YP2
       DOUBLE PRECISION SINTH2,COSTH2
-
+      
 C--
 
       IF(ALIGN.EQ.'corner') THEN
@@ -2915,7 +2915,7 @@ C clockwise order
           JACO=0.5*((XOUT(2)-XOUT(4))*(YOUT(1)-YOUT(3)) -
      :              (XOUT(1)-XOUT(3))*(YOUT(2)-YOUT(4)))
           IF (JACO.LT.0.0D0) THEN
-             JACO = JACO*1.0D0
+             JACO = JACO*-1.0D0
              TEM=XOUT(2)
              XOUT(2)=XOUT(4)
              XOUT(4)=TEM

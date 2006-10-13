@@ -3622,7 +3622,7 @@ L140:
 				xout[0] - xout[2]) * (yout[1] - yout[3])) * 
 				.5f;
 			if (jaco < 0.) {
-			    jaco *= 1.;
+			    jaco *= -1.;
 			    tem = xout[1];
 			    xout[1] = xout[3];
 			    xout[3] = tem;
