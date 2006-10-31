@@ -102,7 +102,7 @@ class smart_install_data(install_data):
         return install_data.run(self)
 
 setup(name="STScI Python Software",
-      version="2.2",
+      version="2.3",
       description="",
       author="Science Software Branch, STScI",
       maintainer_email="help@stsci.edu",
