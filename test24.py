@@ -3,46 +3,66 @@
 import sys, os
 import string
 
-def test23():
+def test24():
     packages = [
-        'numdisplay',
-        'fitsdiff',
-        'pydrizzle',
-        'imageiter',
         'imagestats',
-        'irafglob',
-        'makewcs',
         'multidrizzle',
-        'nimageiter',
         'numarray',
-        'numcombine',
+        'numdisplay',
+        'puftcorr',
+        'pydrizzle',
         'pyfits',
+        'fileutil',
+        'fitsdiff',
+        'gfit',
+        'imageiter',
+        'irafglob',
+        'iterfile',
+        'linefit',
+        'makewcs',
+        'nimageiter',
+        'nmpfit',
+        'numcombine',
+        'parseinput',
         'readgeis',
-	'parseinput',
-	'saaclean',
-	'iterfile',
-	'puftcorr']
-
+        'versioninfo',
+        'wcsutil',
+        'saaclean',
+        'mktrace',
+        'sshift',
+        'stisnoise',
+        'wx2d']
+    
     required_versions = {
-        'numdisplay':   '1.1',
-        'fitsdiff' :    '1.3',
-        'pydrizzle':    '5.6.0',
-        'imageiter':    '0.1',
-        'imagestats':   '1.0.1',
-        'irafglob':     '1.0',
-        'makewcs':      '0.7.0',
-        'multidrizzle': '2.7.2',
-        'nimageiter':   '0.5',
-        'numarray':     '1.5.1',
-        'numcombine':   '0.3.0',
-        'pyfits':       '1.0.1',
-        'readgeis' :    '1.8',
-	'parseinput':	'0.1.5',
-	'saaclean':	'0.9',
-	'iterfile':	'0.1',
-	'puftcorr':	'0.1'
+        'imagestats':       '1.0.1',
+        'multidrizzle':     '2.7.2',
+        'numarray':         '1.5.2',
+        'numdisplay':       '1.1',
+        'puftcorr':         '0.1',
+        'pydrizzle':        '5.7.0',
+        'pyfits':           '1.0.1',
+        'fileutil':         '1.2.0',
+        'fitsdiff':         '1.3',
+        'gfit':             '0.1',
+        'imageiter':        '0.1',
+        'irafglob':         '1.0',
+        'iterfile':         '0.1',
+        'linefit':          '0.1',
+        'makewcs':          '0.7.0',
+        'nimageiter':       '0.5',
+        'nmpfit':           '0.1',
+        'numcombine':       '0.3.0',
+        'parseinput':       '0.1.5',
+        'readgeis':         '1.9',
+        'versioninfo':      '0.1.1',
+        'wcsutil':          '1.0.0',
+        'saaclean':         '0.9',
+        'mktrace':          '1.0',
+        'sshift':           '1.4',
+        'stisnoise':        '5.3',
+        'wx2d':             '1.0',
         }
-
+    
 
 
     pyraf_message = ""
@@ -55,8 +75,8 @@ def test23():
         import Numeric
         try:
             import pyraf
-            if pyraf.__version__ < "1.2.1" :
-                pyraf_message = "\nThe latest public release of PyRAF is v 1.2.1.\n Pyraf v. %s was found.\n" % pyraf.__version__
+            if pyraf.__version__ < "1.3" :
+                pyraf_message = "\nThe latest public release of PyRAF is v 1.3.\n Pyraf v. %s was found.\n" % pyraf.__version__
         except ImportError:
             print "\nPyRAF is not installed or not on your PYTHONPATH.\nPlease correct this if you intend to use it, before you attempt to run multidrizzle.\n"
 
@@ -69,7 +89,15 @@ def test23():
     except ImportError:
         print "\nPmw is required and was not detected. It's either not installed or not on PYTHONPATH.\n"
 
-    
+    try:
+        import urwid
+    except ImportError:
+        print "\nPackage urwid was not found. It is not required but if available will enable text based epar in pyraf.\n"
+
+    try:
+        import IPython
+    except ImportError:
+        print "\nPackage ipython was not found. It is not required but if available can be used with pyraf (pyraf --ipython).\n"
     for p in packages:
         try:
             package = __import__(p)
@@ -93,4 +121,4 @@ def test23():
     
     
 if __name__ == '__main__':
-    test23()
+    test24()

@@ -7,7 +7,7 @@ from distutils.command.install_data import install_data
 
 from cfg_pyraf import PYRAF_DATA_FILES, PYRAF_SCRIPTS, PYRAF_EXTENSIONS, PYRAF_CLCACHE
 from cfg_pydrizzle import PYDRIZZLE_EXTENSIONS
-from cfg_modules import PYFITS_MODULES, PYTOOLS_MODULES
+from cfg_modules import PYFITS_MODULES, PYTOOLS_MODULES, STIS_MODULES
 from cfg_imagestats import IMAGESTATS_EXTENSIONS
 
 #py_includes = get_python_inc(plat_specific=1)
@@ -24,7 +24,7 @@ PACKAGES = ['pyraf','numdisplay', 'imagestats', 'multidrizzle', 'saaclean', 'pyd
 
 PACKAGE_DIRS = {'pyraf':'pyraf/lib','numdisplay':'numdisplay', 'imagestats':'imagestats/lib', 'multidrizzle':'multidrizzle/lib', 'saaclean':'saaclean/lib', 'pydrizzle':'pydrizzle/lib', 'pydrizzle.traits102':'pydrizzle/traits102', 'puftcorr':'puftcorr/lib'}
 
-PYMODULES = PYFITS_MODULES + PYTOOLS_MODULES
+PYMODULES = PYFITS_MODULES + PYTOOLS_MODULES + STIS_MODULES
 
 for a in args:
     if a.startswith('--local='):
@@ -102,7 +102,7 @@ class smart_install_data(install_data):
         return install_data.run(self)
 
 setup(name="STScI Python Software",
-      version="2.3",
+      version="2.4",
       description="",
       author="Science Software Branch, STScI",
       maintainer_email="help@stsci.edu",
