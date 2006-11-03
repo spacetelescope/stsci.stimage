@@ -53,7 +53,7 @@ def test24():
         'nmpfit':           '0.1',
         'numcombine':       '0.3.0',
         'parseinput':       '0.1.5',
-        'readgeis':         '1.9',
+        'readgeis':         '1.8',
         'versioninfo':      '0.1.1',
         'wcsutil':          '1.0.0',
         'saaclean':         '0.9',
