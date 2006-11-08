@@ -121,7 +121,7 @@ tdriz(PyObject *obj, PyObject *args)
 /*    return Py_BuildValue("f",istat); */
 }
 
-
+/*
 static PyObject *
 twdriz(PyObject *obj, PyObject *args)
 {
@@ -203,8 +203,7 @@ twdriz(PyObject *obj, PyObject *args)
     Py_DECREF(pyg);
 
     return Py_BuildValue("s#ii",vers,vers_len,nmiss,nskip);
-/*    return Py_BuildValue("f",istat); */
-}
+ }*/
 
 
 static PyObject *
@@ -294,7 +293,7 @@ tblot(PyObject *obj, PyObject *args)
 static PyMethodDef arrdriz_methods[] =
 {
     {"tdriz",  tdriz, METH_VARARGS, "triz(image, weight, output, outweight, xsh, ysh, rot, scale, align, pfract, kernel, coeffs, vflag)"},
-    {"twdriz",  tdriz, METH_VARARGS, "triz(image, weight, output, outweight, ystart, xmin, ymin, dny, wcsin, wcsout,pxg,pyg,pfract, kernel, coeffs, fillstr,nmiss,nskip,vflag)"},
+    /*{"twdriz",  tdriz, METH_VARARGS, "triz(image, weight, output, outweight, ystart, xmin, ymin, dny, wcsin, wcsout,pxg,pyg,pfract, kernel, coeffs, fillstr,nmiss,nskip,vflag)"},*/
     {"tblot",  tblot, METH_VARARGS, "tblot(image, output, xsh, ysh, rot, scale, align, interp, coeffs, misval, sinscl, vflag)"},
     {0,            0}                             /* sentinel */
 };
