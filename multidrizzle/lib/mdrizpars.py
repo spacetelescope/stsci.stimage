@@ -31,9 +31,9 @@ def cleanNaN(value):
 
 def cleanInt(value):
     # THIS MAY BE MACHINE-DEPENDENT !!!
-    #if value == -2147483647:
+    if value == -2147483647:
     # Try to use 'sys.maxint' as value (WJH)
-    if value == -sys.maxint:
+    #if value == -sys.maxint:
         return None
     return value
 
