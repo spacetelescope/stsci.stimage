@@ -134,7 +134,7 @@ class MDrizPars (HasTraits):
             'output':Trait('',TraitString()),
             'mdriztab':Trait(False, true_boolean, editor=bit_editor),
             'refimage':Trait('',AnyValue),
-            'runfile':'multidrizzle.run',
+            'runfile':Trait('multidrizzle.run',TraitString()),
             'workinplace':Trait(False, true_boolean, editor=bit_editor),
             'updatewcs':Trait(True, true_boolean, editor=bit_editor),   
             'context':Trait(True, true_boolean, editor=bit_editor), 

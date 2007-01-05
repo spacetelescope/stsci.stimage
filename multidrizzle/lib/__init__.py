@@ -352,7 +352,10 @@ help file.
         # for the attributes necessary for initializing this class
         for kw in self.init_keys:
             self.__dict__[kw] = self.pars.master_pars[kw]
-                
+	# runfile could have been converted to an integer by the above,
+	# so we have to make sure it's a string
+	self.runfile = str(self.runfile)
+
         # Create object that controls step execution and mark
         # initialization step.
         self.steps = self.pars.steps
