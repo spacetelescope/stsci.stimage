@@ -1,3 +1,5 @@
+## Automatically adapted for numpy.numarray Feb 05, 2007 by 
+
 """
 puftcorr: Module for estimating and removing "Mr. Staypuft" signal from
           a NICMOS exposure.
@@ -15,25 +17,31 @@ For more information:
           never made publicly available.
           
 Dependencies:
-          numarray v0.6 or higher
-          pyfits v0.6 or higher
+          numpy v1.0.2dev3534 or higher
+          pyfits v1.1b4 or higher
+          convolve (version ?? or higher)
+          ndimage  (version ?? or higher)
 
 """
 # The above text is duplicated in the __init__ file for the package, since
 #that's where it shows up for the user.
-
+import numenvcheck
 import os, sys, shutil
 import exceptions
 import math
-import numarray, numarray.nd_image
-import numarray.convolve as conv
+import numpy.numarray as numarray
+import ndimage
+import convolve as conv
 import pyfits
 
-__version__="0.1 (07 Dec 2005)"
+__version__="0.15"
+__vdate__="2007-02-05"
+
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
 #History:
+# Modified for numpy usage
 # Initial python implementation: Dec 2005, Bushouse
 # Based on IDL implementation by Bergeron
 
@@ -260,18 +268,18 @@ def clean (usr_imgfile, usr_outfile):
 
         # rotate, if necessary
         if img.camera == 1:
-            im.data = numarray.nd_image.rotate(im.data,-90,mode='nearest')
+            im.data = ndimage.rotate(im.data,-90,mode='nearest')
         elif img.camera == 3:
-            im.data = numarray.nd_image.rotate(im.data,180,mode='nearest')
+            im.data = ndimage.rotate(im.data,180,mode='nearest')
 
         # get correction image
         im = get_corr(im, pars)
 
         # rotate back, if necessary
         if img.camera == 1:
-            im.data = numarray.nd_image.rotate(im.data,+90,mode='nearest')
+            im.data = ndimage.rotate(im.data,+90,mode='nearest')
         elif img.camera == 3:
-            im.data = numarray.nd_image.rotate(im.data,180,mode='nearest')
+            im.data = ndimage.rotate(im.data,180,mode='nearest')
 
         # subtract correction image from original raw image
         im.data = img.f['sci',imset].data - im.data

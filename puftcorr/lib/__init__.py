@@ -15,9 +15,12 @@ For more information:
           never made publicly available.
           
 Dependencies:
-          numarray v0.6 or higher
-          pyfits v0.6 or higher
+          numpy v1.0.2dev3534 or higher
+          pyfits v1.1b4 or higher
+          convolve (version ?? or higher)
+          ndimage  (version ?? or higher)
 
 """
 from puftcorr import *
-__version__="0.1 (07 Dec 2005)"
+__version__="0.15"
+__vdate__="2007-02-05"
