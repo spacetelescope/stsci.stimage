@@ -18,9 +18,11 @@ For more information:
           webpage.
 
 Dependencies:
-          numarray v0.6 or higher
-          pyfits v0.6 or higher
-          imagestats v0.2.1
+          numpy 1.0.2.dev3534 or higher
+          pyfits v1.1b4 or higher
+          imagestats v1.1.0 or higher
+
 """
 from saaclean import * #reveals everything
-__version__="0.9 (15 Mar 2006)"
+__version__="1.0d1"
+__vdate__="2007-02-05"

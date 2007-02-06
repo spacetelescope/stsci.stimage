@@ -1,3 +1,5 @@
+## Automatically adapted for numpy.numarray Feb 05, 2007 by 
+
 """
 saaclean: Module for estimating and removing persistent CR signal due to a prior
           SAA passage.
@@ -18,9 +20,9 @@ For more information:
           webpage.
           
 Dependencies:
-          numarray v0.6 or higher
-          pyfits v0.6 or higher
-          imagestats v0.2.1
+          numpy 1.0.2.dev3534 or higher
+          pyfits v1.1b4 or higher
+          imagestats v1.1.0 or higher
 
 """
 # The above text is duplicated in the __init__ file for the package, since
@@ -28,13 +30,16 @@ Dependencies:
 
 import os 
 import exceptions
-import numarray,pyfits
+import numpy as N, pyfits
+import imagestats #to check the version
 from imagestats import ImageStats as imstat #pyssg lib
 from imagestats.histogram1d import histogram1d
 import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
-from LinearAlgebra import LinAlgError
+from numpy.linalg import LinAlgError
 
-__version__="0.99dev"
+__version__="1.0d1"
+print "SAAClean version: ",__version__
+print "ImageStats version: ",imagestats.__version__
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
@@ -134,14 +139,14 @@ class Domain:
         with the maximum stddev.
         """
         p1=self.pp[1,:]
-        uu=numarray.where(p1 < factor*p1[0])
-        if uu[0].nelements != 0:
+        uu=N.where(p1 < factor*p1[0])
+        if uu[0].size != 0:
             p1[uu]=p1.max()
             self.pp[1,:]=p1
 
     def getmin(self):
-        ubest=numarray.where(self.pp[1,:] == self.pp[1,:].min())[0][0]
-        umode=numarray.where(self.pp[2,:] == self.pp[2,:].min())[0][0]
+        ubest=N.where(self.pp[1,:] == self.pp[1,:].min())[0][0]
+        umode=N.where(self.pp[2,:] == self.pp[2,:].min())[0][0]
         return ubest, umode
 
     def writeto(self,filename,clobber=False):
@@ -203,10 +208,10 @@ class Exposure:
             self.dq=f['dq',1].data
             if self.dq is not None:
                 dqmask = 1+16+32+64+128+256 #selected values
-                self.nonsourcemask=numarray.bitwise_and(self.dq, dqmask+1024) #exclude sources
-                self.nonsourceidx=numarray.where(self.nonsourcemask == 0)
+                self.nonsourcemask=N.bitwise_and(self.dq, dqmask+1024) #exclude sources
+                self.nonsourceidx=N.where(self.nonsourcemask == 0)
                 self.nonsource=self.data[self.nonsourceidx]
-                self.badpix=numarray.bitwise_and(self.dq, dqmask)
+                self.badpix=N.bitwise_and(self.dq, dqmask)
             else:
                 self.badpix=None
         except KeyError,e:
@@ -247,12 +252,12 @@ class Exposure:
         sophistication in handling the central row and column"""
         
         #Compute the median for each quadrant independently
-##         m=numarray.array([imstat(self.data[self.inq1],nclip=0,binwidth=0.01,fields='median').median,
+##         m=N.array([imstat(self.data[self.inq1],nclip=0,binwidth=0.01,fields='median').median,
 ##                           imstat(self.data[self.inq2],nclip=0,binwidth=0.01,fields='median').median,
 ##                           imstat(self.data[self.inq3],nclip=0,binwidth=0.01,fields='median').median,
 ##                           imstat(self.data[self.inq4],nclip=0,binwidth=0.01,fields='median').median])
 
-        m=numarray.array([median(self.data[self.inq1]),
+        m=N.array([median(self.data[self.inq1]),
                          median(self.data[self.inq2]),
                          median(self.data[self.inq3]),
                          median(self.data[self.inq4])])
@@ -301,10 +306,10 @@ class Exposure:
         
     def getmask(self,dim=256,border=3,writename='mask.dat',clobber=False):
         """Computes a mask to use for pixels to omit"""
-        mask=numarray.zeros((dim,dim),'Float32')
-        badmask=numarray.ones((dim,dim),'Float32')
+        mask=N.zeros((dim,dim),dtype=N.dtype('float32'))
+        badmask=N.ones((dim,dim),dtype=N.dtype('float32'))
         if self.badpix is not None:
-            u=numarray.where(self.badpix != 0)
+            u=N.where(self.badpix != 0)
             mask[u]=1
             badmask[u]=0
         # Always Mask out central "cross" chipgap
@@ -321,7 +326,7 @@ class Exposure:
         return mask,badmask
 
     def apply_mask(self,mask):
-        goodpix=numarray.where(mask == 0)
+        goodpix=N.where(mask == 0)
         self.masked_data = self.data[goodpix]
         
 
@@ -337,18 +342,18 @@ class Exposure:
 
                 #there's got to be a better way to do this!
                 #Make a mask & fill it all with ones
-                fitmask=numarray.ones(mask.shape)
+                fitmask=N.ones(mask.shape)
                 #Then make the pixels we want be set to zero
                 fitmask[dom.pixlist]=0
                 #Then set the mask-defined bad pixels to one so we don't use them
                 #(Notice there's no use of "self.badpix" here, wonder why not?)
                 #Ah! It's because self.badpix was already used in *making* that mask. OK.
-                badpix=numarray.where(mask == 1)
+                badpix=N.where(mask == 1)
                 fitmask[badpix]=1
                 #Finally, choose only those pixels where it's set to zero.
-                umask=numarray.where(fitmask == 0)
+                umask=N.where(fitmask == 0)
 
-                dom.pp=numarray.zeros((3,int(dom.range/pars.stepsize)+1),'Float32')
+                dom.pp=N.zeros((3,int(dom.range/pars.stepsize)+1),dtype=N.dtype('float32'))
                 index=0
                 for i in stepval:
                     dif=cal-(acc*i)
@@ -399,7 +404,7 @@ class Exposure:
         else:
             final=self.data.copy()
 
-        saacorr=numarray.zeros(final.shape,'Float32')
+        saacorr=N.zeros(final.shape,dtype=N.dtype('float32'))
         
         hdom,ldom=self.domains['high'],self.domains['low']
         self.update=1
@@ -564,7 +569,7 @@ def writeimage(image, filename, comment=None,clobber=False):
 #..........................................................................
 # Math functions
 def median(a):
-    return numarray.sort(a.flat)[a.nelements() / 2]
+    return N.sort(a.ravel())[a.size / 2]
 
 def parabola_model(coeffs,t):
     r=coeffs[0]*(t-coeffs[1])**2 + coeffs[2]
@@ -581,7 +586,7 @@ def parabola_min(thedata, startguess):
 def gausspoly_eval(coeffs,t):
     z=(t-coeffs[1])/coeffs[2]
     zz=-1*(z**2/2.)
-    r=coeffs[0]*numarray.exp(zz) + coeffs[3] + coeffs[4]*t + coeffs[5]*t**2
+    r=coeffs[0]*N.exp(zz) + coeffs[3] + coeffs[4]*t + coeffs[5]*t**2
     return r
 
 def gausspoly_model(coeffs,t):
@@ -619,7 +624,7 @@ def thresh_from_gausspoly_fit(saa, parbinwidth=0.5, nclip=3,
     #Compute the histogram
     hnbins=int( (10000+100)/binwidth) + 1
     h=histogram1d(im,hnbins,binwidth,-100)
-    xloc=numarray.arange(h.nbins)*h.binWidth+h.minValue
+    xloc=N.arange(h.nbins)*h.binWidth+h.minValue
 
     #Select out only the data range we're interested in
     #Take a first guess at the standard deviation
@@ -755,11 +760,11 @@ def make_saaper(im1,im2,dark,pars,crthresh=1):
     #Correct for CRs
     if pars.crthresh:
         a=im1.data-(im2.data/pars.scale)
-        u1=numarray.where(a > pars.crthresh)
+        u1=N.where(a > pars.crthresh)
         saaper[u1]=im2.data[u1]/pars.scale
 
         a=(im2.data/pars.scale) - im1.data
-        u2=numarray.where(a > pars.crthresh)
+        u2=N.where(a > pars.crthresh)
         saaper[u2]=im1.data[u2]
     if pars.writesaaper and pars.saaperfile:
         writeimage(saaper,pars.saaperfile,clobber=pars.clobber)        
@@ -802,6 +807,7 @@ def smartopen(fname, mode, clobber=True):
 #....................................................................
 def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     print "saaclean version %s"%__version__
+    print "ImageStats version: ",imagestats.__version__
     print "Input files: %s %s"%(usr_calcfile,usr_targfile)
     imgfile=osfn(usr_calcfile)
     img=Exposure(imgfile,nickname='sci image')
@@ -861,10 +867,10 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
 
     #Apply threshold *to persistence image*
     img.domains={'high':Domain('high',
-                               numarray.where(saaper > img.thresh),
+                               N.where(saaper > img.thresh),
                                pars.hirange),
                  'low' :Domain('low',
-                               numarray.where(saaper <= img.thresh),
+                               N.where(saaper <= img.thresh),
                                pars.lorange)
                  }
 
