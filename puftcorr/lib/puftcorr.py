@@ -25,7 +25,15 @@ Dependencies:
 """
 # The above text is duplicated in the __init__ file for the package, since
 #that's where it shows up for the user.
-import numenvcheck
+
+
+
+#.....................................................
+# 
+#.....................................................
+import numerixenv  #Temporary NUMERIX environment check
+
+#.....................................................
 import os, sys, shutil
 import exceptions
 import math
@@ -227,7 +235,7 @@ def get_corr (im, pars):
 # The "main" program
 #....................................................................
 def clean (usr_imgfile, usr_outfile):
-
+    numerixenv.check() #Temporary NUMERIX environment check
     print "puftcorr version %s" %__version__
     print "Input file:  %s" %usr_imgfile
     print "Output file: %s" %usr_outfile
