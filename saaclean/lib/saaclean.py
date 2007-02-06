@@ -27,7 +27,7 @@ Dependencies:
 """
 # The above text is duplicated in the __init__ file for the package, since
 #that's where it shows up for the user.
-
+import numerixenv #Temporary NUMERIX environment check 
 import os 
 import exceptions
 import numpy as N, pyfits
@@ -806,6 +806,7 @@ def smartopen(fname, mode, clobber=True):
 # The "main" program
 #....................................................................
 def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
+    numerixenv.check() #Temporary NUMERIX environment check 
     print "saaclean version %s"%__version__
     print "ImageStats version: ",imagestats.__version__
     print "Input files: %s %s"%(usr_calcfile,usr_targfile)
