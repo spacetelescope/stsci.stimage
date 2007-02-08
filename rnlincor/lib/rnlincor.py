@@ -126,37 +126,36 @@ def check_infile(infile):
         
     #Construct verbose error messages for required keywords
     modemsg="""Required keyword PHOTMODE not found in %s primary header.
-    This keyword is used to select the correct row from the PHOTTAB
+    This keyword is used to select the correct row from the ZPRATTAB
     and RNLPHTTB tables. It specifies the camera and spectral element
     used in the observation and should be of the form
                          NICMOS,1,F160w,DN"""
 
-    phtmsg="""Required keyword PHOTTAB not found in %s primary header.
-    This keyword is used to specify the photometric calibration table
-    to be used for this calculation. These tables have names of the
-    form
-                         nref$*_pht.fits."""
+    plammsg="""Required keyword PHOTPLAM not found in %s primary header.
+    This keyword is used to perform the correct interpolation for the function
+    specified in the RNLCORTB table. It specifies the pivot wavelength
+    for the bandpass specified in PHOTMODE. The correct value can be
+    obtained by consulting the PHOTTAB, which is located in
+                        nref$*_pht.fits"""
+    
 
-    rnphtmsg="""Required keyword RNLPHTTB not found in %s primary header.
-    This keyword is used to specify the corrected calibration table
-    to be used for this calculation. These tables have names of the
+    zptmsg="""Required keyword ZPRATTAB not found in %s primary header.
+    This keyword is used to apply the zeropoint correction to the
+    nonlinear correction calculation. These tables have names of the
     form
-                         nref$*_npt.fits,
-    and must be used with the corresponding PHOTTAB.
-    Check the value of the PHOTTAB keyword in the RNLPHTTB
-    file to be sure you are using matching files."""
+                         nref$*_zpr.fits """
+
 
     rncormsg="""Required keyword RNLCORTB not found in %s primary header.
     This keyword is used to specify the nonlinearity correction table
     to be used for this calculation. These tables have names of the
     form
-                         nref$*_nlC.fits,
-    where C equals 1, 2, or 3 and specifies the camera used for the
-    observation."""
+                         nref$*_nlc.fits """
 
-    reqmsg = {'photmode':modemsg,'phottab':phtmsg,'rnlphttb':rnphtmsg,
-              'rnlcortb':rncormsg}
-    
+
+    reqmsg = {'photmode':modemsg,'zprattab':zptmsg,
+              'rnlcortb':rncormsg,'photplam':plammsg}
+
     for kwd in reqmsg:
         try:
             val=f[0].header[kwd]
@@ -164,19 +163,6 @@ def check_infile(infile):
             print reqmsg[kwd]%(infile)
             raise e
 
-    #Check that these tables are compatible
-    rnltab=osfn(f[0].header['rnlphttb'])
-    phottab=os.path.basename(osfn(f[0].header['phottab']))
-    tb=pyfits.open(rnltab)
-    if tb[0].header['phottab'] != phottab:
-        tb.close()
-        msg= """PHOTTAB and RNLPHTTB are incompatible!!
-   RNLPHTTB.header[PHOTTAB] = %s
-   %s.header[PHOTTAB] = %s
-        These tables must be used in matching pairs. Please check
-        the pedigree of your RNLPHTTB table and try again."""%(tb[0].header['phottab'], infile, phottab)
-        raise ValueError, msg
-    tb.close()
     
 
     #Check multidrizzle status & print warning if necessary
@@ -239,22 +225,21 @@ def rnlincor(infile,outfile,**opt):
         skyval=None
 
     #Get the relevant filenames.
-    phottab=expandname(f[0].header['phottab'])
-    corrfile=expandname(f[0].header['rnlphttb'])
+    zpratfile=expandname(f[0].header['zprattab'])
     nlfile=expandname(f[0].header['rnlcortb'])
     
     #Get the correct key into the tables
     photmode=f[0].header['photmode']
-
+    pivlam  =f[0].header['photplam']
     #Pick out the right row from the photometric correction table
-    newzp=getrow(photmode,corrfile)
-    oldzp=getrow(photmode,phottab)
+    zprat=getrow(photmode,zpratfile)
+
     
     #Read in the nonlinearity correction
     wave,corr = getcurve(nlfile)
 
     #Interpolate to get the correction at the pivot wavelength
-    nonlcor = xyinterp(wave,corr,newzp.pivlam)
+    nonlcor = xyinterp(wave,corr,pivlam)
     print "Using non-linearity correction %6.4f mag/dex"%nonlcor
 
     #Correct from mag/dex to alpha in power law
@@ -264,13 +249,10 @@ def rnlincor(infile,outfile,**opt):
     #Compute the correction
     mul = N.where(N.not_equal(img,0),abs(img),1)**inv_alpha
 
-    #Compute the zero point correction to the correction
-    zpratio=oldzp.photfnu/newzp.photfnu
-
-    #Apply if requested
+    #Apply zero point correction if requested
     if zpcorr:
         print "Applying zeropoint correction"
-        mul /= zpratio
+        mul /= zprat.zpratio
     else:
         print "NOT applying zeropoint correction"
 
@@ -284,7 +266,7 @@ def rnlincor(infile,outfile,**opt):
 
     #Update the HDUlist and write out results
     update_data(f,imgext,img,mul)
-    update_header(f,alpha,zpcorr,zpratio=zpratio)
+    update_header(f,alpha,zpcorr,zpratio=zprat.zpratio)
     f.writeto(outfile,clobber=True)
 
 #.....................................................................
