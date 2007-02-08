@@ -1,18 +1,14 @@
 #! /usr/bin/env python
+import numerixenv #Temporary NUMERIX environment check 
 
-try:
-    import numpy as N
-except ImportError, e:
-    print "Sorry, this task required numpy"
-    raise ImportError, e
-
+import numpy as N
 import pyfits
 from pyraf.iraf import osfn
 import irafglob               #} 
 from xyinterp import xyinterp #}in pytools
 import sys, os, glob, time
 
-__version__ = "0.55dev"
+__version__ = "0.6dev"
 
 #Generic helper functions:
 #  getcurve: return two column vectors from a FITS table
@@ -216,7 +212,9 @@ def update_header(f,alpha,zpcorr,zpratio=None):
 #......................................................................
 def rnlincor(infile,outfile,**opt):
     """ The main routine """
-
+    numerixenv.check() #Temporary NUMERIX environment check
+    print "rnlincor version: ",__version__
+    
     #Translate an option
     zpcorr = not opt['nozpcorr']
     
