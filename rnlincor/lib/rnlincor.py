@@ -124,12 +124,44 @@ def check_infile(infile,cycle7=False):
             f.close()
             return()
         
-    #Check for required keywords
-    for kwd in ['photmode','phottab','rnlphttb','rnlcortb']:
+    #Construct verbose error messages for required keywords
+    modemsg="""Required keyword PHOTMODE not found in %s primary header.
+    This keyword is used to select the correct row from the PHOTTAB
+    and RNLPHTTB tables. It specifies the camera and spectral element
+    used in the observation and should be of the form
+                         NICMOS,1,F160w,DN"""
+
+    phtmsg="""Required keyword PHOTTAB not found in %s primary header.
+    This keyword is used to specify the photometric calibration table
+    to be used for this calculation. These tables have names of the
+    form
+                         nref$*_pht.fits."""
+
+    rnphtmsg="""Required keyword RNLPHTTB not found in %s primary header.
+    This keyword is used to specify the corrected calibration table
+    to be used for this calculation. These tables have names of the
+    form
+                         nref$*_npt.fits,
+    and must be used with the corresponding PHOTTAB.
+    Check the value of the PHOTTAB keyword in the RNLPHTTB
+    file to be sure you are using matching files."""
+
+    rncormsg="""Required keyword RNLCORTB not found in %s primary header.
+    This keyword is used to specify the nonlinearity correction table
+    to be used for this calculation. These tables have names of the
+    form
+                         nref$*_nlC.fits,
+    where C equals 1, 2, or 3 and specifies the camera used for the
+    observation."""
+
+    reqmsg = {'photmode':modemsg,'phottab':phtmsg,'rnlphttb':rnphtmsg,
+              'rnlcortb':rncormsg}
+    
+    for kwd in reqmsg:
         try:
             val=f[0].header[kwd]
         except KeyError,e:
-            print "Required keyword %s not found in %s primary header"%(kwd,infile)
+            print reqmsg[kwd]%(infile)
             raise e
 
     #Check for Cycle 11+ data
