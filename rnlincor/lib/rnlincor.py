@@ -51,19 +51,16 @@ def getcurve(fname,col1="wavelength",col2="correction"):
 
 
     
-def getrow(camera,filter,corrname):
+def getrow(photmode,corrname):
     """ Pick out the correction parameters from the proper row of
-    the table located in corrname, based on camera and filter. Return
+    the table located in corrname, based on photmode. Return
     an object that contains the row fields as attributes. """
     f=pyfits.open(corrname)
     t=f[1].data
     cols=f[1].columns
 
-    cams=t.field('camera')
-    filt=t.field('filter')
-    idx1=((cams == camera))
-    idx2=((filt == filter))
-    idx = (idx1 & idx2)
+    modes=t.field('photmode')
+    idx = ((modes == photmode))
 
     try:
         row=t[idx]
@@ -80,7 +77,7 @@ class FitsRowObject(object):
     def __init__(self,fitsrecord):
         for name in fitsrecord.names:
             val=fitsrecord.field(name)[0] 
-            self.__setattr__(name,val)
+            self.__setattr__(name.lower(),val)
 
     def __repr__(self):
         return str(self.__dict__)
@@ -211,18 +208,22 @@ def rnlincor(infile,outfile,**opt):
         skyval=None
 
     #Get the relevant filenames.
-    #TEMPORARY: need cycle7/11 names & final extension names
-    corrfile=expandname('nref$*_nlz.fits')
-    nlfile=expandname('nref$*_nl%d.fits'%camera)
+    phottab=expandname(f[0].header['phottab'])
+    corrfile=expandname(f[0].header['rnlphttb'])
+    nlfile=expandname(f[0].header['rnlcortb'])
+    
+    #Get the correct key into the tables
+    photmode=f[0].header['photmode']
 
     #Pick out the right row from the photometric correction table
-    row=getrow(camera,filter,corrfile)
+    newzp=getrow(photmode,corrfile)
+    oldzp=getrow(photmode,phottab)
     
     #Read in the nonlinearity correction
     wave,corr = getcurve(nlfile)
 
     #Interpolate to get the correction at the pivot wavelength
-    nonlcor = xyinterp(wave,corr,row.pivlam)
+    nonlcor = xyinterp(wave,corr,newzp.pivlam)
     print "Using non-linearity correction %6.4f mag/dex"%nonlcor
 
     #Correct from mag/dex to alpha in power law
@@ -233,7 +234,7 @@ def rnlincor(infile,outfile,**opt):
     mul = N.where(N.not_equal(img,0),abs(img),1)**inv_alpha
 
     #Compute the zero point correction to the correction
-    zpratio=f[0].header['photfnu']/row.photfnu
+    zpratio=oldzp.photfnu/newzp.photfnu
 
     #Apply if requested
     if zpcorr:
