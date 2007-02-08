@@ -35,9 +35,7 @@ if __name__ == "__main__":
           author_email = "help@stsci.edu",
           platforms = ["Linux","Solaris","Mac OS X", "Windows"],
           packages=['rnlincor'],
-          package_dir={'rnlincor':'lib'},
-          cmdclass = {'install_data':smart_install_data},
-          data_files = [('rnlincor')],
+          package_dir={'rnlincor':'lib'}
           )
 
 
