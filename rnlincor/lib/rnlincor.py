@@ -124,13 +124,13 @@ def check_infile(infile,cycle7=False):
             f.close()
             return()
         
-    #Get required keywords
-    try:
-        cam=int(f[0].header['camera'])
-        filt=f[0].header['filter']
-    except KeyError,e:
-        print "Required keyword not found in %s"%infile
-        raise e
+    #Check for required keywords
+    for kwd in ['photmode','phottab','rnlphttb','rnlcortb']:
+        try:
+            val=f[0].header[kwd]
+        except KeyError,e:
+            print "Required keyword %s not found in %s primary header"%(kwd,infile)
+            raise e
 
     #Check for Cycle 11+ data
     if not cycle7:
@@ -162,7 +162,7 @@ def check_infile(infile,cycle7=False):
     else:
         ext=0
         
-    return f, cam, filt, ext
+    return f, ext
 
 def update_data(f,imgext,img,mul):
     #Correct the data
@@ -196,7 +196,7 @@ def rnlincor(infile,outfile,**opt):
     zpcorr = not opt['nozpcorr']
     
     #Get the image data
-    f,camera,filter,imgext=check_infile(infile,cycle7=opt['cycle7'])
+    f,imgext=check_infile(infile,cycle7=opt['cycle7'])
     img=f[imgext].data
 
     #Correct it for sky subtraction if necessary
