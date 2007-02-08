@@ -12,6 +12,8 @@ import irafglob               #}
 from xyinterp import xyinterp #}in pytools
 import sys, os, glob, time
 
+__version__ = "0.55dev"
+
 #Generic helper functions:
 #  getcurve: return two column vectors from a FITS table
 #  getrow: return a row from a FITS table selected by camera and filter
@@ -37,15 +39,21 @@ import sys, os, glob, time
 #......................................................................
 
 
-def getcurve(fname,col1="wavelength",col2="correction"):
+def getcurve(fname,col1="wavelength",col2="correction",pad=0):
     """ Gets a 2-column table from the first extension of a FITS file.
     Defaults to "wavelength" and "correction" for column names, but others
-    can be specified."""
+    can be specified.
+    If pad keyword is nonzero, the wavelength table will be extended by
+    the pad amount in each direction."""
 
     f=pyfits.open(fname)
     wave=f[1].data.field(col1)
     corr=f[1].data.field(col2)
     f.close()
+
+    if pad != 0.0:
+        wave[0]-=pad
+        wave[-1]+=pad
 
     return wave,corr
 
@@ -236,7 +244,9 @@ def rnlincor(infile,outfile,**opt):
 
     
     #Read in the nonlinearity correction
-    wave,corr = getcurve(nlfile)
+    #Pad the wavelength table by 5 Angstroms on each end to protect
+    #against rounding errors and lagging reference file updates.
+    wave,corr = getcurve(nlfile,pad=5.0)
 
     #Interpolate to get the correction at the pivot wavelength
     nonlcor = xyinterp(wave,corr,pivlam)
