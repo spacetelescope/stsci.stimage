@@ -1,0 +1,321 @@
+#! /usr/bin/env python
+
+try:
+    import numpy as N
+except ImportError, e:
+    print "Sorry, this task required numpy"
+    raise ImportError, e
+
+import pyfits
+from pyraf.iraf import osfn
+import irafglob               #} 
+from xyinterp import xyinterp #}in pytools
+import sys, os, glob, time
+
+#Generic helper functions:
+#  getcurve: return two column vectors from a FITS table
+#  getrow: return a row from a FITS table selected by camera and filter
+#
+#Generic helper class:
+#  FitsRowObject: returned by getrow
+
+#Task-specific helper functions:
+#  check_infile: do all the checks and warnings before proceeding
+#  update_data: do all the data updates
+#  update_header: do all the header updates
+
+#Task wrappers:
+#  parrun(parfile): support running from a keyword/value style parfile
+#  run(*args): handles all possible filename/list variations
+
+#The main program:
+#  rnlincor
+
+
+#......................................................................
+#Generic helper functions
+#......................................................................
+
+
+def getcurve(fname,col1="wavelength",col2="correction"):
+    """ Gets a 2-column table from the first extension of a FITS file.
+    Defaults to "wavelength" and "correction" for column names, but others
+    can be specified."""
+
+    f=pyfits.open(fname)
+    wave=f[1].data.field(col1)
+    corr=f[1].data.field(col2)
+    f.close()
+
+    return wave,corr
+
+
+    
+def getrow(camera,filter,corrname):
+    """ Pick out the correction parameters from the proper row of
+    the table located in corrname, based on camera and filter. Return
+    an object that contains the row fields as attributes. """
+    f=pyfits.open(corrname)
+    t=f[1].data
+    cols=f[1].columns
+
+    cams=t.field('camera')
+    filt=t.field('filter')
+    idx1=((cams == camera))
+    idx2=((filt == filter))
+    idx = (idx1 & idx2)
+
+    try:
+        row=t[idx]
+        row=FitsRowObject(t[idx])
+        return row
+    except KeyError:
+        print "No match found for %s %s in %s"%(camera,filter,corrname)
+        raise KeyError
+
+
+
+class FitsRowObject(object):
+    """ Class to facilitate working with single table rows. """
+    def __init__(self,fitsrecord):
+        for name in fitsrecord.names:
+            val=fitsrecord.field(name)[0] 
+            self.__setattr__(name,val)
+
+    def __repr__(self):
+        return str(self.__dict__)
+
+
+def expandname(pattern):
+    """ Select the latest file that matches the pattern in the directory
+    specified in the pattern """
+    fpattern=osfn(pattern)
+    flist=glob.glob(fpattern)
+    flist.sort()
+    return flist[-1]
+
+#......................................................................
+#Task-specific helper functions
+#......................................................................
+
+def check_infile(infile,cycle7=False):
+    """Open the input file and check all the things that can go wrong.
+    If we pass all the tests, return the handle to the open file to
+    pass to the main routine."""
+
+    #Open the file
+    f=pyfits.open(infile)
+    
+    #Make sure it's not already been done:
+    if f[0].header.get('rnlcindone',' ') == 'PERFORMED':
+        print "Non-linearity correction already performed on %s"%infile
+        f.close()
+        return()
+
+    #Make sure it's a legal image type:
+    imgtype=f[0].header.get('imagetyp','').lower()
+    if imgtype not in ['ext','object','target']:
+        print """Correction can only be performed on science images:
+        %s image detected"""%imgtype
+        f.close()
+        return()
+    else: #exclude grism & polarimetry too
+        filter=f[0].header.get('filter','').lower()
+        if not filter.startswith('f'):
+            print """Correction cannot be performed on grism or
+            polarimetry images: %s image detected"""%filter
+            f.close()
+            return()
+        
+    #Get required keywords
+    try:
+        cam=int(f[0].header['camera'])
+        filt=f[0].header['filter']
+    except KeyError,e:
+        print "Required keyword not found in %s"%infile
+        raise e
+
+    #Check for Cycle 11+ data
+    if not cycle7:
+        try:
+            obsdate=f[0].header['date-obs']
+            if int(obsdate[0:4]) < 2000:
+                f.close()
+                raise ValueError, """This routine only works for Cycle 11+ data
+                The calibration constants for Cycle 7 data have not yet been
+                calculated.
+                %s contains data taken on %s"""%(infile,obsdate)
+
+        except KeyError:
+            print """WARNING: No DATE-OBS keyword found. Observation date
+            could not be verified. This routine works only for Cycle 11+ data.
+            Proceeding without date verification. """
+
+    #Check multidrizzle status & print warning if necessary
+    if f[0].header.has_key('ndrizim'):
+        print """WARNING: Detected multidrizzle image, but unable to
+        verify image units. Image may be in electrons/s, not DN/s. If so,
+        image should be divided by ADCGAIN value before correction.
+        Proceeding without unit verification. """
+
+
+    #Determine which extension has the image.
+    if len(f) > 1:
+        ext=1
+    else:
+        ext=0
+        
+    return f, cam, filt, ext
+
+def update_data(f,imgext,img,mul):
+    #Correct the data
+    f[imgext].data=img
+    if len(f) > 1:
+        f[imgext+1].data*=mul
+ 
+def update_header(f,alpha,zpcorr,zpratio=None):
+    """Update all the header keywords"""
+
+    f[0].header.update('RNLCDONE',
+                         'PERFORMED',
+                         'corrected count-rate dependent non-linearity')
+    f[0].header.update('RNLCALPH',
+                         alpha,
+                         'power-law of non-linearity correction')
+
+    if not zpcorr:
+        f[0].header.update('RNLCZPRT',
+                           zpratio,
+                           'Ratio to correct data to match PHOTFNU')
+        f[0].header.add_history('%s rnlincorr: no zeropt correction applied'%time.ctime(),after='RNLCZPRT')
+
+#......................................................................
+#The main routine
+#......................................................................
+def rnlincor(infile,outfile,**opt):
+    """ The main routine """
+
+    #Translate an option
+    zpcorr = not opt['nozpcorr']
+    
+    #Get the image data
+    f,camera,filter,imgext=check_infile(infile,cycle7=opt['cycle7'])
+    img=f[imgext].data
+
+    #Correct it for sky subtraction if necessary
+    try:
+        skyval=f[imgext].header['skyval']
+        print "Sky subtraction detected: compensating"
+        img=img-skyval
+    except KeyError:
+        skyval=None
+
+    #Get the relevant filenames.
+    #TEMPORARY: need cycle7/11 names & final extension names
+    corrfile=expandname('nref$*_nlz.fits')
+    nlfile=expandname('nref$*_nl%d.fits'%camera)
+
+    #Pick out the right row from the photometric correction table
+    row=getrow(camera,filter,corrfile)
+    
+    #Read in the nonlinearity correction
+    wave,corr = getcurve(nlfile)
+
+    #Interpolate to get the correction at the pivot wavelength
+    nonlcor = xyinterp(wave,corr,row.pivlam)
+    print "Using non-linearity correction %6.4f mag/dex"%nonlcor
+
+    #Correct from mag/dex to alpha in power law
+    alpha = (nonlcor/2.5) + 1  #Add 1 to avoid divide-by-zero in next step?
+    inv_alpha = (1.0/alpha) - 1
+
+    #Compute the correction
+    mul = N.where(N.not_equal(img,0),abs(img),1)**inv_alpha
+
+    #Compute the zero point correction to the correction
+    zpratio=f[0].header['photfnu']/row.photfnu
+
+    #Apply if requested
+    if zpcorr:
+        print "Applying zeropoint correction"
+        mul /= zpratio
+    else:
+        print "NOT applying zeropoint correction"
+
+
+    #Apply the correction
+    img*=mul
+
+    #If the sky subtraction was added in, take it back out
+    if skyval is not None:
+        img -= skyval*mul
+
+    #Update the HDUlist and write out results
+    update_data(f,imgext,img,mul)
+    update_header(f,alpha,zpcorr,zpratio=zpratio)
+    f.writeto(outfile,clobber=True)
+
+#.....................................................................
+#Support running with a (non-IRAF) parameter file
+#.....................................................................
+def parrun(parfile):
+    d={}
+    f=open(parfile)
+    for line in f:
+        key,value=line.split()
+        d[key.lower()]=value
+    f.close()
+    rnlincor(d['infile'],d['outfile'])
+#.....................................................................
+# Fancy option handling in case we didn't come in from __main__
+#.....................................................................
+def set_default_options(inopt):
+    opt=inopt.copy()
+    opt['cycle7']=inopt.get('cycle7',False)
+    opt['nozpcorr']=inopt.get('nozpcorr',False)
+    return opt
+#.....................................................................
+#Wrapper for filename handling
+#.....................................................................
+def run(*args,**inopt):
+    opt=set_default_options(inopt)
+    #We always provide input filename
+    infile=args[0]
+    if not os.path.isfile(infile):
+        raise IOError, '%s not found; task aborting.'%infile
+
+    #We sometimes provide output filename
+    if (len(args) == 2 and len(args[1])!=0):
+        outfile=args[1]
+    else:
+        #But if not, we have to construct it
+        if '_' in os.path.basename(infile):
+            root,junk=infile.split('_',1)
+            outfile=root+'_nlc.fits'
+        else:
+            outfile=infile.replace('.fits','_nlc.fits')
+
+    #Now that we have both names, call the task.
+    rnlincor(infile,outfile,**opt)
+
+
+#......................................................................
+#Support running from the shell
+#......................................................................
+if __name__ == '__main__':
+    import optparse
+    #Define UI
+    p=optparse.OptionParser()
+    p.add_option("--nozpcorr",action="store_true",default=False,
+                 help="Do not include zeropoint correction when calculating correction")
+    p.add_option("--cycle7",action="store_true",default=False,
+                 help="Disable obs-date check for Cycle 11+ data")
+    p.set_usage("usage: rnlincor.py infile [outfile] [--nozpcorr] [--cycle7]")
+    #Get results
+    opt, args=p.parse_args()
+    optd={}
+    for o in vars(opt):
+        optd[o]=getattr(opt,o)
+
+    #and run the task
+    run(*args, **optd)
