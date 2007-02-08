@@ -164,6 +164,20 @@ def check_infile(infile,cycle7=False):
             print reqmsg[kwd]%(infile)
             raise e
 
+    #Check that these tables are compatible
+    rnltab=osfn(f[0].header['rnlphttb'])
+    phottab=os.path.basename(osfn(f[0].header['phottab']))
+    tb=pyfits.open(rnltab)
+    if tb[0].header['phottab'] != phottab:
+        tb.close()
+        msg= """PHOTTAB and RNLPHTTB are incompatible!!
+   RNLPHTTB.header[PHOTTAB] = %s
+   %s.header[PHOTTAB] = %s
+        These tables must be used in matching pairs. Please check
+        the pedigree of your RNLPHTTB table and try again."""%(tb[0].header['phottab'], infile, phottab)
+        raise ValueError, msg
+    tb.close()
+    
     #Check for Cycle 11+ data
     if not cycle7:
         try:
