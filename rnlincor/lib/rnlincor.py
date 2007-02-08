@@ -95,7 +95,7 @@ def expandname(pattern):
 #Task-specific helper functions
 #......................................................................
 
-def check_infile(infile,cycle7=False):
+def check_infile(infile):
     """Open the input file and check all the things that can go wrong.
     If we pass all the tests, return the handle to the open file to
     pass to the main routine."""
@@ -178,21 +178,6 @@ def check_infile(infile,cycle7=False):
         raise ValueError, msg
     tb.close()
     
-    #Check for Cycle 11+ data
-    if not cycle7:
-        try:
-            obsdate=f[0].header['date-obs']
-            if int(obsdate[0:4]) < 2000:
-                f.close()
-                raise ValueError, """This routine only works for Cycle 11+ data
-                The calibration constants for Cycle 7 data have not yet been
-                calculated.
-                %s contains data taken on %s"""%(infile,obsdate)
-
-        except KeyError:
-            print """WARNING: No DATE-OBS keyword found. Observation date
-            could not be verified. This routine works only for Cycle 11+ data.
-            Proceeding without date verification. """
 
     #Check multidrizzle status & print warning if necessary
     if f[0].header.has_key('ndrizim'):
@@ -242,7 +227,7 @@ def rnlincor(infile,outfile,**opt):
     zpcorr = not opt['nozpcorr']
     
     #Get the image data
-    f,imgext=check_infile(infile,cycle7=opt['cycle7'])
+    f,imgext=check_infile(infile)
     img=f[imgext].data
 
     #Correct it for sky subtraction if necessary
@@ -318,7 +303,6 @@ def parrun(parfile):
 #.....................................................................
 def set_default_options(inopt):
     opt=inopt.copy()
-    opt['cycle7']=inopt.get('cycle7',False)
     opt['nozpcorr']=inopt.get('nozpcorr',False)
     return opt
 #.....................................................................
@@ -355,9 +339,7 @@ if __name__ == '__main__':
     p=optparse.OptionParser()
     p.add_option("--nozpcorr",action="store_true",default=False,
                  help="Do not include zeropoint correction when calculating correction")
-    p.add_option("--cycle7",action="store_true",default=False,
-                 help="Disable obs-date check for Cycle 11+ data")
-    p.set_usage("usage: rnlincor.py infile [outfile] [--nozpcorr] [--cycle7]")
+    p.set_usage("usage: rnlincor.py infile [outfile] [--nozpcorr]")
     #Get results
     opt, args=p.parse_args()
     optd={}
