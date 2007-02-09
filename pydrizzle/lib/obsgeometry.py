@@ -4,7 +4,7 @@ from math import ceil,floor
 # Import PyDrizzle utility modules
 import fileutil, wcsutil, drutil
 
-import numarray as N
+import numerix as N
 from drutil import combin
 
 yes = True
@@ -72,8 +72,8 @@ class GeometryModel:
         to the reference position of the chip.
         """
 
-        _cxs = N.zeros(shape=cx.shape,type=cx.type())
-        _cys = N.zeros(shape=cy.shape,type=cy.type())
+        _cxs = N.zeros(shape=cx.shape,dtype=cx.dtype)
+        _cys = N.zeros(shape=cy.shape,dtype=cy.dtype)
         _k = self.norder + 1
         # loop over each input coefficient
         for m in xrange(_k):
@@ -213,8 +213,8 @@ class GeometryModel:
         _cx[0,0] = 0.
         _cy[0,0] = 0.
 
-        if not isinstance(_p,N.NumArray):
-            _p = N.array(_p,type=N.Float64)
+        if isinstance(_p,types.ListType) or isinstance(_p,types.TupleType):
+            _p = N.array(_p,dtype=N.float64)
             _convert = yes
 
         dxy = _p - (self.refpix['XREF'],self.refpix['YREF'])
@@ -566,7 +566,7 @@ class ObsGeometry:
         _ratio = pscale / self.model.pscale
 
         # Put input positions into full frame coordinates...
-        pixpos = pixpos + N.array((self.wcs.offset_x,self.wcs.offset_y),type=N.Float64)
+        pixpos = pixpos + N.array((self.wcs.offset_x,self.wcs.offset_y),dtype=N.float64)
         #v2,v3 = self.model.apply(pixpos, scale=pscale)
         v2,v3 = self.model.apply(pixpos,scale=_ratio,order=order)
 
@@ -595,7 +595,7 @@ class ObsGeometry:
             #
             #v2 = v2 / pscale
             #v3 = v3 / pscale
-
+            
             xpos = v2  + deltax - (self.wcs.delta_refx / _ratio)
             ypos = v3  + deltay - (self.wcs.delta_refy / _ratio)
 
@@ -658,7 +658,7 @@ class ObsGeometry:
 
         # changed from self.wcs.naxis[1/2]
         _naxis = (wcs.naxis1,wcs.naxis2)
-        _rot_mat = drutil.buildRotMatrix(_orient)
+        _rot_mat = fileutil.buildRotMatrix(_orient)
 
         if isinstance(pixpos, types.TupleType):
             pixpos = [pixpos]
@@ -671,7 +671,7 @@ class ObsGeometry:
         if verbose:
             print 'Fully corrected position: ',_delta_x,_delta_y
 
-        _delta = N.zeros((len(pixpos),2),N.Float32)
+        _delta = N.zeros((len(pixpos),2),dtype=N.float32)
         _delta[:,0] = _delta_x
         _delta[:,1] = _delta_y
 
@@ -721,13 +721,13 @@ class ObsGeometry:
 
         # Put input positions into full frame coordinates...
         # Also convert X,Y tuple to a numarray
-        pp = N.array([pixpos]) + N.array((self.wcs.offset_x,self.wcs.offset_y),type=N.Float64)
+        pp = N.array([pixpos]) + N.array((self.wcs.offset_x,self.wcs.offset_y),dtype=N.float64)
 
         # We are going to work with three x,y points as a NumArray
-        pos=N.zeros((3,2),type=N.Float64)
+        pos=N.zeros((3,2),dtype=N.float64)
 
         # We also need a matrix of the shifts
-        shift=N.zeros((2,2),type=N.Float64)
+        shift=N.zeros((2,2),dtype=N.float64)
 
         # Setup an initial guess - just the first pixel
         pos[0]=[self.wcs.crpix1,self.wcs.crpix2]
@@ -743,7 +743,7 @@ class ObsGeometry:
             tout=self.apply(pos)
 
             # Convert back to NumArray
-            out=N.array(tout,type=N.Float64).apply
+            out=N.array(tout,dtype=N.float64).apply
             out.transpose()
 
             # Work out the shifts matrix
@@ -803,7 +803,7 @@ class ObsGeometry:
         else:
             _cen = (shape[0]/2. + 0.5,shape[1]/2. + 0.5)
 
-        _xy = N.array([(_cpix1,_cpix2),(_cpix1+1.,_cpix2),(_cpix1,_cpix2+1.)],type=N.Float64)
+        _xy = N.array([(_cpix1,_cpix2),(_cpix1+1.,_cpix2),(_cpix1,_cpix2+1.)],dtype=N.float64)
 
         #
         _xdelta = self.model.refpix['XDELTA']
@@ -819,7 +819,7 @@ class ObsGeometry:
         _bm = _xc[2] - _xc[0]
         _cm = _yc[1] - _yc[0]
         _dm = _yc[2] - _yc[0]
-        _cd_mat = N.array([[_am,_bm],[_cm,_dm]])
+        _cd_mat = N.array([[_am,_bm],[_cm,_dm]],dtype=N.float64)
 
         # Check the determinant for singularity
         _det = (_am * _dm) - (_bm * _cm)
@@ -827,7 +827,7 @@ class ObsGeometry:
             print 'Matrix is singular! Can NOT update WCS.'
             return
 
-        _cd_inv = N.linear_algebra.inverse(_cd_mat)
+        _cd_inv = N.linalg.inv(_cd_mat)
         _a = _cd_inv[0,0]
         _b = _cd_inv[0,1]
         _c = _cd_inv[1,0]
@@ -872,11 +872,11 @@ class ObsGeometry:
         if not linear and self.model.refpix != None:
             # Perform full solution including distortion
             # Now we need to insure that the input is an array:
-            if not isinstance(pos,N.NumArray):
-                if N.array(pos).getrank() > 1:
-                    pos = N.array(pos,type=N.Float64)
+            if not isinstance(pos,N.ndarray):
+                if N.array(pos).ndim > 1:
+                    pos = N.array(pos,dtype=N.float64)
                 else:
-                    pos = N.array([pos],type=N.Float64)
+                    pos = N.array([pos],dtype=N.float64)
 
             dcx,dcy = self.apply(pos,verbose=yes)
 
@@ -931,7 +931,7 @@ class ObsGeometry:
         Values for the corners must go from 0, not 1, since it is a Python array.
             WJH, 17-Mar-2005
         """
-        corners = N.zeros(shape=(4,2),type=N.Float64)
+        corners = N.zeros(shape=(4,2),dtype=N.float64)
         xin = [0] * 4
         yin = [0] * 4
 

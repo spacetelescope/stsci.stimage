@@ -39,11 +39,10 @@
 #                                   system defined integer (eg., Int64 for 64-bit systems). -- WJH
 
 # Import external packages
-import numarray as N
-import numarray.convolve as NC
+import numerix as N
+from numerix import convolve as NC
 import pyfits
 import os
-from numarray import * 
 
 # Version
 __version__ = '1.0.1'
@@ -100,7 +99,7 @@ class DrizCR:
         self.crMask = None
 
         # Define output parameters
-        __crMask = N.zeros(self.__inputImage.shape,N.Bool)
+        __crMask = N.zeros(self.__inputImage.shape,dtype=N.bool_)
 
         # Determine a scaling factor depending on the units of the input image, "counts" or "cps"
         if (self.__units == "counts"):
@@ -136,9 +135,9 @@ class DrizCR:
         del __t2
 
         # Create a convolution kernel that is 3 x 3 of 1's
-        __kernel = N.ones((3,3),'Bool')
+        __kernel = N.ones((3,3),dtype=N.bool_)
         # Create an output tmp file the same size as the input temp mask array
-        __tmp2 = N.zeros(__tmp1.shape,N.Int16)
+        __tmp2 = N.zeros(__tmp1.shape,dtype=N.int16)
         # Convolve the mask with the kernel
         NC.convolve2d(__tmp1,__kernel,output=__tmp2,fft=0,mode='nearest',cval=0)
         del __kernel
@@ -177,7 +176,7 @@ class DrizCR:
 
         # recast __crMask to int for manipulations below; will recast to Bool at end
         __crMask_orig_bool= __crMask.copy() 
-        __crMask= __crMask_orig_bool.astype( Int8 )
+        __crMask= __crMask_orig_bool.astype( N.int8 )
         
         # make radial convolution kernel and convolve it with original __crMask 
         cr_grow_kernel = N.ones((grow, grow))     # kernel for radial masking of CR pixel
@@ -200,11 +199,11 @@ class DrizCR:
         NC.convolve2d( __crMask, cr_ctegrow_kernel, output = cr_ctegrow_kernel_conv)    
 
         # select high pixels from both convolution outputs; then 'and' them to create new __crMask
-        where_cr_grow_kernel_conv    = where( cr_grow_kernel_conv < grow*grow,0,1 )        # radial
-        where_cr_ctegrow_kernel_conv = where( cr_ctegrow_kernel_conv < ctegrow, 0, 1 )     # length
+        where_cr_grow_kernel_conv    = N.where( cr_grow_kernel_conv < grow*grow,0,1 )        # radial
+        where_cr_ctegrow_kernel_conv = N.where( cr_ctegrow_kernel_conv < ctegrow, 0, 1 )     # length
         __crMask = N.logical_and( where_cr_ctegrow_kernel_conv, where_cr_grow_kernel_conv) # combine masks
 
-        __crMask = __crMask.astype( Bool) # cast back to Bool
+        __crMask = __crMask.astype(N.bool_) # cast back to Bool
 
         del __crMask_orig_bool
         del cr_grow_kernel 
@@ -239,7 +238,7 @@ class DrizCR:
 #       imcalc(s1,img0//cor_suffix,"if (im2 .eq. 0) then im3 else im1", verb-)
         try:
             # CREATE THE CORR IMAGE
-            __corrFile = N.zeros(self.__inputImage.shape,self.__inputImage.type())
+            __corrFile = N.zeros(self.__inputImage.shape,dtype=self.__inputImage.dtype)
             __corrFile = N.where(N.equal(self.dqMask,0),self.__blotImg,self.__inputImage)
             
             # Remove the existing cor file if it exists
@@ -295,8 +294,8 @@ class DrizCR:
 
         """ Create a fits file containing the generated cosmic ray mask. """
         try:
-            _cr_file = N.zeros(self.__inputImage.shape,N.UInt8)
-            _cr_file = N.where(self.crMask,1,0).astype(N.UInt8)
+            _cr_file = N.zeros(self.__inputImage.shape,N.uint8)
+            _cr_file = N.where(self.crMask,1,0).astype(N.uint8)
             
             # Remove the existing cor file if it exists
             try:

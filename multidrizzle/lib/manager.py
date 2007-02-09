@@ -72,8 +72,9 @@
 
 
 # Import Numarray functionality
-import numarray.image.combine as combine
-import numarray as N
+#from numerix import image
+#import image.combine as combine
+import numerix as N
 
 # Import file utilities
 import pyfits
@@ -186,7 +187,7 @@ class ImageManager:
             #    creating one if it doesn't already exist.
             if not p['driz_mask']:
                 # No array has been created yet, so initialize it now...
-                _mask_array = N.ones(p['image'].image_shape,N.UInt8)
+                _mask_array = N.ones(p['image'].image_shape,dtype=N.uint8)
                 # We also need to create a name for the mask array file
                 p['image'].maskname = p['exposure'].masklist[0]
                 # Build the mask image
@@ -219,7 +220,7 @@ class ImageManager:
                     p['exposure'].singlemaskname = p['exposure'].masklist[1]
                     
                     # Now create the mask file on disk
-                    _mask_array = N.ones(p['image'].image_shape,N.UInt8)
+                    _mask_array = N.ones(p['image'].image_shape,dtype=N.uint8)
                     self._buildMaskImage(p['image'].singlemaskname,_mask_array)
                     del _mask_array
                     
@@ -464,37 +465,37 @@ class ImageManager:
         # The mask_array should always be present, created by
         # ImageManager if PyDrizzle does not create one.
         for p in self.assoc.parlist:
-            __handle = fileutil.openImage(p['image'].maskname,mode='update')
-            __static_array = self.static_mask.getMask(p['image'].signature())
+            handle = fileutil.openImage(p['image'].maskname,mode='update')
+            static_array = self.static_mask.getMask(p['image'].signature())
 
             # Print progress message to alert the user that the mask file
             # is now being updated with the static mask information
             # If verbose mode is implemented, this could be included.
             print 'Updating mask file: ',p['image'].maskname,' with static mask.'
 
-            if __static_array != None:
-                __handle[0].data = N.bitwise_and(__handle[0].data,__static_array)
+            if static_array != None:
+                handle[0].data = N.bitwise_and(handle[0].data,static_array)
 
-            __handle.close()
-            del __handle
+            handle.close()
+            del handle
         
             # If there is going to be a separate mask for the single drizzle step and it is different
             # from the mask used for the final drizzle step it will also need to be updated with the 
             # static mask information
             if ( ((p['image'].singlemaskname != None) and (p['image'].singlemaskname != '')) and (p['image'].singlemaskname != p['image'].maskname) ):
-                __handle = fileutil.openImage(p['image'].singlemaskname,mode='update')
-                __static_array = self.static_mask.getMask(p['image'].signature())
+                handle = fileutil.openImage(p['image'].singlemaskname,mode='update')
+                static_array = self.static_mask.getMask(p['image'].signature())
 
                 # Print progress message to alert the user that the mask file
                 # is now being updated with the static mask information
                 # If verbose mode is implemented, this could be included.
                 print 'Updating mask file: ',p['image'].singlemaskname,' with static mask.'
 
-                if __static_array != None:
-                    __handle[0].data = N.bitwise_and(__handle[0].data,__static_array)
+                if static_array != None:
+                    handle[0].data = N.bitwise_and(handle[0].data,static_array)
 
-                __handle.close()
-                del __handle
+                handle.close()
+                del handle
                 
     def doSky(self, skypars, skysub):
     
@@ -707,21 +708,21 @@ class ImageManager:
         print "combine_grow    = ",medianpars['grow']
         print "\n"
                     
-        __newmasks = medianpars['newmasks']
-        __type = medianpars['type']
-        __nsigma1 = medianpars['nsigma1']
-        __nsigma2 = medianpars['nsigma2']
-        __nlow = medianpars['nlow']
-        __nhigh = medianpars['nhigh']
+        newmasks = medianpars['newmasks']
+        comb_type = medianpars['type']
+        nsigma1 = medianpars['nsigma1']
+        nsigma2 = medianpars['nsigma2']
+        nlow = medianpars['nlow']
+        nhigh = medianpars['nhigh']
         if (medianpars['lthresh'] == None):
-            __lthresh = None
+            lthresh = None
         else:
-            __lthresh = float(medianpars['lthresh'])
+            lthresh = float(medianpars['lthresh'])
         if (medianpars['hthresh'] == None):
-            __hthresh = None
+            hthresh = None
         else:
-            __hthresh = float(medianpars['hthresh'])
-        __grow = medianpars['grow']
+            hthresh = float(medianpars['hthresh'])
+        grow = medianpars['grow']
 
         """ Builds combined array from single drizzled images."""
         # Start by removing any previous products...
@@ -734,9 +735,9 @@ class ImageManager:
         _wht_mean = []
 
         # Define lists for instrument specific parameters.
-        __readnoiseList = []
-        __exposureTimeList = []
-        __backgroundValueList = []
+        readnoiseList = []
+        exposureTimeList = []
+        backgroundValueList = []
 
         for p in self.assoc.parlist:
             # Extract the single drizzled image.
@@ -771,12 +772,12 @@ class ImageManager:
                 #
                 # Get the exposure time from the InputImage object
                 imageExpTime = p['image'].getExpTime() 
-                __exposureTimeList.append(imageExpTime)
+                exposureTimeList.append(imageExpTime)
 
                 # Extract the sky value for the chip to be used in the model
-                __backgroundValueList.append(p['image'].getreferencesky())
+                backgroundValueList.append(p['image'].getreferencesky())
                 # Extract the readnoise value for the chip
-                __readnoiseList.append(p['image'].getReadNoise())
+                readnoiseList.append(p['image'].getReadNoise())
 
                 print "reference sky value for image ",p['image'].rootname," is ", p['image'].getreferencesky()
             #
@@ -784,25 +785,25 @@ class ImageManager:
             #
                 
         # create an array for the median output image
-        __medianOutputImage = N.zeros(self.single_handles[0].shape,self.single_handles[0].type())
+        medianOutputImage = N.zeros(self.single_handles[0].shape,dtype=self.single_handles[0].type())
 
         # create the master list to be used by the image iterator
-        __masterList = []
-        __masterList.extend(self.single_handles)
-        __masterList.extend(self.weight_handles)
+        masterList = []
+        masterList.extend(self.single_handles)
+        masterList.extend(self.weight_handles)
 
         print '\n'
 
         # Specify the location of the medianOutputImage section in the masterList
-        #__medianOutputImageSection = 0
+        #medianOutputImageSection = 0
 
         # Specify the location of the drz image sections
-        __startDrz = 0
-        __endDrz = len(self.single_handles)+__startDrz
+        startDrz = 0
+        endDrz = len(self.single_handles)+startDrz
 
         # Specify the location of the wht image sections
-        __startWht = len(self.single_handles)+__startDrz
-        __endWht = __startWht + len(self.weight_handles)
+        startWht = len(self.single_handles)+startDrz
+        endWht = startWht + len(self.weight_handles)
 
         # Fire up the image iterator
         #
@@ -811,10 +812,10 @@ class ImageManager:
         # insure that the last section returned from the iterator
         # has enough row to span the kernel used in the boxcar method
         # within minmed.  
-        _overlap = 2*int(__grow)
+        _overlap = 2*int(grow)
         
         #Start by computing the buffer size for the iterator
-        _imgarr = __masterList[0].data
+        _imgarr = masterList[0].data
         _bufsize = nimageiter.BUFSIZE
         _imgrows = _imgarr.shape[0]
         _nrows = computeBuffRows(_imgarr)
@@ -827,19 +828,19 @@ class ImageManager:
             _delta_rows = int((_overlap+1 - _lastrows)/_niter)
             if _delta_rows < 1: _delta_rows = 1
             _bufsize += (_imgarr.shape[1]*_imgarr.itemsize()) * _delta_rows
-        __masterList[0].close()
+        masterList[0].close()
         del _imgarr
 
-        for __imageSectionsList,__prange in FileIter(__masterList,overlap=_overlap,bufsize=_bufsize):
+        for imageSectionsList,prange in FileIter(masterList,overlap=_overlap,bufsize=_bufsize):
 
-            if __newmasks:
+            if newmasks:
                 """ Build new masks from single drizzled images. """
                 self.weight_mask_list = []
                 listIndex = 0
-                for _weight_arr in __imageSectionsList[__startWht:__endWht]:
+                for _weight_arr in imageSectionsList[startWht:endWht]:
                     # Initialize an output mask array to ones
                     # This array will be reused for every output weight image
-                    _weight_mask = N.zeros(_weight_arr.shape,N.UInt8)
+                    _weight_mask = N.zeros(_weight_arr.shape,dtype=N.bool_)
 
                     """ Generate new pixel mask file for median step.
                     This mask will be created from the single-drizzled
@@ -860,63 +861,63 @@ class ImageManager:
                     listIndex += 1
 
             # Do MINMED
-            if ( __type.lower() == "minmed"):
-                # Issue a warning if minmed is being run with __newmasks turned off.
+            if ( comb_type.lower() == "minmed"):
+                # Issue a warning if minmed is being run with newmasks turned off.
                 if (self.weight_mask_list == None):
                     print('\nWARNING: Creating median image without the application of bad pixel masks!\n')
 
 
                 # Create the combined array object using the minmed algorithm
-                __result = minmed(__imageSectionsList[__startDrz:__endDrz],  # list of input data to be combined.
-                                    __imageSectionsList[__startWht:__endWht],# list of input data weight images to be combined.
-                                    __readnoiseList,                         # list of readnoise values to use for the input images.
-                                    __exposureTimeList,                      # list of exposure times to use for the input images.
-                                    __backgroundValueList,                   # list of image background values to use for the input images
+                result = minmed(imageSectionsList[startDrz:endDrz],  # list of input data to be combined.
+                                    imageSectionsList[startWht:endWht],# list of input data weight images to be combined.
+                                    readnoiseList,                         # list of readnoise values to use for the input images.
+                                    exposureTimeList,                      # list of exposure times to use for the input images.
+                                    backgroundValueList,                   # list of image background values to use for the input images
                                     weightMaskList = self.weight_mask_list,  # list of imput data weight masks to use for pixel rejection.
-                                    combine_grow = __grow,                   # Radius (pixels) for neighbor rejection
-                                    combine_nsigma1 = __nsigma1,             # Significance for accepting minimum instead of median
-                                    combine_nsigma2 = __nsigma2              # Significance for accepting minimum instead of median
+                                    combine_grow = grow,                   # Radius (pixels) for neighbor rejection
+                                    combine_nsigma1 = nsigma1,             # Significance for accepting minimum instead of median
+                                    combine_nsigma2 = nsigma2              # Significance for accepting minimum instead of median
                                 )
-  #              __medianOutput[__prange[0]:__prange[1],:] = __result.out_file1
-  #             __minOutput[__prange[0]:__prange[1],:] = __result.out_file2
+  #              medianOutput[prange[0]:prange[1],:] = result.out_file1
+  #             minOutput[prange[0]:prange[1],:] = result.out_file2
 
             # DO NUMCOMBINE
             else:
                 # Create the combined array object using the numcombine task
-                __result = numCombine(__imageSectionsList[__startDrz:__endDrz],
+                result = numCombine(imageSectionsList[startDrz:endDrz],
                                         numarrayMaskList=self.weight_mask_list,
-                                        combinationType=__type.lower(),
-                                        nlow=__nlow,
-                                        nhigh=__nhigh,
-                                        upper=__hthresh,
-                                        lower=__lthresh
+                                        combinationType=comb_type.lower(),
+                                        nlow=nlow,
+                                        nhigh=nhigh,
+                                        upper=hthresh,
+                                        lower=lthresh
                                     )
                                     
             # We need to account for any specified overlap when writing out
             # the processed image sections to the final output array.
-            if __prange[1] != _imgrows:
-                __medianOutputImage[__prange[0]:__prange[1]-_overlap,:] = __result.combArrObj[:-_overlap,:]
+            if prange[1] != _imgrows:
+                medianOutputImage[prange[0]:prange[1]-_overlap,:] = result.combArrObj[:-_overlap,:]
             else:
-                __medianOutputImage[__prange[0]:__prange[1],:] = __result.combArrObj
+                medianOutputImage[prange[0]:prange[1],:] = result.combArrObj
             
             
-            del __result
+            del result
 
 
             del self.weight_mask_list
             self.weight_mask_list = None
 
         # Write out the combined image
-        self._writeCombinedImage(__medianOutputImage, self.medianfile)
+        self._writeCombinedImage(medianOutputImage, self.medianfile)
 
         #finally:
             # Always close any files opened to produce median image; namely,
             # single drizzle images and singly-drizzled weight images
             #
         self._closeMedianInput()
-        del __masterList
-        del __medianOutputImage
-#        del __medianOutput,__minOutput
+        del masterList
+        del medianOutputImage
+#        del medianOutput,minOutput
 
     def _writeCombinedImage(self, array, filename):
         """ Writes out the result of the combination step.
@@ -1015,17 +1016,17 @@ class ImageManager:
                         _corr_file = None
                         _cr_file = None
 
-                    __blot_handle = fileutil.openImage(p['outblot'], memmap=0, mode='readonly')
-                    __mask_handle = fileutil.openImage(p['image'].maskname, mode='update') #, memmap=0)
+                    blot_handle = fileutil.openImage(p['outblot'], memmap=0, mode='readonly')
+                    mask_handle = fileutil.openImage(p['image'].maskname, mode='update') #, memmap=0)
 
-                    p['image'].runDrizCR(__blot_handle[0].data, __mask_handle[0].data,
+                    p['image'].runDrizCR(blot_handle[0].data, mask_handle[0].data,
                                         drizcrpars, skypars, _corr_file, _cr_file)
 
                 finally:
                     # Close outblot file now that we are done with it...
-                    __blot_handle.close()
-                    __mask_handle.close()
-                    del __mask_handle, __blot_handle
+                    blot_handle.close()
+                    mask_handle.close()
+                    del mask_handle, blot_handle
         except:
             print 'Could not complete (doDrizCR) processing.'
             raise RuntimeError

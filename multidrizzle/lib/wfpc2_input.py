@@ -25,9 +25,10 @@
 
 __version__ = '1.0.0'
 
+import pydrizzle
 import fileutil
 from input_image import InputImage
-import numarray as N
+import numerix as N
 
 class WFPC2InputImage (InputImage):
 

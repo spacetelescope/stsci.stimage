@@ -48,7 +48,6 @@
 __version__ = '1.1.0'
 
 import pyfits
-
 import fileutil
 
 import imagestats
@@ -57,7 +56,7 @@ from imagestats import ImageStats
 import imageiter
 from imageiter import ImageIter
 
-import numarray as N
+import numerix as N
 import quickDeriv
 import driz_cr
 
@@ -103,15 +102,15 @@ class InputImage:
         self.refplatescale = platescale # Default is to make each chip it's own reference value
         
         # Image information
-        __handle = fileutil.openImage(self.name,mode='readonly',memmap=self.memmap)
-        __sciext = fileutil.getExtn(__handle,extn=self.extn)
-        self.image_shape = __sciext.data.shape
-        self.image_type = __sciext.data.type()
+        handle = fileutil.openImage(self.name,mode='readonly',memmap=self.memmap)
+        sciext = fileutil.getExtn(handle,extn=self.extn)
+        self.image_shape = sciext.data.shape
+        self.image_type = sciext.data.dtype.name
         # Retrieve a combined primary and extension header
-        self.header = fileutil.getHeader(input,handle=__handle)
-        del __sciext
-        __handle.close()
-        del __handle
+        self.header = fileutil.getHeader(input,handle=handle)
+        del sciext
+        handle.close()
+        del handle
 
         # Initialize sky background information keywords
         self._subtractedsky = 0.
@@ -237,16 +236,16 @@ class InputImage:
             later on.
         """
         # Open input image and get pointer to SCI data
-        __handle = fileutil.openImage(self.name,mode='readonly',memmap=self.memmap)
-        __sciext = fileutil.getExtn(__handle,extn=self.extn)
+        handle = fileutil.openImage(self.name,mode='readonly',memmap=self.memmap)
+        sciext = fileutil.getExtn(handle,extn=self.extn)
 
         # Add SCI array to static mask
-        static_mask.addMember(__sciext.data, self.signature())
+        static_mask.addMember(sciext.data, self.signature())
         self.static_mask = static_mask
 
         # Close input image filehandle
-        __handle.close()
-        del __sciext,__handle
+        handle.close()
+        del sciext,handle
 
     def signature(self):
 
@@ -343,11 +342,11 @@ class InputImage:
             _deriv_array = quickDeriv.qderiv(blotted_array)
 
             # Open input image and get pointer to SCI data
-            __handle = fileutil.openImage(self.name,mode='readonly',memmap=self.memmap)
-            __scihdu = fileutil.getExtn(__handle,extn=self.extn)
+            handle = fileutil.openImage(self.name,mode='readonly',memmap=self.memmap)
+            scihdu = fileutil.getExtn(handle,extn=self.extn)
             
-            __tmpDriz_cr = driz_cr.DrizCR(__scihdu.data,
-                            __scihdu.header,
+            tmpDriz_cr = driz_cr.DrizCR(scihdu.data,
+                            scihdu.header,
                             blotted_array,
                             _deriv_array,
                             mask_array,
@@ -369,25 +368,25 @@ class InputImage:
                 # In the case of WFPC2 input, no DQ file may have been provided.
                 # For ACS, there will always be DQ array information in the FLT file.
                 if fileutil.findFile(self.dqfile_fullname):
-                    __dqhandle = fileutil.openImage(self.dqfile_name,mode='update',memmap=self.memmap)
-                    __dqarray = fileutil.getExtn(__dqhandle,extn=self.dqfile_extn)
-                    __tmpDriz_cr.updatedqarray(__dqarray.data,self.getCRbit())
-                    __dqhandle.close()
+                    dqhandle = fileutil.openImage(self.dqfile_name,mode='update',memmap=self.memmap)
+                    dqarray = fileutil.getExtn(dqhandle,extn=self.dqfile_extn)
+                    tmpDriz_cr.updatedqarray(dqarray.data,self.getCRbit())
+                    dqhandle.close()
             else:
                 print "  CR bit value of 0 specified.  Skipping DQ array updates."
 
             if  (corr_file != None):
-                __tmpDriz_cr.createcorrfile(corr_file,self.header)
+                tmpDriz_cr.createcorrfile(corr_file,self.header)
             if (cr_file != None):
-                __tmpDriz_cr.createcrmaskfile(cr_file,self.header)
+                tmpDriz_cr.createcrmaskfile(cr_file,self.header)
 
-            del __tmpDriz_cr
+            del tmpDriz_cr
 
         finally:
             # Close input image filehandle
-            if __handle:
-                del __scihdu
-                __handle.close()
-                del __handle
+            if handle:
+                del scihdu
+                handle.close()
+                del handle
             if _deriv_array != None:
                 del _deriv_array

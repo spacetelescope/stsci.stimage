@@ -34,7 +34,7 @@ import string,os,types
 import fileutil
 
 import pyfits,readgeis
-import numarray as N
+import numerix as N
 
 yes = True
 no = False
@@ -42,7 +42,7 @@ no = False
 def buildMask(dqarr,bitvalue):
     """ Builds a bit-mask from an input DQ array and a bitvalue flag"""
     _maskarr = N.bitwise_or(dqarr,N.array([bitvalue]))
-    return N.choose(N.greater(_maskarr,bitvalue),(1,0)).astype(N.UInt8)
+    return N.choose(N.greater(_maskarr,bitvalue),(1,0)).astype(N.uint8)
 
 def buildMaskName(rootname,extver):
     """ Builds name for mask file based on rootname and extver. """
@@ -182,8 +182,8 @@ def buildShadowMaskImage(rootname,detnum,maskname,replace=yes,bitvalue=None):
             _funcx = _funcroot+detnum+'x'
             _funcy = _funcroot+detnum+'y'
 
-            _xarr = N.clip(N.fromfunction(eval(_funcx),(800,800)),0.0,1.0).astype(N.UInt8)
-            _yarr = N.clip(N.fromfunction(eval(_funcy),(800,800)),0.0,1.0).astype(N.UInt8)
+            _xarr = N.clip(N.fromfunction(eval(_funcx),(800,800)),0.0,1.0).astype(N.uint8)
+            _yarr = N.clip(N.fromfunction(eval(_funcy),(800,800)),0.0,1.0).astype(N.uint8)
             maskarr = _xarr * _yarr
 
             #Write out the mask file as simple FITS file

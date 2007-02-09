@@ -1,7 +1,7 @@
 import string, copy, os
 
 import pyfits
-import numarray as N
+import numerix as N
 from math import *
 
 import pydrizzle
@@ -37,23 +37,23 @@ def XYtoSky(input, pos, idckey='IDCTAB', linear=yes, verbose=no):
         raise IOError, 'No extension specified for input image!'
 
     # Now we need to insure that the input is an array:
-    if not isinstance(pos,N.NumArray):
-        if N.array(pos).getrank() > 1:
-            pos = N.array(pos,type=N.Float64)
+    if not isinstance(pos,N.ndarray):
+        if N.array(pos).ndim > 1:
+            pos = N.array(pos,dtype=n.float64)
 
     # Set up Exposure object
     _exposure = pydrizzle.Exposure(input,idckey=idckey)
 
     ra,dec = _exposure.geometry.XYtoSky(pos,linear=linear,verbose=verbose)
 
-    if not isinstance(ra,N.NumArray):
+    if not isinstance(ra,N.ndarray):
         # We are working with a single input, return single values
         return ra,dec
     else:
         # We are working with arrays, so we need to convert them
         # from 2 arrays with RA in one and Dec in the other to 1 array
         # with pairs of RA/Dec values.
-        _radec = N.zeros(shape=(len(ra),2),type=ra.type())
+        _radec = N.zeros(shape=(len(ra),2),dtype=ra.dtype)
         _radec[:,0] = ra
         _radec[:,1] = dec
 

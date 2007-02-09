@@ -22,8 +22,9 @@
 
 __version__ = '1.0.0'
 
+import pydrizzle
 import fileutil
-import numarray as N
+import numerix as N
 
 from input_image import InputImage
 

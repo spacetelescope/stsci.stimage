@@ -13,17 +13,17 @@
 __version__ = '0.1.0'
 
 # IMPORT EXTERNAL MODULES
-import numarray
+import numerix as N
 
 def qderiv(array): # TAKE THE ABSOLUTE DERIVATIVE OF A NUMARRY OBJECT
     """Take the absolute derivate of an image in memory."""
 
     #Create 2 empty arrays in memory of the same dimensions as 'array'
-    tmpArray = numarray.zeros(array.getshape())
-    outArray = numarray.zeros(array.getshape())
+    tmpArray = N.zeros(array.shape)
+    outArray = N.zeros(array.shape)
 
     # Get the length of an array side
-    (naxis1,naxis2) = array.getshape()
+    (naxis1,naxis2) = array.shape
     #print "The input image size is (",naxis1,",",naxis2,")."
 
 #Main derivate loop:
@@ -62,9 +62,9 @@ def _absoluteSubtract(array,tmpArray,outArray):
     #subtract shifted image from imput image
     tmpArray = array - tmpArray
     #take the absolute value of tmpArray
-    tmpArray = numarray.fabs(tmpArray)
+    tmpArray = N.fabs(tmpArray)
     #save maximum value of outArray or tmpArray and save in outArray
-    outArray = numarray.maximum(tmpArray,outArray)
+    outArray = N.maximum(tmpArray,outArray)
     #zero out tmpArray before reuse
     tmpArray = tmpArray * 0.
 

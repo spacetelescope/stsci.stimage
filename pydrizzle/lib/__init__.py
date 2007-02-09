@@ -11,7 +11,7 @@ import buildmask, fileutil, wcsutil, drutil
 import outputimage, imtype
 from exposure import Exposure
 
-import numarray as N
+import numerix as N
 import pyfits
 
 #Add buildasn/updateasn to namespace for use by other programs
@@ -426,7 +426,7 @@ class Pattern:
         _ra_offset = (self.offsets['arcseconds'][0] - self.refimage['ra_shift'][0],
                     self.offsets['arcseconds'][1] - self.refimage['ra_shift'][1])
 
-        _rotmat = drutil.buildRotMatrix(self.pars['delta_rot'])
+        _rotmat = fileutil.buildRotMatrix(self.pars['delta_rot'])
 
         if self.pars['abshift']:
             # Run 'computeOffsets()' to determine default shifts
@@ -525,7 +525,7 @@ class Pattern:
         for member in self.members:
             _prodcorners += member.corners['corrected'].tolist()
 
-        self.product.corners['corrected'] = N.array(_prodcorners,type=N.Float64)
+        self.product.corners['corrected'] = N.array(_prodcorners,dtype=N.float64)
 
     def buildProduct(self,filename,output):
         """
@@ -976,8 +976,8 @@ class Pattern:
                 _model.refpix['V3REF'] = _refdata['yoff'] * _pscale
 
             # Correct the coefficients for the differences in plate scales
-            _model.cx = _model.cx * N.array([_model.pscale/_ratio],type=N.Float64)
-            _model.cy = _model.cy * N.array([_model.pscale/_ratio],type=N.Float64)
+            _model.cx = _model.cx * N.array([_model.pscale/_ratio],dtype=N.float64)
+            _model.cy = _model.cy * N.array([_model.pscale/_ratio],dtype=N.float64)
             _model.refpix['XREF'] = self.REFPIX['x']
             _model.refpix['YREF'] = self.REFPIX['y']
 
@@ -1027,7 +1027,7 @@ class Pattern:
                 ref_v2v3 = N.array([ref_model.refpix['V2REF'],ref_model.refpix['V3REF']])
                 ref_theta = ref_model.refpix['THETA']
                 if ref_theta == None: ref_theta = 0.0
-                ref_pmat = N.dot(drutil.buildRotMatrix(ref_theta), member.parity)
+                ref_pmat = N.dot(fileutil.buildRotMatrix(ref_theta), member.parity)
                 ref_xy = (ref_model.refpix['XREF'],ref_model.refpix['YREF'])
                 break
 
@@ -1055,7 +1055,7 @@ class Pattern:
             chipcen = ( (memwcs.naxis1/2.) + memwcs.offset_x,
                         (memwcs.naxis2/2.) + memwcs.offset_y)
             xypos = N.dot(ref_pmat,v2v3-ref_v2v3) / scale + ref_xy
-            chiprot = drutil.buildRotMatrix(theta - ref_theta)
+            chiprot = fileutil.buildRotMatrix(theta - ref_theta)
 
             offcen = ((refp['XREF'] - chipcen[0]), (refp['YREF'] - chipcen[1]))
 
@@ -1249,7 +1249,7 @@ class STISObservation(Pattern):
     IDCKEY = 'cubic'
 
     __theta = 0.0
-    __parity = drutil.buildRotMatrix(__theta) * N.array([[-1.,1.],[-1.,1.]])
+    __parity = fileutil.buildRotMatrix(__theta) * N.array([[-1.,1.],[-1.,1.]])
     PARITY = {'CCD':__parity,'NUV-MAMA':__parity,'FUV-MAMA':__parity}
 
     # The dictionaries 'REFDATA' and 'REFPIX' are required for use with
@@ -1325,7 +1325,7 @@ class NICMOSObservation(Pattern):
     NUM_IMSET = 5
 
     __theta = 0.0
-    __parity = drutil.buildRotMatrix(__theta) * N.array([[-1.,1.],[-1.,1.]])
+    __parity = fileutil.buildRotMatrix(__theta) * N.array([[-1.,1.],[-1.,1.]])
     PARITY = {'1':__parity,'2':__parity,'3':__parity}
 
     # The dictionaries 'REFDATA' and 'REFPIX' are required for use with
@@ -1602,7 +1602,7 @@ class DitherProduct(Pattern):
         _prodcorners = []
         for prod in self.members:
             _prodcorners +=  prod.product.corners['corrected'].tolist()
-        self.product.corners['corrected'] = N.array(_prodcorners,type=N.Float64)
+        self.product.corners['corrected'] = N.array(_prodcorners,dtype=N.float64)
 
     def applyAsnShifts(self,output):
         """
@@ -2024,7 +2024,7 @@ class SkyField:
             _orient = self.orient
             _delta_rot = wcs.orient - self.orient
 
-        _mrot = drutil.buildRotMatrix(_delta_rot)
+        _mrot = fileutil.buildRotMatrix(_delta_rot)
 
         if self.shape == None:
             _corners = N.array([[0.,0.],[wcs.naxis1,0.],[0.,wcs.naxis2],[wcs.naxis1,wcs.naxis2]])
@@ -2189,7 +2189,7 @@ To keep the individual 'drizzle' output products:
 Output frame parameters can be modified 'on-the-fly' using 'resetPars'.
 Given an already drizzled image 'refimg_drz.fits' as a reference,
 reset drizzle parameters using:
-    --> wcsref = pydrizzle.wcsutil.WCSObject('refimg_drz.fits[sci,1]')
+    --> wcsref = wcsutil.WCSObject('refimg_drz.fits[sci,1]')
     --> f = pydrizzle.SkyField(wcs=wcsref)
 Use either:
     --> test.resetPars(wcsref)
@@ -2387,8 +2387,8 @@ More help on SkyField objects and their parameters can be obtained using:
 
             for plist in self.parlist:
 
-                _insci = N.zeros((plist['outny'],plist['outnx']),N.Float32)
-                _outsci = N.zeros((plist['blotny'],plist['blotnx']),N.Float32)
+                _insci = N.zeros((plist['outny'],plist['outnx']),dtype=N.float32)
+                _outsci = N.zeros((plist['blotny'],plist['blotnx']),dtype=N.float32)
                 _hdrlist.append(plist)
                 # Open input image as PyFITS object
                 if plist['outsingle'] != plist['outdata']:
@@ -2500,9 +2500,9 @@ More help on SkyField objects and their parameters can be obtained using:
             # This buffer should be reused for each input.
             #
             plist = self.parlist[0]
-            _outsci = N.zeros((plist['outny'],plist['outnx']),N.Float32)
-            _outwht = N.zeros((plist['outny'],plist['outnx']),N.Float32)
-            _inwcs = N.zeros([8],N.Float64)
+            _outsci = N.zeros((plist['outny'],plist['outnx']),dtype=N.float32)
+            _outwht = N.zeros((plist['outny'],plist['outnx']),dtype=N.float32)
+            _inwcs = N.zeros([8],dtype=N.float64)
 
             # Compute how many planes will be needed for the context image.
             _nplanes = int((_numctx['all']-1) / 32) + 1
@@ -2513,7 +2513,7 @@ More help on SkyField objects and their parameters can be obtained using:
 
             # Always initialize context images to a 3-D array
             # and only pass the appropriate plane to drizzle as needed
-            _outctx = N.zeros((_nplanes,plist['outny'],plist['outnx']),N.Int32)
+            _outctx = N.zeros((_nplanes,plist['outny'],plist['outnx']),dtype=N.int32)
 
             # Keep track of how many chips have been processed
             # For single case, this will determine when to close
@@ -2552,17 +2552,17 @@ More help on SkyField objects and their parameters can be obtained using:
                 if isinstance(_mask,types.StringType):
                     if _mask != None and _mask != '':
                         _wht_handle = fileutil.openImage(_mask,mode='readonly',memmap=0)
-                        _inwht = _wht_handle[0].data.astype(N.Float32)
+                        _inwht = _wht_handle[0].data.astype(N.float32)
                         _wht_handle.close()
                         del _wht_handle
                     else:
                         print 'No weight or mask file specified!  Assuming all pixels are good.'
-                        _inwht = N.ones((plist['blotny'],plist['blotnx']),N.Float32)
+                        _inwht = N.ones((plist['blotny'],plist['blotnx']),dtype=N.float32)
                 elif _mask != None:
-                    _inwht = _mask.astype(N.Float32)
+                    _inwht = _mask.astype(N.float32)
                 else:
                     print 'No weight or mask file specified!  Assuming all pixels are good.'
-                    _inwht = N.ones((plist['blotny'],plist['blotnx']),N.Float32)
+                    _inwht = N.ones((plist['blotny'],plist['blotnx']),dtype=N.float32)
 
                 if plist['wt_scl'] != None:
                     if isinstance(plist['wt_scl'],types.StringType):

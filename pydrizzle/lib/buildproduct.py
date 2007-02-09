@@ -3,7 +3,7 @@ These functions rely on booleans for 'yes' and 'no', PyFITS and readgeis.
 """
 import pyfits, readgeis
 import string,os,types
-import numarray as N
+import numerix as N
 import fileutil
 
 # Required keywords to build an extension with WCS info
@@ -195,7 +195,8 @@ def buildDthProduct (pardict, output, extlist=None, outlist=None, wcs=None):
         _ctx = no
 
         # Use the SCI HDU for the shape and build a default array
-        imarr = N.ones(shape=_shape,type=N.Int16)
+        imarr = N.ones(shape=_shape,dtype=N.int16)
+        imarr = N.reshape(imarr,_shape)
         if dqhdr == None:
             dqhdr = scihdr
             try:

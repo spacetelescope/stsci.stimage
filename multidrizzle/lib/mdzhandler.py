@@ -10,6 +10,7 @@
 
 import pyfits
 
+import pydrizzle
 import fileutil
 
 __version__ = '0.1.02'
@@ -62,7 +63,7 @@ def getMultidrizzleParameters(files):
 
 def _getRowsByFilter(table, filters):
     rows = []
-    for i in xrange(table[1].data.getshape()[0]):
+    for i in xrange(table[1].data.shape[0]):
         _tfilters = table[1].data.field('filter')[i]
         if _tfilters == filters:
             rows.append(i)

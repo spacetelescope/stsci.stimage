@@ -10,7 +10,7 @@
 #           application of the user's static file will now be handled by the
 #           ImageManager class in manager.py. -- CJH 
 
-import numarray as N
+import numerix as N
 
 import imagestats
 from imagestats import ImageStats
@@ -60,10 +60,10 @@ class StaticMask:
 
         # Operate on input image DQ array to flag 'bad' pixels in the
         # global static mask
-        _stats = ImageStats(sci_arr,nclip=3,fields='mode')
-        mode = _stats.mode
-        rms  = _stats.stddev
-        del _stats
+        stats = ImageStats(sci_arr,nclip=3,fields='mode')
+        mode = stats.mode
+        rms  = stats.stddev
+        del stats
 
         print('  mode = %9f;   rms = %7f')  %  (mode,rms)
         #
@@ -77,15 +77,15 @@ class StaticMask:
 
     def _buildMaskArray(self,signature):
         """ Creates numarray array for static mask array signature. """
-        return N.ones(signature[1],N.Int16)
+        return N.ones(signature[1],dtype=N.int16)
 
     def getMask(self,signature):
         """ Returns the appropriate StaticMask array for the image. """
         if self.masklist.has_key(signature):
-            _mask =  self.masklist[signature]
+            mask =  self.masklist[signature]
         else:
-            _mask = None
-        return _mask
+            mask = None
+        return mask
 
     def delete(self):
         """ Deletes all static mask objects. """

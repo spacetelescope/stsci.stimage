@@ -1,9 +1,7 @@
 #import string
 import os, shutil, sys
 
-#import numarray
-#import numarray.ieeespecial
-#from numarray.ieeespecial import *
+import numerix as N
 
 import pydrizzle
 from pydrizzle import drutil, buildasn, updateasn
@@ -77,14 +75,14 @@ def versioninfo():
     
     # Set up version ID's for printing to the log file
     mdrizzle_key = " MultiDrizzle "
-    numarray_key = " Numarray Version  "
+    array_key = " Array Package Version  "
     pydrizzle_key = " PyDrizzle Version "
     pyfits_key =  " PyFITS Version    "
     python_key = " Python Version: "
     pyraf_key = " PyRAF "
     
     version_dict[mdrizzle_key] = __version__
-    version_dict[numarray_key]= numarray.__version__
+    version_dict[array_key]= N.__version__
     version_dict[pydrizzle_key]= pydrizzle.__version__
     version_dict[pyfits_key] = pyfits.__version__
 
@@ -98,16 +96,16 @@ def versioninfo():
     print "\n"
     print " Version Information for MultiDrizzle "+version_dict[mdrizzle_key]
     print "-------------------------------------------- "
-    try:
-        import pyraf
-        version_dict[pyraf_key] = "Version     "+ pyraf.__version__
+    #try:
+        #import pyraf
+        #version_dict[pyraf_key] = "Version     "+ pyraf.__version__
 
-    except:
-        version_dict[pyraf_key] = " cannot be found!"
+    #except:
+        #version_dict[pyraf_key] = " cannot be found!"
     
-    print pyraf_key+version_dict[pyraf_key]
+    #print pyraf_key+version_dict[pyraf_key]
         
-    print numarray_key + version_dict[numarray_key]
+    print array_key + version_dict[array_key]
     print pyfits_key + version_dict[pyfits_key]
     print pydrizzle_key + version_dict[pydrizzle_key]
     print python_key + version_dict[python_key]
@@ -352,10 +350,11 @@ help file.
         # for the attributes necessary for initializing this class
         for kw in self.init_keys:
             self.__dict__[kw] = self.pars.master_pars[kw]
-	# runfile could have been converted to an integer by the above,
+        # runfile could have been converted to an integer by the above,
 	# so we have to make sure it's a string
 	self.runfile = str(self.runfile)
 
+                
         # Create object that controls step execution and mark
         # initialization step.
         self.steps = self.pars.steps

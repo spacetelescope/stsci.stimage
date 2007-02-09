@@ -18,8 +18,8 @@ tasks.
 import string,os,types
 from math import ceil,floor
 
-import numarray as N
-from numarray import linear_algebra
+import numerix as N
+from numerix import linalg
 
 import fileutil
 from fileutil import buildRotMatrix
@@ -302,17 +302,17 @@ def readCubicTable(idcfile):
     # Now, convert the coefficients into a Numeric array
     # with the right coefficients in the right place.
     # Populate output values now...
-    fx = N.zeros(shape=(order+1,order+1),type=N.Float64)
-    fy = N.zeros(shape=(order+1,order+1),type=N.Float64)
+    fx = N.zeros(shape=(order+1,order+1),dtype=N.float64)
+    fy = N.zeros(shape=(order+1,order+1),dtype=N.float64)
     # Assign the coefficients to their array positions
     fx[0,0] = 0.
-    fx[1] = N.array([a_coeffs[2],a_coeffs[1],0.,0.],type=N.Float64)
-    fx[2] = N.array([a_coeffs[5],a_coeffs[4],a_coeffs[3],0.],type=N.Float64)
-    fx[3] = N.array([a_coeffs[9],a_coeffs[8],a_coeffs[7],a_coeffs[6]],type=N.Float64)
+    fx[1] = N.array([a_coeffs[2],a_coeffs[1],0.,0.],dtype=N.float64)
+    fx[2] = N.array([a_coeffs[5],a_coeffs[4],a_coeffs[3],0.],dtype=N.float64)
+    fx[3] = N.array([a_coeffs[9],a_coeffs[8],a_coeffs[7],a_coeffs[6]],dtype=N.float64)
     fy[0,0] = 0.
-    fy[1] = N.array([b_coeffs[2],b_coeffs[1],0.,0.],type=N.Float64)
-    fy[2] = N.array([b_coeffs[5],b_coeffs[4],b_coeffs[3],0.],type=N.Float64)
-    fy[3] = N.array([b_coeffs[9],b_coeffs[8],b_coeffs[7],b_coeffs[6]],type=N.Float64)
+    fy[1] = N.array([b_coeffs[2],b_coeffs[1],0.,0.],dtype=N.float64)
+    fy[2] = N.array([b_coeffs[5],b_coeffs[4],b_coeffs[3],0.],dtype=N.float64)
+    fy[3] = N.array([b_coeffs[9],b_coeffs[8],b_coeffs[7],b_coeffs[6]],dtype=N.float64)
 
     # Used in Pattern.computeOffsets()
     refpix = {}
@@ -378,17 +378,17 @@ def readTraugerTable(idcfile,wavelength):
     # Now, convert the coefficients into a Numeric array
     # with the right coefficients in the right place.
     # Populate output values now...
-    fx = N.zeros(shape=(order+1,order+1),type=N.Float64)
-    fy = N.zeros(shape=(order+1,order+1),type=N.Float64)
+    fx = N.zeros(shape=(order+1,order+1),dtype=N.float64)
+    fy = N.zeros(shape=(order+1,order+1),dtype=N.float64)
     # Assign the coefficients to their array positions
     fx[0,0] = 0.
-    fx[1] = N.array([a_coeffs[2],a_coeffs[1],0.,0.],type=N.Float64)
-    fx[2] = N.array([a_coeffs[5],a_coeffs[4],a_coeffs[3],0.],type=N.Float64)
-    fx[3] = N.array([a_coeffs[9],a_coeffs[8],a_coeffs[7],a_coeffs[6]],type=N.Float64)
+    fx[1] = N.array([a_coeffs[2],a_coeffs[1],0.,0.],dtype=N.float64)
+    fx[2] = N.array([a_coeffs[5],a_coeffs[4],a_coeffs[3],0.],dtype=N.float64)
+    fx[3] = N.array([a_coeffs[9],a_coeffs[8],a_coeffs[7],a_coeffs[6]],dtype=N.float64)
     fy[0,0] = 0.
-    fy[1] = N.array([b_coeffs[2],b_coeffs[1],0.,0.],type=N.Float64)
-    fy[2] = N.array([b_coeffs[5],b_coeffs[4],b_coeffs[3],0.],type=N.Float64)
-    fy[3] = N.array([b_coeffs[9],b_coeffs[8],b_coeffs[7],b_coeffs[6]],type=N.Float64)
+    fy[1] = N.array([b_coeffs[2],b_coeffs[1],0.,0.],dtype=N.float64)
+    fy[2] = N.array([b_coeffs[5],b_coeffs[4],b_coeffs[3],0.],dtype=N.float64)
+    fy[3] = N.array([b_coeffs[9],b_coeffs[8],b_coeffs[7],b_coeffs[6]],dtype=N.float64)
 
     # Used in Pattern.computeOffsets()
     refpix = {}
@@ -443,7 +443,7 @@ def rotatePos(pos, theta,offset=None,scale=None):
         scale = 1.
 
     if offset == None:
-        offset = N.array([0.,0.],type=N.Float64)
+        offset = N.array([0.,0.],dtype=N.float64)
     mrot = buildRotMatrix(theta)
     xr = ((pos[0] * mrot[0][0]) + (pos[1]*mrot[0][1]) )/ scale + offset[0]
     yr = ((pos[0] * mrot[1][0]) + (pos[1]*mrot[1][1]) )/ scale + offset[1]
@@ -491,7 +491,7 @@ def getRange(members,ref_wcs,verbose=None):
 
         # Update the corners attribute of the member with the
         # positions of the computed, distortion-corrected corners
-        #member.corners['corrected'] = N.array([(_oxmin,_oymin),(_oxmin,_oymax),(_oxmax,_oymin),(_oxmax,_oymax)],type=N.Float64)
+        #member.corners['corrected'] = N.array([(_oxmin,_oymin),(_oxmin,_oymax),(_oxmax,_oymin),(_oxmax,_oymax)],dtype=N.float64)
         member.corners['corrected'] = xypos
 
         xma.append(_oxmax)
@@ -515,7 +515,7 @@ def getRange(members,ref_wcs,verbose=None):
     nref = ( (xmin + xmax)*_ratio, (ymin + ymax)*_ratio )
     if _rot != 0.:
         _mrot = buildRotMatrix(_rot)
-        nref = N.matrixmultiply(nref,_mrot)
+        nref = N.dot(nref,_mrot)
 
     # Now, compute overall size based on range of pixels and offset from center.
     #xsize = int(xmax - xmin + nref[0])
@@ -593,14 +593,14 @@ def wcsfit(img_geom, ref):
     ref_wcs = ref.copy()
 
     # Convert the RA/Dec positions back to X/Y in output product image
-    _cpix_xyref = N.zeros((4,2),type=N.Float64)
+    _cpix_xyref = N.zeros((4,2),dtype=N.float64)
 
     # Start by setting up an array of points +/-0.5 pixels around CRVAL1,2
     # However, we must shift these positions by 1.0pix to match what
     # drizzle will use as its reference position for 'align=center'.
     _cpix = (img_wcs.crpix1,img_wcs.crpix2)
     _cpix_arr = N.array([_cpix,(_cpix[0],_cpix[1]+1.),
-                       (_cpix[0]+1.,_cpix[1]+1.),(_cpix[0]+1.,_cpix[1])], type=N.Float64)
+                       (_cpix[0]+1.,_cpix[1]+1.),(_cpix[0]+1.,_cpix[1])], dtype=N.float64)
     # Convert these positions to RA/Dec
     _cpix_rd = img_wcs.xy2rd(_cpix_arr)
     for pix in xrange(len(_cpix_rd[0])):
@@ -613,7 +613,7 @@ def wcsfit(img_geom, ref):
         offx, offy = (1.0, 1.0)
 
     # Now, apply distortion model to input image XY positions
-    _cpix_xyc = N.zeros((4,2),type=N.Float64)
+    _cpix_xyc = N.zeros((4,2),dtype=N.float64)
     _cpix_xyc[:,0],_cpix_xyc[:,1] = img_geom.apply(_cpix_arr - (offx, offy), order=1)
 
     if in_refpix:
@@ -639,7 +639,7 @@ def fitlin(imgarr,refarr):
         A Python translation of 'FITLIN' from 'drutil.f' (Drizzle V2.9).
     """
     # Initialize variables
-    _mat = N.zeros((3,3),type=N.Float64)
+    _mat = N.zeros((3,3),dtype=N.float64)
     _xorg = imgarr[0][0]
     _yorg = imgarr[0][1]
     _xoorg = refarr[0][0]
@@ -673,7 +673,7 @@ def fitlin(imgarr,refarr):
     _mat[2][1] = _mat[1][2]
 
     # Now invert this matrix
-    _mat = linear_algebra.inverse(_mat)
+    _mat = linalg.inv(_mat)
 
     _a  = _sigxox*_mat[0][0]+_sigxoy*_mat[0][1]+_sigxo*_mat[0][2]
     _b  = -1*(_sigxox*_mat[1][0]+_sigxoy*_mat[1][1]+_sigxo*_mat[1][2])

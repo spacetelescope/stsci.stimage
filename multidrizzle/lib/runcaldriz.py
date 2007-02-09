@@ -50,8 +50,8 @@ no = iraf.no
 # set up the new version of MultiDrizzle.
 #
 ######################################
-#sys.path.insert(1,'/data/chulak1/dev/Multidrizzle')
-#iraf.task(multidrizzle = '/data/chulak1/dev/Multidrizzle/mdrizzle/multidrizzle.cl')
+sys.path.insert(1,'/data/chulak1/dev/Multidrizzle')
+iraf.task(multidrizzle = '/data/chulak1/dev/Multidrizzle/mdrizzle/multidrizzle.cl')
 ######################################
 #
 #  End of installation customization
@@ -62,6 +62,7 @@ import mdrizzle
 import pydrizzle
 from pydrizzle import drutil
 import fileutil
+
 from pyraf.iraf import stsdas,hst_calib,acs,calacs
 
 # Import local modules

@@ -78,7 +78,7 @@ import time
 import pyfits
 #import numarray,chararray
 # New numarray 0.6 import mode
-import numarray
+import numerix as N
 
 from fileutil import readShiftFile,buildRootname
 import wcsutil
@@ -327,7 +327,7 @@ def _findRefFile(sdict,flist):
     for img in sdict['order']:
         offx = sdict[img][0]
         offy = sdict[img][1]
-        shift = numarray.sqrt(pow(offx,2) + pow(offy,2))
+        shift = N.sqrt(pow(offx,2) + pow(offy,2))
 
         if shift < min_shift:
             min_shift = shift
@@ -375,11 +375,11 @@ def _computeDeltaShifts(sdict,ref_file,flist):
 
                 # Compute commanded shift here: image minus reference
                 # This has to be in units of pixels
-                pos = (numarray.array(img_pos) - numarray.array(ref_pos))/pscale
-                pos = pos * 3600. * numarray.cos(ref_pos[1]) * numarray.array([-1.0,1.0])
+                pos = (N.array(img_pos) - N.array(ref_pos))/pscale
+                pos = pos * 3600. * N.cos(ref_pos[1]) * N.array([-1.0,1.0])
 
                 # Compute delta offset: total minus commanded
-                delta_pos = numarray.array((sdict[img][0],sdict[img][1])) - pos
+                delta_pos = N.array((sdict[img][0],sdict[img][1])) - pos
 
                 # Replace total shift with delta in shift dictionary
                 sdict[img].append(tuple(delta_pos))
@@ -515,17 +515,17 @@ def _makeTableHDU(data):
     namelen_str = str(_maxlen+2)+'A'
 
     # Column definitions use the FITS Table TFORM value for the format
-    col1 = pyfits.Column(name='MEMNAME',format=namelen_str,array=numarray.strings.array(data['name']))
-    col2 = pyfits.Column(name='MEMTYPE',format='14A',array=numarray.strings.array(data['mtype']))
-    col3 = pyfits.Column(name='MEMPRSNT',format='L',array=numarray.array(data['mprsnt']).astype(numarray.UInt8))
+    col1 = pyfits.Column(name='MEMNAME',format=namelen_str,array=N.char.array(data['name']))
+    col2 = pyfits.Column(name='MEMTYPE',format='14A',array=N.char.array(data['mtype']))
+    col3 = pyfits.Column(name='MEMPRSNT',format='L',array=N.array(data['mprsnt']).astype(N.uint8))
     # Build columns for optional Offset/Rotation columns
     #col4,col5,col6 = _makeOffsetColumns(numarray.array(data['xsh']), numarray.array(data['ysh']), numarray.array(data['rot']))
-    xsh = pyfits.Column(name='XOFFSET',format='E',unit=data['units'],array=numarray.array(data['xsh']))
-    ysh = pyfits.Column(name='YOFFSET',format='E',unit=data['units'],array=numarray.array(data['ysh']))
-    rot = pyfits.Column(name='ROTATION',format='E',unit='degrees',array=numarray.array(data['rot']))
-    dx = pyfits.Column(name='XDELTA',format='E',unit=data['units'],array=numarray.array(data['dx']))
-    dy = pyfits.Column(name='YDELTA',format='E',unit=data['units'],array=numarray.array(data['dy']))
-    scl = pyfits.Column(name='SCALE',format='E',unit='',array=numarray.array(data['scl']))
+    xsh = pyfits.Column(name='XOFFSET',format='E',unit=data['units'],array=N.array(data['xsh']))
+    ysh = pyfits.Column(name='YOFFSET',format='E',unit=data['units'],array=N.array(data['ysh']))
+    rot = pyfits.Column(name='ROTATION',format='E',unit='degrees',array=N.array(data['rot']))
+    dx = pyfits.Column(name='XDELTA',format='E',unit=data['units'],array=N.array(data['dx']))
+    dy = pyfits.Column(name='YDELTA',format='E',unit=data['units'],array=N.array(data['dy']))
+    scl = pyfits.Column(name='SCALE',format='E',unit='',array=N.array(data['scl']))
 
     hdu = pyfits.new_table([col1,col2,col3,xsh,ysh,dx,dy,rot,scl],nrows=len(data['name']))
 

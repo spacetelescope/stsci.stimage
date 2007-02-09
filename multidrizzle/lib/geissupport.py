@@ -16,7 +16,6 @@
 #       0.3.0 -- 26 January 2005 -- Modified the EXPTIME zero check to be
 #                less than or equal to zero.
 
-import numarray
 import pyfits as P
 import readgeis
 from readgeis import readgeis

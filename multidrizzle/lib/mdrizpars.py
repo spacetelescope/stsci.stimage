@@ -3,9 +3,7 @@ import mdzhandler
 import string
 import sys,types,os
 
-import numarray
-import numarray.ieeespecial
-from numarray.ieeespecial import *
+import numerix as N
 
 import fileutil
 from pydrizzle import traits102
@@ -23,10 +21,9 @@ def toBoolean(flag):
     return False
 
 def cleanNaN(value):
-    a = numarray.array(value)
-    b = getnan(a)
-    if len(b[0]) == 1:
-        return None
+    a = N.array(value)
+#    b = N.where(N.isnan(a))
+    if N.any(N.isnan(a)): return None
     return value
 
 def cleanInt(value):

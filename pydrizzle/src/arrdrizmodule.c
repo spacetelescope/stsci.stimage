@@ -1,9 +1,15 @@
 #include <math.h>
 #include <string.h>
 #include <Python.h>
-#include <arrayobject.h>
-#include <libnumarray.h>
-/*#include "numarray.h" */
+
+#ifdef NUMPY
+    #include <numpy/arrayobject.h>
+    #include <numpy/libnumarray.h>
+#else
+    #include <arrayobject.h>
+    #include <libnumarray.h>
+#endif
+
 #include "f2c.h"
 
 static PyObject *gl_Error;
@@ -203,7 +209,7 @@ twdriz(PyObject *obj, PyObject *args)
     Py_DECREF(pyg);
 
     return Py_BuildValue("s#ii",vers,vers_len,nmiss,nskip);
- }*/
+}*/
 
 
 static PyObject *

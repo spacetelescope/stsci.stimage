@@ -2,8 +2,6 @@ import types
 import pyfits,readgeis
 import fileutil
 
-import numarray as N
-
 yes = True
 no = False
 
@@ -16,7 +14,7 @@ DTH_KEYWORDS=['CD1_1','CD1_2', 'CD2_1', 'CD2_2', 'CRPIX1',
 
 class OutputImage:
     """
-        This class manages the creation of the numarray objects
+        This class manages the creation of the array objects
         which will be used by Drizzle. The three arrays, SCI/WHT/CTX,
         will be setup either as extensions in a
         single multi-extension FITS file, or as separate FITS
@@ -383,18 +381,22 @@ class OutputImage:
         #
         # After being written out to the FITS file, the byteorder gets
         # swapped on some platforms (for example, i386).  Thus, in order
-        # to reuse this numarray object, the byteorder needs to be swapped
+        # to reuse this array object, the byteorder needs to be swapped
         # back to native format.
         #
-        if sciarr.isbyteswapped():
-            sciarr.togglebyteorder()
-            sciarr.byteswap()
-        if whtarr != None and whtarr.isbyteswapped():
-            whtarr.togglebyteorder()
-            whtarr.byteswap()
-        if ctxarr != None and ctxarr.isbyteswapped():
-            ctxarr.togglebyteorder()
-            ctxarr.byteswap()
+
+        # This should all be handled by pyfits
+        #if sciarr.isbyteswapped():
+            #sciarr.togglebyteorder()
+            #sciarr.byteswap()
+        
+        #if whtarr != None and whtarr.isbyteswapped():
+            #whtarr.togglebyteorder()
+            #whtarr.byteswap()
+
+        #if ctxarr != None and ctxarr.isbyteswapped():
+            #ctxarr.togglebyteorder()
+            #ctxarr.byteswap()
 
     def addDrizKeywords(self,hdr,versions):
         """ Add drizzle parameter keywords to header. """

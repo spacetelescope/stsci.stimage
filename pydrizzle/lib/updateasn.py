@@ -8,7 +8,8 @@ Version 0.5 (11-May-2005) (WJH) - Updated to package reference WCS as extension
 
 """
 import os,string
-import pyfits, numarray
+import pyfits
+import numerix as N
 
 import pydrizzle
 from pydrizzle import buildasn
@@ -244,8 +245,8 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
         # We need to add the extra columns to the table
         # Build arrays for each additional column
         _numrows = len(_asntab[1].data)
-        _xsh = numarray.zeros(_numrows,type=numarray.Float32)
-        _ysh = numarray.zeros(_numrows,type=numarray.Float32)
+        _xsh = N.zeros(_numrows,dtype=N.float32)
+        _ysh = N.zeros(_numrows,dtype=N.float32)
 
         # Now update entry associated with this particular image
         _xsh[_rownum] = _delta_xoff
@@ -263,7 +264,7 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
 
         # If rotation column does NOT exist,
         if _add_rot:
-            _rot = numarray.zeros(_numrows,type=numarray.Float32)
+            _rot = N.zeros(_numrows,dtype=N.float32)
             if rot != None:
                 _rot[_rownum] = rot
             _rc = pyfits.Column(name='ROTATION',format='E',unit='degrees',array=_rot)
@@ -276,7 +277,7 @@ def updateAsnTable(tabname, rootname, xsh=None, ysh=None, form="absolute",
 
         # If scaling column does NOT exist,
         if _add_scale:
-            _scale = numarray.zeros(_numrows,type=numarray.Float32)
+            _scale = N.zeros(_numrows,dtype=N.float32)
             if scale != None:
                 _scale[_rownum] = scale
             _sc = pyfits.Column(name='SCALE',format='E',unit='',array=_scale)
