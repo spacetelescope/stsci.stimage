@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>multireg.edge_detect</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="multireg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" align="right" width="100%">
+      <table border="0" cellpadding="0" cellspacing="0">
+      <tr><th class="navbar" align="center">
+        <p class="nomargin">
+          ImageShift
+      </p></th></tr></table>
+    </th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <font size="-1"><b class="breadcrumbs">
+        <a href="multireg-module.html">Package&nbsp;multireg</a> ::
+        Module&nbsp;edge_detect
+      </b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[show&nbsp;private&nbsp;|&nbsp;<a href="../public/multireg.edge_detect-module.html">hide&nbsp;private</a>]</font></td></tr>
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="multireg.edge_detect-module.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td>
+</tr></table>
+
+<!-- =========== START OF MODULE DESCRIPTION =========== -->
+<h2 class="module">Module multireg.edge_detect</h2>
+
+
+<!-- =========== START OF FUNCTION SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Function Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.edge_detect-module.html#canny_edge" class="summary-sig-name"><code>canny_edge</code></a>(<span class=summary-sig-arg>image</span>,
+          <span class=summary-sig-arg>alpha</span>,
+          <span class=summary-sig-arg>thin</span>)</span></code>
+<br />
+Canny edge detector algorithm implementation.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.edge_detect-module.html#compute_edge_strength" class="summary-sig-name"><code>compute_edge_strength</code></a>(<span class=summary-sig-arg>array</span>,
+          <span class=summary-sig-arg>zero_cross</span>)</span></code>
+<br />
+Compute the edge strength map for a LoG of an image by considering the 
+slopes along both the x and y directions.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="compute_LoG_image"></a><span class="summary-sig"><span class="summary-sig-name">compute_LoG_image</span>(<span class=summary-sig-arg>image</span>,
+          <span class=summary-sig-arg>k_d</span>,
+          <span class=summary-sig-arg>k_sigma</span>,
+          <span class=summary-sig-arg>gsigma</span>,
+          <span class=summary-sig-arg>gauss_sigma</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.edge_detect-module.html#compute_max_neighbor" class="summary-sig-name"><code>compute_max_neighbor</code></a>(<span class=summary-sig-arg>array</span>)</span></code>
+<br />
+Compute max[N(i,j)*signum(-1*array).</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.edge_detect-module.html#dgauss" class="summary-sig-name"><code>dgauss</code></a>(<span class=summary-sig-arg>x</span>,
+          <span class=summary-sig-arg>sigma</span>)</span></code>
+<br />
+Compute first order derivative of gaussian function.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.edge_detect-module.html#find_edge_points" class="summary-sig-name"><code>find_edge_points</code></a>(<span class=summary-sig-arg>array</span>)</span></code>
+<br />
+Detects the edge points from a LoG image
+using the criteria:
+- for each zero-crossing pixel, it is an
+edge point iff
+LoG(i,j) &lt;= max[N(i,i)*signum(-LoG(i,j))]
+
+where N(i,j) is the 8-neighborhood values for i,j and
+      Log(i,j) is the LoG value of the pixel i,j
+Ref: Dai &amp; Khorram (1999), IEEE Trans.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.edge_detect-module.html#find_index" class="summary-sig-name"><code>find_index</code></a>(<span class=summary-sig-arg>array</span>,
+          <span class=summary-sig-arg>values</span>)</span></code>
+<br />
+Return the index into array that corresponds to each value.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="find_LoG_zeros"></a><span class="summary-sig"><span class="summary-sig-name">find_LoG_zeros</span>(<span class=summary-sig-arg>image</span>,
+          <span class=summary-sig-arg>esigma</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.edge_detect-module.html#gauss" class="summary-sig-name"><code>gauss</code></a>(<span class=summary-sig-arg>x</span>,
+          <span class=summary-sig-arg>sigma</span>)</span></code>
+<br />
+Compute gaussian.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.edge_detect-module.html#gauss_edge_kernel" class="summary-sig-name"><code>gauss_edge_kernel</code></a>(<span class=summary-sig-arg>nx</span>,
+          <span class=summary-sig-arg>ny</span>,
+          <span class=summary-sig-arg>sigma_x</span>,
+          <span class=summary-sig-arg>sigma_y</span>,
+          <span class=summary-sig-arg>theta</span>)</span></code>
+<br />
+Computes the 2D edge detector (first order derivative of 2D Gaussian 
+function) with size n1*n2.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.edge_detect-module.html#gauss_kernel" class="summary-sig-name"><code>gauss_kernel</code></a>(<span class=summary-sig-arg>nx</span>,
+          <span class=summary-sig-arg>ny</span>,
+          <span class=summary-sig-arg>sigma_x</span>,
+          <span class=summary-sig-arg>sigma_y</span>)</span></code>
+<br />
+Computes the 2D Gaussian with size n1*n2.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.edge_detect-module.html#interp2" class="summary-sig-name"><code>interp2</code></a>(<span class=summary-sig-arg>xk</span>,
+          <span class=summary-sig-arg>yk</span>,
+          <span class=summary-sig-arg>zk</span>,
+          <span class=summary-sig-arg>xint</span>,
+          <span class=summary-sig-arg>yint</span>)</span></code>
+<br />
+Compute the 2D interpolated value.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.edge_detect-module.html#interp_bilinear1d" class="summary-sig-name"><code>interp_bilinear1d</code></a>(<span class=summary-sig-arg>x</span>,
+          <span class=summary-sig-arg>xi</span>)</span></code>
+<br />
+Compute the bilinear interpolated value(s) of xi within x.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.edge_detect-module.html#LoG_mask" class="summary-sig-name"><code>LoG_mask</code></a>(<span class=summary-sig-arg>sigma</span>,
+          <span class=summary-sig-arg>cutoff</span>,
+          <span class=summary-sig-arg>peak</span>)</span></code>
+<br />
+Returns a Laplacian-of-Gaussian kernel [Ref.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.edge_detect-module.html#signum" class="summary-sig-name"><code>signum</code></a>(<span class=summary-sig-arg>array</span>)</span></code>
+<br />
+Return the signum values for the input array,...</td></tr>
+</table><br />
+
+
+<!-- =========== START OF FUNCTION DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Function Details</th></tr>
+</table>
+
+<a name="canny_edge"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">canny_edge</span>(<span class=sig-arg>image</span>,
+          <span class=sig-arg>alpha</span>=<span class=sig-default>0.10000000000000001</span>,
+          <span class=sig-arg>thin</span>=<span class=sig-default>False</span>)</span>
+  </h3>
+  Canny edge detector algorithm implementation.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="compute_edge_strength"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">compute_edge_strength</span>(<span class=sig-arg>array</span>,
+          <span class=sig-arg>zero_cross</span>)</span>
+  </h3>
+  Compute the edge strength map for a LoG of an image by considering 
+  the slopes along both the x and y directions.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="compute_max_neighbor"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">compute_max_neighbor</span>(<span class=sig-arg>array</span>)</span>
+  </h3>
+  Compute max[N(i,j)*signum(-1*array).
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="dgauss"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">dgauss</span>(<span class=sig-arg>x</span>,
+          <span class=sig-arg>sigma</span>)</span>
+  </h3>
+  Compute first order derivative of gaussian function.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="find_edge_points"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">find_edge_points</span>(<span class=sig-arg>array</span>)</span>
+  </h3>
+<pre class="literalblock">
+Detects the edge points from a LoG image
+using the criteria:
+- for each zero-crossing pixel, it is an
+edge point iff
+LoG(i,j) &lt;= max[N(i,i)*signum(-LoG(i,j))]
+
+where N(i,j) is the 8-neighborhood values for i,j and
+      Log(i,j) is the LoG value of the pixel i,j
+Ref: Dai &amp; Khorram (1999), IEEE Trans. GeoSci. and
+     Remote Sensing, Vol 37, No 5, 2351-2362.
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="find_index"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">find_index</span>(<span class=sig-arg>array</span>,
+          <span class=sig-arg>values</span>)</span>
+  </h3>
+  Return the index into array that corresponds to each value.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="gauss"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">gauss</span>(<span class=sig-arg>x</span>,
+          <span class=sig-arg>sigma</span>)</span>
+  </h3>
+  Compute gaussian.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="gauss_edge_kernel"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">gauss_edge_kernel</span>(<span class=sig-arg>nx</span>,
+          <span class=sig-arg>ny</span>,
+          <span class=sig-arg>sigma_x</span>,
+          <span class=sig-arg>sigma_y</span>,
+          <span class=sig-arg>theta</span>)</span>
+  </h3>
+  Computes the 2D edge detector (first order derivative of 2D Gaussian 
+  function) with size n1*n2. Theta is the angle the detector rotated 
+  counter clockwise, while sigma_x and sigma_y are the stddev of the 
+  Gaussian functions.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="gauss_kernel"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">gauss_kernel</span>(<span class=sig-arg>nx</span>,
+          <span class=sig-arg>ny</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>sigma_x</span>=<span class=sig-default>1.0</span>,
+          <span class=sig-arg>sigma_y</span>=<span class=sig-default>None</span>)</span>
+  </h3>
+  Computes the 2D Gaussian with size n1*n2. Sigma_x and sigma_y are 
+  the stddev of the Gaussian functions. The kernel will be normalized to 
+  a sum of 1.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="interp2"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">interp2</span>(<span class=sig-arg>xk</span>,
+          <span class=sig-arg>yk</span>,
+          <span class=sig-arg>zk</span>,
+          <span class=sig-arg>xint</span>,
+          <span class=sig-arg>yint</span>)</span>
+  </h3>
+  Compute the 2D interpolated value.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="interp_bilinear1d"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">interp_bilinear1d</span>(<span class=sig-arg>x</span>,
+          <span class=sig-arg>xi</span>)</span>
+  </h3>
+  Compute the bilinear interpolated value(s) of xi within x.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="LoG_mask"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">LoG_mask</span>(<span class=sig-arg>sigma</span>=<span class=sig-default>1.0</span>,
+          <span class=sig-arg>cutoff</span>=<span class=sig-default>3.8999999999999999</span>,
+          <span class=sig-arg>peak</span>=<span class=sig-default>1.0</span>)</span>
+  </h3>
+  Returns a Laplacian-of-Gaussian kernel [Ref. 1] with a mean of 0 and 
+  a peak specified by the user. If no width is provided by the user, the 
+  size of the kernel will be automatically determined based on 
+  C_log/sigma = 3.9 to include 99.83% of the energy. References: (1)Chen, 
+  et al, IEEE PAMI, PAMI-9, No. 4, July 1987, pg 584-590.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="signum"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">signum</span>(<span class=sig-arg>array</span>)</span>
+  </h3>
+<pre class="literalblock">
+Return the signum values for the input array,
+where the signum has the standard definition:
+    signum(x = array(i,j)) = -1 for x &lt; 0
+
+                              0 for x == 0
+                              1 for x &gt; 0
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="multireg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" align="right" width="100%">
+      <table border="0" cellpadding="0" cellspacing="0">
+      <tr><th class="navbar" align="center">
+        <p class="nomargin">
+          ImageShift
+      </p></th></tr></table>
+    </th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 2.1 on Thu Dec 15 12:27:06 2005</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>

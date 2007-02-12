@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>multireg.imageshift.ImageShift</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="multireg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" align="right" width="100%">
+      <table border="0" cellpadding="0" cellspacing="0">
+      <tr><th class="navbar" align="center">
+        <p class="nomargin">
+          ImageShift
+      </p></th></tr></table>
+    </th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <font size="-1"><b class="breadcrumbs">
+        <a href="multireg-module.html">Package&nbsp;multireg</a> ::
+        <a href="multireg.imageshift-module.html">Module&nbsp;imageshift</a> ::
+        Class&nbsp;ImageShift
+      </b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[<a href="../private/multireg.imageshift.ImageShift-class.html">show&nbsp;private</a>&nbsp;|&nbsp;hide&nbsp;private]</font></td></tr>
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="multireg.imageshift.ImageShift-class.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td>
+</tr></table>
+
+<!-- =========== START OF CLASS DESCRIPTION =========== -->
+<h2 class="class">Class ImageShift</h2>
+
+<hr/>
+
+<pre class="literalblock">
+The ImageShift class serves as the primary interface for
+computing offsets between images using the multi-scale
+wavelet transform. 
+
+=================================
+DEVELOPMENT NOTE:  
+This code may eventually need to support fitting to a reference
+image or coordinate list from a reference frame.
+=================================
+
+Syntax:
+    ImageShift(input,output='shifts',reference=None, coeffs='header',
+               scale=2,form='linear')
+                
+Inputs:
+    input       - list of input filenames
+    output      - name of output shiftfile
+                    if nothing is specified, defaults to 'shifts'
+    reference   - user-specified reference image
+                    if None (default), first image from 
+                    input will be used
+    coeffs      - parameter used to specify source (if any) of 
+                    distortion model to be applied to input images.
+                    This corresponds directly to MultiDrizzle
+                    'coeffs' and PyDrizzle 'idckey' parameters.
+    scale       - number of wavelet transforms to apply: 4 (default)
+    form        - form of interpolation kernel to use with wavelet
+                    transforms: spline or linear (default)
+Methods:
+    .run(verbose=False,min_match=10):
+        --&gt; Computes shifts and writes them to output.
+        radius  - object matching threshold in pixels
+        min_match   - only compute shift if image has 
+                        at least 'min_match' objects 
+        verbose - print computed shifts interactively
+
+    .writeShiftFile(shift_list = None, output=None):
+        --&gt; Writes out shifts to output file.
+        shift_list  - list of computed shifts for each image in form of:
+                (filename,((xshift,yshift),rotation,(scale,xscale,yscale))
+                    If no shift_list is provided, it writes out values
+                    in 'self.shifts'.
+        output      - name of output shift file
+                    If none is provided, defaults to name specified
+                    when class was initialized.
+</pre>
+<hr/>
+
+
+<!-- =========== START OF METHOD SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Method Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="__init__"></a><span class="summary-sig"><span class="summary-sig-name">__init__</span>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>input</span>,
+          <span class=summary-sig-arg>output</span>,
+          <span class=summary-sig-arg>reference</span>,
+          <span class=summary-sig-arg>coeffs</span>,
+          <span class=summary-sig-arg>scale</span>,
+          <span class=summary-sig-arg>form</span>,
+          <span class=summary-sig-arg>median</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.imageshift.ImageShift-class.html#getPositionArrays" class="summary-sig-name"><code>getPositionArrays</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>objlist</span>)</span></code>
+<br />
+Return detected positions as numarray arrays</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.imageshift.ImageShift-class.html#run" class="summary-sig-name"><code>run</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>verbose</span>,
+          <span class=summary-sig-arg>min_match</span>,
+          <span class=summary-sig-arg>overwrite</span>)</span></code>
+<br />
+Perform the matching between the position lists, then perform
+a generalized linear fit to find the shifts.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.imageshift.ImageShift-class.html#writeCoordFile" class="summary-sig-name"><code>writeCoordFile</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>imagename</span>,
+          <span class=summary-sig-arg>scale</span>,
+          <span class=summary-sig-arg>objlist</span>)</span></code>
+<br />
+Write out object list to the coordinate file.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.imageshift.ImageShift-class.html#writeCoords" class="summary-sig-name"><code>writeCoords</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>scale</span>)</span></code>
+<br />
+Write out coordinate files for all input observations.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.imageshift.ImageShift-class.html#writeShiftFile" class="summary-sig-name"><code>writeShiftFile</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>shift_list</span>,
+          <span class=summary-sig-arg>output</span>)</span></code>
+<br />
+Write out a shiftfile.</td></tr>
+</table><br />
+
+
+<!-- =========== START OF METHOD DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Method Details</th></tr>
+</table>
+
+<a name="getPositionArrays"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">getPositionArrays</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>objlist</span>)</span>
+  </h3>
+  Return detected positions as numarray arrays
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="run"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">run</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>verbose</span>=<span class=sig-default>False</span>,
+          <span class=sig-arg>min_match</span>=<span class=sig-default>10</span>,
+          <span class=sig-arg>overwrite</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+<pre class="literalblock">
+Perform the matching between the position lists, then perform
+a generalized linear fit to find the shifts.  These shifts
+then get written out to a shiftfile.
+
+The 'verbose' parameter turns on/off output of compute shifts to
+STDOUT, with the default being turned off (quiet mode).
+
+=================================
+DEVELOPMENT NOTE:
+    This needs to be expanded to support iteration over all
+    resolution scales, and for all input images.
+=================================
+
+ImageMatch Algorithm:
+Xiaolong Dai, Siamak Khorram, &quot;A Feature-based Image Registration
+Algorithm Using Improved Chain-code Representation Combined with
+Invariant Moments&quot;, IEEE Trans. Geo. and Remote Sensing,
+Vol 37, No. 5, 2351-2362, September 1999.
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="writeCoordFile"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">writeCoordFile</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>imagename</span>,
+          <span class=sig-arg>scale</span>,
+          <span class=sig-arg>objlist</span>)</span>
+  </h3>
+  Write out object list to the coordinate file.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="writeCoords"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">writeCoords</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>scale</span>=<span class=sig-default>0</span>)</span>
+  </h3>
+  Write out coordinate files for all input observations.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="writeShiftFile"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">writeShiftFile</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>shift_list</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>output</span>=<span class=sig-default>None</span>)</span>
+  </h3>
+  Write out a shiftfile.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="multireg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" align="right" width="100%">
+      <table border="0" cellpadding="0" cellspacing="0">
+      <tr><th class="navbar" align="center">
+        <p class="nomargin">
+          ImageShift
+      </p></th></tr></table>
+    </th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 2.1 on Thu Dec 15 12:27:06 2005</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>

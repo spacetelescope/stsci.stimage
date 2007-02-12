@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>multireg.findedges</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="multireg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" align="right" width="100%">
+      <table border="0" cellpadding="0" cellspacing="0">
+      <tr><th class="navbar" align="center">
+        <p class="nomargin">
+          ImageShift
+      </p></th></tr></table>
+    </th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <font size="-1"><b class="breadcrumbs">
+        <a href="multireg-module.html">Package&nbsp;multireg</a> ::
+        Module&nbsp;findedges
+      </b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[show&nbsp;private&nbsp;|&nbsp;<a href="../public/multireg.findedges-module.html">hide&nbsp;private</a>]</font></td></tr>
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="multireg.findedges-module.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td>
+</tr></table>
+
+<!-- =========== START OF MODULE DESCRIPTION =========== -->
+<h2 class="module">Module multireg.findedges</h2>
+
+
+<!-- =========== START OF FUNCTION SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Function Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.findedges-module.html#getChainCode" class="summary-sig-name"><code>getChainCode</code></a>(<span class=summary-sig-arg>image</span>,
+          <span class=summary-sig-arg>npix</span>)</span></code>
+<br />
+getChainCode(image, npix)</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.findedges-module.html#getFirstMoment" class="summary-sig-name"><code>getFirstMoment</code></a>(<span class=summary-sig-arg>image</span>,
+          <span class=summary-sig-arg>xcen</span>,
+          <span class=summary-sig-arg>ycen</span>)</span></code>
+<br />
+getFirstMoment(image,xcen,ycen)</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.findedges-module.html#getMoment_pq" class="summary-sig-name"><code>getMoment_pq</code></a>(<span class=summary-sig-arg>xpos</span>,
+          <span class=summary-sig-arg>ypos</span>,
+          <span class=summary-sig-arg>p</span>,
+          <span class=summary-sig-arg>q</span>)</span></code>
+<br />
+getMoment_pq(xpos,ypos,p,q)</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.findedges-module.html#getMoments" class="summary-sig-name"><code>getMoments</code></a>(<span class=summary-sig-arg>image</span>,
+          <span class=summary-sig-arg>xcen</span>,
+          <span class=summary-sig-arg>ycen</span>)</span></code>
+<br />
+getMoments(image,xcen,ycen)</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.findedges-module.html#getSecondMoment" class="summary-sig-name"><code>getSecondMoment</code></a>(<span class=summary-sig-arg>image</span>,
+          <span class=summary-sig-arg>xcen</span>,
+          <span class=summary-sig-arg>ycen</span>)</span></code>
+<br />
+getSecondMoment(image,xcen,ycen)</td></tr>
+</table><br />
+
+
+<!-- =========== START OF FUNCTION DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Function Details</th></tr>
+</table>
+
+<a name="getChainCode"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">getChainCode</span>(<span class=sig-arg>image</span>,
+          <span class=sig-arg>npix</span>)</span>
+  </h3>
+  getChainCode(image, npix)
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="getFirstMoment"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">getFirstMoment</span>(<span class=sig-arg>image</span>,
+          <span class=sig-arg>xcen</span>,
+          <span class=sig-arg>ycen</span>)</span>
+  </h3>
+  getFirstMoment(image,xcen,ycen)
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="getMoment_pq"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">getMoment_pq</span>(<span class=sig-arg>xpos</span>,
+          <span class=sig-arg>ypos</span>,
+          <span class=sig-arg>p</span>,
+          <span class=sig-arg>q</span>)</span>
+  </h3>
+  getMoment_pq(xpos,ypos,p,q)
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="getMoments"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">getMoments</span>(<span class=sig-arg>image</span>,
+          <span class=sig-arg>xcen</span>,
+          <span class=sig-arg>ycen</span>)</span>
+  </h3>
+  getMoments(image,xcen,ycen)
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="getSecondMoment"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">getSecondMoment</span>(<span class=sig-arg>image</span>,
+          <span class=sig-arg>xcen</span>,
+          <span class=sig-arg>ycen</span>)</span>
+  </h3>
+  getSecondMoment(image,xcen,ycen)
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="multireg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" align="right" width="100%">
+      <table border="0" cellpadding="0" cellspacing="0">
+      <tr><th class="navbar" align="center">
+        <p class="nomargin">
+          ImageShift
+      </p></th></tr></table>
+    </th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 2.1 on Thu Dec 15 11:34:34 2005</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>

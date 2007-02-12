@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>multireg.morph</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="multireg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" align="right" width="100%">
+      <table border="0" cellpadding="0" cellspacing="0">
+      <tr><th class="navbar" align="center">
+        <p class="nomargin">
+          ImageShift
+      </p></th></tr></table>
+    </th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <font size="-1"><b class="breadcrumbs">
+        <a href="multireg-module.html">Package&nbsp;multireg</a> ::
+        Module&nbsp;morph
+      </b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[<a href="../private/multireg.morph-module.html">show&nbsp;private</a>&nbsp;|&nbsp;hide&nbsp;private]</font></td></tr>
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="multireg.morph-module.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td>
+</tr></table>
+
+<!-- =========== START OF MODULE DESCRIPTION =========== -->
+<h2 class="module">Module multireg.morph</h2>
+
+
+<!-- =========== START OF FUNCTION SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Function Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#closehole" class="summary-sig-name"><code>closehole</code></a>(<span class=summary-sig-arg>f</span>)</span></code>
+<br />
+- Purpose
+    Close holes of binary and gray-scale images.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#closing_by_recon" class="summary-sig-name"><code>closing_by_recon</code></a>(<span class=summary-sig-arg>image</span>,
+          <span class=summary-sig-arg>size</span>)</span></code>
+<br />
+Implements closing by reconstruction of size n of image as defined on 
+p.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="gauss"></a><span class="summary-sig"><span class="summary-sig-name">gauss</span>(<span class=summary-sig-arg>sigma</span>,
+          <span class=summary-sig-arg>dist</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#geodesic_dilation" class="summary-sig-name"><code>geodesic_dilation</code></a>(<span class=summary-sig-arg>marker</span>,
+          <span class=summary-sig-arg>mask</span>)</span></code>
+<br />
+Perform geodesic dilation based on algorithm on p.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#geodesic_erosion" class="summary-sig-name"><code>geodesic_erosion</code></a>(<span class=summary-sig-arg>marker</span>,
+          <span class=summary-sig-arg>mask</span>)</span></code>
+<br />
+Perform Geodesic erosion based on algorithm on p.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#geodesic_erosion1d" class="summary-sig-name"><code>geodesic_erosion1d</code></a>(<span class=summary-sig-arg>marker</span>,
+          <span class=summary-sig-arg>mask</span>)</span></code>
+<br />
+Perform Geodesic erosion (in 1D) based on algorithm on p.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#grey_chm_transform" class="summary-sig-name"><code>grey_chm_transform</code></a>(<span class=summary-sig-arg>array</span>,
+          <span class=summary-sig-arg>fg</span>,
+          <span class=summary-sig-arg>bg</span>,
+          <span class=summary-sig-arg>origin</span>)</span></code>
+<br />
+Perform Grey-scale constrained-hit-or-miss transform
+   based on algorithm from pg.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#grey_uhm_transform" class="summary-sig-name"><code>grey_uhm_transform</code></a>(<span class=summary-sig-arg>array</span>,
+          <span class=summary-sig-arg>fg</span>,
+          <span class=summary-sig-arg>bg</span>)</span></code>
+<br />
+Perform grey-scale unconstrained hit-or-miss transform
+based on the algorithm from p 143 of Soille 2002.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#limits" class="summary-sig-name"><code>limits</code></a>(<span class=summary-sig-arg>f</span>)</span></code>
+<br />
+- Purpose
+    Get the possible minimum and maximum of an image.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="makegauss"></a><span class="summary-sig"><span class="summary-sig-name">makegauss</span>(<span class=summary-sig-arg>shape</span>,
+          <span class=summary-sig-arg>sigma</span>,
+          <span class=summary-sig-arg>norm</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#numneg" class="summary-sig-name"><code>numneg</code></a>(<span class=summary-sig-arg>f</span>)</span></code>
+<br />
+- Purpose
+    Negate an image.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#opening_by_recon" class="summary-sig-name"><code>opening_by_recon</code></a>(<span class=summary-sig-arg>image</span>,
+          <span class=summary-sig-arg>size</span>)</span></code>
+<br />
+Implements opening by reconstruction of size n of image as defined on 
+p.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#point_maximum" class="summary-sig-name"><code>point_maximum</code></a>(<span class=summary-sig-arg>array</span>,
+          <span class=summary-sig-arg>mask</span>)</span></code>
+<br />
+Return a point-wise maximum array based on the mask image.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#point_minimum" class="summary-sig-name"><code>point_minimum</code></a>(<span class=summary-sig-arg>array</span>,
+          <span class=summary-sig-arg>mask</span>)</span></code>
+<br />
+Return a point-wise minimum array based on the mask image.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#recon_by_dilation" class="summary-sig-name"><code>recon_by_dilation</code></a>(<span class=summary-sig-arg>marker</span>,
+          <span class=summary-sig-arg>mask</span>,
+          <span class=summary-sig-arg>max_iter</span>)</span></code>
+<br />
+Iterate over geodesic dilation operations
+until dilation(j+1) = dilation(j).</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#recon_by_erosion" class="summary-sig-name"><code>recon_by_erosion</code></a>(<span class=summary-sig-arg>marker</span>,
+          <span class=summary-sig-arg>mask</span>,
+          <span class=summary-sig-arg>max_iter</span>)</span></code>
+<br />
+Iterate over geodesic erosion operations
+until erosion(j+1) = erosion(j).</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#transform_concave" class="summary-sig-name"><code>transform_concave</code></a>(<span class=summary-sig-arg>marker</span>,
+          <span class=summary-sig-arg>interval</span>)</span></code>
+<br />
+Perform h-concave transformation using algorithm
+specified on pg.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.morph-module.html#transform_convex" class="summary-sig-name"><code>transform_convex</code></a>(<span class=summary-sig-arg>marker</span>,
+          <span class=summary-sig-arg>interval</span>)</span></code>
+<br />
+Perform h-convex transformation using algorithm
+specified on pg.</td></tr>
+</table><br />
+
+
+<!-- =========== START OF FUNCTION DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Function Details</th></tr>
+</table>
+
+<a name="closehole"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">closehole</span>(<span class=sig-arg>f</span>)</span>
+  </h3>
+<pre class="literalblock">
+- Purpose
+    Close holes of binary and gray-scale images.
+- Synopsis
+    y = closehole(f, Bc=None)
+- Input
+    f:  Gray-scale (uint8 or uint16) or binary image.
+    Bc: Structuring Element Default: None (3x3 elementary cross). (
+        connectivity).
+- Output
+    y: (same datatype of f ).
+- Description
+    mmclohole creates the image y by closing the holes of the image
+    f , according with the connectivity defined by the structuring
+    element Bc .The images can be either binary or gray-scale.
+- Examples
+    #
+    #   example 1
+    #
+    a = mmreadgray('pcb1bin.tif')
+    b = closehole(a)
+    mmshow(a)
+    mmshow(b)
+    #
+    #   example 2
+    #
+    a = mmreadgray('boxdrill-B.tif')
+    b = closehole(a)
+    mmshow(a)
+    mmshow(b)
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="closing_by_recon"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">closing_by_recon</span>(<span class=sig-arg>image</span>,
+          <span class=sig-arg>size</span>=<span class=sig-default>3</span>)</span>
+  </h3>
+  <p>Implements closing by reconstruction of size n of image as defined 
+  on p. 211, P. Soille, 2002.</p>
+  closing = recon_by_erosion (dilation(image,size),image)
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="geodesic_dilation"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">geodesic_dilation</span>(<span class=sig-arg>marker</span>,
+          <span class=sig-arg>mask</span>)</span>
+  </h3>
+  Perform geodesic dilation based on algorithm on p. 185 of Soille 
+  (2002).
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="geodesic_erosion"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">geodesic_erosion</span>(<span class=sig-arg>marker</span>,
+          <span class=sig-arg>mask</span>)</span>
+  </h3>
+  Perform Geodesic erosion based on algorithm on p. 168, P. Soille, 
+  2002.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="geodesic_erosion1d"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">geodesic_erosion1d</span>(<span class=sig-arg>marker</span>,
+          <span class=sig-arg>mask</span>)</span>
+  </h3>
+  Perform Geodesic erosion (in 1D) based on algorithm on p. 168, P. 
+  Soille, 2002.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="grey_chm_transform"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">grey_chm_transform</span>(<span class=sig-arg>array</span>,
+          <span class=sig-arg>fg</span>,
+          <span class=sig-arg>bg</span>,
+          <span class=sig-arg>origin</span>=<span class=sig-default>0</span>)</span>
+  </h3>
+<pre class="literalblock">
+Perform Grey-scale constrained-hit-or-miss transform
+   based on algorithm from pg. 145, Soille (2002).
+   Example based on Fig 5.4 (pg 144, Soille 2002).
+
+Input:
+   array: gray-scale array (1-D or 2-D)
+   fg   : foreground mask array (UInt8 only)
+   bg   : background mask array (UInt8 only)
+
+ Example:
+   f = N.array([3, 3, 3, 0, 1, 6, 2, 1, 7, 5, 1, 0, 4, 6, 7, 3, 3, 3], 
+               type=Int8)
+   B = N.array([0,0,1,1],N.UInt8)
+   Bc = N.array([1,1,0,0,1,1],N.UInt8)
+   chm = morph.grey_chm_transform(f,B,Bc)
+   print chm
+   array([0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 2, 0, 0, 0, 0], type=Int8)
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="grey_uhm_transform"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">grey_uhm_transform</span>(<span class=sig-arg>array</span>,
+          <span class=sig-arg>fg</span>,
+          <span class=sig-arg>bg</span>)</span>
+  </h3>
+<pre class="literalblock">
+Perform grey-scale unconstrained hit-or-miss transform
+based on the algorithm from p 143 of Soille 2002.
+
+Input:
+   array: gray-scale array (1-D or 2-D)
+   fg   : foreground mask array (UInt8 only)
+   bg   : background mask array (UInt8 only)
+
+ Example:
+   f = N.array([3, 3, 3, 0, 1, 6, 2, 1, 7, 5, 1, 0, 4, 6, 7, 3, 3, 3], 
+               type=Int8)
+   B = N.array([0,0,1,1],N.UInt8)
+   Bc = N.array([1,1,0,0,1,1],N.UInt8)
+   chm = morph.grey_uchm_transform(f,B,Bc)
+   print chm
+   array([0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 2, 0, 0, 0, 0], type=Int8)
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="limits"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">limits</span>(<span class=sig-arg>f</span>)</span>
+  </h3>
+<pre class="literalblock">
+- Purpose
+    Get the possible minimum and maximum of an image.
+- Synopsis
+    y = limits(f)
+- Input
+    f: Unsigned gray-scale (uint8 or uint16), signed (int32) or
+       binary image.
+- Output
+    y: Vector, the first element is the infimum, the second, the
+       supremum.
+- Description
+    The possible minimum and the possible maximum of an image depend
+    on its data type. These values are important to compute many
+    morphological operators (for instance, negate of an image). The
+    output is a vector, where the first element is the possible
+    minimum and the second, the possible maximum.
+- Examples
+    #
+    print limits(mmbinary([0, 1, 0]))
+    print limits(uint8([0, 1, 2]))
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="numneg"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">numneg</span>(<span class=sig-arg>f</span>)</span>
+  </h3>
+<pre class="literalblock">
+- Purpose
+    Negate an image.
+- Synopsis
+    y = numneg(f)
+- Input
+    f: Unsigned gray-scale (uint8 or uint16), signed (int32) or
+       binary image.
+- Output
+    y: Unsigned gray-scale (uint8 or uint16), signed (int32) or
+       binary image.
+- Description
+    mmneg returns an image y that is the negation (i.e., inverse or
+    involution) of the image f . In the binary case, y is the
+    complement of f .
+- Examples
+    #
+    #   example 1
+    #
+    f=uint8([255, 255, 0, 10, 20, 10, 0, 255, 255])
+    print numneg(f)
+    print numneg(uint8([0, 1]))
+    print numneg(int32([0, 1]))
+    #
+    #   example 2
+    #
+    a = mmreadgray('gear.tif')
+    b = nummneg(a)
+    mmshow(a)
+    mmshow(b)
+    #
+    #   example 3
+    #
+    c = mmreadgray('astablet.tif')
+    d = nummneg(c)
+    mmshow(c)
+    mmshow(d)
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="opening_by_recon"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">opening_by_recon</span>(<span class=sig-arg>image</span>,
+          <span class=sig-arg>size</span>=<span class=sig-default>3</span>)</span>
+  </h3>
+  <p>Implements opening by reconstruction of size n of image as defined 
+  on p. 210, P. Soille, 2002.</p>
+  opening = recon_by_dilation (erosion(image,size),image)
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="point_maximum"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">point_maximum</span>(<span class=sig-arg>array</span>,
+          <span class=sig-arg>mask</span>)</span>
+  </h3>
+  Return a point-wise maximum array based on the mask image.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="point_minimum"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">point_minimum</span>(<span class=sig-arg>array</span>,
+          <span class=sig-arg>mask</span>)</span>
+  </h3>
+  Return a point-wise minimum array based on the mask image.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="recon_by_dilation"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">recon_by_dilation</span>(<span class=sig-arg>marker</span>,
+          <span class=sig-arg>mask</span>,
+          <span class=sig-arg>max_iter</span>=<span class=sig-default>10</span>)</span>
+  </h3>
+<pre class="literalblock">
+Iterate over geodesic dilation operations
+until dilation(j+1) = dilation(j).
+Perform Geodesic dilation based on
+algorithm on p. 190-191, P. Soille, 2002. 
+This can be referenced as:
+  R^delta_mask(marker)
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="recon_by_erosion"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">recon_by_erosion</span>(<span class=sig-arg>marker</span>,
+          <span class=sig-arg>mask</span>,
+          <span class=sig-arg>max_iter</span>=<span class=sig-default>10</span>)</span>
+  </h3>
+<pre class="literalblock">
+Iterate over geodesic erosion operations
+until erosion(j+1) = erosion(j).
+Perform Geodesic erosion based on
+algorithm on p. 191-192, P. Soille, 2002. 
+This can be referenced as:
+  R^epsilon_mask(marker)
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="transform_concave"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">transform_concave</span>(<span class=sig-arg>marker</span>,
+          <span class=sig-arg>interval</span>=<span class=sig-default>10</span>)</span>
+  </h3>
+<pre class="literalblock">
+Perform h-concave transformation using algorithm
+specified on pg. 203 of Soille (2002).
+The algorithm can be stated as:
+
+    HMIN_h(f) = recon_by_erosion(f+h,f)  
+    HCONCAVE_h(f) = HMIN_h(f) - f
+
+where f = marker, h = interval.
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="transform_convex"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">transform_convex</span>(<span class=sig-arg>marker</span>,
+          <span class=sig-arg>interval</span>=<span class=sig-default>10</span>)</span>
+  </h3>
+<pre class="literalblock">
+Perform h-convex transformation using algorithm
+specified on pg. 203 of Soille (2002).
+The algorithm can be stated as:
+
+    HMAX_h(f) = recon_by_dilation(f+h,f)  
+    HCONVEX_h(f) = f - HMAX_h(f)
+
+where f = marker, h = interval.
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="multireg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" align="right" width="100%">
+      <table border="0" cellpadding="0" cellspacing="0">
+      <tr><th class="navbar" align="center">
+        <p class="nomargin">
+          ImageShift
+      </p></th></tr></table>
+    </th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 2.1 on Thu Dec 15 12:27:06 2005</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>

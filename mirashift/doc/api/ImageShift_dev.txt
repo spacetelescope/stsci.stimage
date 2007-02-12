@@ -1,0 +1,100 @@
+MultiReg Development Notes
+
+Warren J. Hack
+15 December 2005
+
+Overview
+========
+The 'multireg' package contains the code developed so far to apply multi-scale
+techniques to HST data for the purposes of image registration; thus, the name.
+This package also relies on several other techniques for the image registration, 
+including the ImageShift algorithm publised by Dai and Khorram (1999) and the use 
+of a simple distance matrix to do the final selection of valid matched pairs of 
+extracted objects.  The final result would be a computed shift between an input
+image and a reference image which can then be passed along to MultiDrizzle to
+perform the final alignment. 
+
+
+
+Order of Operations
+===================
+This package was designed around the use of several key classes to
+keep track of the information related to each chip as well as to each
+observation (set of chips).  In addition, several generic functions
+are also provided, some as numarray based C extensions.  
+
+The computations, as developed to this point, proceed as follows:
+    1.  Instantiate ImageShift() instance.
+          -> parse input 
+          -> instantiate PyDrizzle() object for inputs
+          -> build ObservationList for all inputs
+          -> identify reference image and input image list
+    2. Building Observation List processing includes:
+          -> instantiate Chip() object for each chip of an observation
+          -> instantiate Observation() object for each new observation
+          -> add Chip() object to Observation() object
+    3. Creating the Chip object requires:
+          -> creating distortion corrected view of single chip 
+            using PyDrizzle 'runDriz()' method
+          -> extracting photometric information for chip
+          -> creating a mask of distortion corrected chip to mark borders
+          -> create multi-scale views of chip
+          -> instantiate ObjectList() object 
+          -> delete multi-scale views of chip
+    4.  The ObjectList class controls extraction and identification of 
+        objects from an array using:
+          -> compute zero-crossing edges of image array
+          -> segment array into separate identifiable Object() instances
+    5.  The Object() class encapsulates the objects characteristics using:
+          -> compute chain-code for object's edge
+          -> compute invariant moments for object region 
+    6.  ImageShift's '.run()' method controls the actual shift computations
+            based on ImageShift algorithm.
+          -> uses '_step*()' functions defined in 'chipwavelets.py' to perform
+            each step of the ImageShift algorithm to compute a shift between
+            two images.
+
+The currently developed algorithm does not yet iterate the solution from one
+resolution down to the native resolution, or compute the shifts for entire
+sets of images yet.  
+
+
+
+Extension Code
+===============
+The functions provided by 'chainMoments.so' and 'expandArray.so' have been 
+setup as part of my personal 'pytools' package, under the 'src' directory. This 
+code can be found in:
+/data/chulak1/dev/release/pytools
+
+This allows the code to be developed, compiled, and installed in my local dev
+directory in a simple manner using the 'distutils' mechanism. 
+
+
+
+Developmental/Unit Testing
+==========================
+Development of each class involved some interactive verification of the operation
+of the class and its methods.  This verification (testing) used interactive 
+commands recorded in 'cleanImage.notes'.  That file contains sections with titles
+describing the purpose of each separate test, although some tests include 
+commands for more introspection in order to provide better diagnostics.  The
+tests also serve as examples of not only how to run the code, but how to perform
+introspection and use those results for further processing.
+
+The top 2 tests provide the highest level views into the use of this code, while the 
+subsequent tests delve deeper into the functionality or perform experiments useful
+for development of the algorithms themselves.  Only the first two tests are guaranteed
+to work with the latest code.  
+
+
+
+Additional Documentation
+=========================
+The API interface has been generated using 'epydoc' under the 'api' directory,
+both in PDF and HTML formats, based on the code found in:
+
+/data/chulak1/dev/Multidrizzle/multireg
+
+
+

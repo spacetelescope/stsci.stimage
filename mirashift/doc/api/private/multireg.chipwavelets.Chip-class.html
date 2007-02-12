@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>multireg.chipwavelets.Chip</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="multireg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" align="right" width="100%">
+      <table border="0" cellpadding="0" cellspacing="0">
+      <tr><th class="navbar" align="center">
+        <p class="nomargin">
+          ImageShift
+      </p></th></tr></table>
+    </th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <font size="-1"><b class="breadcrumbs">
+        <a href="multireg-module.html">Package&nbsp;multireg</a> ::
+        <a href="multireg.chipwavelets-module.html">Module&nbsp;chipwavelets</a> ::
+        Class&nbsp;Chip
+      </b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[show&nbsp;private&nbsp;|&nbsp;<a href="../public/multireg.chipwavelets.Chip-class.html">hide&nbsp;private</a>]</font></td></tr>
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="multireg.chipwavelets.Chip-class.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td>
+</tr></table>
+
+<!-- =========== START OF CLASS DESCRIPTION =========== -->
+<h2 class="class">Class Chip</h2>
+
+<hr/>
+
+<pre class="literalblock">
+This class keeps track of all the wavelet transformations
+for a chip, and performs the object finding on those transformed
+images.
+
+Input:
+    imagename   - full image name complete with extension
+                    such as 'test_flt.fits[sci,1]'.
+    imagearray  - numarray object containing the science data for image
+    offset      - zero-point offset of chip relative to final output frame
+    pyasn       - PyDrizzle object relating image to output frame
+                    if None, perform no distortion correction in positions
+    scale       - Number of wavelet transformations to apply to image
+    form        - form of wavelet interpolation: spline or linear (default)
+    photzpt     - photometric zero-point appropriate for this chip
+    photflam    - photometric conversion factor to convert counts to flux
+Methods:
+    getPositions(scale=0)       
+        - returns list of undistorted positions for objects 
+            identified at specified wavelet transformation scale
+    getRawPositions(scale=0)    
+        - returns list of original positions for objects identified
+            at specified wavelet transformation scale
+</pre>
+<hr/>
+
+
+<!-- =========== START OF METHOD SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Method Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="__init__"></a><span class="summary-sig"><span class="summary-sig-name">__init__</span>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>exposure</span>,
+          <span class=summary-sig-arg>keep_wavelets</span>,
+          <span class=summary-sig-arg>scale</span>,
+          <span class=summary-sig-arg>form</span>,
+          <span class=summary-sig-arg>median</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="addDelta"></a><span class="summary-sig"><span class="summary-sig-name">addDelta</span>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>delta</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="cleanWavelets"></a><span class="summary-sig"><span class="summary-sig-name">cleanWavelets</span>(<span class=summary-sig-arg>self</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="computeRange"></a><span class="summary-sig"><span class="summary-sig-name">computeRange</span>(<span class=summary-sig-arg>self</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.chipwavelets.Chip-class.html#getFluxes" class="summary-sig-name"><code>getFluxes</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>scale</span>,
+          <span class=summary-sig-arg>units</span>)</span></code>
+<br />
+Returns fluxes for all objects.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.chipwavelets.Chip-class.html#getMask" class="summary-sig-name"><code>getMask</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Return expanded version of mask for chip in output frame.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.chipwavelets.Chip-class.html#outputPositions" class="summary-sig-name"><code>outputPositions</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>output</span>,
+          <span class=summary-sig-arg>scale</span>,
+          <span class=summary-sig-arg>clean</span>)</span></code>
+<br />
+Writes extracted undistorted positions to output ASCII file.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="setDelta"></a><span class="summary-sig"><span class="summary-sig-name">setDelta</span>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>delta</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="../private/multireg.chipwavelets.Chip-class.html#__setObjectList" class="summary-sig-name"><code>__setObjectList</code></a>(<span class=summary-sig-arg>self</span>)</span></code>
+<br />
+Build full object list for all wavelet scales.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="../private/multireg.chipwavelets.Chip-class.html#_convertCountsToMag" class="summary-sig-name"><code>_convertCountsToMag</code></a>(<span class=summary-sig-arg>self</span>,
+          <span class=summary-sig-arg>objlist</span>)</span></code>
+<br />
+Iterates through an objlist and converts the listed counts to a 
+magnitude.</td></tr>
+</table><br />
+
+
+<!-- =========== START OF METHOD DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Method Details</th></tr>
+</table>
+
+<a name="getFluxes"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">getFluxes</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>scale</span>=<span class=sig-default>0</span>,
+          <span class=sig-arg>units</span>=<span class=sig-default>'mag'</span>)</span>
+  </h3>
+  Returns fluxes for all objects. If units='mag', fluxes will be 
+  returned as magnitudes rather than electrons/counts/ADUs based on 
+  photometric keywords read in for this chip.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="getMask"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">getMask</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Return expanded version of mask for chip in output frame.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="outputPositions"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">outputPositions</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>output</span>,
+          <span class=sig-arg>scale</span>=<span class=sig-default>0</span>,
+          <span class=sig-arg>clean</span>=<span class=sig-default>True</span>)</span>
+  </h3>
+  Writes extracted undistorted positions to output ASCII file.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="__setObjectList"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">__setObjectList</span>(<span class=sig-arg>self</span>)</span>
+  </h3>
+  Build full object list for all wavelet scales.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="_convertCountsToMag"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">_convertCountsToMag</span>(<span class=sig-arg>self</span>,
+          <span class=sig-arg>objlist</span>)</span>
+  </h3>
+  Iterates through an objlist and converts the listed counts to a 
+  magnitude. It also computes weighting factor which can be used in 
+  matching sources, and appends it to each object. The weighting was 
+  designed to return values from -15 (bright) to 0 (faint).
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="multireg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" align="right" width="100%">
+      <table border="0" cellpadding="0" cellspacing="0">
+      <tr><th class="navbar" align="center">
+        <p class="nomargin">
+          ImageShift
+      </p></th></tr></table>
+    </th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 2.1 on Thu Dec 15 12:27:06 2005</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>

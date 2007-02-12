@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>multireg.findobjects</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css"></link>
+</head>
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="multireg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" align="right" width="100%">
+      <table border="0" cellpadding="0" cellspacing="0">
+      <tr><th class="navbar" align="center">
+        <p class="nomargin">
+          ImageShift
+      </p></th></tr></table>
+    </th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <font size="-1"><b class="breadcrumbs">
+        <a href="multireg-module.html">Package&nbsp;multireg</a> ::
+        Module&nbsp;findobjects
+      </b></font></br>
+    </td>
+    <td><table cellpadding="0" cellspacing="0">
+      <tr><td align="right"><font size="-2">[<a href="../private/multireg.findobjects-module.html">show&nbsp;private</a>&nbsp;|&nbsp;hide&nbsp;private]</font></td></tr>
+      <tr><td align="right"><font size="-2">[<a href="frames.html"target="_top">frames</a>&nbsp;|&nbsp;<a href="multireg.findobjects-module.html" target="_top">no&nbsp;frames</a>]</font></td></tr>
+    </table></td>
+</tr></table>
+
+<!-- =========== START OF MODULE DESCRIPTION =========== -->
+<h2 class="module">Module multireg.findobjects</h2>
+
+
+<!-- =========== START OF FUNCTION SUMMARY =========== -->
+<table class="summary" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <th colspan="2">Function Summary</th></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.findobjects-module.html#build_LOGKernel" class="summary-sig-name"><code>build_LOGKernel</code></a>(<span class=summary-sig-arg>size</span>,
+          <span class=summary-sig-arg>sigma</span>)</span></code>
+<br />
+Build an LoG kernel of arbitrary size</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.findobjects-module.html#center1d" class="summary-sig-name"><code>center1d</code></a>(<span class=summary-sig-arg>region</span>)</span></code>
+<br />
+Compute the center of gravity of a 1-d array.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="DEGTORAD"></a><span class="summary-sig"><span class="summary-sig-name">DEGTORAD</span>(<span class=summary-sig-arg>deg</span>)</span></code>
+</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.findobjects-module.html#discriminate_source" class="summary-sig-name"><code>discriminate_source</code></a>(<span class=summary-sig-arg>array</span>,
+          <span class=summary-sig-arg>labels</span>,
+          <span class=summary-sig-arg>idnum</span>)</span></code>
+<br />
+For source number 'idnum' from labels, determine whether it is a 
+positive feature or the edge of a larger source.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.findobjects-module.html#find_center" class="summary-sig-name"><code>find_center</code></a>(<span class=summary-sig-arg>region</span>)</span></code>
+<br />
+Compute the center of a star using MPC algorithm.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.findobjects-module.html#get_positions" class="summary-sig-name"><code>get_positions</code></a>(<span class=summary-sig-arg>input</span>,
+          <span class=summary-sig-arg>sigma</span>,
+          <span class=summary-sig-arg>size</span>,
+          <span class=summary-sig-arg>offset</span>,
+          <span class=summary-sig-arg>region</span>,
+          <span class=summary-sig-arg>thin</span>)</span></code>
+<br />
+Process the input array to return the list of positions that correspond
+to all objects.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><span class="summary-sig"><a href="multireg.findobjects-module.html#LOG_function" class="summary-sig-name"><code>LOG_function</code></a>(<span class=summary-sig-arg>x</span>,
+          <span class=summary-sig-arg>y</span>,
+          <span class=summary-sig-arg>s</span>)</span></code>
+<br />
+Return Laplacian-of-Gaussian for a given position with a width of 
+sigma s.</td></tr>
+<tr><td align="right" valign="top" width="15%"><font size="-1">&nbsp;</font></td>
+  <td><code><a name="RADTODEG"></a><span class="summary-sig"><span class="summary-sig-name">RADTODEG</span>(<span class=summary-sig-arg>rad</span>)</span></code>
+</td></tr>
+</table><br />
+
+
+<!-- =========== START OF FUNCTION DETAILS =========== -->
+<table class="details" border="1" cellpadding="3" cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <th colspan="2">Function Details</th></tr>
+</table>
+
+<a name="build_LOGKernel"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">build_LOGKernel</span>(<span class=sig-arg>size</span>,
+          <span class=sig-arg>sigma</span>)</span>
+  </h3>
+  Build an LoG kernel of arbitrary size
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="center1d"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">center1d</span>(<span class=sig-arg>region</span>)</span>
+  </h3>
+  Compute the center of gravity of a 1-d array. Based on 
+  'mpc_getcenter' from IRAF imutil task 'center' in the cl.proto 
+  package.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="discriminate_source"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">discriminate_source</span>(<span class=sig-arg>array</span>,
+          <span class=sig-arg>labels</span>,
+          <span class=sig-arg>idnum</span>)</span>
+  </h3>
+  For source number 'idnum' from labels, determine whether it is a 
+  positive feature or the edge of a larger source. It will return 0 for 
+  an edge and 1 for a source.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="find_center"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">find_center</span>(<span class=sig-arg>region</span>)</span>
+  </h3>
+<pre class="literalblock">
+Compute the center of a star using MPC algorithm. 
+Based on 'mpc_cntr' from IRAF imutil task 'center'
+in the cl.proto package.
+
+Syntax:
+    center = find_center(region)
+Input:
+    region - slice of array around target star
+Output: 
+    center - array position of center as (y,x)
+                relative to region origin
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="get_positions"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">get_positions</span>(<span class=sig-arg>input</span>,
+          <span class=sig-arg>sigma</span>=<span class=sig-default>2.0</span>,
+          <span class=sig-arg>size</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>offset</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>region</span>=<span class=sig-default>None</span>,
+          <span class=sig-arg>thin</span>=<span class=sig-default>False</span>)</span>
+  </h3>
+<pre class="literalblock">
+Process the input array to return the list of positions that correspond
+to all objects.
+
+This function relies on Numarray nd_image module for its operations.
+Syntax:
+    poslist,object,raw = get_positions(input,offset=(0.,0.),region=None)
+    
+Input: 
+    input   :  numarray array of the (wavelet scaled?) science data
+                this array should correspond to slice specified in 'region'
+    sigma   : sigma for gaussian for source/edge detection in image
+    size    :  detection limit for objects, typically the size of the kernel
+                used to filter input image. If None, no minimum size
+                will be imposed. Default: None
+    offset  : pixel offset of chip relative to final output frame
+    region  : slice from full frame array to be used for object detection
+    thin    : use homotropic thinning algorithm to extract line segments 
+                corresponding to detected edges, rather than border of 
+                identified edge region. This algorithm currently runs
+                MUCH SLOWER than border extraction.
+            
+Output:
+    poslist,objects,rawlist
+    where
+        poslist: list of positions for identified objects
+        objects: list of slices corresponding to identified objects
+        rawlist: list of positions for identified objects from array
+        
+    poslist and rawlist are of the form:
+        [id, position, mag]
+    where:
+        id      :  target number from chip (integer)
+        position:  list of position(s) given as x,y pairs (list of lists)
+        counts  :  photometry for position(s)(float): 
+                    sum of masked region for sources, mean value for edges
+    The positions reported in these lists correspond either to a single 
+    position for a positive source (star,small galaxy,...) or a list of 
+    x,y pixels which correspond to edge features in image.
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+
+<a name="LOG_function"></a>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <h3><span class="sig"><span class="sig-name">LOG_function</span>(<span class=sig-arg>x</span>,
+          <span class=sig-arg>y</span>,
+          <span class=sig-arg>s</span>)</span>
+  </h3>
+  Return Laplacian-of-Gaussian for a given position with a width of 
+  sigma s.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+<br />
+
+
+<!-- =========== START OF NAVBAR =========== -->
+<table class="navbar" border="0" width="100%" cellpadding="0" bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="center">
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="multireg-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar" href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+    <th class="navbar" align="right" width="100%">
+      <table border="0" cellpadding="0" cellspacing="0">
+      <tr><th class="navbar" align="center">
+        <p class="nomargin">
+          ImageShift
+      </p></th></tr></table>
+    </th>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <td align="left"><font size="-2">Generated by Epydoc 2.1 on Thu Dec 15 12:27:06 2005</font></td>
+    <td align="right"><a href="http://epydoc.sourceforge.net"
+                      ><font size="-2">http://epydoc.sf.net</font></a></td>
+  </tr>
+</table>
+</body>
+</html>
