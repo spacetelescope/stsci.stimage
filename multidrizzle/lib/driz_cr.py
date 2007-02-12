@@ -39,8 +39,8 @@
 #                                   system defined integer (eg., Int64 for 64-bit systems). -- WJH
 
 # Import external packages
-import numerix as N
-from numerix import convolve as NC
+import numpy as N
+import convolve as NC
 import pyfits
 import os
 

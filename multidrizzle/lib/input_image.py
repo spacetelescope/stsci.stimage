@@ -56,7 +56,7 @@ from imagestats import ImageStats
 import imageiter
 from imageiter import ImageIter
 
-import numerix as N
+import numpy as N
 import quickDeriv
 import driz_cr
 

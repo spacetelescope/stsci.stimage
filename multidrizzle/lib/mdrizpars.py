@@ -3,7 +3,7 @@ import mdzhandler
 import string
 import sys,types,os
 
-import numerix as N
+import numpy as N
 
 import fileutil
 from pydrizzle import traits102

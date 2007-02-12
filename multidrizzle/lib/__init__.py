@@ -1,7 +1,7 @@
 #import string
 import os, shutil, sys
 
-import numerix as N
+import numpy as N
 
 import pydrizzle
 from pydrizzle import drutil, buildasn, updateasn

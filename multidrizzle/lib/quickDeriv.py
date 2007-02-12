@@ -13,7 +13,7 @@
 __version__ = '0.1.0'
 
 # IMPORT EXTERNAL MODULES
-import numerix as N
+import numpy as N
 
 def qderiv(array): # TAKE THE ABSOLUTE DERIVATIVE OF A NUMARRY OBJECT
     """Take the absolute derivate of an image in memory."""

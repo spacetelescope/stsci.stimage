@@ -28,7 +28,7 @@ __version__ = '1.0.0'
 import pydrizzle
 import fileutil
 from input_image import InputImage
-import numerix as N
+import numpy as N
 
 class WFPC2InputImage (InputImage):
 

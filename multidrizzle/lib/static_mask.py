@@ -10,7 +10,7 @@
 #           application of the user's static file will now be handled by the
 #           ImageManager class in manager.py. -- CJH 
 
-import numerix as N
+import numpy as N
 
 import imagestats
 from imagestats import ImageStats

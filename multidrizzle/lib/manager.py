@@ -71,10 +71,8 @@
 #                                       to either counts or counts/second. -- DMG
 
 
-# Import Numarray functionality
-#from numerix import image
-#import image.combine as combine
-import numerix as N
+# Import numpy functionality
+import numpy as N
 
 # Import file utilities
 import pyfits

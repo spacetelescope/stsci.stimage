@@ -24,7 +24,7 @@ __version__ = '1.0.0'
 
 import pydrizzle
 import fileutil
-import numerix as N
+import numpy as N
 
 from input_image import InputImage
 
