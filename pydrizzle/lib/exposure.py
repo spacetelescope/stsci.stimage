@@ -22,7 +22,7 @@ from obsgeometry import ObsGeometry
 
 from math import ceil,floor
 
-import numerix as N
+import numpy as N
 
 yes = True  # 1
 no = False  # 0

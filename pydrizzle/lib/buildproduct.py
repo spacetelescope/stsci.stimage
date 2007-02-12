@@ -3,7 +3,7 @@ These functions rely on booleans for 'yes' and 'no', PyFITS and readgeis.
 """
 import pyfits, readgeis
 import string,os,types
-import numerix as N
+import numpy as N
 import fileutil
 
 # Required keywords to build an extension with WCS info

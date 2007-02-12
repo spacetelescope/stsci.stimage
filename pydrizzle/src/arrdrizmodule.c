@@ -2,13 +2,8 @@
 #include <string.h>
 #include <Python.h>
 
-#ifdef NUMPY
-    #include <numpy/arrayobject.h>
-    #include <numpy/libnumarray.h>
-#else
-    #include <arrayobject.h>
-    #include <libnumarray.h>
-#endif
+#include <numpy/arrayobject.h>
+#include <numpy/libnumarray.h>
 
 #include "f2c.h"
 

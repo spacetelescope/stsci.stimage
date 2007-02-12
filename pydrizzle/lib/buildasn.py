@@ -78,7 +78,7 @@ import time
 import pyfits
 #import numarray,chararray
 # New numarray 0.6 import mode
-import numerix as N
+import numpy as N
 
 from fileutil import readShiftFile,buildRootname
 import wcsutil

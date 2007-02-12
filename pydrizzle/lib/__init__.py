@@ -11,7 +11,7 @@ import buildmask, fileutil, wcsutil, drutil
 import outputimage, imtype
 from exposure import Exposure
 
-import numerix as N
+import numpy as N
 import pyfits
 
 #Add buildasn/updateasn to namespace for use by other programs

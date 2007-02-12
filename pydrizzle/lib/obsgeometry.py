@@ -4,7 +4,7 @@ from math import ceil,floor
 # Import PyDrizzle utility modules
 import fileutil, wcsutil, drutil
 
-import numerix as N
+import numpy as N
 from drutil import combin
 
 yes = True

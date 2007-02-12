@@ -34,7 +34,7 @@ import string,os,types
 import fileutil
 
 import pyfits,readgeis
-import numerix as N
+import numpy as N
 
 yes = True
 no = False

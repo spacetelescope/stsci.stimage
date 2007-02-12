@@ -1,8 +1,8 @@
 import string, copy, os
 
 import pyfits
-import numerix as N
-from numerix import char as C
+import numpy as N
+from numpy import char as C
 from math import *
 
 import pydrizzle,wcsutil

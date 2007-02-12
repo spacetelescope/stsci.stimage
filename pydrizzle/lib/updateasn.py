@@ -9,7 +9,7 @@ Version 0.5 (11-May-2005) (WJH) - Updated to package reference WCS as extension
 """
 import os,string
 import pyfits
-import numerix as N
+import numpy as N
 
 import pydrizzle
 from pydrizzle import buildasn

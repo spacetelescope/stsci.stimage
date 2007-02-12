@@ -18,8 +18,8 @@ tasks.
 import string,os,types
 from math import ceil,floor
 
-import numerix as N
-from numerix import linalg
+import numpy as N
+from numpy import linalg
 
 import fileutil
 from fileutil import buildRotMatrix
