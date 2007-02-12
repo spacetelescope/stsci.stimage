@@ -1,7 +1,7 @@
 import shutil, os, os.path
 
 PYFITS_MODULES = ['pyfits']
-PYTOOLS_MODULES = ['imageiter', 'nimageiter', 'numcombine', 'versioninfo', 'makewcs', 'irafglob', 'parseinput','iterfile', 'fitsdiff', 'readgeis', 'fileutil', 'wcsutil','linefit', 'nmpfit', 'gfit', 'xyinterp', 'numerixenv']
+PYTOOLS_MODULES = ['imageiter', 'nimageiter', 'numcombine', 'versioninfo', 'makewcs', 'irafglob', 'parseinput','iterfile', 'fitsdiff', 'readgeis', 'fileutil', 'wcsutil','linefit', 'nmpfit', 'gfit', 'xyinterp', 'numerixenv', 'numarray2numpy', 'numerixclass', 'numerix']
 STIS_MODULES = ['sshift', 'stisnoise', 'gettable', 'r_util', 'wavelen', 'evaldisp', 'radialvel', 'mktrace', 'wx2d']
 
 for f in PYFITS_MODULES:

@@ -18,11 +18,11 @@ pythonver = 'python' + ver
 args = sys.argv[2:]
 #data_dir = py_libs
 
-PACKAGES = ['pyraf','numdisplay', 'imagestats', 'multidrizzle', 'saaclean', 'pydrizzle', 'pydrizzle.traits102', 'puftcorr']
+PACKAGES = ['pyraf','numdisplay', 'imagestats', 'multidrizzle', 'saaclean', 'pydrizzle', 'pydrizzle.traits102', 'puftcorr', 'rnlincor']
 
 
 
-PACKAGE_DIRS = {'pyraf':'pyraf/lib','numdisplay':'numdisplay', 'imagestats':'imagestats/lib', 'multidrizzle':'multidrizzle/lib', 'saaclean':'saaclean/lib', 'pydrizzle':'pydrizzle/lib', 'pydrizzle.traits102':'pydrizzle/traits102', 'puftcorr':'puftcorr/lib'}
+PACKAGE_DIRS = {'pyraf':'pyraf/lib','numdisplay':'numdisplay', 'imagestats':'imagestats/lib', 'multidrizzle':'multidrizzle/lib', 'saaclean':'saaclean/lib', 'pydrizzle':'pydrizzle/lib', 'pydrizzle.traits102':'pydrizzle/traits102', 'puftcorr':'puftcorr/lib', 'rnlincor':'rnlincor/lib'}
 
 PYMODULES = PYFITS_MODULES + PYTOOLS_MODULES + STIS_MODULES
 
