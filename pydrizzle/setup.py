@@ -6,14 +6,32 @@ from distutils.command.install_data import install_data
 if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'alpha',0):
     raise SystemExit, "Python 2.3 or later required to build pydrizzle."
 
-try:
-    import numarray
-    from numarray.numarrayext import NumarrayExtension
-except:
-    raise ImportError("Numarray was not found. It may not be installed or it may not be on your PYTHONPATH\n")
+numpyStatus = False
+numarrayStatus = False
 
-if numarray.__version__ < "1.1":
-    raise SystemExit, "Numarray 1.1 or later required to build pydrizzle."
+if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'alpha',0):
+    raise SystemExit, "Python 2.3 or later required to build imagestats."
+
+try:
+    import numpy
+    numpyStatus = True
+    import numpy.numarray as nn
+    print "Building C extensions using NUMPY."
+
+except:
+    try:
+        import numarray
+        from numarray.numarrayext import NumarrayExtension
+        numarrayStatus = True
+        print "Building C extensions using NUMARRAY."
+
+    except:
+        raise ImportError("Neither NUMPY or NUMARRAY was not found. It may not be installed or it may not be on your PYTHONPATH")
+
+if numpyStatus:
+    numpyinc = numpy.get_include()
+    numpynumarrayinc = nn.get_numarray_include_dirs()
+
 pythonlib = sysconfig.get_python_lib(plat_specific=1)
 pythoninc = sysconfig.get_python_inc()
 ver = sysconfig.get_python_version()
@@ -77,12 +95,25 @@ def getF2CDirs(args):
                 raise SystemExit, "libf2c needed to build pydrizzle."
 
 
-def getExtensions():
+def getNumarrayExtensions():
     ext = [NumarrayExtension("pydrizzle.arrdriz",['src/arrdrizmodule.c',
-                                'src/tdriz.c','src/tblot.c',
+                                'src/tdriz.c','src/tblot.c','src/twdriz.c',
                                 'src/drutil.c','src/doblot.c','src/drcall.c',
                                 'src/inter2d.c','src/bieval.c'],
                    include_dirs=[pythoninc] + f2c_inc_dir,
+                   library_dirs=f2c_lib_dir,
+                   extra_link_args=EXTRA_LINK_ARGS,
+                   libraries=pydrizzle_libraries)]
+
+    return ext
+
+def getNumpyExtensions():
+    ext = [Extension("pydrizzle.arrdriz",['src/arrdrizmodule.c',
+                                'src/tdriz.c','src/tblot.c','src/twdriz.c',
+                                'src/drutil.c','src/doblot.c','src/drcall.c',
+                                'src/inter2d.c','src/bieval.c'],
+                   define_macros=[('NUMPY', '1')],
+                   include_dirs=[pythoninc] + [numpyinc]+ numpynumarrayinc+ f2c_inc_dir,
                    library_dirs=f2c_lib_dir,
                    extra_link_args=EXTRA_LINK_ARGS,
                    libraries=pydrizzle_libraries)]
@@ -109,5 +140,8 @@ def dosetup(ext):
 
 if __name__ == "__main__":
     getF2CDirs(args)
-    ext = getExtensions()
+    if numpyStatus:
+        ext = getNumpyExtensions()
+    else:
+        ext = getNumarrayExtensions()
     dosetup(ext)
