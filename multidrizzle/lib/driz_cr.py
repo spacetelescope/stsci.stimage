@@ -284,7 +284,7 @@ class DrizCR:
 
         """ Update the dqarray with the cosmic ray detection information using the provided bit value """
 
-        __bitarray = N.logical_not(self.crMask) * cr_bits_value
+        __bitarray = N.logical_not(self.crMask).astype(N.int16) * cr_bits_value
         N.bitwise_or(dqarray,__bitarray,dqarray)
 
     def createcrmaskfile(self,
