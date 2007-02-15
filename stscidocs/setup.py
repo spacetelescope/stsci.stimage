@@ -6,6 +6,7 @@ from distutils.sysconfig import *
 from distutils.command.install_data import install_data
 data_dir = []
 
+
 """
 This is not the most straightforward way to copy doc files
 but is the only possible that I see now. 'smart_install_data' is
