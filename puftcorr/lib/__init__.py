@@ -22,5 +22,5 @@ Dependencies:
 
 """
 from puftcorr import *
-__version__="0.15"
-__vdate__="2007-02-05"
+__version__="0.16"
+__vdate__="2007-02-16"

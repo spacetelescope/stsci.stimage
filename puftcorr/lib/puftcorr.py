@@ -1,4 +1,3 @@
-## Automatically adapted for numpy.numarray Feb 05, 2007 by 
 
 """
 puftcorr: Module for estimating and removing "Mr. Staypuft" signal from
@@ -37,13 +36,13 @@ import numerixenv  #Temporary NUMERIX environment check
 import os, sys, shutil
 import exceptions
 import math
-import numpy.numarray as numarray
+import numpy as N
 import ndimage
 import convolve as conv
 import pyfits
 
-__version__="0.15"
-__vdate__="2007-02-05"
+__version__="0.16"
+__vdate__="2007-02-16"
 
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
@@ -112,7 +111,7 @@ class InputFile:
 	self.dark = pyfits.open(self.darkname)
 
         # load the zeroth-read image for use later
-	self.zread = f['sci',self.nsamp].data.astype('Float32')
+	self.zread = f['sci',self.nsamp].data.astype(N.dtype('float32'))
  
 
 class Readout:
@@ -120,7 +119,7 @@ class Readout:
     def __init__(self,input,sampnum):
 
 	self.imset  = sampnum
-        self.data   = input.f['sci',self.imset].data.astype('Float32')
+        self.data   = input.f['sci',self.imset].data.astype(N.dtype('float32'))
 	self.header = input.f['sci',self.imset].header
         self.npix   = self.header['naxis1']
 
@@ -172,16 +171,16 @@ def get_totsig (im,la):
     q4 = im.data[0:ln1,ln1:ln2]
    
     # transpose axes
-    q1 = numarray.transpose(q1)
-    q2 = numarray.transpose(q2)
-    q3 = numarray.transpose(q3)
-    q4 = numarray.transpose(q4)
+    q1 = N.transpose(q1)
+    q2 = N.transpose(q2)
+    q3 = N.transpose(q3)
+    q4 = N.transpose(q4)
 
     # unravel the 2-d quads into 1-d vectors
-    q1 = numarray.ravel(q1)
-    q2 = numarray.ravel(q2)
-    q3 = numarray.ravel(q3)
-    q4 = numarray.ravel(q4)
+    q1 = N.ravel(q1)
+    q2 = N.ravel(q2)
+    q3 = N.ravel(q3)
+    q4 = N.ravel(q4)
 
     # compute the total of the signals in all 4 quads,
     # and then reverse the ordering
@@ -190,7 +189,7 @@ def get_totsig (im,la):
 
     # compute the "look ahead" signal vector
     quad_len = ln1 * ln1
-    totsigla = numarray.zeros((quad_len),type='Float32')
+    totsigla = N.zeros((quad_len),dtype=N.dtype('float32'))
     totsigla[0:quad_len-la]  = totsig[la:]
     totsigla[quad_len-la-1:] = totsig[quad_len-la-1:]
 
@@ -208,11 +207,11 @@ def get_corr (im, pars):
 
     # compute staypuft signal for each pixel
     mask = totsig > 40.0
-    p0 = numarray.fabs(pars.ampscale * mask * totsig)
-    p1 = numarray.fabs(pars.ampscale * mask * totsigla)
+    p0 = N.fabs(pars.ampscale * mask * totsig)
+    p1 = N.fabs(pars.ampscale * mask * totsigla)
 
-    ekern = numarray.exp(-numarray.arange(ln1*pars.tx)/pars.hh)
-    qkern = pars.a1*numarray.arange(ln1*pars.tx) + pars.a2
+    ekern = N.exp(-N.arange(ln1*pars.tx)/pars.hh)
+    qkern = pars.a1*N.arange(ln1*pars.tx) + pars.a2
 
     e = conv.convolve (p0, ekern, mode=conv.FULL)
     q = conv.convolve (p1, qkern, mode=conv.FULL)
@@ -220,8 +219,8 @@ def get_corr (im, pars):
 
     # transform the correction vector back into a 2-d image quad
     b = b[::-1]
-    b = numarray.reshape (b, (ln1,ln1))
-    b = numarray.transpose(b)
+    b = N.reshape (b, (ln1,ln1))
+    b = N.transpose(b)
 
     # replicate the correction into all 4 full image quads
     im.data[0:ln1,0:ln1] = b
@@ -294,10 +293,11 @@ def clean (usr_imgfile, usr_outfile):
 
 	# make sure corrected pixel values don't go off the
 	# ends of the Int16 data range before writing to output
-        im.data = numarray.clip(im.data,-32768.0,32767.0)
+        im.data = N.clip(im.data,-32768.0,32767.0)
 
         # write corrected image to output file
-        pyfits.update(outfile,im.data.astype('Int16'),'sci',imset,
+        pyfits.update(outfile,im.data.astype(N.dtype('int16')),
+                      'sci',imset,
                       header=im.header)
 
 
