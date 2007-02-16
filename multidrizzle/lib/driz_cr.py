@@ -99,7 +99,7 @@ class DrizCR:
         self.crMask = None
 
         # Define output parameters
-        __crMask = N.zeros(self.__inputImage.shape,dtype=N.bool_)
+        __crMask = N.zeros(self.__inputImage.shape,dtype=N.uint8)
 
         # Determine a scaling factor depending on the units of the input image, "counts" or "cps"
         if (self.__units == "counts"):
@@ -135,7 +135,7 @@ class DrizCR:
         del __t2
 
         # Create a convolution kernel that is 3 x 3 of 1's
-        __kernel = N.ones((3,3),dtype=N.bool_)
+        __kernel = N.ones((3,3),dtype=N.uint8)
         # Create an output tmp file the same size as the input temp mask array
         __tmp2 = N.zeros(__tmp1.shape,dtype=N.int16)
         # Convolve the mask with the kernel
