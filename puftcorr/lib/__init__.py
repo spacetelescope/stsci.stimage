@@ -17,8 +17,8 @@ For more information:
 Dependencies:
           numpy v1.0.2dev3534 or higher
           pyfits v1.1b4 or higher
-          convolve (version ?? or higher)
-          ndimage  (version ?? or higher)
+          convolve v2.0 or higher
+          ndimage  v2.0 or higher
 
 """
 from puftcorr import *
