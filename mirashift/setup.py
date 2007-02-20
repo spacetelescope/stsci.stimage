@@ -4,19 +4,17 @@ from distutils.command.install_data import install_data
 import sys, os.path
 
 package_name = 'mirashift'
-if not hasattr(sys, 'version_info') or sys.version_info < (2,2,0,'alpha',0):
-    raise SystemExit, "Python 2.2 or later required to build %s."%(package_name)
+if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'alpha',0):
+    raise SystemExit, "Python 2.3 or later required to build pydrizzle."
 
+import numpy
+import numpy.numarray as nn
+print "Building C extensions using NUMPY."
+
+numpyinc = numpy.get_include()
+numpynumarrayinc = nn.get_numarray_include_dirs()
 #pythonlib = sysconfig.get_python_lib(plat_specific=1)
 pythoninc = sysconfig.get_python_inc()
-try:
-    import numarray
-    from numarray.numarrayext import NumarrayExtension
-except:
-    raise ImportError("Numarray was not found. It may not be installed or it may not be on your PYTHONPATH\n")
-
-if numarray.__version__ < "1.1":
-    raise SystemExit, "Numarray 1.1 or later required to build %s."%(package_name)
 
 if sys.platform != 'win32':
     mirashift_libs = ['m']
@@ -43,12 +41,14 @@ class smart_install_data(install_data):
         return install_data.run(self)
 
 
-def getExtensions(args):
-    ext = [NumarrayExtension("mirashift.chainMoments",['src/chainMoments.c','src/expandArray.c'],
-                             include_dirs=[pythoninc],
+def getNumpyExtensions(args):
+    ext = [Extension("mirashift.chainMoments",['src/chainMoments.c','src/expandArray.c'],
+                             define_macros=[('NUMPY','1')],
+                             include_dirs=[pythoninc]+[numpyinc]+numpynumarrayinc,
                              libraries=mirashift_libs),
-           NumarrayExtension("mirashift.expandArray", ['src/expandArray.c'],
-                             include_dirs=[pythoninc],
+           Extension("mirashift.expandArray", ['src/expandArray.c'],
+                             define_macros=[('NUMPY','1')],
+                             include_dirs=[pythoninc]+[numpyinc]+numpynumarrayinc,
                              libraries=mirashift_libs)]
 
     return ext
@@ -71,7 +71,7 @@ def dosetup(ext):
 
 
 if __name__ == "__main__":
-    ext = getExtensions(args)
+    ext = getNumpyExtensions(args)
     dosetup(ext)
 
 
