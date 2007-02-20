@@ -7,12 +7,13 @@
             Version 0.1.0, 27-May-2005: Created -- WJH
 */
 #include <Python.h>
-#include <arrayobject.h>
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
-#include <libnumarray.h>
 #include <malloc.h>
+
+#include <numpy/arrayobject.h>
+#include <numpy/libnumarray.h>
 
 #define PI 3.1415926535897931
 

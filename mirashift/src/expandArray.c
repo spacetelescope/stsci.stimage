@@ -8,12 +8,13 @@
             Version 0.1.0, 14-May-2005: Created -- WJH
 */
 #include <Python.h>
-#include <arrayobject.h>
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
-#include <libnumarray.h>
 #include <malloc.h>
+
+#include <numpy/arrayobject.h>
+#include <numpy/libnumarray.h>
 
 float *vector(int nl, int nh){
     float *v;
