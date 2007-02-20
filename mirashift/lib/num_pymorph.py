@@ -1,6 +1,6 @@
 """
     Module morph -- SDC Morphology Toolbox 
-        Partially translated to numarray and nd_image 
+        Partially translated to numpy and nd_image 
         
     -------------------------------------------------------------------
     The pymorph Morphology Toolbox for Python is a powerful collection of latest
@@ -9,7 +9,7 @@
     -------------------------------------------------------------------
     **********************
     *
-    * Translated to work with numarray
+    * Translated to work with numpy
     *
     **********************
     mmadd4dil()      -- Addition for dilation
@@ -158,9 +158,9 @@
 
 """
 #
-__version__ = '0.8.1 numbase'
+__version__ = '0.8.2 numpybase'
 
-__version_string__ = 'SDC Morphology Toolbox V0.8.1 01Feb05 (numarray version)'
+__version_string__ = 'SDC Morphology Toolbox V0.8.2 12Feb07 (numpy version)'
 
 __build_date__ = '04aug2003 12:07'
 #
@@ -172,17 +172,18 @@ try:
 except:
     sys.imagepath = [os.path.join(mydir, 'data')]
 
-import numarray
+import numpy as N
 #
 #
 #==============
 #
 #  Replacements for Numeric functions with no 
-#     corresponding numarray call.
+#     corresponding numpy call.
 #
 #==============
+"""
 def sign(val):
-    """
+    ""
         - Purpose
             Determine the sign of a numeric value.
         - Synopsis
@@ -204,7 +205,7 @@ def sign(val):
             b3 = sign(0)
             print b3
      
-    """
+    ""
     from numarray import abs
     aval = abs(val)
     if val == 0:
@@ -215,7 +216,7 @@ def sign(val):
         B = -1
     
     return B
-
+"""
 #
 # =====================================================================
 #
@@ -331,13 +332,13 @@ def mmlimits(f):
             print mmlimits(mmbinary([0, 1, 0]))
             print mmlimits(uint8([0, 1, 2]))
     """
-    from numarray import array
+    from numpy import array
 
-    code = f.typecode()
-    if   code == 'B': y=array([0,1])
-    elif code == 'b': y=array([0,255]) # UInt8
-    elif code == 'w': y=array([0,65535]) #UInt16
-    elif code == 'l': y=array([-2147483647,2147483647]) #Int32
+    code = f.dtype.char
+    if   code == '?': y=array([0,1],dtype=N.bool_)
+    elif code == 'B': y=array([0,255],dtype=N.uint8) # UInt8
+    elif code == 'H': y=array([0,65535],dtype=N.unit16) #UInt16
+    elif code == 'L': y=array([-2147483647,2147483647],dtype=N.uint32) #Int32
     else:
         assert 0,'Does not accept this typecode:'+code
     return y
@@ -475,7 +476,7 @@ def mmdist(f, Bc=None, METRIC=None):
             mmshow(de%8)
     """
     from string import upper
-    from numarray import zeros, sqrt
+    from numpy import zeros, sqrt
     if Bc is None: Bc = mmsecross()
     if METRIC is not None:
        METRIC = upper(METRIC)
@@ -888,7 +889,7 @@ def mmneg(f):
     """
     
     y = mmlimits(f)[0] + mmlimits(f)[1] - f
-    y = y.astype(f.type())
+    y = y.astype(f.dtype)
     return y
 #
 # =====================================================================
@@ -1039,12 +1040,13 @@ def mmaddm(f1, f2):
             mmshow(a)
             mmshow(b)
     """
-    from Numeric import array, minimum, maximum
+    #from Numeric import array, minimum, maximum
+    from numpy import ndarray, minimum, maximum
 
-    if type(f2) is array:
-        assert f1.typecode() == f2.typecode(), 'Cannot have different datatypes:'
-    y = maximum(minimum(f1.astype('d')+f2, mmlimits(f1)[1]),mmlimits(f1)[0])
-    y = y.astype(f1.typecode())
+    if type(f2) is ndarray:
+        assert f1.dtype.char == f2.dtype.char, 'Cannot have different datatypes:'
+    y = maximum(minimum(f1.astype(N.float64)+f2, mmlimits(f1)[1]),mmlimits(f1)[0])
+    y = y.astype(f1.dtype)
     return y
 #
 # =====================================================================
@@ -1368,10 +1370,10 @@ def mmbinary(f, k1=1):
             mmshow(a)
             mmshow(b)
     """
-    from numarray import array
+    from numpy import array
 
-    f = numarray.asarray(f)
-    y = array(f>=k1).astype(numarray.Bool)
+    f = numpy.asarray(f)
+    y = array(f>=k1).astype(numpy.bool_)
     return y
 #
 # =====================================================================
@@ -1704,7 +1706,7 @@ def mmclose(f, b=None):
             y = mmclose(f,mmsedisk(3))
             mmshow(y)
     """
-    from numarray import nd_image as ND
+    import ndimage as ND
     if b is None: b = mmsecross()
     if mmisbinary(f):
         y = ND.binary_closing(f,structure=b)
@@ -2102,8 +2104,8 @@ def mmcwatershed(f, g, Bc=None, LINEREG="LINES"):
             mmshow(mark)
             mmshow(w)
     """
-    from numarray import ones, zeros, array, put, take, argmin, transpose, compress, concatenate
-    from numarray.numeric import nonzero
+    from numpy import ones, zeros, array, put, take, argmin, transpose, compress, concatenate
+    from numpy import nonzero
     if Bc is None: Bc = mmsecross()
     return g
     print 'starting'
@@ -2118,10 +2120,10 @@ def mmcwatershed(f, g, Bc=None, LINEREG="LINES"):
     if withline:
         y1 = mmintersec(mmbinary(y), 0)
     costM = mmlimits(f)[1] * ones(f.shape)  # cummulative cost function image
-    mi = nonzero(mmgradm(y,mmsebox(0),Bc).flat)  # 1D index of internal contour of marker
+    mi = nonzero(mmgradm(y,mmsebox(0),Bc).ravel)  # 1D index of internal contour of marker
     print 'before put costM'
-    put(costM.flat,mi, 0)
-    HQueue=transpose([mi, take(costM.flat, mi)])       # init hierarquical queue: index,value
+    put(costM.ravel,mi, 0)
+    HQueue=transpose([mi, take(costM.ravel, mi)])       # init hierarquical queue: index,value
     print 'before mmse2list0'
     Bi=mmse2list0(f,Bc)                # get 1D displacement neighborhood pixels
     x,v = mmmat2set(Bc)
@@ -2137,7 +2139,7 @@ def mmcwatershed(f, g, Bc=None, LINEREG="LINES"):
         HQueue = transpose(array([compress(ii,HQueue[:,0]),
                                   compress(ii,HQueue[:,1])])) # remove this pixel from queue
         print 'H=',HQueue
-        put(status.flat, pi, 1)          # make it a permanent label
+        put(status.ravel, pi, 1)          # make it a permanent label
         for qi in pi+Bi :                # for each neighbor of pi
             if (status.flat[qi] != 3):          # not image border
                 if (status.flat[qi] != 1):        # if not permanent
@@ -2218,7 +2220,7 @@ def mmdil(f, b=None):
             mmshow(f)
             mmshow(mmdil(f,b))
     """
-    from numarray import nd_image as ND
+    import ndimage as ND
     if b is None: b = mmsecross()
     if mmisbinary(f):
         # binary input
@@ -2279,18 +2281,18 @@ def mmdil_old(f, b=None):
             mmshow(f)
             mmshow(mmdil(f,b))
     """
-    from numarray import maximum, NewAxis, ones
+    from numpy import maximum, NewAxis, ones
     if b is None: b = mmsecross()
     if len(f.shape) == 1: f = f[NewAxis,:]
     h,w = f.shape
     x,v = mmmat2set(b)
     if len(x)==0:
-        y = (ones((h,w)) * mmlimits(f)[0]).astype(f.typecode())
+        y = (ones((h,w)) * mmlimits(f)[0]).astype(f.dtype)
     else:
         if mmisbinary(v):
             v = mmintersec(mmgray(v,'int32'),0)
         mh,mw = max(abs(x)[:,0]),max(abs(x)[:,1])
-        y = (ones((h+2*mh,w+2*mw)) * mmlimits(f)[0]).astype(f.typecode())
+        y = (ones((h+2*mh,w+2*mw)) * mmlimits(f)[0]).astype(f.dtype)
         for i in range(x.shape[0]):
             if v[i] > -2147483647:
                 y[mh+x[i,0]:mh+x[i,0]+h, mw+x[i,1]:mw+x[i,1]+w] = maximum(
@@ -2574,7 +2576,7 @@ def mmero(f, b=None):
             mmshow(f)
             mmshow(mmero(f,b))
     """
-    from numarray import nd_image as ND
+    import ndimage as ND
     if b is None: b = mmsecross()
     if mmisbinary(f):
         # binary image, use appropriate nd_image function
@@ -2977,8 +2979,9 @@ def mmgray(f, TYPE="uint8", k1=None):
             f=mmgray(b,'int32',0)
             print f
     """
-    from numarray import array
+    from numpy import array
     if k1 is None: k1 = mmmaxleveltype(TYPE)
+
     if type(f) is list: f = mmbinary(f)
     assert mmis(f,'binary'), 'f must be binary'
     if k1==None:
@@ -3278,7 +3281,7 @@ def mmimg2se(fd, FLAT="FLAT", f=None):
             print mmseshow(e)
     """
     from string import upper
-    from numarray import choose, ones
+    from numpy import choose, ones
 
     assert mmisbinary(fd),'First parameter must be binary'
     FLAT = upper(FLAT)
@@ -3533,13 +3536,13 @@ def mmintersec(f1, f2, f3=None, f4=None, f5=None):
             mmshow(f)
             mmshow(g)
     """
-    from numarray import minimum
+    from numpy import minimum
 
     y = minimum(f1,f2)
     if f3 != None: y = minimum(y,f3)
     if f4 != None: y = minimum(y,f4)
     if f5 != None: y = minimum(y,f5)
-    y = y.astype(f1.typecode())
+    y = y.astype(f1.dtype)
     return y
 #
 # =====================================================================
@@ -3676,7 +3679,7 @@ def mmisbinary(f):
     """        
     bool = type(f) is type(mmbinary([1]))
     if bool:            
-       bool = f.type() == numarray.Bool
+       bool = f.dtype.type == numpy.bool_
     return bool
 #
 # =====================================================================
@@ -3710,14 +3713,14 @@ def mmisequal(f1, f2, MSG=None):
             mmisequal(f1,f2)
             mmisequal(f1,f3)
     """
-    from numarray import ravel, alltrue, array
+    from numpy import ravel, alltrue, array
     # Consider: alltrue(f1.flat == f2.flat) or alltrue((f1==f2).flat)
-    
+
     bool = alltrue(ravel(f1==f2))
     bool1 = 1
     if type(f1) is type(array([1])):
         bool1 = type(f1) is type(f2)
-        bool1 = bool1 and ((f1.typecode() == f2.typecode()))
+        bool1 = bool1 and ((f1.dtype.type == f2.dtype.type))
     if MSG != None:
         if bool:
             if bool1:
@@ -3755,7 +3758,7 @@ def mmislesseq(f1, f2, MSG=None):
             print mmislesseq(f2,f1)
             print mmislesseq(f1,f1)
     """
-    from numarray import ravel
+    from numpy import ravel
     # Consider: min((f1<=f2).flat) or min(f1.flat <= f2.flat)
     bool = min(ravel(f1<=f2))
     return bool
@@ -4672,7 +4675,8 @@ def mmseline(l=3, theta=0):
             mmshow(a)
             mmshow(b)
     """
-    from numarray import pi, tan, cos, sin, floor, arange, transpose, array, ones
+    from numpy import pi, tan, cos, sin, floor, arange, transpose, array, ones
+    from numpy import sign
 
     theta = pi*theta/180
     if abs(tan(theta)) <= 1:
@@ -4716,8 +4720,8 @@ def mmserot(B, theta=45, DIRECTION="CLOCKWISE"):
             mmseshow(mmserot(b,45,'ANTI-CLOCKWISE'))
     """
     from string import upper
-    from numarray import array, sin, cos, transpose
-    from numarray import cos, sin, pi, concatenate, transpose, array
+    from numpy import array, sin, cos, transpose
+    from numpy import cos, sin, pi, concatenate, transpose, array
 
     DIRECTION = upper(DIRECTION)            
     if DIRECTION == "ANTI-CLOCKWISE":
@@ -4869,7 +4873,7 @@ def mmsetrans(Bi, t):
 
     x,v=mmmat2set(Bi)
     Bo = mmset2mat((x+t,v))
-    Bo = Bo.astype(Bi.typecode())
+    Bo = Bo.astype(Bi.dtype)
     return Bo
 #
 # =====================================================================
@@ -4933,7 +4937,7 @@ def mmsedil(B1, B2):
             b3 = mmsedil(b1,b2)
             mmseshow(b3)
     """
-    from numarray import NewAxis, array
+    from numpy import NewAxis, array
 
     assert ((mmdatatype(B1) == 'binary') or (mmdatatype(B1) == 'int32')) and (
             (mmdatatype(B2) == 'binary') or (mmdatatype(B2) == 'int32')),'SE must be binary or int32'
@@ -4983,10 +4987,10 @@ def mmseunion(B1, B2):
             b3 = mmseunion(b1,b2)
             mmseshow(b3)
     """
-    from numarray import maximum, ones, asarray, NewAxis
+    from numpy import maximum, ones, asarray, NewAxis
 
-    assert B1.typecode() == B2.typecode(), 'Cannot have different datatypes:'
-    type1 = B1.typecode()
+    assert B1.dtype.type == B2.dtype.type, 'Cannot have different datatypes:'
+    type1 = B1.dtype
     if len(B1) == 0: return B2
     if len(B1.shape) == 1: B1 = B1[NewAxis,:]
     if len(B2.shape) == 1: B2 = B2[NewAxis,:]
@@ -5310,15 +5314,15 @@ def mmsubm(f1, f2):
             mmshow(b)
             mmshow(c)
     """
-    import numarray
-    from numarray import array, minimum, maximum
+    import numpy
+    from numpy import array, minimum, maximum
 
-    if type(f2) is array:
-        assert f1.typecode() == f2.typecode(), 'Cannot have different datatypes:'
-    if not isinstance(f1,numarray.NumArray):
-        f1 = array(f1,f2.typecode())
-    y = numarray.subtract(f1,f2)
-    y = numarray.where(y < 0, 0, y).astype(f1.typecode())
+    if type(f2) is numpy.ndarray:
+        assert f1.dtype.type == f2.dtype.type, 'Cannot have different datatypes:'
+    if not isinstance(f1,numpy.ndrray):
+        f1 = array(f1,f2.dtype.type)
+    y = numpy.subtract(f1,f2)
+    y = numpy.where(y < 0, 0, y).astype(f1.dtype)
     return y
 def mmsubm_old(f1, f2):
     """
@@ -5359,15 +5363,15 @@ def mmsubm_old(f1, f2):
             mmshow(b)
             mmshow(c)
     """
-    import numarray
-    from numarray import array, minimum, maximum
+    import numpy
+    from numpy import array, minimum, maximum
 
-    if type(f2) is array:
-        assert f1.typecode() == f2.typecode(), 'Cannot have different datatypes:'
-    if not isinstance(f1,numarray.NumArray):
-        f1 = array(f1,f2.typecode())
-    y = minimum(maximum(f1.astype('d')-f2, mmlimits(f1)[0]), mmlimits(f1)[1])
-    y = y.astype(f1.typecode())
+    if type(f2) is numpy.ndarray:
+        assert f1.dtype.type == f2.dtype.type, 'Cannot have different datatypes:'
+    if not isinstance(f1,numpy.ndrray):
+        f1 = array(f1,dtype=f2.dtype)
+    y = minimum(maximum(f1.astype(numpy.float64)-f2, mmlimits(f1)[0]), mmlimits(f1)[1])
+    y = y.astype(f1.dtype)
     return y
 #
 # =====================================================================
@@ -5452,7 +5456,6 @@ def mmsupgen(f, INTER):
             mmshow(a)
             mmshow(mmdil(b))
     """
-    from numarray import nd_image as ND
     A,Bc = INTER
     y = mmintersec(mmero( f,A),
                    mmero( mmneg(f), Bc))
@@ -7245,7 +7248,7 @@ def mmthin(f, Iab=None, n=-1, theta=45, DIRECTION="CLOCKWISE"):
             f2=mmthin(f1,mmendpoints(),15) # prunning 15 pixels
             mmshow(f,f2) # prunned skeleton
     """
-    from numarray import product
+    from numpy import product
     from string import upper
 
     if Iab is None: Iab = mmhomothin()
@@ -7329,13 +7332,13 @@ def mmunion(f1, f2, f3=None, f4=None, f5=None):
             mmshow(i)
             mmshow(j)
     """
-    from numarray import maximum
+    from numpy import maximum
 
     y = maximum(f1,f2)
     if f3: y = maximum(y,f3)
     if f4: y = maximum(y,f4)
     if f5: y = maximum(y,f5)
-    y = y.astype(f1.typecode())
+    y = y.astype(f1.dtype)
     return y
 #
 # =====================================================================
@@ -7581,8 +7584,8 @@ def int32(f):
             2147483647 and converts it to the signed 32-bit datatype.
 
     """
-    from numarray import array, clip
-    img = array(clip(f,-2147483647,2147483647)).astype(numarray.Int32)
+    from numpy import array, clip
+    img = array(clip(f,-2147483647,2147483647)).astype(numpy.int32)
     return img
 #
 # =====================================================================
@@ -7608,9 +7611,9 @@ def uint8(f):
             a = int32([-3,0,8,600])
             print uint8(a)
     """
-    from numarray import array, clip
+    from numpy import array, clip
 
-    img = array(clip(f,0,255)).astype(numarray.UInt8)
+    img = array(clip(f,0,255)).astype(numpy.uint8)
     return img
 #
 # =====================================================================
@@ -7636,9 +7639,9 @@ def uint16(f):
             a = int32([-3,0,8,100000])
             print uint16(a)
     """
-    from numarray import array, clip
+    from numpy import array, clip
 
-    img = array(clip(f,0,65535)).astype(numarray.UInt16)
+    img = array(clip(f,0,65535)).astype(numpy.uint16)
     return img
 #
 # =====================================================================
@@ -7691,14 +7694,14 @@ def mmadd4dil(f, c):
             a: Image f + c
 
     """
-    from numarray import asarray, minimum, maximum
+    from numpy import asarray, minimum, maximum
 
     if c:            
-       y = asarray(f,'d') + c
+       y = asarray(f,numpy.float64) + c
        k1,k2 = mmlimits(f)
        y = ((f==k1) * k1) + ((f!=k1) * y)
        y = maximum(minimum(y,k2),k1)
-       a = y.astype(f.typecode())
+       a = y.astype(f.dtype)
     else:
        a = f
     return a
@@ -7741,8 +7744,8 @@ def mmmat2set(A):
             print i
             print v
     """
-    from numarray import take, ravel, transpose, NewAxis
-    from numarray.numeric import nonzero
+    from numpy import take, ravel, transpose, NewAxis
+    from numpy import nonzero
     
     if len(A.shape) == 1: A = A[NewAxis,:]
     offsets = nonzero(ravel(A) - mmlimits(A)[0])
@@ -7793,25 +7796,25 @@ def mmset2mat(A):
             print g
             print mmdatatype(g)
     """
-    import numarray
-    from numarray import put, ones, ravel, shape, NewAxis, array, asarray
+    import numpy
+    from numpy import put, ones, ravel, shape, NewAxis, array, asarray
 
     if len(A) == 2:            
         x, v = A
         v = asarray(v)
     elif len(A) == 1:
         x = A[0]
-        v = ones((len(x),), numarray.Bool)
+        v = ones((len(x),), numpy.bool_)
     else:
         raise TypeError, 'Argument must be a tuple of length 1 or 2'
-    if len(x) == 0:  return array([0]).astype(v.typecode())
+    if len(x) == 0:  return array([0]).astype(v.dtype)
     if len(x.shape) == 1: x = x[NewAxis,:]
     dh,dw = abs(x[:,0]).max(),abs(x[:,1]).max()
     h,w = (2*dh)+1, (2*dw)+1 
     M=ones((h,w)) * mmlimits(v)[0]
     offset = x[:,0] * w + x[:,1] + (dh*w + dw)
-    put(M.flat,offset,v.flat)
-    M = M.astype(v.typecode())
+    put(M.ravel(),offset,v.ravel())
+    M = M.astype(v.dtype)
     return M
 #
 # =====================================================================

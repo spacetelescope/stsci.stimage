@@ -1,5 +1,5 @@
-import numarray as N
-from numarray import nd_image as ND
+import numpy as N
+import ndimage as ND
 
 import imagestats
 from fileutil import DEGTORAD
@@ -45,7 +45,7 @@ def canny_edge(image, alpha=0.1,thin=False):
         ny,nx = Norm_grad.shape
         Xk = N.array([[-1,0,1],[-1,0,1],[-1,0,1]])
         Yk = N.array([[-1,-1,-1],[0,0,0],[1,1,1]])
-        I_temp = N.zeros(Norm_grad.shape,N.Float32)
+        I_temp = N.zeros(Norm_grad.shape,dtype=N.float32)
         for j in range(2,ny-1):
             for i in range(2,nx-1):
                 if Norm_grad[j,i] > level:
@@ -71,7 +71,7 @@ def gauss_edge_kernel(nx,ny,sigma_x,sigma_y,theta):
     """
   
     r = buildRotMatrix(theta)
-    h = N.zeros((ny,nx),N.Float32)
+    h = N.zeros((ny,nx),dtype=N.float32)
     for y in xrange(ny):
         for x in xrange(nx):
             pos = N.dot(r,[x-((nx)/2),y-((ny)/2)])
@@ -89,7 +89,7 @@ def gauss_kernel(nx,ny=None,sigma_x=1.0,sigma_y=None):
     if ny == None: ny = nx
     if sigma_y == None: sigma_y = sigma_x
     
-    h = N.zeros((ny,nx),N.Float32)
+    h = N.zeros((ny,nx),dtype=N.float32)
     for y in xrange(ny):
         for x in xrange(nx):
             pos = [x-((nx)/2),y-((ny)/2)]
@@ -126,7 +126,7 @@ def LoG_mask(sigma=1.0,cutoff=3.9,peak=1.0):
 
     cen = int(log_width/2) + 1
     
-    lk = N.zeros((log_width,log_width),type=N.Float32)
+    lk = N.zeros((log_width,log_width),dtype=N.float32)
     for y in xrange(log_width):
         for x in xrange(log_width):
             xc = (x+1) - cen
@@ -151,8 +151,8 @@ def interp2(xk,yk,zk,xint,yint):
     z_in = N.array(zk)
     
     # Start by interpolating X and Y value(s)
-    t = N.array(interp_bilinear1d(xk,xint)).flat
-    u = N.array(interp_bilinear1d(yk,yint)).flat
+    t = N.array(interp_bilinear1d(xk,xint)).ravel()
+    u = N.array(interp_bilinear1d(yk,yint)).ravel()
 
     # Find where the input X and Y values fall
     # in the X/Y arrays such that:
@@ -162,8 +162,8 @@ def interp2(xk,yk,zk,xint,yint):
     y_ind = find_index(yk,yint)
 
     # Create output arrays
-    z_out = N.zeros(t.shape,z_in.type())
-    if z_out.nelements() == 1: 
+    z_out = N.zeros(t.shape,dtype=z_in.dtype)
+    if z_out.size == 1: 
         z_out = N.reshape(z_out,(1,))
 
     # For these positions, compute the appropriate Z value
@@ -189,7 +189,7 @@ def interp2(xk,yk,zk,xint,yint):
                    (1-t[i])*    u[i]  * z_in[k1,j]
 
     # If only 1 input, output only 1 value
-    if z_out.nelements() == 1:
+    if z_out.size == 1:
         return z_out[0]
     else:
         return z_out
@@ -197,16 +197,16 @@ def interp2(xk,yk,zk,xint,yint):
     
 def interp_bilinear1d(x,xi):
     """ Compute the bilinear interpolated value(s) of xi within x."""
-    x = N.array(x).flat
-    x_in = N.array(xi,N.Float32).flat
+    x = N.array(x).ravel()
+    x_in = N.array(xi,dtype=N.float32).ravel()
 
-    x_out = N.zeros(x_in.shape,N.Float32)
+    x_out = N.zeros(x_in.shape,dtype=N.float32)
     x_ind = find_index(x,xi)
 
-    max_indx = x.nelements() - 1
+    max_indx = x.size - 1
     
     # For each input value
-    for i in xrange(x_in.nelements()):
+    for i in xrange(x_in.size):
         j = x_ind[i]
         
         # Account for lower boundary condition
@@ -226,18 +226,18 @@ def interp_bilinear1d(x,xi):
 
     # If a single scalar was given as input, 
     # it should return a single scalar as output
-    if x_in.nelements() == 1:
+    if x_in.size == 1:
         return x_out[0]
     else:
         return x_out
 
 def find_index(array,values):
     """ Return the index into array that corresponds to each value. """
-    val = N.array(values).flat
+    val = N.array(values).ravel()
 
     arr = N.ravel(array)
-    sout = N.array(N.searchsorted(arr,val)).flat
-    max_indx = array.nelements() - 1
+    sout = N.array(N.searchsorted(arr,val)).ravel()
+    max_indx = array.size - 1
 
     for i in xrange(len(sout)):
         if sout[i] > max_indx: sout[i] = max_indx
@@ -261,7 +261,7 @@ def signum(array):
                                       0 for x == 0
                                       1 for x > 0
     """
-    signum = (array > 0).astype(N.Int8)
+    signum = (array > 0).astype(N.int8)
     N.subtract(array < 0,signum,signum)
     
     return signum    

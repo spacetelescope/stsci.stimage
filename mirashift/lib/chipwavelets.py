@@ -1,7 +1,8 @@
 import os,sys
 from math import floor,ceil,sqrt,pow
-import numarray as N
-from numarray import nd_image as ND
+
+import numpy as N
+
 import fileutil
 import imagestats
 import numdisplay 
@@ -36,7 +37,7 @@ def compute_ccode_matrix(img_ccode, ref_ccode, Lccode = 0.1, Tccode= 0.8):
     ##################
     #
     # Initialize chain-code matching matrix
-    ccode_matrix = N.zeros((len(img_ccode),len(ref_ccode)),N.Float32)
+    ccode_matrix = N.zeros((len(img_ccode),len(ref_ccode)),dtype=N.float32)
     # Lccode: Chain code length ratio limit
     #
     # Tccode: Threshold for chain-code matching
@@ -178,6 +179,7 @@ def _step4(mmatrix,cmatrix,image_cog,ref_cog,scale=None):
     # Create histogram of separations between matched sources 
     #   (sources where psi_matrix < psi_max)
     radhist = imagestats.histogram1d(rad_matrix.flat,int(rad_matrix.max())+1,rad_width,0.)
+
     #
     # Reset distance matrix values for non-matched sources from -1. to max distance
     #  This prevents them from being picked up by the separation limit when
@@ -262,7 +264,7 @@ class Chip:
     Input:
         imagename   - full image name complete with extension
                         such as 'test_flt.fits[sci,1]'.
-        imagearray  - numarray object containing the science data for image
+        imagearray  - numpy object containing the science data for image
         offset      - zero-point offset of chip relative to final output frame
         pyasn       - PyDrizzle object relating image to output frame
                         if None, perform no distortion correction in positions
@@ -530,7 +532,7 @@ class Observation:
     def createMask(self):
         ''' Creates mask of entire observation in output field.'''
         if self.mask == None:
-            self.mask = N.zeros(self.shape,N.UInt8)
+            self.mask = N.zeros(self.shape,dtype=N.uint8)
 
             for chip in self.chiplist:
                 # We need to put the chip corners, 
@@ -607,7 +609,7 @@ class ReferenceObs(Observation):
 
         Observation.__init__(self, wcs.rootname)
         self.shape = (wcs.naxis2,wcs.naxis1)
-        self.mask =  N.zeros(self.shape,N.UInt8)
+        self.mask =  N.zeros(self.shape,dtype=N.uint8)
                
     def checkOverlap(self,obs):
         ''' Determine whether this observation overlaps the current

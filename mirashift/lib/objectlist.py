@@ -1,12 +1,12 @@
-import numarray as N
-from numarray import nd_image as ND
+import numpy as N
+import ndimage as ND
+
 import chainMoments
 import edge_detect
 import imagestats
 import numdisplay
 
 from math import log10
-
 
 __version__ = '0.1.0 (30-November-2004)'
 
@@ -34,7 +34,7 @@ def center1d(region):
     """
     mean = region.mean()
     rclip = N.clip(region > mean, 0, region) * (region - mean)
-    posn_arr = N.array(range(region.nelements()),shape=region.shape)
+    posn_arr = N.array(range(region.size)).reshape(region.shape)
     sum1 =  (posn_arr*rclip).sum()
     sum2 = rclip.sum()
     
@@ -294,8 +294,8 @@ class Object:
         """
         # get pixels in contour
         npix = len(N.nonzero(cpix)[0])
-        ccode = chainMoments.getChainCode(cpix,npix)
-        gcode = ND.convolve(ccode.astype(N.Float32),Chain_kernel)
+        ccode = chainMoments.getChainCode(cpix.astype(N.float32),npix)
+        gcode = ND.convolve(ccode.astype(N.float32),Chain_kernel)
         # compute and subtract the mean from the chain-code
         gcode -= N.average(gcode)
 

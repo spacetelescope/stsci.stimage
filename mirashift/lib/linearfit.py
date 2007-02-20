@@ -1,5 +1,5 @@
-import numarray as N     
-from numarray import linear_algebra as NLA
+import numpy as N     
+from numpy import linalg as NLA
 
 """
     ##################
@@ -82,11 +82,11 @@ def fit_arrays(uv,xy):
         Algorithm and nomenclature provided by: Colin Cox (11 Nov 2004)
     """   
     
-    if not isinstance(xy,N.NumArray): 
-        # cast input list as numarray array for fitting
+    if not isinstance(xy,N.ndrray): 
+        # cast input list as numpy ndarray for fitting
         xy = N.array(xy)
-    if not isinstance(uv,N.NumArray): 
-        # cast input list as numarray array for fitting
+    if not isinstance(uv,N.ndrray): 
+        # cast input list as numpy ndarray for fitting
         uv = N.array(uv)
     
     # Set up products used for computing the fit
@@ -126,7 +126,7 @@ def apply_old_coeffs(xy,coeffs):
         to an array of x,y positions.
     """
     _theta = DEGTORAD(coeffs[1])
-    _mrot = N.zeros(shape=(2,2),type=N.Float64)
+    _mrot = N.zeros(shape=(2,2),dtype=N.float64)
     _mrot[0] = (N.cos(_theta),N.sin(_theta))
     _mrot[1] = (-N.sin(_theta),N.cos(_theta))
     

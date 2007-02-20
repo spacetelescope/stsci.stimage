@@ -15,7 +15,8 @@
 """
 import parseinput
 import chipwavelets,linearfit
-import numarray as N
+
+import numpy as N
 import os
 
 import pydrizzle
@@ -155,7 +156,7 @@ class ImageShift:
         return obslist
 
     def getPositionArrays(self,objlist):
-        """ Return detected positions as numarray arrays """
+        """ Return detected positions as numpy arrays """
         arr = []
         for pos in objlist:
             arr.append(pos[1])

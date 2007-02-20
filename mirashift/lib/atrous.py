@@ -1,6 +1,6 @@
-import numarray as N
-from numarray import convolve
-from numarray import nd_image as ND
+import numpy as N
+import convolve
+import ndimage as ND
 
 KERNELS = {'linear': N.array([1., 2., 1.])/4.,
            'spline': N.array([1.,4.,6.,4.,1.])/16.,
@@ -8,7 +8,7 @@ KERNELS = {'linear': N.array([1., 2., 1.])/4.,
                
 def atrous2d(arr,maxscale=1,kernel='linear'):
     """ 
-        Compute a' trous wavelet transforms of 2-d numarray
+        Compute a' trous wavelet transforms of 2-d numpy
         object up to the 'scale' specified by the user. 
         
         This method supports 'linear', 'spline', and 'edge' kernels.
@@ -17,7 +17,7 @@ def atrous2d(arr,maxscale=1,kernel='linear'):
             waveplanes,wimage = atrous2d(arr,maxscale=1,kernel='linear')
 
         Input:
-            arr        - numarray array for input image
+            arr        - numpy array for input image
             maxscale   - number wavelet transformations to apply
             kernel     - kernel for wavelet transformation:
                             'linear'(default),'spline','leftedge','rightedge'
@@ -39,7 +39,7 @@ def atrous2d(arr,maxscale=1,kernel='linear'):
     j = 1
     jkernel = wkernel.copy()
     # Define output array containing all the wavelet planes
-    waveplanes = N.zeros((maxscale,arr.shape[0],arr.shape[1]),arr.type())
+    waveplanes = N.zeros((maxscale,arr.shape[0],arr.shape[1]),dtype=arr.dtype)
         
     # Perform convolutions
     c0 = arr
@@ -52,7 +52,7 @@ def atrous2d(arr,maxscale=1,kernel='linear'):
         # Expand the kernel
         order = 2**j
         jkernel_shape = (wkernel.shape[0]*order, wkernel.shape[1]*order)
-        jkernel = N.zeros(jkernel_shape, wkernel.type())
+        jkernel = N.zeros(jkernel_shape, dtype=wkernel.dtype)
         jkernel[::order,::order] = wkernel
         if jkernel_shape[0] >= 15 or jkernel_shape[1] >= 15:
             _fft_mode = 1
@@ -67,7 +67,7 @@ def atrous2d(arr,maxscale=1,kernel='linear'):
     
 def atrousmed(arr,scale=1,kernel='linear',median=1):
     """ 
-        Compute a' trous wavelet transforms of 2-d numarray
+        Compute a' trous wavelet transforms of 2-d numpy
         object up to the 'scale' specified by the user, applying
         the median filter at each scale to remove artifacts.
         
@@ -77,7 +77,7 @@ def atrousmed(arr,scale=1,kernel='linear',median=1):
             waveplanes,wimage = atrous2d(arr,scale=1,kernel='linear')
 
         Input:
-            arr        - numarray array for input image
+            arr        - numpy array for input image
             scale      - scale for final wavelet transformation
             kernel     - kernel for wavelet transformation:
                             'linear'(default),'spline','leftedge','rightedge'
@@ -99,7 +99,7 @@ def atrousmed(arr,scale=1,kernel='linear',median=1):
     j = 1
     jkernel = wkernel.copy()
     # Define output array containing all the wavelet planes
-    waveplanes = N.zeros((scale,arr.shape[0],arr.shape[1]),arr.type())
+    waveplanes = N.zeros((scale,arr.shape[0],arr.shape[1]),dtype=arr.dtype)
         
     # Perform convolutions
     c0 = arr
@@ -111,13 +111,13 @@ def atrousmed(arr,scale=1,kernel='linear',median=1):
         med_size = jkernel.shape
         print 'med_size: ',med_size,' for scale: ',j
         cj = ND.median_filter(c0,size=med_size,mode='nearest',cval=0.0)
-        cj = convolve.convolve2d(cj,kernel=jkernel,fft=_fft_mode,mode='nearest',cval=0.0).astype(arr.type())
+        cj = convolve.convolve2d(cj,kernel=jkernel,fft=_fft_mode,mode='nearest',cval=0.0).astype(arr.dtype)
         waveplanes[level] = c0 - cj
         
         # Expand the kernel
         order = 2**j
         jkernel_shape = (wkernel.shape[0]*order, wkernel.shape[1]*order)
-        jkernel = N.zeros(jkernel_shape, wkernel.type())
+        jkernel = N.zeros(jkernel_shape, dtype=wkernel.dtype)
         jkernel[::order,::order] = wkernel
         if jkernel_shape[0] >= 15 or jkernel_shape[1] >= 15:
             _fft_mode = 1
@@ -132,7 +132,7 @@ def atrousmed(arr,scale=1,kernel='linear',median=1):
     
 def multimed(arr,maxscale=2,median=2):
     """ 
-        Compute multiscale median transforms of 2-d numarray
+        Compute multiscale median transforms of 2-d numpy
         object up to the 'maxscale' specified by the user, applying
         the median filter at each scale to remove artifacts.
                 
@@ -140,7 +140,7 @@ def multimed(arr,maxscale=2,median=2):
             waveplanes,wimage = multimed(arr,maxscale=1)
 
         Input:
-            arr        - numarray array for input image
+            arr        - numpy array for input image
             maxscale   - number wavelet transformations to apply
 
         Output:
@@ -154,7 +154,7 @@ def multimed(arr,maxscale=2,median=2):
     #
     j = 1
     # Define output array containing all the wavelet planes
-    waveplanes = N.zeros((maxscale,arr.shape[0],arr.shape[1]),arr.type())
+    waveplanes = N.zeros((maxscale,arr.shape[0],arr.shape[1]),dtype=arr.dtype)
         
     # Perform convolutions
     c0 = arr.copy()

@@ -1,12 +1,12 @@
-import numarray as N
-from numarray import nd_image as ND
+import numpy as N
+import ndimage as ND
 
 
 def gauss(sigma,dist):
     return N.exp(-0.5 * N.power((dist/sigma),2))
 
 def makegauss(shape,sigma,norm):
-    m = N.zeros(shape,N.Float32)
+    m = N.zeros(shape,dtype=N.float32)
     for i in range(shape[0]):
         for j in range(shape[1]):
             dist = N.sqrt(N.power(j-(shape[1]/2),2) + N.power(i-(shape[0]/2),2))
@@ -97,7 +97,7 @@ def recon_by_erosion(marker,mask,max_iter=10):
     erosion_i = marker
     for i in xrange(max_iter):
         erosion_i1 = geodesic_erosion(erosion_i,mask)
-        if i>0 and N.sum(N.equal(erosion_i.flat,erosion_i1.flat)) == erosion_i.nelements():
+        if i>0 and N.sum(N.equal(erosion_i.ravel(),erosion_i1.ravel())) == erosion_i.size:
             break     
         else:
             erosion_i = erosion_i1.copy()
@@ -116,7 +116,7 @@ def recon_by_dilation(marker,mask,max_iter=10):
     dilation_i = marker
     for i in xrange(max_iter):
         dilation_i1 = geodesic_dilation(dilation_i,mask)
-        if i > 0 and N.sum(N.equal(dilation_i.flat,dilation_i1.flat)) == dilation_i.nelements():
+        if i > 0 and N.sum(N.equal(dilation_i.ravel(),dilation_i1.ravel())) == dilation_i.size:
             break     
         else:
             dilation_i = dilation_i1.copy()
@@ -237,14 +237,14 @@ def limits(f):
             print limits(mmbinary([0, 1, 0]))
             print limits(uint8([0, 1, 2]))
     """
-    from numarray import array
+    from numpy import array
 
-    code = f.type()
-    if   code == 'Bool': y=array([0,1])
-    elif code == 'UInt8': y=array([0,255]) # UInt8
-    elif code == 'UInt16': y=array([0,65535]) #UInt16
-    elif code == 'Int16': y =array([-32767,32767]) #Int16
-    elif code == 'Int32': y=array([-2147483647,2147483647]) #Int32
+    code = f.dtype.name
+    if   code == 'bool_': y=array([0,1],dtype=numpy.bool_)
+    elif code == 'uint8': y=array([0,255],dtype=numpy.uint8) # UInt8
+    elif code == 'uint16': y=array([0,65535],dtype=numpy.uint16) #UInt16
+    elif code == 'int16': y =array([-32767,32767],dtype=numpy.int16) #Int16
+    elif code == 'int32': y=array([-2147483647,2147483647],dtype=numpy.int32) #Int32
     else:
         assert 0,'Does not accept this typecode:'+code
     return y
@@ -295,7 +295,7 @@ def numneg(f):
     """
     
     y = limits(f)[0] + limits(f)[1] - f
-    y = y.astype(f.type())
+    y = y.astype(f.dtype)
     return y
     
 #

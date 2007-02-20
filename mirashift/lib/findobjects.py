@@ -1,17 +1,18 @@
-import numarray
-import numarray as N
-from numarray import nd_image as ND
+import numpy as N
+import ndimage as ND
+
 import num_pymorph as NP
+
 import imagestats
 from math import ceil
 import numdisplay
 import morph
 
 def DEGTORAD(deg):
-    return (deg * numarray.pi / 180.)
+    return (deg * N.pi / 180.)
 
 def RADTODEG(rad):
-    return (rad * 180. / numarray.pi)
+    return (rad * 180. / N.pi)
     
 def get_positions(input,sigma=2.0,size=None,offset=None,region=None,thin=False):
     """ Process the input array to return the list of positions that correspond
@@ -22,7 +23,7 @@ def get_positions(input,sigma=2.0,size=None,offset=None,region=None,thin=False):
             poslist,object,raw = get_positions(input,offset=(0.,0.),region=None)
             
         Input: 
-            input   :  numarray array of the (wavelet scaled?) science data
+            input   :  numpy array of the (wavelet scaled?) science data
                         this array should correspond to slice specified in 'region'
             sigma   : sigma for gaussian for source/edge detection in image
             size    :  detection limit for objects, typically the size of the kernel
@@ -237,13 +238,13 @@ def LOG_function(x,y,s):
     #D2H_r = -((r*r - s*s)/(s*s*s*s)) * numarray.exp(-((r*r)/(2*s*s)))
     #D2H_xy = (((x*x) + (y*y) -(2*s*s))/(s*s*s*s))*numarray.exp(-(((x*x) + (y*y))/(2*s*s)))
     h = (pow(x,2)+pow(y,2))/(2*pow(s,2))
-    D2H_xy = -(1/(numarray.pi*pow(s,4)))*(1-h)*numarray.exp(-h)
+    D2H_xy = -(1/(N.pi*pow(s,4)))*(1-h)*N.exp(-h)
     return D2H_xy
     
 def build_LOGKernel(size,sigma):
     """ Build an LoG kernel of arbitrary size
     """    
-    logk = numarray.zeros(size).astype(numarray.Float32)
+    logk = N.zeros(size,dtype=N.float32)
     xcen = int(size[1]/2)
     ycen = int(size[0]/2)
     nelem = logk.nelements()
@@ -253,7 +254,7 @@ def build_LOGKernel(size,sigma):
     lfactor = logk.sum()/nelem
     print lfactor
     
-    return numarray.subtract(logk,lfactor)
+    return N.subtract(logk,lfactor)
     #return logk
     
     
@@ -265,8 +266,8 @@ def center1d(region):
         
     """
     mean = region.mean()
-    rclip = numarray.clip(region > mean, 0, region) * (region - mean)
-    posn_arr = numarray.array(range(region.nelements()),shape=region.shape)
+    rclip = N.clip(region > mean, 0, region) * (region - mean)
+    posn_arr = N.array(range(region.nelements())).reshape(region.shape)
     sum1 =  (posn_arr*rclip).sum()
     sum2 = rclip.sum()
     
@@ -291,8 +292,8 @@ def find_center(region):
                         relative to region origin
     """
     maxpos = ND.maximum_position(region)
-    rowsum = numarray.sum(region,axis=0)
-    colsum = numarray.sum(region,axis=1)
+    rowsum = N.sum(region,axis=0)
+    colsum = N.sum(region,axis=1)
     
     ycen = center1d(colsum)
     xcen = center1d(rowsum)
