@@ -19,8 +19,8 @@ def qderiv(array): # TAKE THE ABSOLUTE DERIVATIVE OF A NUMARRY OBJECT
     """Take the absolute derivate of an image in memory."""
 
     #Create 2 empty arrays in memory of the same dimensions as 'array'
-    tmpArray = N.zeros(array.shape)
-    outArray = N.zeros(array.shape)
+    tmpArray = N.zeros(array.shape,dtype=n.float32)
+    outArray = N.zeros(array.shape, dtype=n.float32)
 
     # Get the length of an array side
     (naxis1,naxis2) = array.shape
