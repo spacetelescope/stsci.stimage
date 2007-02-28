@@ -203,7 +203,7 @@ class DrizCR:
         where_cr_ctegrow_kernel_conv = N.where( cr_ctegrow_kernel_conv < ctegrow, 0, 1 )     # length
         __crMask = N.logical_and( where_cr_ctegrow_kernel_conv, where_cr_grow_kernel_conv) # combine masks
 
-        __crMask = __crMask.astype(N.bool_) # cast back to Bool
+        __crMask = __crMask.astype(N.uint8) # cast back to Bool
 
         del __crMask_orig_bool
         del cr_grow_kernel 

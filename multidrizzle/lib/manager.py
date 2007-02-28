@@ -838,7 +838,7 @@ class ImageManager:
                 for _weight_arr in imageSectionsList[startWht:endWht]:
                     # Initialize an output mask array to ones
                     # This array will be reused for every output weight image
-                    _weight_mask = N.zeros(_weight_arr.shape,dtype=N.bool_)
+                    _weight_mask = N.zeros(_weight_arr.shape,dtype=N.uint8)
 
                     """ Generate new pixel mask file for median step.
                     This mask will be created from the single-drizzled
