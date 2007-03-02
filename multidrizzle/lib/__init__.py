@@ -35,7 +35,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '2.7.2 (23 Feb 2006)'
+__version__ = '3.0.0dev (23 Feb 2006)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing

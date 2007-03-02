@@ -1,3 +1,6 @@
+import numerixenv
+numerixenv.check()
+
 import string,os,types,sys
 import shutil
 
@@ -32,7 +35,7 @@ from math import *
 
 
 # Version
-__version__ = "5.7.0 (1-Sep-2006)"
+__version__ = "6.0.0dev (1-Sep-2006)"
 
 # For History of changes and updates, see 'History'
 

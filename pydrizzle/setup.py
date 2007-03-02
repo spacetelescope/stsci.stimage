@@ -92,7 +92,7 @@ def getNumpyExtensions():
 
 def dosetup(ext):
     r = setup(name = "pydrizzle",
-              version = "5.2.6",
+              version = "6.0.0",
               description = "Geometrically correct and combine images using Drizzle",
               author = "Warren Hack",
               author_email = "help@stsci.edu",
