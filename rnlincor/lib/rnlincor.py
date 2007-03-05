@@ -8,7 +8,7 @@ import irafglob               #}
 from xyinterp import xyinterp #}in pytools
 import sys, os, glob, time
 
-__version__ = "0.6dev"
+__version__ = "0.7dev"
 
 #Generic helper functions:
 #  getcurve: return two column vectors from a FITS table
@@ -93,7 +93,11 @@ def expandname(pattern):
     fpattern=osfn(pattern)
     flist=glob.glob(fpattern)
     flist.sort()
-    return flist[-1]
+    try:
+        return flist[-1]
+    except IndexError:
+        raise IOError,"%s file not found"%pattern
+
 
 #......................................................................
 #Task-specific helper functions
@@ -116,17 +120,17 @@ def check_infile(infile):
     #Make sure it's a legal image type:
     imgtype=f[0].header.get('imagetyp','').lower()
     if imgtype not in ['ext','object','target']:
-        print """Correction can only be performed on science images:
-        %s image detected"""%imgtype
-        f.close()
-        return()
-    else: #exclude grism & polarimetry too
+
+        print """
+        WARNING, this is not a science image: this is a %s image.
+        This task is intended to run only on science images. Continuing anyway.\n"""%imgtype.upper()
+
+    else: #exclude grism images
         filter=f[0].header.get('filter','').lower()
-        if not filter.startswith('f'):
-            print """Correction cannot be performed on grism or
-            polarimetry images: %s image detected"""%filter
+        if filter.startswith('g'):
             f.close()
-            return()
+            raise ValueError, """Correction cannot be performed on grism images: %s image detected.
+            Task aborting."""%filter
         
     #Construct verbose error messages for required keywords
     modemsg="""Required keyword PHOTMODE not found in %s primary header.
@@ -219,7 +223,12 @@ def rnlincor(infile,outfile,**opt):
     zpcorr = not opt['nozpcorr']
     
     #Get the image data
-    f,imgext=check_infile(infile)
+    try:
+        f,imgext=check_infile(infile)
+    except Exception, e:
+        print str(e)
+        return
+    
     img=f[imgext].data
 
     #Correct it for sky subtraction if necessary
@@ -238,8 +247,15 @@ def rnlincor(infile,outfile,**opt):
     photmode=f[0].header['photmode']
     pivlam  =f[0].header['photplam']
     #Pick out the right row from the photometric correction table
-    zprat=getrow(photmode,zpratfile)
-
+    try:
+        zprat=getrow(photmode,zpratfile)
+    except IndexError, e:
+        print """Task Aborting: No zero-point correction is available in the
+        %s file
+        for this image's observing mode %s.
+        You may wish to rerun the task with the 'nozpcorr' option set."""%(zpratfile,photmode.upper())
+        f.close()
+        return
     
     #Read in the nonlinearity correction
     #Pad the wavelength table by 5 Angstroms on each end to protect

@@ -24,5 +24,5 @@ Dependencies:
 
 """
 from rnlincor import *
-__version__="0.6"
-__vdate__="2007-02-08"
+__version__="0.7"
+__vdate__="2007-03-05"
