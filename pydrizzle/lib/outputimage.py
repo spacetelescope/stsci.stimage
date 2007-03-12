@@ -230,12 +230,20 @@ class OutputImage:
             # Add primary header to output file...
             fo.append(prihdu)
 
+            if sciarr.dtype.str[0] == '<':
+                sciarr = sciarr.byteswap(True)
+                sciarr.dtype = sciarr.dtype.newbyteorder('>')
+
             hdu = pyfits.ImageHDU(data=sciarr,header=scihdr,name=extlist[0])
             fo.append(hdu)
 
             # Build WHT extension here, if requested...
             if errhdr:
                 errhdr.update('CCDCHIP','-999')
+
+            if whtarr.dtype.str[0] == '<':
+                whtarr = whtarr.byteswap(True)
+                whtarr.dtype = whtarr.dtype.newbyteorder('>')
 
             hdu = pyfits.ImageHDU(data=whtarr,header=errhdr,name=extlist[1])
             hdu.header.update('EXTVER',1)
@@ -264,6 +272,10 @@ class OutputImage:
             else:
                 _ctxarr = None
 
+            if  _ctxarr.dtype.str[0] == '<':
+                _ctxarr = _ctxarr.byteswap(True)
+                _ctxarr.dtype = _ctxarr.dtype.newbyteorder('>')
+
             hdu = pyfits.ImageHDU(data=_ctxarr,header=dqhdr,name=extlist[2])
             hdu.header.update('EXTVER',1)
             if self.wcs:
@@ -289,6 +301,10 @@ class OutputImage:
             print '-Generating simple FITS output: ',self.outdata
             fo = pyfits.HDUList()
 
+            if ( sciarr.dtype.str[0] == '<'):
+                sciarr = sciarr.byteswap(True)
+                sciarr.dtype = sciarr.dtype.newbyteorder('>') 
+
             hdu = pyfits.PrimaryHDU(data=sciarr, header=prihdu.header)
 
             # Append remaining unique header keywords from template DQ
@@ -312,6 +328,10 @@ class OutputImage:
 
                 if errhdr:
                     errhdr.update('CCDCHIP','-999')
+
+                if ( whtarr.dtype.str[0] == '<'):
+                    whtarr = whtarr.byteswap(True)
+                    whtarr.dtype = whtarr.dtype.newbyteorder('>') 
 
                 hdu = pyfits.PrimaryHDU(data=whtarr, header=prihdu.header)
 
@@ -352,6 +372,10 @@ class OutputImage:
                 else:
                     _ctxarr = ctxarr
 
+                if ( _ctxarr.dtype.str[0] == '<'):
+                    _ctxarr = _ctxarr.byteswap(True)
+                    _ctzarr.dtype = _ctxarr.dtype.newbyteorder('>') 
+
                 hdu = pyfits.PrimaryHDU(data=_ctxarr, header=prihdu.header)
 
                 # Append remaining unique header keywords from template DQ
@@ -385,7 +409,6 @@ class OutputImage:
         # back to native format.
         #
 
-        # This should all be handled by pyfits
         #if sciarr.isbyteswapped():
             #sciarr.togglebyteorder()
             #sciarr.byteswap()
