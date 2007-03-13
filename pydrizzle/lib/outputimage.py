@@ -241,9 +241,10 @@ class OutputImage:
             if errhdr:
                 errhdr.update('CCDCHIP','-999')
 
-            if whtarr.dtype.str[0] == '<':
-                whtarr = whtarr.byteswap(True)
-                whtarr.dtype = whtarr.dtype.newbyteorder('>')
+            if whtarr != None:
+                if whtarr.dtype.str[0] == '<':
+                    whtarr = whtarr.byteswap(True)
+                    whtarr.dtype = whtarr.dtype.newbyteorder('>')
 
             hdu = pyfits.ImageHDU(data=whtarr,header=errhdr,name=extlist[1])
             hdu.header.update('EXTVER',1)
@@ -272,9 +273,10 @@ class OutputImage:
             else:
                 _ctxarr = None
 
-            if  _ctxarr.dtype.str[0] == '<':
-                _ctxarr = _ctxarr.byteswap(True)
-                _ctxarr.dtype = _ctxarr.dtype.newbyteorder('>')
+            if _ctxarr != None:
+                if  _ctxarr.dtype.str[0] == '<':
+                    _ctxarr = _ctxarr.byteswap(True)
+                    _ctxarr.dtype = _ctxarr.dtype.newbyteorder('>')
 
             hdu = pyfits.ImageHDU(data=_ctxarr,header=dqhdr,name=extlist[2])
             hdu.header.update('EXTVER',1)
