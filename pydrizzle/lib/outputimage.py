@@ -376,7 +376,7 @@ class OutputImage:
 
                 if ( _ctxarr.dtype.str[0] == '<'):
                     _ctxarr = _ctxarr.byteswap(True)
-                    _ctzarr.dtype = _ctxarr.dtype.newbyteorder('>') 
+                    _ctxarr.dtype = _ctxarr.dtype.newbyteorder('>') 
 
                 hdu = pyfits.PrimaryHDU(data=_ctxarr, header=prihdu.header)
 
