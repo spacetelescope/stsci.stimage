@@ -144,6 +144,8 @@ class Pattern:
 
         self.exptime = None
 
+        self.binned = 1
+        
         # These attributes are used for keeping track of the reference
         # image used for computing the shifts, and the shifts computed
         # for each observation, respectively.
@@ -1260,10 +1262,10 @@ class STISObservation(Pattern):
     #
     # This information provides the absolute relationship between the chips
     # Latest plate scales: 0.05071, 0.0246
-    REFDATA = {'CCD':{'psize':0.05,'xoff':0.0,'yoff':0.0,'v2':-213.999,'v3':-224.897,'theta':__theta},
-              'NUV-MAMA':{'psize':0.024,'xoff':0.0,'yoff':0.0,'v2':-213.999,'v3':-224.897,'theta':__theta},
-              'FUV-MAMA':{'psize':0.024,'xoff':0.0,'yoff':0.0,'v2':-213.999,'v3':-224.897,'theta':__theta}}
-    REFPIX = {'x':512.,'y':512.}
+    #REFDATA = {'CCD':{'psize':0.05,'xoff':0.0,'yoff':0.0,'v2':-213.999,'v3':-224.897,'theta':__theta},
+    #         'NUV-MAMA':{'psize':0.024,'xoff':0.0,'yoff':0.0,'v2':-213.999,'v3':-224.897,'theta':__theta},
+    #         'FUV-MAMA':{'psize':0.024,'xoff':0.0,'yoff':0.0,'v2':-213.999,'v3':-224.897,'theta':__theta}}
+    #REFPIX = {'x':512.,'y':512.}
 
     def __init__(self, filename, output, pars=None):
 
@@ -1271,6 +1273,11 @@ class STISObservation(Pattern):
         Pattern.__init__(self, filename, output=output, pars=pars)
 
         self.instrument = 'STIS'
+        self.__theta = 0.0
+        self.REFDATA = {'CCD':{'psize':0.05,'xoff':0.0,'yoff':0.0,'v2':-213.999,'v3':-224.897,'theta':self.__theta},
+                        'NUV-MAMA':{'psize':0.024,'xoff':0.0,'yoff':0.0,'v2':-213.999,'v3':-224.897,'theta':self.__theta},
+                        'FUV-MAMA':{'psize':0.024,'xoff':0.0,'yoff':0.0,'v2':-213.999,'v3':-224.897,'theta':self.__theta}}
+        self.REFPIX = {'x':512.,'y':512.}
 
         # build output rootnames here...
         self.setNames(filename,output)
@@ -1336,10 +1343,10 @@ class NICMOSObservation(Pattern):
     #
     # This information provides the absolute relationship between the chips
     # Latest plate scales: 0.05071, 0.0246
-    REFDATA = {'1':{'psize':0.0432,'xoff':0.0,'yoff':0.0,'v2':-296.9228,'v3':290.1827,'theta':__theta},
-              '2':{'psize':0.076,'xoff':0.0,'yoff':0.0,'v2':-319.9464,'v3':311.8579,'theta':__theta},
-              '3':{'psize':0.0203758,'xoff':0.0,'yoff':0.0,'v2':-249.8170,'v3':235.2371,'theta':__theta}}
-    REFPIX = {'x':128.,'y':128.}
+    #REFDATA = {'1':{'psize':0.0432,'xoff':0.0,'yoff':0.0,'v2':-296.9228,'v3':290.1827,'theta':__theta},
+    #         '2':{'psize':0.076,'xoff':0.0,'yoff':0.0,'v2':-319.9464,'v3':311.8579,'theta':__theta},
+    #         '3':{'psize':0.0203758,'xoff':0.0,'yoff':0.0,'v2':-249.8170,'v3':235.2371,'theta':__theta}}
+    #REFPIX = {'x':128.,'y':128.}
 
     def __init__(self, filename, output, pars=None):
 
@@ -1347,7 +1354,11 @@ class NICMOSObservation(Pattern):
         Pattern.__init__(self, filename, output=output, pars=pars)
 
         self.instrument = 'NICMOS'
-
+        self.__theta = 0.0
+        self.REFDATA = {'1':{'psize':0.0432,'xoff':0.0,'yoff':0.0,'v2':-296.9228,'v3':290.1827,'theta':self.__theta},
+                        '2':{'psize':0.076,'xoff':0.0,'yoff':0.0,'v2':-319.9464,'v3':311.8579,'theta':self.__theta},
+                        '3':{'psize':0.0203758,'xoff':0.0,'yoff':0.0,'v2':-249.8170,'v3':235.2371,'theta':self.__theta}}
+        self.REFPIX = {'x':128.,'y':128.}
         # build output rootnames here...
         self.setNames(filename,output)
 
@@ -1396,15 +1407,12 @@ class WFPCObservation(Pattern):
     # cubic and Trauger coefficients tables in 'computeCubicCoeffs'.
     #
     # This information provides the absolute relationship between the chips
-    #REFDATA ={'1':{'psize':0.04554,'xoff':354.356,'yoff':343.646,'theta':__theta},
-    #          '2':{'psize':0.0996,'xoff':-371.27125,'yoff':350.50803,'theta':314.388},
-    #          '3':{'psize':0.0996,'xoff':-369.014827,'yoff':-352.74708,'theta':44.698},
-    #          '4':{'psize':0.0996,'xoff':353.39406,'yoff':-354.18689,'theta':135.258}}
-    REFDATA ={'1':{'psize':0.04554,'xoff':354.356,'yoff':343.646,'v2':2.374,'v3':-30.268,'theta':224.8480},
-              '2':{'psize':0.0996,'xoff':345.7481,'yoff':375.28818,'v2':-51.368,'v3':-5.698,'theta':314.3520},
-              '3':{'psize':0.0996,'xoff':366.56876,'yoff':354.79435,'v2':0.064,'v3':48.692,'theta':44.67},
-              '4':{'psize':0.0996,'xoff':355.85016,'yoff':351.29183,'v2':55.044,'v3':-6.098,'theta':135.2210}}
-    REFPIX = {'x':400.,'y':400.}
+    
+    #REFDATA ={'1':{'psize':0.04554,'xoff':354.356,'yoff':343.646,'v2':2.374,'v3':-30.268,'theta':224.8480},
+    #         '2':{'psize':0.0996,'xoff':345.7481,'yoff':375.28818,'v2':-51.368,'v3':-5.698,'theta':314.3520},
+    #          '3':{'psize':0.0996,'xoff':366.56876,'yoff':354.79435,'v2':0.064,'v3':48.692,'theta':44.67},
+    #         '4':{'psize':0.0996,'xoff':355.85016,'yoff':351.29183,'v2':55.044,'v3':-6.098,'theta':135.2210}}
+    #REFPIX = {'x':400.,'y':400.}
 
     def __init__(self, filename, output, pars=None):
 
@@ -1412,7 +1420,12 @@ class WFPCObservation(Pattern):
         Pattern.__init__(self, filename, output=output, pars=pars)
 
         self.instrument = 'WFPC2'
+        self.REFDATA ={'1':{'psize':0.04554,'xoff':354.356,'yoff':343.646,'v2':2.374,'v3':-30.268,'theta':224.8480},
+        '2':{'psize':0.0996,'xoff':345.7481,'yoff':375.28818,'v2':-51.368,'v3':-5.698,'theta':314.3520},
+        '3':{'psize':0.0996,'xoff':366.56876,'yoff':354.79435,'v2':0.064,'v3':48.692,'theta':44.67},
+        '4':{'psize':0.0996,'xoff':355.85016,'yoff':351.29183,'v2':55.044,'v3':-6.098,'theta':135.2210}}
 
+        self.REFPIX = {'x':400.,'y':400.}
         gcount = None
 
         # build output rootnames here...
@@ -1432,6 +1445,18 @@ class WFPCObservation(Pattern):
         """
         # Set EXPTIME for exposure
         self.exptime = self.getExptime()
+
+        _mode = fileutil.getKeyword(filename, 'MODE')
+        if _mode == 'AREA':
+            self.binned = 2
+            if self.idckey == 'cubic':
+                for l in self.REFPIX.keys(): self.REFPIX[l]= self.REFPIX[l] / self.binned
+                for l in self.REFDATA.keys():
+                    self.REFDATA[l]['psize'] = self.REFDATA[l]['psize'] * self.binned
+                    self.REFDATA[l]['xoff'] = self.REFDATA[l]['xoff'] / self.binned
+                    self.REFDATA[l]['yoff'] = self.REFDATA[l]['yoff'] / self.binned
+            
+
 
         # Now, build list of members and initialize them
         self.addMembers(filename)
@@ -1489,12 +1514,12 @@ class WFPCObservation(Pattern):
                 _maskname = None
             _masknames.append(_maskname)
 
-            outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[0])
+            outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[0], binned=self.binned)
             _masklist.append(outmask)
 
             _maskname = _maskname.replace('final_mask','single_mask')
             _masknames.append(_maskname)
-            outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[1])
+            outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[1], binned=self.binned)
             _masklist.append(outmask)
             _masklist.append(_masknames)
 
@@ -1503,7 +1528,7 @@ class WFPCObservation(Pattern):
                 mask=_masklist, parity=self.PARITY[str(i+1)],
                 idcdir=self.pars['idcdir'],
                 rot=_chip1_rot, handle=self.image_handle, extver=_detnum,
-                exptime=self.exptime[0]))
+                exptime=self.exptime[0], ref_pscale=self.REFDATA['1']['psize'], binned=self.binned))
 
             if self.idckey != 'idctab':
                 _chip1_rot = self.members[0].geometry.def_rot

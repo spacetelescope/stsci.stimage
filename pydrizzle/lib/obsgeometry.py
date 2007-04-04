@@ -253,7 +253,7 @@ class IDCModel(GeometryModel):
     We also need to read in SCALE, XCOM,YCOM, XREF,YREF as well.
     """
     def __init__(self, idcfile, date=None, chip=1, direction='forward',
-                filter1='CLEAR1',filter2='CLEAR2',offtab=None):
+                filter1='CLEAR1',filter2='CLEAR2',offtab=None,  binned=1):
         GeometryModel.__init__(self)
         #
         # Norder must be derived from the coeffs file itself,
@@ -266,6 +266,15 @@ class IDCModel(GeometryModel):
         self.cx,self.cy,self.refpix,self.norder = fileutil.readIDCtab(idcfile,
                         chip=chip,direction=direction,filter1=filter1,filter2=filter2,
                 date=date, offtab=offtab)
+        
+        self.refpix['PSCALE'] = self.refpix['PSCALE'] * binned
+        self.cx = self.cx * binned
+        self.cy = self.cy * binned
+        self.refpix['XREF'] = self.refpix['XREF'] / binned
+        self.refpix['YREF'] = self.refpix['YREF'] / binned
+        self.refpix['XSIZE'] = self.refpix['XSIZE'] / binned
+        self.refpix['YSIZE'] = self.refpix['YSIZE'] / binned
+
         self.pscale = self.refpix['PSCALE']
 
 class WCSModel(GeometryModel):
@@ -298,7 +307,7 @@ class DrizzleModel(GeometryModel):
     drizzle coeffs file and populate the cx,cy arrays.
     """
 
-    def __init__(self, idcfile):
+    def __init__(self, idcfile, scale = None):
         GeometryModel.__init__(self)
         #
         # We now need to read in the file, populate cx,cy, and
@@ -306,7 +315,14 @@ class DrizzleModel(GeometryModel):
         #
         self.name = idcfile
         self.cx,self.cy,self.refpix,self.norder = drutil.readCubicTable(idcfile)
-        self.pscale = self.refpix['PSCALE']
+
+        # scale is the ratio wcs.pscale/model.pscale. 
+        # model.pscale for WFPC2 is passed from REFDATA.
+        # This is needed for WFPC2 binned data.
+        if scale != None:
+            self.pscale = scale
+        else:
+            self.pscale = self.refpix['PSCALE']
 
 
 class TraugerModel(GeometryModel):
@@ -339,7 +355,7 @@ class ObsGeometry:
 
     def __init__(self, rootname, idcfile, idckey=None, chip=1, direction="forward",
                 header=None, pa_key=None, new=None, date=None,
-                rot=None):
+                rot=None, ref_pscale=1.0,binned=1):
         """
          We need to setup the proper object for the GeometryModel
           based on the format of the provided idctab.
@@ -416,9 +432,15 @@ class ObsGeometry:
             if ikey == 'idctab':
                 self.model =  IDCModel(self.idcfile,
                     chip=chip, direction=self.direction, date=self.date,
-                    filter1=_filt1, filter2=_filt2, offtab=_offtab)
+                    filter1=_filt1, filter2=_filt2, offtab=_offtab, binned=binned)
             elif ikey == 'cubic':
-                self.model = DrizzleModel(self.idcfile)
+                scale = self.wcs.pscale / ref_pscale
+                self.model = DrizzleModel(self.idcfile, scale=scale)
+                self.model.pscale = scale
+                self.model.refpix['PSCALE']  = self.model.pscale
+                self.model.refpix['XREF'] = self.wcs.naxis1/2.
+                self.model.refpix['YREF'] = self.wcs.naxis2/2.
+                
                 _chip_rot = fileutil.RADTODEG(N.arctan2(self.model.cy[1][0],self.model.cx[1][0]))
                 if rot != None:
                     _theta = _chip_rot - rot
@@ -449,8 +471,8 @@ class ObsGeometry:
                 self.model.pscale = 1.0
                 self.model.refpix['PSCALE']  = self.model.pscale
             if self.model.refpix['XREF'] == None:
-                self.model.refpix['XREF'] = self.wcs.crpix1
-                self.model.refpix['YREF'] = self.wcs.crpix2
+                self.model.refpix['XREF'] = self.wcs.naxis1/2.
+                self.model.refpix['YREF'] = self.wcs.naxis2/2.
 
             # Determine whether there is any offset for the image
             # as in the case of subarrays (based on LTV keywords)

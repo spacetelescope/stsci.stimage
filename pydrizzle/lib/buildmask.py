@@ -150,7 +150,7 @@ def _func_Shadow_WF4x(x,y):
 # Function for creating the weighting image for WFPC2 drizzling
 # from the 'wmosaic' shadow mask polynomials.
 
-def buildShadowMaskImage(rootname,detnum,maskname,replace=yes,bitvalue=None):
+def buildShadowMaskImage(rootname,detnum,maskname,replace=yes,bitvalue=None,binned=1):
     """ Builds mask image from WFPC2 shadow calibrations.
       detnum - string value for 'DETECTOR' detector
     """
@@ -185,6 +185,15 @@ def buildShadowMaskImage(rootname,detnum,maskname,replace=yes,bitvalue=None):
             _xarr = N.clip(N.fromfunction(eval(_funcx),(800,800)),0.0,1.0).astype(N.uint8)
             _yarr = N.clip(N.fromfunction(eval(_funcy),(800,800)),0.0,1.0).astype(N.uint8)
             maskarr = _xarr * _yarr
+
+            if binned !=1:
+                print 'in buildmask', binned
+                bmaskarr = maskarr[::2,::2]
+                bmaskarr *= maskarr[1::2,::2]
+                bmaskarr *= maskarr[::2,1::2]
+                bmaskarr *= maskarr[1::2,1::2]
+                maskarr = bmaskarr.copy()
+                del bmaskarr
 
             #Write out the mask file as simple FITS file
             fmask = pyfits.open(_mask,'append')
