@@ -1740,9 +1740,7 @@ class DitherProduct(Pattern):
             mt_member = selectInstrument(filename,output, pars=pars)
             mt_wcs = {}
             for member in mt_member.members:
-                print 'member', member
                 mt_wcs[member.chip] = member.geometry.wcs
-                print member.geometry.wcs
             
             pars['mt_wcs'] = mt_wcs
             del mt_member   
