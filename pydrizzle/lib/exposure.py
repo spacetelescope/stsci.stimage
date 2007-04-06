@@ -45,7 +45,8 @@ class Exposure:
 
     def __init__(self,expname, handle=None, dqname=None, idckey=None,
                     new=no,wcs=None,mask=None,pa_key=None, parity=None,
-                    idcdir=None, rot=None, extver=1, exptime=None, ref_pscale=1.0, binned=1):
+                    idcdir=None, rot=None, extver=1, exptime=None,
+                    ref_pscale=1.0, binned=1, mt_wcs=None):
 
         # This name should be formatted for use in image I/O
         self.name = fileutil.osfn(expname)
@@ -176,7 +177,8 @@ class Exposure:
         # Get distortion model and WCS info.
         self.geometry = ObsGeometry(expname, idcfile, idckey=idckey,
                 chip=_chip, new=new, header=self.header,
-                pa_key=pa_key, rot=rot, date=self.dateobs, ref_pscale=ref_pscale, binned=binned)
+                pa_key=pa_key, rot=rot, date=self.dateobs,
+                ref_pscale=ref_pscale, binned=binned, mt_wcs=mt_wcs)
 
         # Remember the name and type of the IDC file used...
         self.idcfile = idcfile

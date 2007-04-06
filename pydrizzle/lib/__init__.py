@@ -264,7 +264,7 @@ class Pattern:
             self.members.append(Exposure(_sciname, idckey=self.idckey, dqname=_dqname,
                     mask=_masklist, pa_key=self.pa_key, parity=self.PARITY[detector],
                     idcdir=self.pars['idcdir'],
-                    handle=self.image_handle,extver=i+1,exptime=self.exptime[0]))
+                    handle=self.image_handle,extver=i+1,exptime=self.exptime[0], mt_wcs=self.pars['mt_wcs']))
 
     def applyAsnShifts(self):
         """ Apply ASN Shifts to each member and the observations product. """
@@ -1726,7 +1726,27 @@ class DitherProduct(Pattern):
         """
         For each entry in prodlist, append the appropriate type
         of Observation to the members list.
-        """
+
+	If it's a moving target observation
+        apply the wcs of the first observation to 
+        all other observations.
+        """     
+
+        member = prodlist['order'][0]
+        filename = fileutil.buildRootname(member)
+        mtflag = fileutil.getKeyword(filename, 'MTFLAG')
+
+        if mtflag:
+            mt_member = selectInstrument(filename,output, pars=pars)
+            mt_wcs = {}
+            for member in mt_member.members:
+                print 'member', member
+                mt_wcs[member.chip] = member.geometry.wcs
+                print member.geometry.wcs
+            
+            pars['mt_wcs'] = mt_wcs
+            del mt_member   
+ 
         for memname in prodlist['order']:
             pardict = self.pars[memname]
             pardict.update(pars)
@@ -2272,7 +2292,7 @@ More help on SkyField objects and their parameters can be obtained using:
             'pixfrac':pixfrac,'idckey':idckey,'wt_scl':wt_scl,
             'fillval':fillval,'section':section, 'idcdir':idcdir+os.sep,
             'memmap':memmap,'dqsuffix':dqsuffix,
-            'bits':[bits_final,bits_single]}
+            'bits':[bits_final,bits_single], 'mt_wcs': None}
 
         # Check to see if user-supplied output name is complete
         # Append .FITS suffix to output name if necessary

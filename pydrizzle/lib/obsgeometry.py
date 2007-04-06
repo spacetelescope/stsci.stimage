@@ -355,7 +355,7 @@ class ObsGeometry:
 
     def __init__(self, rootname, idcfile, idckey=None, chip=1, direction="forward",
                 header=None, pa_key=None, new=None, date=None,
-                rot=None, ref_pscale=1.0,binned=1):
+                rot=None, ref_pscale=1.0,binned=1, mt_wcs=None):
         """
          We need to setup the proper object for the GeometryModel
           based on the format of the provided idctab.
@@ -364,6 +364,7 @@ class ObsGeometry:
          are not part of the observation; such as in sub-arrays.
         """
         self.header = header
+        self.wcs = mt_wcs
 
         _offtab = None
         _filt1 = None
@@ -417,7 +418,11 @@ class ObsGeometry:
         self.def_rot = None
 
         if not new:
-            self.wcs = wcsutil.WCSObject(rootname,header=self.header)
+            if self.wcs == None:
+                self.wcs = wcsutil.WCSObject(rootname,header=self.header)
+            else:
+                self.wcs = self.wcs[str(chip)]
+
             self.wcs.recenter()
             self.wcslin = self.wcs.copy()
 
