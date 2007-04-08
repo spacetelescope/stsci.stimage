@@ -1736,7 +1736,7 @@ class DitherProduct(Pattern):
         filename = fileutil.buildRootname(member)
         mtflag = fileutil.getKeyword(filename, 'MTFLAG')
 
-        if mtflag:
+        if mtflag == 'T':
             mt_member = selectInstrument(filename,output, pars=pars)
             mt_wcs = {}
             for member in mt_member.members:
