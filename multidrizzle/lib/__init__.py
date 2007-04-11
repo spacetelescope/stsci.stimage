@@ -35,7 +35,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '3.0.0dev (23 Feb 2006)'
+__version__ = '3.0.0dev (10 April 2007)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -75,11 +75,10 @@ def versioninfo():
     
     # Set up version ID's for printing to the log file
     mdrizzle_key = " MultiDrizzle "
-    array_key = " Array Package Version  "
+    array_key = " NUMPY Version  "
     pydrizzle_key = " PyDrizzle Version "
     pyfits_key =  " PyFITS Version    "
     python_key = " Python Version: "
-    pyraf_key = " PyRAF "
     
     version_dict[mdrizzle_key] = __version__
     version_dict[array_key]= N.__version__
@@ -95,16 +94,7 @@ def versioninfo():
     # Print out version information for libraries used by MultiDrizzle
     print "\n"
     print " Version Information for MultiDrizzle "+version_dict[mdrizzle_key]
-    print "-------------------------------------------- "
-    #try:
-        #import pyraf
-        #version_dict[pyraf_key] = "Version     "+ pyraf.__version__
-
-    #except:
-        #version_dict[pyraf_key] = " cannot be found!"
-    
-    #print pyraf_key+version_dict[pyraf_key]
-        
+    print "-------------------------------------------- "        
     print array_key + version_dict[array_key]
     print pyfits_key + version_dict[pyfits_key]
     print pydrizzle_key + version_dict[pydrizzle_key]
@@ -351,8 +341,8 @@ help file.
         for kw in self.init_keys:
             self.__dict__[kw] = self.pars.master_pars[kw]
         # runfile could have been converted to an integer by the above,
-	# so we have to make sure it's a string
-	self.runfile = str(self.runfile)
+        # so we have to make sure it's a string
+        self.runfile = str(self.runfile)
 
                 
         # Create object that controls step execution and mark
@@ -1467,12 +1457,6 @@ help file.
             if (shfile != None) and (len(shfile) > 0):
                 updateasn.updateShifts(name,shfile,mode='replace')
 
-#    def _buildAsnName(self, name):
-#        """ Builds name for association table. """
-#        for (search_for,suffix) in [('_asn.fits',''),('_asn','.fits'),('','_asn.fits')]:
-#            if name.find(search_for) > -1:
-#                return name + suffix
-
     def _preMedian(self, skysub):
         """ Perform the steps that take place before median computation:
             build static mask, subtract sky, drizzle into separate images.
@@ -1533,9 +1517,9 @@ help file.
             # If we are in this conditional, the Multidrizzle constructor
             # exited with a return without actually completing it's normal
             # processing.  This exit from Multidrizzle is to allow for 
-            # the stopping of execution withour raising an acception.  This
+            # the stopping of execution without raising an acception.  This
             # keeps the HST pipeline from crashing because of a raised
-            # reception.  This state likely occured because all of the input
+            # exception.  This state likely occured because all of the input
             # images the user provided to Multidrizzle were excluded from
             # processing because of problems with the data (like a 0 EXPTIME
             # value).
