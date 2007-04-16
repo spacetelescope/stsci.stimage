@@ -911,6 +911,11 @@ class Pattern:
             else:
                 parameters['wt_scl'] = 'exptime'
 
+            if self.pars['in_units'] != None:
+                parameters['in_units'] = self.pars['in_units']
+            else:
+                parameters['in_units'] = 'counts'
+
             if self.pars['fillval'] != None:
                 parameters['fillval'] = str(self.pars['fillval'])
             else:
@@ -2248,7 +2253,7 @@ More help on SkyField objects and their parameters can be obtained using:
     """
     def __init__(self, input, output=None, field=None, units=None, section=None,
         kernel=None,pixfrac=None,bits_final=0,bits_single=0,
-        wt_scl='exptime',fillval=0.,idckey='',
+        wt_scl='exptime', in_units='counts', fillval=0.,idckey='',
         idcdir=DEFAULT_IDCDIR,memmap=0,dqsuffix=None,prodonly=yes,shiftfile=None):
 
         if idcdir == None: idcdir = DEFAULT_IDCDIR
@@ -2287,7 +2292,7 @@ More help on SkyField objects and their parameters can be obtained using:
         # These can also be set by the user.
         # Minimum set needed: psize, rot, and idckey
         self.pars = {'psize':psize,'units':units,'kernel':kernel,'rot':orient,
-            'pixfrac':pixfrac,'idckey':idckey,'wt_scl':wt_scl,
+            'pixfrac':pixfrac,'idckey':idckey,'wt_scl':wt_scl, 'in_units':in_units,
             'fillval':fillval,'section':section, 'idcdir':idcdir+os.sep,
             'memmap':memmap,'dqsuffix':dqsuffix,
             'bits':[bits_final,bits_single], 'mt_wcs': None}
@@ -2640,7 +2645,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 #print 'WT_SCL: ',plist['wt_scl'],' _wtscl: ',_wtscl
                 # Set additional parameters needed by 'drizzle'
                 _expin = plist['exptime']
-                _in_un = 'counts'
+                _in_un = plist['in_units']
                 _shift_fr = 'output'
                 _shift_un = 'output'
                 _uniqid = _numchips + 1
@@ -2693,7 +2698,7 @@ More help on SkyField objects and their parameters can be obtained using:
                             plist['rot'],plist['scale'],
                             0.0,0.0, 1.0,1.0,0.0,'output',
                             _pxg,_pyg, 'center', plist['pixfrac'], plist['kernel'],
-                            plist['coeffs'], 'counts', _expin,_wtscl,
+                            plist['coeffs'], _in_un, _expin,_wtscl,
                             plist['fillval'], _inwcs, nmiss, nskip, 1)
                 """
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
