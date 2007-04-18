@@ -6,8 +6,16 @@ from distutils.command.install_data import install_data
 if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'alpha',0):
     raise SystemExit, "Python 2.3 or later required to build pydrizzle."
 
-import numpy
-import numpy.numarray as nn
+try:
+    import numpy
+    import numpy.numarray as nn
+except ImportError:
+    "Numpy was not found. It may not be installed or it may not be on your PYTHONPATH. Pydrizzle requires numpy v 1.0.2 or later.\n"
+
+
+if numpy.__version__ < "1.0.2":
+    raise SystemExit, "Numpy 1.0.2 or later required to build pydrizzle."
+
 print "Building C extensions using NUMPY."
 
 numpyinc = numpy.get_include()

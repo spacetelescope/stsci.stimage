@@ -6,13 +6,18 @@ if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'alpha',0):
     raise SystemExit, "Python 2.3 or later required to build pydrizzle."
 
 try:
-    import numarray
-    from numarray.numarrayext import NumarrayExtension
-except:
-    raise ImportError("Numarray was not found. It may not be installed or it may not be on your PYTHONPATH. Pydrizzle requires numarray v 1.1 or later.\n")
+    import numpy
+    import numpy.numarray as nn
+except ImportError:
+    print "Numarray was not found. It may not be installed or it may not be on your PYTHONPATH. Pydrizzle requires numarray v 1.1 or later.\n"
     
-if numarray.__version__ < "1.1":
-    raise SystemExit, "Numarray 1.1 or later required to build pydrizzle."
+if numpy.__version__ < "1.0.2":
+    raise SystemExit, "Numpy 1.0.2 or later required to build pydrizzle."
+
+print "Building C extensions using NUMPY."
+
+numpyinc = numpy.get_include()
+numpynumarrayinc = nn.get_numarray_include_dirs()
 
 f2c_inc_dir = []
 f2c_lib_dir = []
@@ -63,13 +68,14 @@ args = sys.argv[:]
 getF2CDirs(args)
 
 
-PYDRIZZLE_EXTENSIONS = [NumarrayExtension("pydrizzle.arrdriz", \
+PYDRIZZLE_EXTENSIONS = [Extension("pydrizzle.arrdriz", \
                 ['pydrizzle/src/arrdrizmodule.c', \
                 'pydrizzle/src/tdriz.c','pydrizzle/src/tblot.c', \
                 'pydrizzle/src/drutil.c','pydrizzle/src/doblot.c', \
                 'pydrizzle/src/drcall.c', 'pydrizzle/src/inter2d.c', \
                 'pydrizzle/src/bieval.c'],
-                include_dirs = [pythoninc] + f2c_inc_dir,
+                define_macros=[('NUMPY', '1')],
+                include_dirs = [pythoninc] + [numpyinc] + numpynumarrayinc+ f2c_inc_dir,
                 library_dirs = f2c_lib_dir,
                 extra_link_args=EXTRA_LINK_ARGS,
                 libraries=pydrizzle_libraries)]

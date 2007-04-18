@@ -7,8 +7,9 @@ from distutils.command.install_data import install_data
 
 from cfg_pyraf import PYRAF_DATA_FILES, PYRAF_SCRIPTS, PYRAF_EXTENSIONS, PYRAF_CLCACHE
 from cfg_pydrizzle import PYDRIZZLE_EXTENSIONS
-from cfg_modules import PYFITS_MODULES, PYTOOLS_MODULES, STIS_MODULES
+from cfg_modules import PYTOOLS_MODULES, STIS_MODULES
 from cfg_imagestats import IMAGESTATS_EXTENSIONS
+from cfg_calcos import CALCOS_EXTENSIONS
 
 #py_includes = get_python_inc(plat_specific=1)
 py_libs =  get_python_lib(plat_specific=1)
@@ -18,13 +19,13 @@ pythonver = 'python' + ver
 args = sys.argv[2:]
 #data_dir = py_libs
 
-PACKAGES = ['pyraf','numdisplay', 'imagestats', 'multidrizzle', 'saaclean', 'pydrizzle', 'pydrizzle.traits102', 'puftcorr', 'rnlincor']
+PACKAGES = ['calcos', 'pyraf','numdisplay', 'imagestats', 'multidrizzle', 'saaclean', 'pydrizzle', 'pydrizzle.traits102', 'puftcorr', 'rnlincor', 'pyfits']
 
 
 
-PACKAGE_DIRS = {'pyraf':'pyraf/lib','numdisplay':'numdisplay', 'imagestats':'imagestats/lib', 'multidrizzle':'multidrizzle/lib', 'saaclean':'saaclean/lib', 'pydrizzle':'pydrizzle/lib', 'pydrizzle.traits102':'pydrizzle/traits102', 'puftcorr':'puftcorr/lib', 'rnlincor':'rnlincor/lib'}
+PACKAGE_DIRS = {'calcos':'calcos/lib', 'pyraf':'pyraf/lib','numdisplay':'numdisplay', 'imagestats':'imagestats/lib', 'multidrizzle':'multidrizzle/lib', 'saaclean':'saaclean/lib', 'pydrizzle':'pydrizzle/lib', 'pydrizzle.traits102':'pydrizzle/traits102', 'puftcorr':'puftcorr/lib', 'rnlincor':'rnlincor/lib', 'pyfits':'pyfits/lib'}
 
-PYMODULES = PYFITS_MODULES + PYTOOLS_MODULES + STIS_MODULES
+PYMODULES = PYTOOLS_MODULES + STIS_MODULES
 
 for a in args:
     if a.startswith('--local='):
@@ -89,6 +90,8 @@ if sys.platform == 'win32':
     del(PACKAGE_DIRS['saaclean'])
     PACKAGES.remove('puftcorr')
     del(PACKAGE_DIRS['puftcorr'])
+    PACKAGES.remove('rnlincor')
+    del(PACKAGE_DIRS['rnlincor'])
     #remove pyraf's data files
     DATA_FILES = [(NUMDISPLAY_DATA_DIR, NUMDISPLAY_DATA_FILES), (IMAGESTATS_DATA_DIR, IMAGESTATS_DATA_FILES), (MULTIDRIZZLE_DATA_DIR, MULTIDRIZZLE_DATA_FILES), (PYDRIZZLE_DATA_DIR, PYDRIZZLE_DATA_FILES)]
 

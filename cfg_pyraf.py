@@ -1,7 +1,7 @@
 from distutils.core import Extension
 import sys, os.path, glob, string, commands
 
-PYRAF_DATA_FILES = ['pyraf/data/blankcursor.xbm', 'pyraf/data/epar.optionDB', 'pyraf/data/pyraflogo_rgb_web.gif', 'data/ipythonrc-pyraf','pyraf/lib/LICENSE.txt']
+PYRAF_DATA_FILES = ['pyraf/data/blankcursor.xbm', 'pyraf/data/epar.optionDB', 'pyraf/data/pyraflogo_rgb_web.gif', 'pyraf/data/ipythonrc-pyraf','pyraf/lib/LICENSE.txt']
 
 PYRAF_CLCACHE = glob.glob(os.path.join('pyraf', 'data', 'clcache', '*'))
 
