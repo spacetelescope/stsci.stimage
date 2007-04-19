@@ -52,6 +52,7 @@ class OutputImage:
         self.single = single
         self.parlist = plist
         _nimgs = len(self.parlist)
+        self.bunit = None
 
         if not blot:
             self.output = plist[0]['output']
@@ -206,6 +207,10 @@ class OutputImage:
             if scihdr.has_key('CCDCHIP'): scihdr.update('CCDCHIP','-999')
             if scihdr.has_key('NCOMBINE') > 0:
                 scihdr.update('NCOMBINE', self.parlist[0]['nimages'])
+
+            # If BUNIT keyword was found and reset, then 
+            if self.bunit is not None:
+                scihdr.update('BUNIT',self.bunit)
 
             if self.wcs:
                 # Update WCS Keywords based on PyDrizzle product's value

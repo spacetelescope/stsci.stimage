@@ -35,7 +35,7 @@ from math import *
 
 
 # Version
-__version__ = "6.0.0dev (1-Sep-2006)"
+__version__ = "6.0.0 (19-Apr-2007)"
 
 # For History of changes and updates, see 'History'
 
@@ -910,11 +910,6 @@ class Pattern:
                 parameters['wt_scl'] = self.pars['wt_scl']
             else:
                 parameters['wt_scl'] = 'exptime'
-
-            if self.pars['in_units'] != None:
-                parameters['in_units'] = self.pars['in_units']
-            else:
-                parameters['in_units'] = 'counts'
 
             if self.pars['fillval'] != None:
                 parameters['fillval'] = str(self.pars['fillval'])
@@ -2253,7 +2248,7 @@ More help on SkyField objects and their parameters can be obtained using:
     """
     def __init__(self, input, output=None, field=None, units=None, section=None,
         kernel=None,pixfrac=None,bits_final=0,bits_single=0,
-        wt_scl='exptime', in_units='counts', fillval=0.,idckey='',
+        wt_scl='exptime', fillval=0.,idckey='',
         idcdir=DEFAULT_IDCDIR,memmap=0,dqsuffix=None,prodonly=yes,shiftfile=None):
 
         if idcdir == None: idcdir = DEFAULT_IDCDIR
@@ -2292,7 +2287,7 @@ More help on SkyField objects and their parameters can be obtained using:
         # These can also be set by the user.
         # Minimum set needed: psize, rot, and idckey
         self.pars = {'psize':psize,'units':units,'kernel':kernel,'rot':orient,
-            'pixfrac':pixfrac,'idckey':idckey,'wt_scl':wt_scl, 'in_units':in_units,
+            'pixfrac':pixfrac,'idckey':idckey,'wt_scl':wt_scl,
             'fillval':fillval,'section':section, 'idcdir':idcdir+os.sep,
             'memmap':memmap,'dqsuffix':dqsuffix,
             'bits':[bits_final,bits_single], 'mt_wcs': None}
@@ -2589,6 +2584,32 @@ More help on SkyField objects and their parameters can be obtained using:
                 #_insci = _sciext.data.copy()
                 _inwcs = drutil.convertWCS(wcsutil.WCSObject(_fname,header=_sciext.header),_inwcs)
 
+                # Determine output value of BUNITS
+                # and make sure it is not specified as 'ergs/cm...'
+                _bunit = None
+                if _sciext.header.has_key('BUNIT') and _sciext.header['BUNIT'].find('ergs') < 0:
+                    _bunit = _sciext.header['BUNIT']
+
+                if _bunit is not None:
+                    _bindx = _bunit.find('/')
+                    if plist['units'] == 'cps':
+                        # If BUNIT value does not specify count rate already...
+                        if _bindx < 1:
+                            # ... append '/SEC' to value
+                            _bunit += '/SEC'
+                        else:
+                            # reset _bunit here to None so it does not 
+                            #    overwrite what is already in header
+                            _bunit = None
+                    else:
+                        if _bindx > 0:
+                            # remove '/SEC'
+                            _bunit = _bunit[:_bindx]
+                        else:
+                            # reset _bunit here to None so it does not 
+                            #    overwrite what is already in header
+                            _bunit = None 
+
                 # Compute what plane of the context image this input would
                 # correspond to:
                 _planeid = int(_numchips /32)
@@ -2645,7 +2666,6 @@ More help on SkyField objects and their parameters can be obtained using:
                 #print 'WT_SCL: ',plist['wt_scl'],' _wtscl: ',_wtscl
                 # Set additional parameters needed by 'drizzle'
                 _expin = plist['exptime']
-                _in_un = plist['in_units']
                 _shift_fr = 'output'
                 _shift_un = 'output'
                 _uniqid = _numchips + 1
@@ -2698,7 +2718,7 @@ More help on SkyField objects and their parameters can be obtained using:
                             plist['rot'],plist['scale'],
                             0.0,0.0, 1.0,1.0,0.0,'output',
                             _pxg,_pyg, 'center', plist['pixfrac'], plist['kernel'],
-                            plist['coeffs'], _in_un, _expin,_wtscl,
+                            plist['coeffs'], 'counts', _expin,_wtscl,
                             plist['fillval'], _inwcs, nmiss, nskip, 1)
                 """
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
@@ -2761,6 +2781,7 @@ More help on SkyField objects and their parameters can be obtained using:
                     # Write output arrays to FITS file(s) and reset chip counter
                     #
                     _outimg = outputimage.OutputImage(_hdrlist, build=build, wcs=_wcs, single=single)
+                    _outimg.bunit = _bunit
                     _outimg.writeFITS(plist['data'],_outsci,_outwht,ctxarr=_outctx,versions=_versions)
                     del _outimg
                     #
