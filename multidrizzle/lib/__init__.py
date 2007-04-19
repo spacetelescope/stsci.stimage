@@ -35,7 +35,7 @@ import stis_assoc_support
 from stis_assoc_support import parseSTIS
 from stis_assoc_support import parseSTISIVM
 
-__version__ = '3.0.0dev (10 April 2007)'
+__version__ = '3.0.0dev (19 April 2007)'
 
 __help_str = """
 MultiDrizzle combines astronomical images while removing
@@ -1169,6 +1169,9 @@ help file.
         timestamp()
         print ' *** '+'Setting up associated inputs..'+'\n *** '
 
+        # Setup default PyDrizzle 'output' parameter value
+        assoc_output = None
+
         # There are a number of cases that we need to deal with when creating an assocation
         # file for Pydrizzle use.
                 
@@ -1244,6 +1247,7 @@ help file.
         elif (len(self.files) == 1):
             # The name of the single file is set as Pydrizzle input variable.
             driz_asn_file = self.files[0]
+            assoc_output = self.output
 
         # Case 4: Parse flags set while throwing out assocation table shift information.
         # There are either zero or multiple assocation files
@@ -1385,7 +1389,8 @@ help file.
 
         # Run PyDrizzle; make sure there are no intermediate products
         # laying around...        
-        assoc = pydrizzle.PyDrizzle(driz_asn_file, idckey=self.coeffs,
+        assoc = pydrizzle.PyDrizzle(driz_asn_file, output=assoc_output, 
+                                    idckey=self.coeffs, 
                                     section=self.driz_sep_pars['group'],
                                     bits_single=self.driz_sep_bits,
                                     bits_final=self.final_bits,
