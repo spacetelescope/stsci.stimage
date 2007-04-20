@@ -1397,7 +1397,7 @@ class WFPCObservation(Pattern):
        chips."""
 
     # Default coefficients table to use for this instrument
-    IDCKEY = 'cubic'
+    IDCKEY = 'idctab'
 
     # This parity is the multiplication of PC1 rotation matrix with
     # a flip in X for output image.
