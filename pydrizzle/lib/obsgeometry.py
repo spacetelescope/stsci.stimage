@@ -266,14 +266,15 @@ class IDCModel(GeometryModel):
         self.cx,self.cy,self.refpix,self.norder = fileutil.readIDCtab(idcfile,
                         chip=chip,direction=direction,filter1=filter1,filter2=filter2,
                 date=date, offtab=offtab)
-        
-        self.refpix['PSCALE'] = self.refpix['PSCALE'] * binned
-        self.cx = self.cx * binned
-        self.cy = self.cy * binned
-        self.refpix['XREF'] = self.refpix['XREF'] / binned
-        self.refpix['YREF'] = self.refpix['YREF'] / binned
-        self.refpix['XSIZE'] = self.refpix['XSIZE'] / binned
-        self.refpix['YSIZE'] = self.refpix['YSIZE'] / binned
+
+        if self.refpix.has_key('empty_model') and not self.refpix['empty_model']:
+            self.refpix['PSCALE'] = self.refpix['PSCALE'] * binned
+            self.cx = self.cx * binned
+            self.cy = self.cy * binned
+            self.refpix['XREF'] = self.refpix['XREF'] / binned
+            self.refpix['YREF'] = self.refpix['YREF'] / binned
+            self.refpix['XSIZE'] = self.refpix['XSIZE'] / binned
+            self.refpix['YSIZE'] = self.refpix['YSIZE'] / binned
 
         self.pscale = self.refpix['PSCALE']
 
