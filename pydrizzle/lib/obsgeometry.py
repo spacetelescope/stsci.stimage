@@ -268,6 +268,8 @@ class IDCModel(GeometryModel):
                 date=date, offtab=offtab)
 
         if self.refpix.has_key('empty_model') and not self.refpix['empty_model']:
+            pass
+        else:
             self.refpix['PSCALE'] = self.refpix['PSCALE'] * binned
             self.cx = self.cx * binned
             self.cy = self.cy * binned
