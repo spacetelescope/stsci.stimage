@@ -245,7 +245,6 @@ class ImageManager:
             p['fillval'] = 'INDEF'
             #
             # Add some new variables:
-            p['group'] = grp
             p['rootname'] = rootname
             p['rootname_sci'] = rootname + '_sci' + grp
 
