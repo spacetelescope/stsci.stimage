@@ -738,7 +738,7 @@ class ImageManager:
 
         for p in self.assoc.parlist:
             # Extract the single drizzled image.
-            if p['group'] == '1':
+            if p['group'] == 1:
                 _file = IterFitsFile(p['outsingle'])
                 self.single_handles.append(_file)
                 #self.single_list.append(_file[0].data)
