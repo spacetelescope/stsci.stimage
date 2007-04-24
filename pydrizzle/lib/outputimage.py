@@ -271,10 +271,10 @@ class OutputImage:
             # Build CTX extension here
             # If there is only 1 plane, write it out as a 2-D extension
             if self.outcontext:
-                if ctxarr.shape[0] == 1:
-                    _ctxarr = ctxarr[0]
-                else:
-                    _ctxarr = ctxarr
+                #if ctxarr.shape[0] == 1:
+                    #_ctxarr = ctxarr[0]
+                #else:
+                _ctxarr = ctxarr
             else:
                 _ctxarr = None
 
@@ -374,10 +374,10 @@ class OutputImage:
                 fctx = pyfits.HDUList()
 
                 # If there is only 1 plane, write it out as a 2-D extension
-                if ctxarr.shape[0] == 1:
-                    _ctxarr = ctxarr[0]
-                else:
-                    _ctxarr = ctxarr
+                #if ctxarr.shape[0] == 1:
+                    #_ctxarr = ctxarr[0]
+                #else:
+                _ctxarr = ctxarr
 
                 if ( _ctxarr.dtype.str[0] == '<'):
                     _ctxarr = _ctxarr.byteswap(True)
