@@ -35,7 +35,7 @@ from math import *
 
 
 # Version
-__version__ = "6.0.0 (19-Apr-2007)"
+__version__ = "6.0.0 (24-Apr-2007)"
 
 # For History of changes and updates, see 'History'
 
@@ -260,10 +260,10 @@ class Pattern:
             # Add new name to list for single drizzle step
             _masklist.append(outmask)
             _masklist.append(_masknames)
-
+        
             self.members.append(Exposure(_sciname, idckey=self.idckey, dqname=_dqname,
                     mask=_masklist, pa_key=self.pa_key, parity=self.PARITY[detector],
-                    idcdir=self.pars['idcdir'],
+                    idcdir=self.pars['idcdir'], group_indx = i+1,
                     handle=self.image_handle,extver=i+1,exptime=self.exptime[0], mt_wcs=self.pars['mt_wcs']))
 
     def applyAsnShifts(self):
@@ -821,6 +821,7 @@ class Pattern:
             parameters['data'] = member.name
             parameters['output'] = self.output
             parameters['exposure'] = member
+            parameters['group'] = member.group_indx
 
             parameters['instrument'] = self.instrument
             parameters['detector'] = self.detector
@@ -1531,7 +1532,7 @@ class WFPCObservation(Pattern):
 
             self.members.append(Exposure(_extname, idckey=self.idckey, dqname=_dqname,
                 mask=_masklist, parity=self.PARITY[str(i+1)],
-                idcdir=self.pars['idcdir'],
+                idcdir=self.pars['idcdir'], group_indx = i+1,
                 rot=_chip1_rot, handle=self.image_handle, extver=_detnum,
                 exptime=self.exptime[0], ref_pscale=self.REFDATA['1']['psize'], binned=self.binned))
 

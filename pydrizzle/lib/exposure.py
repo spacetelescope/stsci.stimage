@@ -46,7 +46,7 @@ class Exposure:
     def __init__(self,expname, handle=None, dqname=None, idckey=None,
                     new=no,wcs=None,mask=None,pa_key=None, parity=None,
                     idcdir=None, rot=None, extver=1, exptime=None,
-                    ref_pscale=1.0, binned=1, mt_wcs=None):
+                    ref_pscale=1.0, binned=1, mt_wcs=None, group_indx = None):
 
         # This name should be formatted for use in image I/O
         self.name = fileutil.osfn(expname)
@@ -90,6 +90,7 @@ class Exposure:
         self.xgeoim = ""
         self.ygeoim = ""
         self.exptime = exptime
+        self.group_indx = group_indx
         if not new:
             # Read in a copy of the header for this exposure/group/extension
             _header = fileutil.getHeader(expname,handle=handle)
