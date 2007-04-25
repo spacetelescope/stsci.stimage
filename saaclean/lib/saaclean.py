@@ -38,8 +38,7 @@ import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 from numpy.linalg import LinAlgError
 
 __version__="1.0d1"
-print "SAAClean version: ",__version__
-print "ImageStats version: ",imagestats.__version__
+
 ### Warning warning warning, this is listed in the __init__.py ALSO.
 ### Change it in both places!!!!!!
 
