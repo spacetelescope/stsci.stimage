@@ -2565,7 +2565,7 @@ More help on SkyField objects and their parameters can be obtained using:
 
             # Always initialize context images to a 3-D array
             # and only pass the appropriate plane to drizzle as needed
-            _outctx = N.zeros((_nplanes,plist['outny'],plist['outnx']),dtype=N.uint32)
+            _outctx = N.zeros((_nplanes,plist['outny'],plist['outnx']),dtype=N.int32)
 
             # Keep track of how many chips have been processed
             # For single case, this will determine when to close
