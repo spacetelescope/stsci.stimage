@@ -208,7 +208,7 @@ def XYtoSky(input, pos, idckey='IDCTAB', linear=yes, verbose=no):
     # Now we need to insure that the input is an array:
     if not isinstance(pos,N.ndarray):
         if N.array(pos).ndim > 1:
-            pos = N.array(pos,dtype=n.float64)
+            pos = N.array(pos,dtype=N.float64)
 
     # Set up Exposure object
     _exposure = pydrizzle.Exposure(input,idckey=idckey)
