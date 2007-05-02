@@ -1243,8 +1243,28 @@ class ImageManager:
 
                  
     def _applyIVM(self,parlistentry):
+        """
+        
+        Purpose
+        =======
+        Private method of the ImageMagager class that
+        is used to apply IVM files.  
+        
+        Algorithm
+        =========
+        If the user provides IVM files they are applied
+        to the final masks.  Otherwise they are automatically 
+        generated.
+        
+        Automatically generated IVM files are specific to the 
+        instrument being used and the details of the detector 
+        used to acquire the image.
+
+        
+        """
 
         if parlistentry['ivmname'] != None:
+            print "Applying user supplied IVM files..."
 
             #Parse the input file name to get the extension we are working on
             sciextn = parlistentry['image'].extn
@@ -1267,22 +1287,41 @@ class ImageManager:
             parlistentry['wt_scl'] = pow(parlistentry['exptime'],2)/pow(parlistentry['scale'],4)
             
         else:
-            errorstr =  "#########################################\n"
-            errorstr += "#                                       #\n"
-            errorstr += "# WARNING:                              #\n"
-            errorstr += "#  The 'final_wht_type' parameter was   #\n"
-            errorstr += "#  set to 'IVM' but no IVM files were   #\n"
-            errorstr += "#  provided as input.  No additional    #\n"
-            errorstr += "#  scaling of the final 'in_mask' will  #\n"
-            errorstr += "#  be applied.                          #\n"
-            errorstr += "#                                       #\n"
-            errorstr += "#########################################\n"
-            print errorstr
+            
+            print "Automatically creating IVM files..."
+            # If no IVM files were provided by the user we will 
+            # need to automatically generate them based upon 
+            # instrument specific information.
+            
+            imageobj = parlistentry['image']
+            flat = imageobj.getflat()
+            RN = imageobj.getReadNoiseImage()
+            sampimg = imageobj.getsampimg()
+            darkimg = imageobj.getdarkimg()
+            skyimg = imageobj.getskyimg()
+            
+            #print "flat:",flat,type(flat)
+            #print "RN:",RN,type(RN)
+            #print "sampimg:",sampimg,type(sampimg)
+            #print "darkimg:",darkimg,type(darkimg)
+            #print "skyimg:",skyimg,type(skyimg)
+            ivm = (flat)**-2/(darkimg+(skyimg/flat)+sampimg+RN**2)
+            #print "ivm:",ivm,type(ivm)
+            
+            #Open the mask image for updating
+            mask = fileutil.openImage(parlistentry['image'].maskname,mode='update')
+            
+            # Multiply the IVM file by the input mask in place.        
+            mask[0].data = ivm * mask[0].data
+            mask.close()
+
             
     def _applyERR(self,parlistentry):
 
         """
-        Apply the 
+        _applyERR(self,parlistentry):  A method of the ImageManager class that applies
+        the ERROR image as an IVM like file to the input image.
+        
         """
         # Not all input images will have an 'ERR' extension.  We must be prepared for the
         # failure of the open of the err array.  

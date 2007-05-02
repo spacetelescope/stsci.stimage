@@ -62,7 +62,7 @@ import driz_cr
 
 DEFAULT_SEPARATOR = '_'
 
-class InputImage:
+class InputImage(object):
     '''The InputImage class is the base class for all of the various
        types of images
     '''
@@ -106,6 +106,8 @@ class InputImage:
         sciext = fileutil.getExtn(handle,extn=self.extn)
         self.image_shape = sciext.data.shape
         self.image_type = sciext.data.dtype.name
+        self.image_dtype= sciext.data.dtype.name
+        
         # Retrieve a combined primary and extension header
         self.header = fileutil.getHeader(input,handle=handle)
         del sciext
@@ -192,14 +194,8 @@ class InputImage:
     def setSubtractedSky(self,newValue):
         self._subtractedsky = newValue
         
-    def getEffGain(self):
-        return self._effGain
-
     def getGain(self):
         return self._gain
-
-    def getReadNoise(self):
-        return self._rdnoise
 
     def getExpTime(self):
             return self._exptime
@@ -390,3 +386,119 @@ class InputImage:
                 del handle
             if _deriv_array != None:
                 del _deriv_array
+
+    def getflat(self):
+        """
+
+        Purpose
+        =======
+        Placeholder method for retrieving a detector's flat field.
+        This is an abstract method since each detector will be 
+        handled differently.
+        
+        This method will return an array the same shape as the
+        image.
+        """
+        pass
+
+    def getEffGain(self):
+        """
+        
+        Purpose
+        =======
+        Method used to return the effective gain of a instrument's
+        detector.
+        
+        This method returns a single floating point value.
+
+        """
+
+        return self._effGain
+    
+    def getReadNoise(self):
+        """
+        
+        Purpose
+        =======
+        Method for trturning the readnoise of a detector (in electrons).
+        
+        :units: electrons
+        
+        """
+        return self._rdnoise
+        
+    def getReadNoiseImage(self):
+        """
+        
+        Purpose
+        =======
+        Method for returning the readnoise image of a detector 
+        (in electrons).  
+        
+        The method will return an array of the same shape as the image.
+        
+        :units: electrons
+        
+        """
+        return N.ones(self.image_shape,dtype=self.image_dtype) * self._rdnoise
+
+
+    def getsampimg(self):
+        """
+        
+        Purpose
+        =======
+        Return the (samp * amp glow) image array.  This method will return
+        a zeros array for all detectors by default.  
+        
+        For detectors in which a zeros array is not appropriate, this method 
+        will need to be overloaded in a subclass.  One such case of this would
+        be in the nicmos_image.py module.
+        
+        """
+        return N.zeros(self.image_shape,dtype=self.image_dtype)
+
+
+    def getdarkcurrent(self):
+        """
+        
+        Purpose
+        =======
+        Return the dark current for the detector.  This value
+        will be contained within an instrument specific keyword.
+        The value in the image header will be converted to units
+        of electrons.
+        
+        :units: electrons
+        
+        """
+        pass
+
+
+    def getdarkimg(self):
+        """
+        
+        Purpose
+        =======
+        Return an array representing the dark image for the detector.
+        
+        :units: electrons
+        
+        """
+        return N.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
+    
+    def getskyimg(self):
+        """
+        
+        Purpose
+        =======
+        Return an array representing the sky image for the detector.  The value
+        of the sky is what would actually be subtracted from the exposure by
+        the skysub step.
+        
+        :units: electrons
+        
+        """
+        return N.ones(self.image_shape,dtype=self.image_dtype)*self.getSubtractedSky()
+
+    

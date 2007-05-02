@@ -1,5 +1,5 @@
 #
-#   Authors: Warren Hack, Ivo Busko, Christopher Hanley, David Grumm
+#   Authors: Christopher Hanley, Warren Hack, Ivo Busko, David Grumm
 #   Program: acs_input.py
 #   Purpose: Class used to model ACS specific instrument data.
 #   History:
@@ -31,15 +31,14 @@
 #           Version 1.0.0 06/02/05 -- Calculates direction of CTE tail for cosmic rays
 #               for each ACS instrument, which may depend on chip and/or amp  
 
-__version__ = '1.0.0'
 
 import fileutil
-
-
+import pyfits as p
+import numpy as n
 from input_image import InputImage
 
 
-class ACSInputImage (InputImage):
+class ACSInputImage(InputImage):
 
     SEPARATOR = '_'
 
@@ -93,6 +92,76 @@ class ACSInputImage (InputImage):
         if self._gain == None or self._rdnoise == None or self._exptime == None:
             print 'ERROR: invalid instrument task parameter'
             raise ValueError
+
+    def getflat(self):
+        """
+
+        Purpose
+        =======
+        Method for retrieving a detector's flat field.
+        
+        This method will return an array the same shape as the
+        image.
+        
+        :units: electrons
+
+        """
+
+        # The keyword for ACS flat fields in the primary header of the flt
+        # file is pfltfile.  This flat file is already in the required 
+        # units of electrons.
+        
+        filename = self.header['PFLTFILE']
+        
+        try:
+            hdulist = p.open(fileutil.osfn(filename))
+            flat = hdulist[1].data
+        except:
+            try:
+                hdulist = p.open(filename[5:])
+                flat = hdulist[1].data
+            except:
+                flat = n.ones(self.image_shape,dtype=self.image_dtype)
+                str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
+                print str
+        return flat
+
+
+    def getdarkcurrent(self):
+        """
+        
+        Purpose
+        =======
+        Return the dark current for the ACS detector.  This value
+        will be contained within an instrument specific keyword.
+        The value in the image header will be converted to units
+        of electrons.
+        
+        :units: electrons
+        
+        """
+        
+        darkcurrent = 0
+        
+        try:
+            darkcurrent = self.header['MEANDARK']
+        except:
+            str =  "#############################################\n"
+            str += "#                                           #\n"
+            str += "# Error:                                    #\n"
+            str += "#   Cannot find the value for 'MEANDARK'    #\n"
+            str += "#   in the image header.  ACS input images  #\n"
+            str += "#   are expected to have this header        #\n"
+            str += "#   keyword.                                #\n"
+            str += "#                                           #\n"
+            str += "# Error occured in the ACSInputImage class  #\n"
+            str += "#                                           #\n"
+            str += "#############################################\n"
+            raise ValueError, str
+        
+        
+        return darkcurrent
+
 
 class WFCInputImage (ACSInputImage):
 

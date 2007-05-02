@@ -415,21 +415,6 @@ help file.
             for file in self.files:
                 if not fileutil.findFile(file+"[err,1]"):
                     raise ValueError,"! final_wht_type = ERR, no ERR array found for %s"%(file)
-        if ( wht_type != None and wht_type.upper() == 'IVM'):
-                if len(self.ivmlist) == 0:
-                    errorstr =  "#########################################\n"
-                    errorstr += "#                                       #\n"
-                    errorstr += "# ERROR:                                #\n"
-                    errorstr += "#  The 'final_wht_type' parameter was   #\n"
-                    errorstr += "#  set to 'IVM' but no IVM files were   #\n"
-                    errorstr += "#  provided as input.  Please see the   #\n"
-                    errorstr += "#  help file for a description of IVM   #\n"
-                    errorstr += "#  file usage.                          #\n"
-                    errorstr += "#                                       #\n"
-                    errorstr += "#########################################\n"
-                    raise ValueError, errorstr
-
-
         # Check static file. Can only be done after reading MDRIZTAB.
         if (self.staticfile != None):
             self._checkStaticFile(self.staticfile)
