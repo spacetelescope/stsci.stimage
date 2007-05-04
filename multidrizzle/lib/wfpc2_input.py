@@ -2,28 +2,6 @@
 #   Authors: Warren Hack, Ivo Busko, Christopher Hanley
 #   Program: wfpc2_input.py
 #   Purpose: Class used to model WFPC2 specific instrument data.
-#   History:
-#           Version 0.0.0, ----------- Created -- CJH
-#           Version 0.0.1, Updated key names in dictionaries -- CJH -- 07/08/04
-#           Version 0.1.0, Have modified the sky value get and set functions to
-#               take into account the plate scale differences between the WFPC2
-#               chips when comparing the sky values in deciding which minimum to
-#               use.  The MDRIZSKY keyword will be populated with a value based
-#               upon the WF3 chip plate scale.
-#           Version 0.1.1 07/29/04 -- Plate scale is now defined by the Pydrizzle
-#               exposure class by use of a plate scale variable passed in through
-#               the constructor.
-#           Version 0.1.2 09/09/04 -- The setInstrumentParameters was modifed so
-#               that user input of gain and readnoise parameters would not be
-#               ignored. -- CJH
-#           Version 0.1.3 09/15/04 -- Modified the setInstrumentParameters to treat
-#               a user cr bit input value of zero as a None.  This allows the
-#               user to turn off the DQ array update during the Driz_CR step. -- CJH
-#           Version 0.5.0 11/03/04 -- Removed overloaded methods that were identical
-#               to the methods specified in input_image.py.  -- CJH
-#           Version 1.0.0 06/02/05 -- Sets direction of CTE tail for cosmic rays -- DMG
-
-__version__ = '1.0.0'
 
 import pydrizzle
 import fileutil
@@ -113,7 +91,83 @@ class WFPC2InputImage (InputImage):
             # In this case, the user has specified both a gain and readnoise values.  Just use them as is.
             self._gain = self._headergain
             print "Using user defined values for gain and readnoise"
-                    
+
+    def getflat(self):
+        """
+
+        Purpose
+        =======
+        Method for retrieving a detector's flat field.
+        
+        This method will return an array the same shape as the
+        image.
+        
+        :units: electrons
+
+        """
+
+        # The keyword for ACS flat fields in the primary header of the flt
+        # file is pfltfile.  This flat file is already in the required 
+        # units of electrons.
+        
+        filename = self.header['FLATFILE']
+        
+        try:
+            handle = fileutil.openImage(filename,mode='readonly',memmap=0)
+            hdu = fileutil.getExtn(handle,extn=self.grp)
+            data = hdu.data
+        except:
+            try:
+                handle = fileutil.openImage(filename[5:],mode='readonly',memmap=0)
+                hdu = fileutil.getExtn(handle,extn=self.grp)
+                data = hdu.data
+            except:
+                data = N.ones(self.image_shape,dtype=self.image_dtype)
+                str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
+                print str
+        # The WFPC2 flat in CDBS is in units of 1/DN.  We need to invert and multiply by the gain
+        # for use in Multidrizzle
+        flat = (1.0/data)/self.getGain()
+        return flat
+
+
+    def getdarkcurrent(self):
+        """
+        
+        Purpose
+        =======
+        Return the dark current for the ACS detector.  This value
+        will be contained within an instrument specific keyword.
+        The value in the image header will be converted to units
+        of electrons.
+        
+        :units: electrons
+        
+        """
+        
+        darkrate = 0.005 #e-/s
+        
+        try:
+            darkcurrent = self.header['DARKTIME'] * darkrate
+            
+        except:
+            str =  "#############################################\n"
+            str += "#                                           #\n"
+            str += "# Error:                                    #\n"
+            str += "#   Cannot find the value for 'DARKTIME'    #\n"
+            str += "#   in the image header.  WFPC2 input       #\n"
+            str += "#   images are expected to have this header #\n"
+            str += "#   keyword.                                #\n"
+            str += "#                                           #\n"
+            str += "# Error occured in the WFPC2InputImage class#\n"
+            str += "#                                           #\n"
+            str += "#############################################\n"
+            raise ValueError, str
+        
+        
+        return darkcurrent
+
+
     def _setchippars(self):
         pass
 

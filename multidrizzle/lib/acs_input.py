@@ -2,41 +2,10 @@
 #   Authors: Christopher Hanley, Warren Hack, Ivo Busko, David Grumm
 #   Program: acs_input.py
 #   Purpose: Class used to model ACS specific instrument data.
-#   History:
-#           Version 0.0.0, ----------- Created
-#           Version 0.1.6, 03/23/04 -- Added the attibute cr_bits_value to
-#               indicate what bit value a cosmic rate hit will represent in
-#               the data quality files. -- CJH
-#           Version 0.1.7, 04/19/04 -- Added code to set instrument-dependent
-#               parameters. -- IB
-#           Version 0.1.8, 04/22/04 -- Added a new attribute for effective
-#               gain, 'effgain'.  Value of effgain is 1 for ACS images.  --CJH
-#           Version 0.1.9  05/08/04 -- Refactored code to removed hard coded gain
-#               and readnoise values.  Now inherit those attributes from InputImage
-#               class. -- CJH
-#           Version 0.1.10 05/27/04 -- Modified setInstrumentParameters inheritence in
-#               order to support ACS/SBC data. -- CJH/WJH/IB
-#           Version 0.1.11 06/24/04 -- Moved _isNotValid method to InputImage 
-#               super class so that it can be inherited by all instrument
-#               specific modules. -- CJH
-#           Version 0.1.12 07/02/04 -- Revised to call 'makewcs'.
-#           Version 0.1.13 07/08/04 -- Updated names of key in dictionaries. -- CJH
-#           Version 0.1.14 07/29/04 -- Plate scale is now defined by the Pydrizzle
-#               exposure class by use of a plate scale variable passed in through
-#               the constructor.
-#           Version 0.1.15 09/15/04 -- Modified SBCInputImage for overloading of
-#               gain and readnoise values by user input.  Also modified handling
-#               of an input CR bit value of 0 to be converted to a None type.  This
-#               allows the DQ array update step to be turned off in DRIZ_CR.
-#           Version 1.0.0 06/02/05 -- Calculates direction of CTE tail for cosmic rays
-#               for each ACS instrument, which may depend on chip and/or amp  
-
 
 import fileutil
-import pyfits as p
 import numpy as n
 from input_image import InputImage
-
 
 class ACSInputImage(InputImage):
 
@@ -114,16 +83,19 @@ class ACSInputImage(InputImage):
         filename = self.header['PFLTFILE']
         
         try:
-            hdulist = p.open(fileutil.osfn(filename))
-            flat = hdulist[1].data
+            handle = fileutil.openImage(filename,mode='readonly',memmap=0)
+            hdu = fileutil.getExtn(handle,extn=self.extn)
+            data = hdu.data
         except:
             try:
-                hdulist = p.open(filename[5:])
-                flat = hdulist[1].data
+                handle = fileutil.openImage(filename[5:],mode='readonly',memmap=0)
+                hdu = fileutil.getExtn(handle,extn=self.extn)
+                data = hdu.data
             except:
-                flat = n.ones(self.image_shape,dtype=self.image_dtype)
+                data = n.ones(self.image_shape,dtype=self.image_dtype)
                 str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
                 print str
+        flat = data
         return flat
 
 

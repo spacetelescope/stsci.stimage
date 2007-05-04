@@ -2,50 +2,6 @@
 #   Authors: Warren Hack, Ivo Busko, Christopher Hanley
 #   Program: input_image.py
 #   Purpose: Super class used to model astronomical data from observatory instruments.
-#   History:
-#           Version 0.1.22, 03/23/04 -- Added the attibute cr_bits_value to
-#               indicate what bit value a cosmic rate hit will represent in
-#               the data quality files. -- CJH
-#           Version 0.1.23, 04/19/04 -- Added setInstrumentParameters method. -- IB
-#           Version 0.1.24, 04/22/04 -- Modified added new attribute call 'effgain'.
-#               The effective gain is now used by driz_cr.  -- CJH
-#           Version 0.1.25, 05/08/04 -- Eliminated public gain and readnoise attributes
-#               to take advantage of new access methods created by Ivo.  Added new attributes
-#               for subtracted sky and computer sky values. -- CJH
-#           Version 0.1.26, 05/13/04 -- Added code to support MDRIZTAB. -- IB
-#           Version 0.1.27, 05/20/04 -- Added support for cr mask creation. -- CJH
-#           Version 0.1.28, 05/26/04 -- Fixed bug in call to driz_cr.  I am now passing the readnoise
-#               parameter the readnoise, instead of the gain.  -- CJH
-#           Version 0.1.29 05/27/04 -- Modified setInstrumentParameters inheritence in
-#               order to support ACS/SBC data.  - CJH/WJH/IB
-#           Version 0.1.30 06/07/04 -- Turned memory mapping back on by default.  -- CJH
-#           Version 0.1.31 06/29/04 -- Modified import of imagestats. -- CJH
-#           Version 0.1.32 06/29/04 -- Modified imports to remove dependence on pytools package -- CJH
-#           Version 0.1.33 07/08/04 -- pdated Dictionary key names -- CJH
-#           Version 0.1.34 07/15/04 -- Modified the the driz_cr calls to handle the case of WFPC2 data
-#               where no DQ file was provided. -- CJH
-#           Version 0.1.35 07/29/04 -- Added plate scale as an input to the constructor.  Added plate scale
-#               and reference plate scale as parameters.  Added a new method that returns a sky value based
-#               upon the reference chip.  This is used in the create median step for WFPC2.  Currently
-#               for ACS and STIS data is returns the same value that getSubtractedSky would.
-#           Version 0.1.36 09/09/04 -- The getInstrParameter method was modified to raise a value error
-#               if a user were to specify both a header keyword and a value for a specific parameter.
-#               This type of input is ambiguous.  Previously the value would be used and the header
-#               keyword silently ignored. -- CJH
-#           Version 0.1.37 09/15/04 -- The runDrizCR step was modified to skip the DQ array update if the
-#               cr bit value being used is None.  -- CJH
-#           Version 0.1.38 09/29/04 -- Modified getExptime to return a value of 1 if exptime is 0.  This is
-#               to address an issue with ACS data that can have exptimes = 0.  This may or may not be ACS 
-#               specific-- CJH
-#           Version 0.1.39 09/30/04 -- Modified the doDrizCR method to pass the input file's primary + extension
-#               header to the cor and cr mask file creation methods for inclusion in the resulting fits file.
-#           Version 1.0.0 11/03/04 -- Removed the modification to getExptime that was added in version 0.1.38.
-#               This fix to this problem will now be addressed points in multidrizzle where scaling occurs.  This
-#               allows for a more accurate treatment of image weighting by pydrizzle.
-#           Version 1.1.0 06/02/05 -- Added parameters driz_cr_grow and driz_cr_ctegrow for CTE masking of cosmic
-#               rays. -- DMG
-
-__version__ = '1.1.0'
 
 import pyfits
 import fileutil
