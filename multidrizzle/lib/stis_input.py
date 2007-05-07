@@ -2,25 +2,6 @@
 #   Authors: Christopher Hanley
 #   Program: stis_input.py
 #   Purpose: Class used to model STIS specific instrument data.
-#   History:
-#           Version 0.1.0, ----------- Created
-#           Version 0.1.1 07/29/04 -- Plate scale is now defined by the Pydrizzle
-#               exposure class by use of a plate scale variable passed in through
-#               the constructor.
-#           Version 0.2.0 08/30/04 -- Added support for NUV and FUV MAMAs.
-#           Version 0.2.1 09/14/-4 -- Modified the setInstrumentParameters methods
-#                to allow for user input.  -- CJH
-#           Version 0.2.2 09/15/04 -- Modified the setInstrumentParameters to treat
-#               a user cr bit input value of zero as a None.  This allows the
-#               user to turn off the DQ array update during the Driz_CR step. -- CJH
-#           Version 0.2.3 09/21/04 --
-#           Version 1.0.0 06/02/05 -- Calculates amp-dependent direction of CTE tails
-#               for cosmic rays for STIS/CCD 
-
-
-
-
-__version__ = '1.0.0'
 
 import pydrizzle
 import fileutil

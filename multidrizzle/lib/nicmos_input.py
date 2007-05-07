@@ -2,22 +2,6 @@
 #   Authors: Christopher Hanley, David Grumm
 #   Program: nicmos_input.py
 #   Purpose: Class used to model NICMOS specific instrument data.
-#   History:
-#           Version 0.1.0, ----------- Created
-#           Version 0.1.1 09/15/04 -- Modified the setInstrumentParameters to treat
-#               a user cr bit input value of zero as a None.  This allows the
-#               user to turn off the DQ array update during the Driz_CR step. -- CJH
-#           Version 0.1.2 09/20/04 -- Set the default crbit value for NICMOS to 4096 -- CJH.
-#           Version 0.2.0 11/03/04 -- Modified the updateMDRIZSKY method to deal with
-#               input data with EXPTIME = 0.  For that case, MDRIZSKY will be set to a
-#               value of 0. -- CJH
-#           Version 1.0.0 01/18/05 -- Updated converte2electrons and updateMDRIZSKY to work
-#               with NICMOS data in both units of counts and counts/second           
-#           Version 1.1.0 06/02/05 -- Calculates direction of CTE tail for cosmic rays
-#               (not needed for NICMOS)
-#           Version 1.1.1 09/11/06 -- Fixed bug in convert2electrons for the count/second
-#                case where the value is scaled by the exposure time instead of the gain. -- CJH
-__version__ = '1.1.1'
 
 import pydrizzle
 import fileutil

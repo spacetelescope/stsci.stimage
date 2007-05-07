@@ -18,8 +18,8 @@ import fileutil, wcsutil
 # Import support for specific HST Instruments
 from acs_input import WFCInputImage, HRCInputImage, SBCInputImage
 from wfpc2_input import WFPC2InputImage, PCInputImage, WF2InputImage, WF3InputImage, WF4InputImage
-from stis_input import CCDInputImage, FUVInputImage, NUVInputImage
-from nicmos_input import NIC1InputImage, NIC2InputImage, NIC3InputImage
+from stis_input import STISInputImage, CCDInputImage, FUVInputImage, NUVInputImage
+from nicmos_input import NICMOSInputImage, NIC1InputImage, NIC2InputImage, NIC3InputImage
 
 # Import general tools
 import imagestats
@@ -1214,40 +1214,41 @@ class ImageManager:
 
             mask.close()
             ivm.close()
-            
+
             # Update 'wt_scl' parameter to match use of IVM file
             parlistentry['wt_scl'] = pow(parlistentry['exptime'],2)/pow(parlistentry['scale'],4)
-            
+                        
         else:
-            
-            print "Automatically creating IVM files..."
-            # If no IVM files were provided by the user we will 
-            # need to automatically generate them based upon 
-            # instrument specific information.
-            
+                        
             imageobj = parlistentry['image']
-            flat = imageobj.getflat()
-            RN = imageobj.getReadNoiseImage()
-            sampimg = imageobj.getsampimg()
-            darkimg = imageobj.getdarkimg()
-            skyimg = imageobj.getskyimg()
             
-            #print "flat:",flat,type(flat)
-            #print "RN:",RN,type(RN)
-            #print "sampimg:",sampimg,type(sampimg)
-            #print "darkimg:",darkimg,type(darkimg)
-            #print "skyimg:",skyimg,type(skyimg)
-            ivm = (flat)**-2/(darkimg+(skyimg/flat)+sampimg+RN**2)
-            #print "ivm:",ivm,type(ivm)
-            
-            #Open the mask image for updating
-            mask = fileutil.openImage(parlistentry['image'].maskname,mode='update')
-            
-            # Multiply the IVM file by the input mask in place.        
-            mask[0].data = ivm * mask[0].data
-            mask.close()
+            if not issubclass(imageobj.__class__,(NICMOSInputImage,STISInputImage)):
+                print "Automatically creating IVM files..."
+                # If no IVM files were provided by the user we will 
+                # need to automatically generate them based upon 
+                # instrument specific information.
+                
+                flat = imageobj.getflat()
+                RN = imageobj.getReadNoiseImage()
+                sampimg = imageobj.getsampimg()
+                darkimg = imageobj.getdarkimg()
+                skyimg = imageobj.getskyimg()
+                
+                ivm = (flat)**-2/(darkimg+(skyimg/flat)+sampimg+RN**2)
+                
+                #Open the mask image for updating
+                mask = fileutil.openImage(parlistentry['image'].maskname,mode='update')
+                
+                # Multiply the IVM file by the input mask in place.        
+                mask[0].data = ivm * mask[0].data
+                mask.close()
+                
+                # Update 'wt_scl' parameter to match use of IVM file
+                parlistentry['wt_scl'] = pow(parlistentry['exptime'],2)/pow(parlistentry['scale'],4)
 
-            
+            else:
+                print "NICMOS and STIS data is not yet supported with automatic IVM creation."
+
     def _applyERR(self,parlistentry):
 
         """
