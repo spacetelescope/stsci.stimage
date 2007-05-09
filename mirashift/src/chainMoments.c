@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
-#include <malloc.h>
+
 
 #include <numpy/arrayobject.h>
 #include <numpy/libnumarray.h>
