@@ -3,15 +3,16 @@
 import sys, os
 import string
 
-def test24():
+def test25():
     packages = [
         'imagestats',
         'multidrizzle',
-        'numarray',
+        'numpy',
         'numdisplay',
         'puftcorr',
         'pydrizzle',
         'pyfits',
+        'rnlincor',
         'fileutil',
         'fitsdiff',
         'gfit',
@@ -26,6 +27,7 @@ def test24():
         'parseinput',
         'readgeis',
         'versioninfo',
+        'xyinterp',
         'wcsutil',
         'saaclean',
         'mktrace',
@@ -34,33 +36,35 @@ def test24():
         'wx2d']
     
     required_versions = {
-        'imagestats':       '1.0.1',
-        'multidrizzle':     '2.7.2',
-        'numarray':         '1.5.2',
-        'numdisplay':       '1.1',
-        'puftcorr':         '0.1',
-        'pydrizzle':        '5.7.0',
-        'pyfits':           '1.0.1',
-        'fileutil':         '1.2.0',
-        'fitsdiff':         '1.3',
-        'gfit':             '0.1',
-        'imageiter':        '0.1',
+        'imagestats':       '1.1.1',
+        'multidrizzle':     '3.0.0',
+        'numpy':            '1.0.3',
+        'numdisplay':       '1.2',
+        'puftcorr':         '0.16',
+        'pydrizzle':        '6.0.0',
+        'pyfits':           '1.1',
+        'rnlincor':         '0.7',
+        'fileutil':         '1.3.1',
+        'fitsdiff':         '1.4',
+        'gfit':             '1.0',
+        'imageiter':        '0.2',
         'irafglob':         '1.0',
-        'iterfile':         '0.1',
-        'linefit':          '0.1',
-        'makewcs':          '0.7.0',
-        'nimageiter':       '0.5',
-        'nmpfit':           '0.1',
-        'numcombine':       '0.3.0',
+        'iterfile':         '0.2',
+        'linefit':          '1.0',
+        'makewcs':          '0.8.0',
+        'nimageiter':       '0.6',
+        'nmpfit':           '0.2',
+        'numcombine':       '0.4.0',
         'parseinput':       '0.1.5',
-        'readgeis':         '1.8',
-        'versioninfo':      '0.1.1',
-        'wcsutil':          '1.0.0',
-        'saaclean':         '0.9',
-        'mktrace':          '1.0',
+        'readgeis':         '2.0',
+        'versioninfo':      '0.2.0',
+        'xyinterp':         '0.1',
+        'wcsutil':          '1.1.0',
+        'saaclean':         '1.0',
+        'mktrace':          '1.1',
         'sshift':           '1.4',
-        'stisnoise':        '5.3',
-        'wx2d':             '1.0',
+        'stisnoise':        '5.4',
+        'wx2d':             '1.1',
         }
     
 
@@ -71,17 +75,13 @@ def test24():
     installed_packages = {}
     if string.split(sys.version)[0] < '2.3':
         install_messages.append("\nPython version 2.3 is required to run multidrizzle.\n")
-    try:
-        import Numeric
-        try:
-            import pyraf
-            if pyraf.__version__ < "1.3" :
-                pyraf_message = "\nThe latest public release of PyRAF is v 1.3.\n Pyraf v. %s was found.\n" % pyraf.__version__
-        except ImportError:
-            print "\nPyRAF is not installed or not on your PYTHONPATH.\nPlease correct this if you intend to use it, before you attempt to run multidrizzle.\n"
 
+    try:
+        import pyraf
+        if pyraf.__version__ < "1.4" :
+            pyraf_message = "\nThe latest public release of PyRAF is v 1.4.\n Pyraf v. %s was found.\n" % pyraf.__version__
     except ImportError:
-        print "\nNumeric was not detected. Please install Numeric, if you intend to use PyRAF.\n"
+        print "\nPyRAF is not installed or not on your PYTHONPATH.\nPlease correct this if you intend to use it, before you attempt to run multidrizzle.\n"
 
 
     try:
@@ -121,4 +121,4 @@ def test24():
     
     
 if __name__ == '__main__':
-    test24()
+    test25()

@@ -34,7 +34,7 @@ if __name__ == '__main__' :
 
     setup(
         name="Numdisplay",
-        version="1.0",
+        version="1.2",
         description="Package for displaying numpy arrays in DS9",
         author="Warren Hack",
         maintainer_email="help@stsci.edu",

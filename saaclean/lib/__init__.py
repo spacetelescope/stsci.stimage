@@ -24,5 +24,5 @@ Dependencies:
 
 """
 from saaclean import * #reveals everything
-__version__="1.0d1"
+__version__="1.1dev"
 __vdate__="2007-02-05"
