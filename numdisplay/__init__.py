@@ -97,7 +97,7 @@ try:
 except ImportError:
     geotrans = None
 
-__version__ = "1.3dev (4-AUG-2006)"
+__version__ = "1.3 (6-JUN-2007)"
 #
 # Version 0.1-alpha: Initial release
 #       WJH 7-Oct-2003
@@ -300,6 +300,9 @@ class NumDisplay:
             If input is not byte-scaled, it will perform scaling using
             set values/defaults.
         """
+
+        #Ensure that the input array 'pix' is a numpy array
+        pix = n.array(pix)
 
         # If any of the display parameters are specified here, apply them
         #if z1 or z2 or transform or scale or offset or frame:
