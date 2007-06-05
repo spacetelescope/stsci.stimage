@@ -4,8 +4,8 @@ import numerixenv #Temporary NUMERIX environment check
 import numpy as N
 import pyfits
 from pyraf.iraf import osfn
-import irafglob               #} 
-from xyinterp import xyinterp #}in pytools
+import irafglob               # 
+from xyinterp import xyinterp #in pytools
 import sys, os, glob, time
 
 __version__ = "0.7dev"
