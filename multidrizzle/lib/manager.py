@@ -925,40 +925,34 @@ class ImageManager:
 
         print "\n"
         
-        try:
-            for p in self.assoc.parlist:
-                try:
-                    # If cor_file is desired, then build name for file
-                    if drizcrpars['driz_cr_corr']:
-                        # Build Name for cor file
-                        _corr_file= p['rootname'] + '_sci' + p['group'] + '_cor.fits'
-                        # Build Name for cr file
-                        _cr_file = p['rootname'] + '_sci' + p['group'] + '_crmask.fits'
+        for p in self.assoc.parlist:
+            # If cor_file is desired, then build name for file
+            if drizcrpars['driz_cr_corr']:
+                # Build Name for cor file
+                _corr_file= p['rootname'] + '_sci' + p['group'] + '_cor.fits'
+                # Build Name for cr file
+                _cr_file = p['rootname'] + '_sci' + p['group'] + '_crmask.fits'
 
-                        # If corr_file and cr_file already exists, delete the old one so it can
-                        # be replaced cleanly with the new one...
-                        if fileutil.findFile(_corr_file):
-                            fileutil.removeFile(_corr_file)
-                        if fileutil.findFile(_cr_file):
-                            fileutil.removeFile(_cr_file)
-                    else:
-                        _corr_file = None
-                        _cr_file = None
+                # If corr_file and cr_file already exists, delete the old one so it can
+                # be replaced cleanly with the new one...
+                if fileutil.findFile(_corr_file):
+                    fileutil.removeFile(_corr_file)
+                if fileutil.findFile(_cr_file):
+                    fileutil.removeFile(_cr_file)
+            else:
+                _corr_file = None
+                _cr_file = None
 
-                    blot_handle = fileutil.openImage(p['outblot'], memmap=0, mode='readonly')
-                    mask_handle = fileutil.openImage(p['image'].maskname, mode='update') #, memmap=0)
+            blot_handle = fileutil.openImage(p['outblot'], memmap=0, mode='readonly')
+            mask_handle = fileutil.openImage(p['image'].maskname, mode='update') #, memmap=0)
 
-                    p['image'].runDrizCR(blot_handle[0].data, mask_handle[0].data,
-                                        drizcrpars, skypars, _corr_file, _cr_file)
+            p['image'].runDrizCR(blot_handle[0].data, mask_handle[0].data,
+                                drizcrpars, skypars, _corr_file, _cr_file)
 
-                finally:
-                    # Close outblot file now that we are done with it...
-                    blot_handle.close()
-                    mask_handle.close()
-                    del mask_handle, blot_handle
-        except:
-            print 'Could not complete (doDrizCR) processing.'
-            raise RuntimeError
+            # Close outblot file now that we are done with it...
+            blot_handle.close()
+            mask_handle.close()
+            del mask_handle, blot_handle
 
     def doFinalDriz(self, drizpars, runfile):
         """ Performs the final drizzle step. """
