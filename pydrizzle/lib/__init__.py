@@ -2426,7 +2426,7 @@ More help on SkyField objects and their parameters can be obtained using:
         # Setup the versions info dictionary for output to PRIMARY header
         # The keys will be used as the name reported in the header, as-is
         #
-        _versions = {'PyDrizzle':__version__,'PyFITS':pyfits.__version__,'Numarray':N.__version__}
+        _versions = {'PyDrizzle':__version__,'PyFITS':pyfits.__version__,'Numpy':N.__version__}
 
         # Set parameters for each input and run drizzle on it here.
 
