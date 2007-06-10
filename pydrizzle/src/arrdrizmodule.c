@@ -20,9 +20,10 @@ tdriz(PyObject *obj, PyObject *args)
 {
 
     PyObject *oimg, *owei, *oout, *owht, *owcsin, *ocon;
-    PyArrayObject *img, *wei, *out, *wht, *con, *wcsin;
+    PyArrayObject *img=NULL, *wei=NULL, *out=NULL, *wht=NULL, *con=NULL, 
+*wcsin=NULL;
     PyObject *opxg, *opyg;
-    PyArrayObject *pxg, *pyg;
+    PyArrayObject *pxg=NULL, *pyg=NULL;
     double xsh, ysh, rot, scale, pfract;
     double xsh2, ysh2, rot2, xscale, yscale;
     double expin;
@@ -68,13 +69,60 @@ tdriz(PyObject *obj, PyObject *args)
     }
     
     img = (PyArrayObject *)NA_InputArray(oimg, tFloat32, C_ARRAY);
+    if (!img){
+     return NULL;}
     wei = (PyArrayObject *)NA_InputArray(owei, tFloat32, C_ARRAY);
+    if (!wei){
+    Py_DECREF(img);
+    return NULL;}
     out = (PyArrayObject *)NA_IoArray(oout, tFloat32, 0);
+    if (!out){
+     Py_DECREF(img);
+     Py_DECREF(wei);
+     return NULL;}
+
     wht = (PyArrayObject *)NA_IoArray(owht, tFloat32, 0);
+    if (!wht){
+       Py_DECREF(img);
+        Py_DECREF(wei);
+        Py_DECREF(out);
+        return NULL;}
     con = (PyArrayObject *)NA_IoArray(ocon, tInt32, 0);
+    if (!con){
+      Py_DECREF(img);
+        Py_DECREF(wei);
+        Py_DECREF(out);
+        Py_DECREF(wht);
+        return NULL;}
     wcsin  = (PyArrayObject *)NA_IoArray(owcsin, tFloat64, 0);
+    if (!wcsin){
+       Py_DECREF(img);
+        Py_DECREF(wei);
+        Py_DECREF(out);
+        Py_DECREF(wht);
+        Py_DECREF(con);
+        return NULL;}
     pxg = (PyArrayObject *)NA_InputArray(opxg, tFloat32, C_ARRAY);    
+    if (!pxg){
+       Py_DECREF(img);
+        Py_DECREF(wei);
+        Py_DECREF(out);
+        Py_DECREF(wht);
+        Py_DECREF(con);
+        Py_DECREF(wcsin);
+	return NULL;}
     pyg = (PyArrayObject *)NA_InputArray(opyg, tFloat32, C_ARRAY);
+    if (!pyg){
+        Py_DECREF(img);
+        Py_DECREF(wei);
+        Py_DECREF(out);
+        Py_DECREF(wht);
+        Py_DECREF(con);
+        Py_DECREF(wcsin);
+        Py_DECREF(pxg);
+        return NULL;}
+                                                                                
+      
 
     nx = img->dimensions[1];
     ny = img->dimensions[0];
@@ -212,7 +260,7 @@ tblot(PyObject *obj, PyObject *args)
 {
 
     PyObject *oimg, *oout, *opxg, *opyg;
-    PyArrayObject *img, *out, *pxg, *pyg;
+    PyArrayObject *img=NULL, *out=NULL, *pxg=NULL, *pyg=NULL;
     double xsh, ysh, rot, scale;
     double xsh2, ysh2, rot2, xscale, yscale;
     char *shfr2;
@@ -257,10 +305,24 @@ tblot(PyObject *obj, PyObject *args)
     }
     
     img = (PyArrayObject *)NA_InputArray(oimg, tFloat32, C_ARRAY);
+    if (!img){
+        return NULL;}
     pxg = (PyArrayObject *)NA_InputArray(opxg, tFloat32, C_ARRAY);
+    if (!pxg){
+       Py_DECREF(img);
+       return NULL;}
     pyg = (PyArrayObject *)NA_InputArray(opyg, tFloat32, C_ARRAY);
+    if (!pyg){
+       Py_DECREF(img);
+        Py_DECREF(pxg);
+       return NULL;}
     out = (PyArrayObject *)NA_IoArray(oout, tFloat32, 0);
-    
+    if (!out){
+        Py_DECREF(img);
+        Py_DECREF(pxg);
+        Py_DECREF(pyg);
+        return NULL;}
+	
     nx = img->dimensions[1];
     ny = img->dimensions[0];
     onx = out->dimensions[1];
