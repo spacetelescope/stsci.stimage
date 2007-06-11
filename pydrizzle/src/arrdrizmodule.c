@@ -69,59 +69,25 @@ tdriz(PyObject *obj, PyObject *args)
     }
     
     img = (PyArrayObject *)NA_InputArray(oimg, tFloat32, C_ARRAY);
-    if (!img){
-     return NULL;}
-    wei = (PyArrayObject *)NA_InputArray(owei, tFloat32, C_ARRAY);
-    if (!wei){
-    Py_DECREF(img);
-    return NULL;}
-    out = (PyArrayObject *)NA_IoArray(oout, tFloat32, 0);
-    if (!out){
-     Py_DECREF(img);
-     Py_DECREF(wei);
-     return NULL;}
+    if (!img) goto _exit;
 
+    wei = (PyArrayObject *)NA_InputArray(owei, tFloat32, C_ARRAY);
+    if (!wei) goto _exit;
+    out = (PyArrayObject *)NA_IoArray(oout, tFloat32, 0);
+    if (!out) goto _exit;
     wht = (PyArrayObject *)NA_IoArray(owht, tFloat32, 0);
-    if (!wht){
-       Py_DECREF(img);
-        Py_DECREF(wei);
-        Py_DECREF(out);
-        return NULL;}
+    if (!wht) goto _exit;
     con = (PyArrayObject *)NA_IoArray(ocon, tInt32, 0);
-    if (!con){
-      Py_DECREF(img);
-        Py_DECREF(wei);
-        Py_DECREF(out);
-        Py_DECREF(wht);
-        return NULL;}
+    if (!con) goto _exit;
     wcsin  = (PyArrayObject *)NA_IoArray(owcsin, tFloat64, 0);
-    if (!wcsin){
-       Py_DECREF(img);
-        Py_DECREF(wei);
-        Py_DECREF(out);
-        Py_DECREF(wht);
-        Py_DECREF(con);
-        return NULL;}
+    if (!wcsin) goto _exit;
     pxg = (PyArrayObject *)NA_InputArray(opxg, tFloat32, C_ARRAY);    
-    if (!pxg){
-       Py_DECREF(img);
-        Py_DECREF(wei);
-        Py_DECREF(out);
-        Py_DECREF(wht);
-        Py_DECREF(con);
-        Py_DECREF(wcsin);
-	return NULL;}
+    if (!pxg) goto _exit;
     pyg = (PyArrayObject *)NA_InputArray(opyg, tFloat32, C_ARRAY);
-    if (!pyg){
-        Py_DECREF(img);
-        Py_DECREF(wei);
-        Py_DECREF(out);
-        Py_DECREF(wht);
-        Py_DECREF(con);
-        Py_DECREF(wcsin);
-        Py_DECREF(pxg);
-        return NULL;}
-                                                                                
+    if (!pyg) goto _exit;
+
+
+                                                                   
       
 
     nx = img->dimensions[1];
@@ -168,6 +134,16 @@ tdriz(PyObject *obj, PyObject *args)
 
     return Py_BuildValue("s#ii",vers,vers_len,nmiss,nskip);
 /*    return Py_BuildValue("f",istat); */
+
+ _exit:
+    Py_XDECREF(img);
+    Py_XDECREF(wei);
+    Py_XDECREF(out);
+    Py_XDECREF(wht);
+    Py_XDECREF(con);
+    Py_XDECREF(wcsin);
+    Py_XDECREF(pxg);
+    return NULL;             
 }
 
 /*
@@ -305,24 +281,16 @@ tblot(PyObject *obj, PyObject *args)
     }
     
     img = (PyArrayObject *)NA_InputArray(oimg, tFloat32, C_ARRAY);
-    if (!img){
-        return NULL;}
+    if (!img) goto _exit;
     pxg = (PyArrayObject *)NA_InputArray(opxg, tFloat32, C_ARRAY);
-    if (!pxg){
-       Py_DECREF(img);
-       return NULL;}
+    if (!pxg) goto _exit;
     pyg = (PyArrayObject *)NA_InputArray(opyg, tFloat32, C_ARRAY);
-    if (!pyg){
-       Py_DECREF(img);
-        Py_DECREF(pxg);
-       return NULL;}
+    if (!pyg) goto _exit;
     out = (PyArrayObject *)NA_IoArray(oout, tFloat32, 0);
-    if (!out){
-        Py_DECREF(img);
-        Py_DECREF(pxg);
-        Py_DECREF(pyg);
-        return NULL;}
-	
+    if (!out) goto _exit;
+
+
+
     nx = img->dimensions[1];
     ny = img->dimensions[0];
     onx = out->dimensions[1];
@@ -351,6 +319,13 @@ tblot(PyObject *obj, PyObject *args)
     Py_DECREF(out);
     
     return Py_BuildValue("i",istat);
+ _exit:
+    Py_XDECREF(img);
+    Py_XDECREF(pxg);
+    Py_XDECREF(pyg);
+    Py_XDECREF(out);
+    return NULL;
+	
 }
 
 static PyMethodDef arrdriz_methods[] =
