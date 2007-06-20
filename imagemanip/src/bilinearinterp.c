@@ -4,7 +4,7 @@
 #include <numpy/arrayobject.h>
 
 
-# define Pix(a,i,j)      a[(j)*(PyArray_DIMS(a,0)) + (i)]
+# define Pix(a,i,j)      a[(j)*(PyArray_DIM(a,0)) + (i)]
 
 /* This routine determines the appropriate array index i and weights
    p and q for linear interpolation.  If the array is called a, and ai
@@ -39,7 +39,6 @@ PyArrayObject *a        i: input data
 PyArrayObject *b        o: output data
 */
 
-	int status;
 	float p, q, r, s;	/* for interpolating */
 	float xoffset, yoffset;	/* for getting location of output in input */
 	float ai, aj;		/* location in input corresponding to m,n */
@@ -52,16 +51,16 @@ PyArrayObject *b        o: output data
     float *dataa;
 	float *datab;
 
-	inx = PyArray_DIMS(a,0);
-	iny = PyArray_DIMS(a,1);
-	onx = PyArray_DIMS(b,0);
-	ony = PyArray_DIMS(b,1);
+	inx = PyArray_DIM(a,0);
+	iny = PyArray_DIM(a,1);
+	onx = PyArray_DIM(b,0);
+	ony = PyArray_DIM(b,1);
 
 	binx = onx / inx;
 	biny = ony / iny;
 	if (binx * inx != onx || biny * iny != ony) {
 	    printf ("ERROR    (unbin2d) bin ratio is not an integer.\n");
-	    return (GENERIC_ERROR_CODE);
+	    exit(1);
 	}
 
 	xoffset = (float)(binx - 1) / 2.0F;
@@ -126,10 +125,42 @@ PyArrayObject *b        o: output data
 	return (0);
 }
 
+static PyObject * bilininterp(PyObject *obj, PyObject *args)
+{
+    PyObject *oinput, *ooutput;
+    PyArrayObject *input, *output;
+    int status=0;
 
+    if (!PyArg_ParseTuple(args,"OO:bilininterp",&oinput,&ooutput))
+	    return NULL;
 
+    input = (PyArrayObject *)PyArray_ContiguousFromObject(oinput, PyArray_FLOAT32, 1, 2);
 
+    if (!input) return NULL;
 
+	output = (PyArrayObject *)PyArray_ContiguousFromObject(ooutput, PyArray_FLOAT32, 1, 2);
+
+    if (!output) return NULL;
+    
+    status = unbin2d((PyObject *)input,(PyObject *)output);
+
+    Py_XDECREF(input);
+    Py_XDECREF(output);
+
+    return Py_BuildValue("i",status);
+}
+
+static PyMethodDef bilininterp_methods[] =
+{
+    {"bilininterp",  bilininterp, METH_VARARGS, 
+        "bilininterp(input, output)"},
+    {0,            0}                             /* sentinel */
+};
+
+void initbilininterp(void) {
+    Py_InitModule("bilininterp", bilininterp_methods);
+    import_array();
+}
 
 
 
