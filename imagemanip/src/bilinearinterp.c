@@ -128,13 +128,13 @@ PyArrayObject *b        o: output data
 	return (0);
 }
 
-static PyObject * bilininterp(PyObject *obj, PyObject *args)
+static PyObject * bilinearinterp(PyObject *obj, PyObject *args)
 {
     PyObject *oinput, *ooutput;
     PyArrayObject *input, *output;
     int status=0;
 
-    if (!PyArg_ParseTuple(args,"OO:bilininterp",&oinput,&ooutput))
+    if (!PyArg_ParseTuple(args,"OO:bilinearinterp",&oinput,&ooutput))
 	    return NULL;
 
     input = (PyArrayObject *)PyArray_ContiguousFromObject(oinput, PyArray_FLOAT32, 1, 2);
@@ -153,15 +153,15 @@ static PyObject * bilininterp(PyObject *obj, PyObject *args)
     return Py_BuildValue("i",status);
 }
 
-static PyMethodDef bilininterp_methods[] =
+static PyMethodDef bilinearinterp_methods[] =
 {
-    {"bilininterp",  bilininterp, METH_VARARGS, 
-        "bilininterp(input, output)"},
+    {"bilinearinterp",  bilinearinterp, METH_VARARGS, 
+        "bilinearinterp(input, output)"},
     {0,            0}                             /* sentinel */
 };
 
-void initbilininterp(void) {
-    Py_InitModule("bilininterp", bilininterp_methods);
+void initbilinearinterp(void) {
+    Py_InitModule("bilinearinterp", bilinearinterp_methods);
     import_array();
 }
 
