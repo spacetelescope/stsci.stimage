@@ -51,6 +51,9 @@ PyArrayObject *b        o: output data
     float *dataa;
 	float *datab;
 
+	dataa = PyArray_DATA(a);
+	datab = PyArray_DATA(b);
+
 	inx = PyArray_DIM(a,0);
 	iny = PyArray_DIM(a,1);
 	onx = PyArray_DIM(b,0);
