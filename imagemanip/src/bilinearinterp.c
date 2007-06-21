@@ -4,7 +4,7 @@
 #include <numpy/arrayobject.h>
 
 
-# define Pix(a,i,j)      a[(j)*(PyArray_DIM(a,0)) + (i)]
+# define Pix(a,i,j)      a[(j)*(inx) + (i)]
 
 /* This routine determines the appropriate array index i and weights
    p and q for linear interpolation.  If the array is called a, and ai
@@ -32,7 +32,7 @@ float *p, *q    o: weights for linear interpolation
    ORing the data quality information.
 */
 
-int unbin2d (PyObject *a, PyObject *b) {
+int unbin2d (float *a, float *b, int inx, int iny, int onx, int ony) {
 
 /* arguments:
 PyArrayObject *a        i: input data
@@ -43,21 +43,9 @@ PyArrayObject *b        o: output data
 	float xoffset, yoffset;	/* for getting location of output in input */
 	float ai, aj;		/* location in input corresponding to m,n */
 	float value;		/* interpolated value */
-	int inx, iny;		/* size of input array */
-	int onx, ony;		/* size of output array */
 	int binx, biny;		/* number of output pixels per input pixel */
 	int m, n;		/* pixel index in output array */
 	int i, j;		/* pixel index in input array */
-    float *dataa;
-	float *datab;
-
-	dataa = PyArray_DATA(a);
-	datab = PyArray_DATA(b);
-
-	inx = PyArray_DIM(a,0);
-	iny = PyArray_DIM(a,1);
-	onx = PyArray_DIM(b,0);
-	ony = PyArray_DIM(b,1);
 
 	binx = onx / inx;
 	biny = ony / iny;
@@ -70,7 +58,6 @@ PyArrayObject *b        o: output data
 	xoffset = (float)(binx - 1) / 2.0F;
 	yoffset = (float)(biny - 1) / 2.0F;
 
-	printf("Got this far\n");
 
 	if (binx == 1 && biny == 1) {
 		printf("binx==1 && biny ==1\n");
@@ -81,7 +68,7 @@ PyArrayObject *b        o: output data
 	    for (n = 0;  n < ony;  n++)
 			for (m = 0;  m < onx;  m++) {
 				printf("start of inner loop\n");
-				Pix (datab, m, n) = Pix (dataa, m, n);
+				Pix (b, m, n) = Pix (a, m, n);
 		     }
 
 	} else if (binx == 1) {
@@ -94,9 +81,9 @@ PyArrayObject *b        o: output data
 		aj = ((float)n - yoffset) / (float)biny;
 		InterpInfo (aj, iny, &j, &r, &s);
 		for (m = 0;  m < onx;  m++) {
-		    value = r * Pix (dataa, m, j) +
-			    s * Pix (dataa, m, j+1);
-		    Pix (datab, m, n) = value;
+		    value = r * Pix (a, m, j) +
+			    s * Pix (a, m, j+1);
+		    Pix (b, m, n) = value;
 		}
 	    }
 
@@ -110,9 +97,9 @@ PyArrayObject *b        o: output data
 		for (m = 0;  m < onx;  m++) {
 		    ai = ((float)m - xoffset) / (float)binx;
 		    InterpInfo (ai, inx, &i, &p, &q);
-		    value = p * Pix (dataa, i, n) +
-			    q * Pix (dataa, i+1, n);
-		    Pix (datab, m, n) = value;
+		    value = p * Pix (a, i, n) +
+			    q * Pix (a, i+1, n);
+		    Pix (b, m, n) = value;
 		}
 	    }
 
@@ -126,39 +113,44 @@ PyArrayObject *b        o: output data
 			for (m = 0;  m < onx;  m++) {
 					ai = ((float)m - xoffset) / (float)binx;
 					InterpInfo (ai, inx, &i, &p, &q);
-					value = p * r * Pix (dataa, i,   j) +
-						q * r * Pix (dataa, i+1, j) +
-						p * s * Pix (dataa, i,   j+1) +
-						q * s * Pix (dataa, i+1, j+1);
-					Pix (datab, m, n) = value;
+					value = p * r * Pix (a, i,   j) +
+						q * r * Pix (a, i+1, j) +
+						p * s * Pix (a, i,   j+1) +
+						q * s * Pix (a, i+1, j+1);
+					Pix (b, m, n) = value;
 			}
 		}
 	}
 
-	return (0);
+
+
+    printf("Time to return\n");
+	return (1);
 }
 
 static PyObject * bilinearinterp(PyObject *obj, PyObject *args)
 {
-    PyObject *oinput, *ooutput;
-    PyArrayObject *input, *output;
+    PyObject *input, *output;
+	PyArrayObject *dataa, *datab;
+	int inx, iny, onx, ony;
+	
     int status=0;
 
-    if (!PyArg_ParseTuple(args,"OO:bilinearinterp",&oinput,&ooutput))
+    if (!PyArg_ParseTuple(args,"OO:bilinearinterp",&input,&output))
 	    return NULL;
-
-    input = (PyArrayObject *)PyArray_ContiguousFromObject(oinput, PyArray_FLOAT32, 1, 2);
-
-    if (!input) return NULL;
-
-	output = (PyArrayObject *)PyArray_ContiguousFromObject(ooutput, PyArray_FLOAT32, 1, 2);
-
-    if (!output) return NULL;
     
-    status = unbin2d((PyObject *)input,(PyObject *)output);
+    dataa = (PyArrayObject *)PyArray_ContiguousFromAny(input, PyArray_FLOAT, 1, 2);
+	datab = (PyArrayObject *)PyArray_ContiguousFromAny(output, PyArray_FLOAT, 1, 2);
 
-    Py_XDECREF(input);
-    Py_XDECREF(output);
+	inx = PyArray_DIM(input,0);
+	iny = PyArray_DIM(input,1);
+	onx = PyArray_DIM(output,0);
+	ony = PyArray_DIM(output,1);
+
+    status = unbin2d((float *)dataa->data,(float *)datab->data, inx, iny, onx, ony);
+
+	Py_XDECREF(dataa);
+    Py_XDECREF(datab);
 
     return Py_BuildValue("i",status);
 }
