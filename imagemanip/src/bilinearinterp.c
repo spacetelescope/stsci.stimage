@@ -61,6 +61,7 @@ PyArrayObject *b        o: output data
 
 	binx = onx / inx;
 	biny = ony / iny;
+		
 	if (binx * inx != onx || biny * iny != ony) {
 	    printf ("ERROR    (unbin2d) bin ratio is not an integer.\n");
 	    exit(1);
@@ -69,16 +70,22 @@ PyArrayObject *b        o: output data
 	xoffset = (float)(binx - 1) / 2.0F;
 	yoffset = (float)(biny - 1) / 2.0F;
 
+	printf("Got this far\n");
+
 	if (binx == 1 && biny == 1) {
+		printf("binx==1 && biny ==1\n");
 
 	    /* Same size, so just copy. */
 
 	    /* Copy the science data. */
 	    for (n = 0;  n < ony;  n++)
-		for (m = 0;  m < onx;  m++)
-		    Pix (datab, m, n) = Pix (dataa, m, n);
+			for (m = 0;  m < onx;  m++) {
+				printf("start of inner loop\n");
+				Pix (datab, m, n) = Pix (dataa, m, n);
+		     }
 
 	} else if (binx == 1) {
+		printf("binx==1\n");
 
 	    /* Interpolate in Y. */
 
@@ -94,6 +101,7 @@ PyArrayObject *b        o: output data
 	    }
 
 	} else if (biny == 1) {
+		printf("biny==1\n");
 
 	    /* Interpolate in X. */
 
@@ -110,6 +118,8 @@ PyArrayObject *b        o: output data
 
 	} else {
 	    /* Science data array. */
+		printf("Got this far, really\n");
+
 	    for (n = 0;  n < ony;  n++) {
 			aj = ((float)n - yoffset) / (float)biny;
 			InterpInfo (aj, iny, &j, &r, &s);
