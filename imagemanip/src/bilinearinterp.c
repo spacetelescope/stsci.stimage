@@ -3,9 +3,6 @@
 #include <math.h>
 #include <numpy/arrayobject.h>
 
-
-# define Pix(a,i,j)      a[(j)*(inx) + (i)]
-
 /* This routine determines the appropriate array index i and weights
    p and q for linear interpolation.  If the array is called a, and ai
    is the independent variable (in units of the array index), then
@@ -58,22 +55,17 @@ PyArrayObject *b        o: output data
 	xoffset = (float)(binx - 1) / 2.0F;
 	yoffset = (float)(biny - 1) / 2.0F;
 
-
 	if (binx == 1 && biny == 1) {
-		printf("binx==1 && biny ==1\n");
 
 	    /* Same size, so just copy. */
 
 	    /* Copy the science data. */
 	    for (n = 0;  n < ony;  n++)
 			for (m = 0;  m < onx;  m++) {
-				printf("start of inner loop\n");
-				Pix (b, m, n) = Pix (a, m, n);
+				b[n*onx+m] = a[n*inx+m];
 		     }
 
 	} else if (binx == 1) {
-		printf("binx==1\n");
-
 	    /* Interpolate in Y. */
 
 	    /* Science data array. */
@@ -81,15 +73,13 @@ PyArrayObject *b        o: output data
 		aj = ((float)n - yoffset) / (float)biny;
 		InterpInfo (aj, iny, &j, &r, &s);
 		for (m = 0;  m < onx;  m++) {
-		    value = r * Pix (a, m, j) +
-			    s * Pix (a, m, j+1);
-		    Pix (b, m, n) = value;
+		    value = r * a[j*inx+m] +
+			    s * a[(j+1)*inx+m];
+		    b[n*onx+m] = value;
 		}
 	    }
 
 	} else if (biny == 1) {
-		printf("biny==1\n");
-
 	    /* Interpolate in X. */
 
 	    /* Science data array. */
@@ -97,34 +87,28 @@ PyArrayObject *b        o: output data
 		for (m = 0;  m < onx;  m++) {
 		    ai = ((float)m - xoffset) / (float)binx;
 		    InterpInfo (ai, inx, &i, &p, &q);
-		    value = p * Pix (a, i, n) +
-			    q * Pix (a, i+1, n);
-		    Pix (b, m, n) = value;
+		    value = p * a[n*inx+i] +
+			    q * a[n*inx+(i+1)];
+		    b[n*onx+m] = value;
 		}
 	    }
 
 	} else {
 	    /* Science data array. */
-		printf("Got this far, really\n");
-
 	    for (n = 0;  n < ony;  n++) {
 			aj = ((float)n - yoffset) / (float)biny;
 			InterpInfo (aj, iny, &j, &r, &s);
 			for (m = 0;  m < onx;  m++) {
 					ai = ((float)m - xoffset) / (float)binx;
 					InterpInfo (ai, inx, &i, &p, &q);
-					value = p * r * Pix (a, i,   j) +
-						q * r * Pix (a, i+1, j) +
-						p * s * Pix (a, i,   j+1) +
-						q * s * Pix (a, i+1, j+1);
-					Pix (b, m, n) = value;
+					value = p * r * a[j*inx+i] +
+						q * r * a[j*inx+(i+1)] +
+						p * s * a[(j+1)*inx+i] +
+						q * s * a[(j+1)*inx+(i+1)];
+					b[n*onx+m] = value;
 			}
 		}
 	}
-
-
-
-    printf("Time to return\n");
 	return (1);
 }
 
