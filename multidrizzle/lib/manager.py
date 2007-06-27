@@ -929,9 +929,9 @@ class ImageManager:
             # If cor_file is desired, then build name for file
             if drizcrpars['driz_cr_corr']:
                 # Build Name for cor file
-                _corr_file= p['rootname'] + '_sci' + p['group'] + '_cor.fits'
+                _corr_file= p['rootname'] + '_sci' + str(p['group']) + '_cor.fits'
                 # Build Name for cr file
-                _cr_file = p['rootname'] + '_sci' + p['group'] + '_crmask.fits'
+                _cr_file = p['rootname'] + '_sci' + str(p['group']) + '_crmask.fits'
 
                 # If corr_file and cr_file already exists, delete the old one so it can
                 # be replaced cleanly with the new one...
