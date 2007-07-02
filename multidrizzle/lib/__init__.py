@@ -575,7 +575,9 @@ help file.
                            # be modified here if it is not provided by the user and
                            # it is contained in the assocation table.  Alternatively,
                            # if no value is ever provided by the user or an assocation table,
-                           # it will be set to a value of 'final'
+                           # it will be set to a value of 'final' if there is more than one
+                           # input file or to the rootname of the input file if there is
+                           # only one.
         
         filelist = []  # Python list containing the name of all files that will need to
                        # to be processed by Multidrizzle.
@@ -861,7 +863,10 @@ help file.
 
         # Setup default output name if none was provided either by user or in ASN table
         if (newoutput == None) or (len(newoutput) == 0):
-            newoutput = 'final'
+            if len(newfilelist) == 1:
+                newoutput = newfilelist[0][0:newfilelist[0].find('_')]
+            else:
+                newoutput = 'final'
 
         return newoutput, newfilelist, newivmlist, numInputs, numASNfiles, \
                 parseSTISflag, parseWFPC2flag, translatedNames, \
