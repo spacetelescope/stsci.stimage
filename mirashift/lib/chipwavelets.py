@@ -188,7 +188,8 @@ def _step4(mmatrix,cmatrix,image_cog,ref_cog,scale=None):
     radhmax = radhist.histogram.max()
     rad_matrix[N.where(rad_matrix == -1.0)] = rad_matrix.max()
     # Pick out distance bin with largest number of matched sources
-    rad_peak = radhist.centers[N.where(radhist.histogram == radhmax)[0]][0]
+    #rad_peak = radhist.centers[N.where(radhist.histogram == radhmax)[0]][0]
+    rad_peak = radhist.getCenters()[N.where(radhist.histogram == radhmax)[0][0]]
     # Identify sources from distance matrix with those in peak bin
     nradpeak = N.where(N.abs(rad_matrix - rad_peak) > rad_width)
 
