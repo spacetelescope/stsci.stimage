@@ -1,11 +1,11 @@
-import os,sys
+import os
 from math import floor,ceil,sqrt,pow
 
 import numpy as N
 
 import fileutil
 import imagestats
-import numdisplay 
+
         
 
 import expandArray, chainMoments
@@ -282,7 +282,7 @@ class Chip:
                 at specified wavelet transformation scale
     """
     def __init__(self, exposure, keep_wavelets=False, 
-                 scale=2, form='linear',median=1):
+                 scale=2, form='linear',median=1, clean=True):
             
            
         # Initialize attributes based on inputs
@@ -295,7 +295,8 @@ class Chip:
 
         self.waveplanes = None
         self.wavechip = None      
-        self.maxkernel = None     
+        self.maxkernel = None
+        self.clean = clean
 
         # Keep track of delta shift for this chip
         self.chip_delta = (0.,0.)
@@ -319,6 +320,24 @@ class Chip:
         print '- Creating ',self.scale,' multi-scale views of this image'
         self.waveplanes,self.wavechip,self.maxkernel = atrous.multimed(imagearray,maxscale=self.scale,median=self.median)
         
+        #if requested - write out intermediate files - fr debugging
+        if not self.clean:
+            import pyfits as p
+            hdulist = p.HDUList()
+            phdu = p.PrimaryHDU()
+            hdulist.append(phdu)
+            for w in self.waveplanes:
+                ehdu = p.ImageHDU(w)
+                hdulist.append(ehdu)
+                hdulist.close()
+            self.rootname = exposure.name.split('_')[0]
+            self.chip = exposure.chip
+            name = self.rootname+str(exposure.chip)+'_waveplanes.fits'
+            hdulist.writeto(name, clobber=True)
+            phdu = p.PrimaryHDU(self.wavechip)
+            name = self.rootname+str(exposure.chip)+'_wavechip.fits'
+            phdu.writeto(name, clobber=True)
+            del phdu, hdulist, ehdu, p 
         # Finished with original input, so delete it
         del imagearray
         
@@ -353,7 +372,7 @@ class Chip:
         ##
         # Initialize ObjectList
         print 'Defining all objects for scale: ',self.scale
-        objlist = objectlist.ObjectList(self.wavechip, scale=self.scale,offset=(self.xzero,self.yzero))
+        objlist = objectlist.ObjectList(self.wavechip, scale=self.scale,offset=(self.xzero,self.yzero), clean=self.clean, name=self.rootname+str(self.chip))
         # For each scale, starting at the top...
         # This loop goes from scale to 0 by 1, i.e. 4-3-2-1-0
         for s in xrange(self.scale-1,-1,-1):

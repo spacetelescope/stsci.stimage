@@ -84,14 +84,17 @@ class ObjectList:
         getSlices(scale=0)
    
     """
-    def __init__(self, image, scale=0, offset=(0.,0.)):
-            
+    def __init__(self, image, scale=0, offset=(0.,0.), clean=True, name=None):
+        self.clean = clean
+        self.name = name    
         self.scale = scale
         # If we do not provide a list of objects, 
         # setup empty list for members
         self.objectlist = {}
         self.addObjects(image, scale)
         self.chip_delta = offset
+
+        
 
     def addObjects(self, image, scale,slices=None):
         self.objectlist[scale] = self.buildObjectlist(image,slices=None)
@@ -109,7 +112,7 @@ class ObjectList:
         else:
             _s = slices
 
-        edges = edge_detect.find_LoG_zeros(image)
+        edges = edge_detect.find_LoG_zeros(image, clean=self.clean, name=self.name)
         
         #
         # Label detected objects

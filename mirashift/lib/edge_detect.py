@@ -310,6 +310,8 @@ def compute_edge_strength(array,zero_cross):
     """ Compute the edge strength map for a LoG of an image
         by considering the slopes along both the x and y 
         directions.
+        based on Hui Li et al., A contour based approach to
+        Multisensor Image Registration
     """
     xkernel = N.array([[0,0,0],[1,0,-1],[0,0,0]])
     ykernel = N.array([[0,1,0],[0,0,0],[0,-1,0]])
@@ -327,6 +329,16 @@ def compute_edge_strength(array,zero_cross):
     
 def compute_LoG_image(image, k_d, k_sigma, gsigma, gauss_sigma):
 
+    """
+
+    Computes Laplassian of Gaussian of an image by
+    
+    - run a gaussian filter on a decimated image with a decimation factor k_d
+    - create an LoG mask
+    - convolve the LoG mask with the filtered image
+    - expand the image to the original size using bilinear interpolation
+    
+    """
     logk = LoG_mask( (gauss_sigma/(k_d*k_sigma)) )
 
     gchip = ND.gaussian_filter(image[::k_d,::k_d],gsigma)
@@ -339,7 +351,7 @@ def compute_LoG_image(image, k_d, k_sigma, gsigma, gauss_sigma):
     
     return lgchip
     
-def find_LoG_zeros(image,esigma=3):
+def find_LoG_zeros(image,esigma=3, clean=True, name=None):
     #
     # Edge detection using fast Lagrangian-of-Gaussian
     #    as described in Chen et al(1987).
@@ -348,13 +360,28 @@ def find_LoG_zeros(image,esigma=3):
     k_sigma = 1.25
     gsigma = 2.4
     gauss_sigma = 4.0
+    if not clean:
+        import pyfits as p
     
     lgchip = compute_LoG_image(image, k_d, k_sigma, gsigma, gauss_sigma)
+    
+    if not clean:
+
+        phdu=p.PrimaryHDU(lgchip.astype(N.uint8))
+        phdu.writeto(name+'LoG.fits', clobber=True)
+        
     #
-    # Remove edge-effects from derivativeassociated with chip edges
+    # Remove edge-effects from derivative associated with chip edges
     #
     echip = ND.binary_dilation(image==0,iterations=(int(gauss_sigma*k_d*2)))
     gclip = N.where(echip == 0, lgchip, 0)
+    
+    if not clean:
+        phdu = p.PrimaryHDU(echip.astype(N.uint8))
+        phdu.writeto(name+'BinDil.fits', clobber=True)
+        phdu=p.PrimaryHDU(gclip)
+        phdu.writeto(name+'BinDilClipped.fits', clobber=True)
+    
     #del echip
 
     #
@@ -371,6 +398,14 @@ def find_LoG_zeros(image,esigma=3):
     del gclip
     
     lgedge = eclip - ND.binary_erosion(eclip)
+    
+    if not clean:
+	phdu = p.PrimaryHDU(eclip.astype(N.uint8))
+        phdu.writeto(name+'eclip.fits', clobber=True)
+	phdu = p.PrimaryHDU(ND.binary_erosion(eclip).astype(N.uint8))
+        phdu.writeto(name+'BinEro.fits', clobber=True)
+        phdu = p.PrimaryHDU(lgedge.astype(N.uint8))
+        phdu.writeto(name+'edge.fits', clobber=True)
     del eclip
 
     es = compute_edge_strength(lgchip,lgedge)

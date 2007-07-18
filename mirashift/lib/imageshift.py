@@ -77,7 +77,7 @@ class ImageShift:
 
     """
     def __init__(self,input, output='shifts',reference=None, coeffs='header',
-                 scale=2,form='linear',median=2):  
+                 scale=2,form='linear',median=2, clean=True):  
 
         self.input = input
         self.scale = scale
@@ -85,6 +85,7 @@ class ImageShift:
         self.output = output
         self.overwrite = True
         self.median = median
+        self.clean = clean
         
         # Set up shifts attribute to store computed shifts
         self.shifts = None
@@ -140,7 +141,7 @@ class ImageShift:
         # Loop over parlist to search for entries matching the given
         # image name
         for pdict in self.pyasn.parlist:
-            chip = chipwavelets.Chip(pdict['exposure'],scale=self.scale,median=self.median)
+            chip = chipwavelets.Chip(pdict['exposure'],scale=self.scale,median=self.median, clean=self.clean)
             obsname,obsext = fileutil.parseFilename(pdict['data']) 
             if obs == None:
                 obs = chipwavelets.Observation(obsname)       
@@ -176,10 +177,10 @@ class ImageShift:
             output = image[:indx]+'_output.coord'
             print '- Writing out coordinates from ',image,' to coordfile: ',output
 
-            clean = self.overwrite
+            #clean = self.overwrite
             # If user specifies a clean output file, and
             # a file with that name already exists, remove it.
-            if clean == True and os.path.exists(output) == True:
+            if self.overwrite == True and os.path.exists(output) == True:
                 print '- Removing previous coordinate output file.'
                 os.remove(output)
 
