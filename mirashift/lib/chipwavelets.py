@@ -89,7 +89,7 @@ def compute_ccode_matrix(img_ccode, ref_ccode, Lccode = 0.1, Tccode= 0.8):
     return ccode_matrix
 
 
-def perform_ImageMatch(imgobs,refobs,scale,T_ccode=0.8,T_moment=0.1,general=False):
+def perform_ImageMatch(imgobs,refobs,scale,T_ccode=0.8,T_moment=0.1,general=False, verbose=False):
     """ Implement the Steps 2-6 of the ImageMatch algorithm 
         on an input Observation object, img_obs, and 
         a reference Observation, ref_obs.
@@ -102,6 +102,7 @@ def perform_ImageMatch(imgobs,refobs,scale,T_ccode=0.8,T_moment=0.1,general=Fals
     # for each input image in the observation list, match 
     # against the reference image
     #
+    if verbose: print 'Perfom Image Match for', imgobs.name
     moment_matrix,ccode_matrix,image_cog,ref_cog = _step2(imgobs,refobs,scale)
 
     _step3(moment_matrix,ccode_matrix,T_moment,T_ccode)
@@ -547,7 +548,8 @@ class Observation:
         img_ccode,img_clen = self.getChainCodes(scale=scale)
         ref_ccode,ref_clen = refobs.getChainCodes(scale=scale)
         
-        print ' -Computing chain-code matrix... for self.name'
+        print ' -Computing chain-code matrix... '
+        
         # Initialize chain-code matching matrix
         ccode_matrix = compute_ccode_matrix(img_ccode, ref_ccode, Lccode = 0.1, Tccode= 0.8)
 

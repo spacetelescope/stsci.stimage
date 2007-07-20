@@ -269,7 +269,7 @@ class ImageShift:
             if img.name == self.refimage:
                 continue 
                 
-            final_fit = chipwavelets.perform_ImageMatch(img,self.refobs,scale,T_ccode=Tccode,T_moment=Tmoment,general=general_fit)
+            final_fit = chipwavelets.perform_ImageMatch(img,self.refobs,scale,T_ccode=Tccode,T_moment=Tmoment,general=general_fit,verbose=verbose)
             """
             =================================
             DEVELOPMENT NOTE:
