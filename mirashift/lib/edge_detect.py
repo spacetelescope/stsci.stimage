@@ -351,7 +351,7 @@ def compute_LoG_image(image, k_d, k_sigma, gsigma, gauss_sigma):
     
     return lgchip
     
-def find_LoG_zeros(image,esigma=3, clean=True, name=None):
+def find_LoG_zeros(image,esigma=3, clean=True, name=None, scale=""):
     #
     # Edge detection using fast Lagrangian-of-Gaussian
     #    as described in Chen et al(1987).
@@ -380,7 +380,7 @@ def find_LoG_zeros(image,esigma=3, clean=True, name=None):
         phdu = p.PrimaryHDU(echip.astype(N.uint8))
         phdu.writeto(name+'BinDil.fits', clobber=True)
         phdu=p.PrimaryHDU(gclip)
-        phdu.writeto(name+'BinDilClipped.fits', clobber=True)
+        phdu.writeto(name+'scale'+scale + 'BinDilClipped.fits', clobber=True)
     
     #del echip
 
@@ -400,12 +400,12 @@ def find_LoG_zeros(image,esigma=3, clean=True, name=None):
     lgedge = eclip - ND.binary_erosion(eclip)
     
     if not clean:
-	phdu = p.PrimaryHDU(eclip.astype(N.uint8))
-        phdu.writeto(name+'eclip.fits', clobber=True)
-	phdu = p.PrimaryHDU(ND.binary_erosion(eclip).astype(N.uint8))
-        phdu.writeto(name+'BinEro.fits', clobber=True)
+        phdu = p.PrimaryHDU(eclip.astype(N.uint8))
+        phdu.writeto(name+'scale'+scale+'eclip.fits', clobber=True)
+        phdu = p.PrimaryHDU(ND.binary_erosion(eclip).astype(N.uint8))
+        phdu.writeto(name+'scale'+scale+'BinEro.fits', clobber=True)
         phdu = p.PrimaryHDU(lgedge.astype(N.uint8))
-        phdu.writeto(name+'edge.fits', clobber=True)
+        phdu.writeto(name+'scale'+scale+'edge.fits', clobber=True)
     del eclip
 
     es = compute_edge_strength(lgchip,lgedge)

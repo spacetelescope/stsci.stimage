@@ -76,6 +76,8 @@ def compute_ccode_matrix(img_ccode, ref_ccode, Lccode = 0.1, Tccode= 0.8):
             ccode = chainMoments.computeChainMatch(icode,rcode, 3, objectlist.Chain_kernel,Lccode)
             # If matching code less than given criteria, then set to 0. 
             # so that it will not be considered a valid match at all.
+            #print 'ccode = ', ccode
+            
             if ccode < Tccode: ccode = 0.
 
             ccode_matrix[i][j] = ccode
@@ -297,6 +299,8 @@ class Chip:
         self.wavechip = None      
         self.maxkernel = None
         self.clean = clean
+        self.rootname = ""
+        self.chip = ""
 
         # Keep track of delta shift for this chip
         self.chip_delta = (0.,0.)
@@ -543,7 +547,7 @@ class Observation:
         img_ccode,img_clen = self.getChainCodes(scale=scale)
         ref_ccode,ref_clen = refobs.getChainCodes(scale=scale)
         
-        print ' -Computing chain-code matrix...'
+        print ' -Computing chain-code matrix... for self.name'
         # Initialize chain-code matching matrix
         ccode_matrix = compute_ccode_matrix(img_ccode, ref_ccode, Lccode = 0.1, Tccode= 0.8)
 

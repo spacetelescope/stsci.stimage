@@ -232,7 +232,7 @@ float compute_chain_match_(float *code_a, float *code_b, int n) {
     /* Initialize return value to -999 since no valid value
         will be less than -1, due to use of cos(). 
     */
-    s_ij = -999.0;
+    s_ij = -998.0;
     
     /* Compute mean for these chain codes */
     avg_a = compute_chain_mean_(code_a,n);
@@ -242,11 +242,15 @@ float compute_chain_match_(float *code_a, float *code_b, int n) {
         /* Reset s for next iteration */
         s = 0.0;
         for (l=0; l<n; l++) {
+			
             lmodk = (l+k)%n;
-            
-            s += cos((PI/4.) * ( (code_a[l]-avg_a) - (code_b[lmodk] - avg_b)));
+            /*avg_b = compute_chain_mean_(code_b,n);*/ 
+			/*printf("code_a[l]=%f, avg_a=%f, code_b[l+k]=%f, avg_b=%f\n", code_a[l], avg_a, code_b[l+k], avg_b);*/
+            s += cos((PI/4.) * ( (code_a[l]-avg_a) - (code_b[l+k] - avg_b)));
         }
+		/*printf("s=%f, \n", s);*/
         s /= n;
+
         if (s > s_ij) s_ij = s;
     }
     return s_ij;

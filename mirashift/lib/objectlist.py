@@ -112,7 +112,7 @@ class ObjectList:
         else:
             _s = slices
 
-        edges = edge_detect.find_LoG_zeros(image, clean=self.clean, name=self.name)
+        edges = edge_detect.find_LoG_zeros(image, clean=self.clean, name=self.name, scale=str(self.scale))
         
         #
         # Label detected objects
