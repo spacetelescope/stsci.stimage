@@ -244,9 +244,8 @@ float compute_chain_match_(float *code_a, float *code_b, int n) {
         for (l=0; l<n; l++) {
 			
             lmodk = (l+k)%n;
-            /*avg_b = compute_chain_mean_(code_b,n);*/ 
-			/*printf("code_a[l]=%f, avg_a=%f, code_b[l+k]=%f, avg_b=%f\n", code_a[l], avg_a, code_b[l+k], avg_b);*/
-            s += cos((PI/4.) * ( (code_a[l]-avg_a) - (code_b[l+k] - avg_b)));
+	    /*printf("code_a[l]=%f, avg_a=%f, code_b[l+k]=%f, avg_b=%f\n", code_a[l], avg_a, code_b[l+k], avg_b);*/
+            s += cos((PI/4.) * ( (code_a[l]-avg_a) - (code_b[lmodk] - avg_b)));
         }
 		/*printf("s=%f, \n", s);*/
         s /= n;
