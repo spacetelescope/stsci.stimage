@@ -1,43 +1,4 @@
-#import string
-import os, shutil, sys
-
-import numpy as N
-
-import pydrizzle
-from pydrizzle import drutil, buildasn, updateasn
-import pyfits
-import readgeis
-import fileutil
-
-import mdzhandler
-import manager
-from manager import ImageManager
-
-import mdrizpars
-from procstep import ProcSteps, timestamp
-
-import geissupport
-from geissupport import *
-
-import makewcs
-
-# This module is used to replicate IRAF style inputs.
-import parseinput
-from parseinput import parseinput
-from parseinput import countinputs
-
-# This module is used to parse IVM file input
-import parseIVM
-from parseIVM import parseIVM
-
-# This module is used to parse STIS association files
-import stis_assoc_support
-from stis_assoc_support import parseSTIS
-from stis_assoc_support import parseSTISIVM
-
-__version__ = '3.1.0dev (X XXX 2007)'
-
-__help_str = """
+"""
 MultiDrizzle combines astronomical images while removing
 distortion and cosmic-rays. The Python syntax for using
 MultiDrizzle relies on initializing a MultiDrizzle object,
@@ -47,76 +8,58 @@ the final product.  The process starts with the input of the
 image names to initialize the MultiDrizzle object:
 
 >>> import multidrizzle
->>> md = multidrizzle.MultiDrizzle(input)
->>> md.editpars()  
+>>> md = multidrizzle.MultiDrizzle(input,'other parameters')
 >>> md.build()
 >>> md.run()
 
-The 'editpars()' method starts the Traits GUI for editing all the
-input parameters, and is a step that can be skipped. MultiDrizzle
-defines default values for all inputs, and only those values which
-need to be over-ridden should be entered.
+MultiDrizzle defines default values for all inputs, and only 
+those values which need to be over-ridden should be entered.
 
 Further help can be obtained interactively using:
 >>> md.help()
 
+:author: Warren Hack, Christopher Hanley, Ivo Busko, and David Grumm
+
 """
-def help():
-    """ Prints help information for MultiDrizzle."""
-    print 'MultiDrizzle Version ',__version__
-    print __help_str
 
 
-def versioninfo():
-    """ Print version information for packages used by Multidrizzle """
+__docformat__ = 'restructuredtext'
 
-    # Initialize version dictionary
-    version_dict = {}
-    
-    # Set up version ID's for printing to the log file
-    mdrizzle_key = " MultiDrizzle "
-    array_key = " NUMPY Version  "
-    pydrizzle_key = " PyDrizzle Version "
-    pyfits_key =  " PyFITS Version    "
-    python_key = " Python Version: "
-    
-    version_dict[mdrizzle_key] = __version__
-    version_dict[array_key]= N.__version__
-    version_dict[pydrizzle_key]= pydrizzle.__version__
-    version_dict[pyfits_key] = pyfits.__version__
 
-    _sys_version_list = sys.version.split("\n")
-    _sys_version = " # "
-    for _sys_str in _sys_version_list:
-        _sys_version += _sys_str+"\n # "
-    version_dict[python_key] = '\n'+_sys_version
-   
-    # Print out version information for libraries used by MultiDrizzle
-    print "\n"
-    print " Version Information for MultiDrizzle "+version_dict[mdrizzle_key]
-    print "-------------------------------------------- "        
-    print array_key + version_dict[array_key]
-    print pyfits_key + version_dict[pyfits_key]
-    print pydrizzle_key + version_dict[pydrizzle_key]
-    print python_key + version_dict[python_key]
-    print "\n"
-    
-    return version_dict
 
-def _splitNsigma(s):
+# Begin Import Modules ---------------------------------------------------
+import os, shutil, sys, string
+import numpy as N
+import pydrizzle
+from pydrizzle import drutil, buildasn, updateasn
+import pyfits
+import readgeis
+import fileutil
+import mdzhandler
+import manager
+from manager import ImageManager
+import mdrizpars
+from procstep import ProcSteps, timestamp
+import geissupport
+from geissupport import *
+import makewcs
+# This module is used to replicate IRAF style inputs.
+import parseinput
+from parseinput import parseinput
+from parseinput import countinputs
+# This module is used to parse IVM file input
+import parseIVM
+from parseIVM import parseIVM
+# This module is used to parse STIS association files
+import stis_assoc_support
+from stis_assoc_support import parseSTIS
+from stis_assoc_support import parseSTISIVM
+# End Import Modules -----------------------------------------------------
 
-    # Split up the "combine_nsigma" string. If a second value is
-    # specified, then this will be used later down in the "minmed"
-    # section where a second-iteration rejection is done. Typically
-    # the second value should be around 3 sigma, while the first
-    # can be much higher.
 
-    _sig = s.split(" ")
-    _nsigma1 = float(_sig[0])
-    _nsigma2 = float(_sig[0])
-    if len(_sig) > 1:
-        _nsigma2 = float(_sig[1])
-    return (_nsigma1, _nsigma2)
+# Begin Version Information -------------------------------------------
+__version__ = '3.1.0dev (X XXX 2007)'
+# End Version Information ---------------------------------------------
 
 class Multidrizzle:
     """ 
@@ -578,6 +521,7 @@ help file.
                            # it will be set to a value of 'final' if there is more than one
                            # input file or to the rootname of the input file if there is
                            # only one.
+
         
         filelist = []  # Python list containing the name of all files that will need to
                        # to be processed by Multidrizzle.
@@ -1582,6 +1526,107 @@ help file.
             self.steps.reportTimes()
 
     def help(self):
-        """ Prints help string for MultiDrizzle class."""
+        """ 
+
+        Purpose
+        =======
+        Help function on Multidrizzle Class that 
+        prints __doc__ string.
+        
+        """
+        
         print 'MultiDrizzle Version ',__version__
-        print self.__doc__        
+        print self.__doc__
+        
+
+def _splitNsigma(s):
+    """
+    
+    Purpose
+    =======
+    This is a help function that is used to split up the "combine_nsigma"
+    string. If a second value is specified, then this will be used later 
+    in "minmed" where a second-iteration rejection is done. Typically
+    the second value should be around 3 sigma, while the first
+    can be much higher.
+
+    """
+    _sig = s.split(" ")
+    _nsigma1 = float(_sig[0])
+    _nsigma2 = float(_sig[0])
+    if len(_sig) > 1:
+        _nsigma2 = float(_sig[1])
+    return (_nsigma1, _nsigma2)
+
+
+def help():
+    """ 
+
+    Purpose
+    =======
+    Function prints help information for MultiDrizzle.
+    
+    """
+    
+    
+    help_str =  "MultiDrizzle combines astronomical images while removing       \n" 
+    help_str += "distortion and cosmic-rays. The Python syntax for using        \n"
+    help_str += "MultiDrizzle relies on initializing a MultiDrizzle object,     \n"
+    help_str += "building up the parameters necessary for combining the images, \n"
+    help_str += "then performing the actual processing necessary to generate    \n"
+    help_str += "the final product.  The process starts with the input of the   \n"
+    help_str += "image names to initialize the MultiDrizzle object:             \n"
+    help_str += "                                                               \n"
+    help_str += ">>> import multidrizzle                                        \n"
+    help_str += ">>> md = multidrizzle.MultiDrizzle(input,args,...)             \n"
+    help_str += ">>> md.build()                                                 \n"
+    help_str += ">>> md.run()                                                   \n"
+    help_str += "                                                               \n"
+    help_str += "MultiDrizzle defines default values for all inputs, and only   \n"
+    help_str += "those values which need to be over-ridden should be entered.   \n"
+    help_str += "                                                               \n"
+    print 'MultiDrizzle Version ',__version__
+    print help_str
+
+
+def versioninfo():
+    """ 
+    
+    Purpose
+    =======
+    Function prints version information for packages used by Multidrizzle 
+    
+    """
+
+    # Initialize version dictionary
+    version_dict = {}
+    
+    # Set up version ID's for printing to the log file
+    mdrizzle_key = " MultiDrizzle "
+    array_key = " NUMPY Version  "
+    pydrizzle_key = " PyDrizzle Version "
+    pyfits_key =  " PyFITS Version    "
+    python_key = " Python Version: "
+    
+    version_dict[mdrizzle_key] = __version__
+    version_dict[array_key]= N.__version__
+    version_dict[pydrizzle_key]= pydrizzle.__version__
+    version_dict[pyfits_key] = pyfits.__version__
+
+    _sys_version_list = sys.version.split("\n")
+    _sys_version = " # "
+    for _sys_str in _sys_version_list:
+        _sys_version += _sys_str+"\n # "
+    version_dict[python_key] = '\n'+_sys_version
+   
+    # Print out version information for libraries used by MultiDrizzle
+    print "\n"
+    print " Version Information for MultiDrizzle "+version_dict[mdrizzle_key]
+    print "-------------------------------------------- "        
+    print array_key + version_dict[array_key]
+    print pyfits_key + version_dict[pyfits_key]
+    print pydrizzle_key + version_dict[pydrizzle_key]
+    print python_key + version_dict[python_key]
+    print "\n"
+    
+    return version_dict

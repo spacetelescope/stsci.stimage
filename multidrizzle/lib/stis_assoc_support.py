@@ -1,20 +1,5 @@
 #  Program: stis_assoc_support.py
 #  Author:  Christopher Hanley
-#  History:
-#   Version 0.1.0, 12/06/2004: Initial Creation -- CJH
-#   Version 0.2.0, 12/09/2004: Added method for supporting IVM file for
-#       association data.  -- CJH
-#   Version 0.3.0, 01/03/2004 -- Added check for zero exposure time input
-#       files.  Those with exposure times of zero not included in the
-#       newfilelist list. -- CJH
-#   Version 0.4.0, 01/26/05 -- Modifed the EXPTIME zero check to be less than
-#       or equal to zero.
-#   Version 0.5.0, 02/02/05 -- parseSTIS will now print a warning message when
-#       rejecting a zero EXPTIME image.
-
-__version__ = '0.5 (02/02/2005)'
-__author__  = 'Christopher Hanley'
-
 
 # import external modules
 import pyfits

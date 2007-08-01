@@ -26,7 +26,47 @@ class STISInputImage (InputImage):
         # the effective gain is 1.
         self._effGain = 1
         
+    def getflat(self):
+        """
+
+        Purpose
+        =======
+        Method for retrieving a detector's flat field.  For STIS there are three 
         
+        
+        This method will return an array the same shape as the
+        image.
+        
+        :units: electrons
+
+        """
+
+        # The keyword for STIS flat fields in the primary header of the flt
+        # file is ???.  This flat file is *NOT* already in the required 
+        # units of electrons.
+        
+        filename = self.header['???????']
+        
+        # Try to open the file in the location specified by oref.
+        try:
+            handle = fileutil.openImage(filename,mode='readonly',memmap=0)
+            hdu = fileutil.getExtn(handle,extn=self.extn)
+            data = hdu.data
+        except:
+            # If the user forgot to specifiy oref try looking for the reference
+            # file in the current directory
+            try:
+                handle = fileutil.openImage(filename[5:],mode='readonly',memmap=0)
+                hdu = fileutil.getExtn(handle,extn=self.extn)
+                data = hdu.data
+            # No flat field was found.  Assume the flat field is a constant value of 1.
+            except:
+                data = n.ones(self.image_shape,dtype=self.image_dtype)
+                str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
+                print str
+        flat = data
+        return flat
+
     def setInstrumentParameters(self, instrpars, pri_header):
         """ This method overrides the superclass to set default values into
             the parameter dictionary, in case empty entries are provided.
