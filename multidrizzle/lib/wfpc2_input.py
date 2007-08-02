@@ -125,7 +125,7 @@ class WFPC2InputImage (InputImage):
                 data = N.ones(self.image_shape,dtype=self.image_dtype)
                 str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
                 print str
-        # The WFPC2 flat in CDBS is in units of 1/DN.  We need to invert and multiply by the gain
+        # For the WFPC2 flat we need to invert and multiply by the gain
         # for use in Multidrizzle
         flat = (1.0/data)/self.getGain()
         return flat
