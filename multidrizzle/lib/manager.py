@@ -225,7 +225,6 @@ class ImageManager:
         static_goodval = 1
         static_badval = 0
 
-#        try:
         # Build the appropriate extension name to use on the user static mask file
         extn = "MASK,"+str(imageExtNumber)
 
@@ -247,9 +246,6 @@ class ImageManager:
         file.close()
         static_mask_file.close()
 
-#        except:
-#            raise IOError, "Unable to apply STATICFILE"
-            
         print "STATICFILE: ",user_static_mask," applied to ",static_mask             
 
     def setInstrumentParameters(self, instrpars):
@@ -608,15 +604,7 @@ class ImageManager:
                 " xgeoim='"+p['xgeoim']+"' ygeoim='"+p['ygeoim']+"'\n")
 
         # Perform separate drizzling now that all parameters have been setup...
-#        try:
         self.assoc.run(single=True,save=True,build=False)
- #       except:
- #           print 'Could not complete (drizSeparate) processing.'
- #           raise RuntimeError
-
-#        # Restore reference to mask file
-#        for p in self.assoc.parlist:
-#            p['driz_mask'] = p['full_mask']
 
         # Now that we are done with the static mask, delete it...
         del self.static_mask
@@ -656,9 +644,6 @@ class ImageManager:
         """ Builds combined array from single drizzled images."""
         # Start by removing any previous products...
         fileutil.removeFile(self.medianfile)
-        #try:
-        # Open all inputs necessary for creating the median image;
-        # namely, all unique outsingle images created by PyDrizzle.
 
         # Compute the mean value of each wht image
         _wht_mean = []
@@ -1095,11 +1080,7 @@ class ImageManager:
         if runlog != None:
             runlog.close()
 
-        #try:
         self.assoc.run(save=True,build=drizpars['build'])
-        #except:
-        #    print 'Error during final drizzling.'
-        #    raise RuntimeError
         
         self.updateMdrizskyHistory(drizpars['build'])
 

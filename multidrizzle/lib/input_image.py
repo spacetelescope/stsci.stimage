@@ -220,22 +220,18 @@ class InputImage(object):
         except:
             raise IOError, "Unable to open %s for sky level computation"%self.name
 
-        try:
-            _tmp = ImageStats(_sciext.data,
-                    fields      = skypars['skystat'],
-                    lower       = skypars['skylower'],
-                    upper       = skypars['skyupper'],
-                    nclip       = skypars['skyclip'],
-                    lsig        = skypars['skylsigma'],
-                    usig        = skypars['skyusigma'],
-                    binwidth    = skypars['skywidth']
-                    )
+        _tmp = ImageStats(_sciext.data,
+                fields      = skypars['skystat'],
+                lower       = skypars['skylower'],
+                upper       = skypars['skyupper'],
+                nclip       = skypars['skyclip'],
+                lsig        = skypars['skylsigma'],
+                usig        = skypars['skyusigma'],
+                binwidth    = skypars['skywidth']
+                )
 
-            self._computedsky = self._extractSkyValue(_tmp,skypars['skystat'].lower())
-            print "Computed sky value for ",self.name," : ",self._computedsky
-
-        except:
-            raise SystemError, "Unable to compute sky level for %s"%self.name
+        self._computedsky = self._extractSkyValue(_tmp,skypars['skystat'].lower())
+        print "Computed sky value for ",self.name," : ",self._computedsky
 
         # Close input image filehandle
         _handle.close()
@@ -290,58 +286,56 @@ class InputImage(object):
         _deriv_array = None
         
         print "Working on image ",self.datafile,"..."
-        try:
-            _deriv_array = quickDeriv.qderiv(blotted_array)
+        _deriv_array = quickDeriv.qderiv(blotted_array)
 
-            # Open input image and get pointer to SCI data
-            handle = fileutil.openImage(self.name,mode='readonly',memmap=self.memmap)
-            scihdu = fileutil.getExtn(handle,extn=self.extn)
-            
-            tmpDriz_cr = driz_cr.DrizCR(scihdu.data,
-                            scihdu.header,
-                            blotted_array,
-                            _deriv_array,
-                            mask_array,
-                            gain = self.getEffGain(),
-                            grow = drizcrpars['driz_cr_grow'],                                             
-                            ctegrow = drizcrpars['driz_cr_ctegrow'],
-                            ctedir = self.cte_dir, 
-                            amp = self.amp,
-                            rn = self.getReadNoise(),
-                            SNR = drizcrpars['driz_cr_snr'],
-                            backg = self.getSubtractedSky(),
-                            scale = drizcrpars['driz_cr_scale'])
+        # Open input image and get pointer to SCI data
+        handle = fileutil.openImage(self.name,mode='readonly',memmap=self.memmap)
+        scihdu = fileutil.getExtn(handle,extn=self.extn)
+        
+        tmpDriz_cr = driz_cr.DrizCR(scihdu.data,
+                        scihdu.header,
+                        blotted_array,
+                        _deriv_array,
+                        mask_array,
+                        gain = self.getEffGain(),
+                        grow = drizcrpars['driz_cr_grow'],                                             
+                        ctegrow = drizcrpars['driz_cr_ctegrow'],
+                        ctedir = self.cte_dir, 
+                        amp = self.amp,
+                        rn = self.getReadNoise(),
+                        SNR = drizcrpars['driz_cr_snr'],
+                        backg = self.getSubtractedSky(),
+                        scale = drizcrpars['driz_cr_scale'])
 
 
-            # If the user provided a None value for the cr bit, don't
-            # update the dqarray
-            if (self.getCRbit() != 0):
-                # Update the dq information if there is a dq array to update.
-                # In the case of WFPC2 input, no DQ file may have been provided.
-                # For ACS, there will always be DQ array information in the FLT file.
-                if fileutil.findFile(self.dqfile_fullname):
-                    dqhandle = fileutil.openImage(self.dqfile_name,mode='update',memmap=self.memmap)
-                    dqarray = fileutil.getExtn(dqhandle,extn=self.dqfile_extn)
-                    tmpDriz_cr.updatedqarray(dqarray.data,self.getCRbit())
-                    dqhandle.close()
-            else:
-                print "  CR bit value of 0 specified.  Skipping DQ array updates."
+        # If the user provided a None value for the cr bit, don't
+        # update the dqarray
+        if (self.getCRbit() != 0):
+            # Update the dq information if there is a dq array to update.
+            # In the case of WFPC2 input, no DQ file may have been provided.
+            # For ACS, there will always be DQ array information in the FLT file.
+            if fileutil.findFile(self.dqfile_fullname):
+                dqhandle = fileutil.openImage(self.dqfile_name,mode='update',memmap=self.memmap)
+                dqarray = fileutil.getExtn(dqhandle,extn=self.dqfile_extn)
+                tmpDriz_cr.updatedqarray(dqarray.data,self.getCRbit())
+                dqhandle.close()
+        else:
+            print "  CR bit value of 0 specified.  Skipping DQ array updates."
 
-            if  (corr_file != None):
-                tmpDriz_cr.createcorrfile(corr_file,self.header)
-            if (cr_file != None):
-                tmpDriz_cr.createcrmaskfile(cr_file,self.header)
+        if  (corr_file != None):
+            tmpDriz_cr.createcorrfile(corr_file,self.header)
+        if (cr_file != None):
+            tmpDriz_cr.createcrmaskfile(cr_file,self.header)
 
-            del tmpDriz_cr
+        del tmpDriz_cr
 
-        finally:
-            # Close input image filehandle
-            if handle:
-                del scihdu
-                handle.close()
-                del handle
-            if _deriv_array != None:
-                del _deriv_array
+        # Close input image filehandle
+        if handle:
+            del scihdu
+            handle.close()
+            del handle
+        if _deriv_array != None:
+            del _deriv_array
 
     def getflat(self):
         """
