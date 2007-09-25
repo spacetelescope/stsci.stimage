@@ -2495,6 +2495,9 @@ More help on SkyField objects and their parameters can be obtained using:
                 #
                 # This call to 'arrdriz.tdriz' uses the F2C syntax
                 #
+                if (_insci.dtype > N.float32):
+                    print "WARNING: Input array recast as a float32 array!"
+                    _insci = _insci.astype(N.float32)
                 t = arrdriz.tblot(_insci, _outsci,xmin,xmax,ymin,ymax,
                             xsh,ysh, plist['rot'],plist['scale'], kscale,
                             0.0,0.0, 1.0,1.0, 0.0, 'output',
@@ -2721,6 +2724,9 @@ More help on SkyField objects and their parameters can be obtained using:
                 #
                 _dny = plist['blotny']
                 # Call 'drizzle' to perform image combination
+                if (_sciext.data.dtype > N.float32):
+                    print "WARNING: Input array recast as a float32 array!"
+                    _sciext.data = _sciext.data.astype(N.float32)
 
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
                             _outctx[_planeid], _uniqid, ystart, 1, 1, _dny,
