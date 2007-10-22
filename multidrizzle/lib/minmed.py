@@ -16,8 +16,8 @@ import numpy as N
 import convolve as NC
 
 import imagestats
-import numcombine
-from numcombine import numCombine
+from pytools import numcombine
+from pytools.numcombine import numCombine
 
 __version__ = '0.2.0'
 class minmed:

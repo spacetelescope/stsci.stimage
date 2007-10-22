@@ -25,15 +25,15 @@ from nicmos_input import NICMOSInputImage, NIC1InputImage, NIC2InputImage, NIC3I
 import imagestats
 from imagestats import ImageStats
 from pytools import numcombine
-from numcombine import numCombine
+from pytools.numcombine import numCombine
 import minmed
 from minmed import minmed
 import static_mask
 from static_mask import StaticMask
 from pytools import nimageiter
-from nimageiter import ImageIter,computeBuffRows,FileIter
+from pytools.nimageiter import ImageIter,computeBuffRows,FileIter
 from pytools import iterfile
-from iterfile import IterFitsFile
+from pytools.iterfile import IterFitsFile
 
 __version__ = '1.7.0'
 

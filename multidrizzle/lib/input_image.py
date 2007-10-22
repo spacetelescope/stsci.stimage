@@ -10,7 +10,7 @@ import imagestats
 from imagestats import ImageStats
 
 from pytools import imageiter
-from imageiter import ImageIter
+from pytools.imageiter import ImageIter
 
 import numpy as N
 import quickDeriv

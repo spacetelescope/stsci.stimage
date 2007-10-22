@@ -44,8 +44,8 @@ from geissupport import *
 from pytools import makewcs
 # This module is used to replicate IRAF style inputs.
 from pytools import parseinput
-from parseinput import parseinput
-from parseinput import countinputs
+from pytools.parseinput import parseinput
+from pytools.parseinput import countinputs
 # This module is used to parse IVM file input
 import parseIVM
 from parseIVM import parseIVM

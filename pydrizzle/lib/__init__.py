@@ -31,7 +31,7 @@ DEXPTIME = 'EXPTIME'
 DEFAULT_PARITY = [[1.0,0.0],[0.0,1.0]]
 
 from drutil import DEFAULT_IDCDIR
-from fileutil import RADTODEG, DEGTORAD
+from pytools.fileutil import RADTODEG, DEGTORAD
 from math import *
 
 

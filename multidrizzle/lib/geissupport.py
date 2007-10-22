@@ -18,7 +18,7 @@
 
 import pyfits as P
 from pytools import readgeis, fileutil
-from readgeis import readgeis
+from pytools.readgeis import readgeis
 import os
 
 __version__ = '0.3.0'

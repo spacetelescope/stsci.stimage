@@ -22,7 +22,7 @@ import numpy as N
 from numpy import linalg
 
 from pytools import fileutil
-from fileutil import buildRotMatrix
+from pytools.fileutil import buildRotMatrix
 
 # Convenience definitions
 DEGTORAD = fileutil.DEGTORAD
