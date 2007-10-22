@@ -17,10 +17,9 @@
 #                less than or equal to zero.
 
 import pyfits as P
-import readgeis
+from pytools import readgeis, fileutil
 from readgeis import readgeis
 import os
-import fileutil
 
 __version__ = '0.3.0'
 

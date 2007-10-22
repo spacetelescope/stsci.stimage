@@ -2,9 +2,10 @@ import types,string,os,copy
 from math import ceil,floor
 
 # Import PyDrizzle utility modules
-import fileutil, wcsutil, drutil
+from pytools import fileutil, wcsutil
 
 import numpy as N
+import drutil
 from drutil import combin
 
 yes = True

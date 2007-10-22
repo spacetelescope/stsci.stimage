@@ -1,6 +1,6 @@
 import types
 import pyfits
-import fileutil
+from pytools import fileutil
 
 class Imtype:
     """ Class which determines the format of the file, how to access the

@@ -1,6 +1,6 @@
 import types
-import pyfits,readgeis
-import fileutil
+import pyfits
+from pytools import fileutil, readgeis
 
 yes = True
 no = False

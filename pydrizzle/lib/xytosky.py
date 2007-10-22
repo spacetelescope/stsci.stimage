@@ -5,7 +5,8 @@ import numpy as N
 from numpy import char as C
 from math import *
 
-import pydrizzle,wcsutil
+import pydrizzle
+from pytools import wcsutil
 
 # Convenience definitions...
 yes = True

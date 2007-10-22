@@ -7,7 +7,7 @@ from distutils.command.install_data import install_data
 
 from cfg_pyraf import PYRAF_DATA_FILES, PYRAF_SCRIPTS, PYRAF_EXTENSIONS, PYRAF_CLCACHE
 from cfg_pydrizzle import PYDRIZZLE_EXTENSIONS
-from cfg_modules import PYTOOLS_MODULES, STIS_MODULES
+from cfg_modules import STIS_MODULES
 from cfg_imagestats import IMAGESTATS_EXTENSIONS
 from cfg_calcos import CALCOS_EXTENSIONS
 
@@ -19,22 +19,20 @@ pythonver = 'python' + ver
 args = sys.argv[2:]
 #data_dir = py_libs
 
-PACKAGES = ['calcos', 'pyraf','numdisplay', 'imagestats', 'multidrizzle', 'saaclean', 'pydrizzle', 'pydrizzle.traits102', 'puftcorr', 'rnlincor', 'pyfits']
+PACKAGES = ['calcos', 'pyraf','numdisplay', 'imagestats', 'multidrizzle', 'saaclean', 'pydrizzle', 'pydrizzle.traits102', 'puftcorr', 'rnlincor', 'pyfits', 'pytools']
 
+PACKAGE_DIRS = {'calcos':'calcos/lib', 'pyraf':'pyraf/lib','numdisplay':'numdisplay', 'imagestats':'imagestats/lib', 'multidrizzle':'multidrizzle/lib', 'saaclean':'saaclean/lib', 'pydrizzle':'pydrizzle/lib', 'pydrizzle.traits102':'pydrizzle/traits102', 'puftcorr':'puftcorr/lib', 'rnlincor':'rnlincor/lib', 'pyfits':'pyfits/lib', 'pytools':'pytools/lib'}
 
-
-PACKAGE_DIRS = {'calcos':'calcos/lib', 'pyraf':'pyraf/lib','numdisplay':'numdisplay', 'imagestats':'imagestats/lib', 'multidrizzle':'multidrizzle/lib', 'saaclean':'saaclean/lib', 'pydrizzle':'pydrizzle/lib', 'pydrizzle.traits102':'pydrizzle/traits102', 'puftcorr':'puftcorr/lib', 'rnlincor':'rnlincor/lib', 'pyfits':'pyfits/lib'}
-
-PYMODULES = PYTOOLS_MODULES + STIS_MODULES
+PYMODULES = STIS_MODULES
 
 for a in args:
     if a.startswith('--local='):
         dir = os.path.abspath(a.split("=")[1])
-	sys.argv.extend([
+        sys.argv.extend([
                 "--install-lib="+dir,
                 "--install-scripts=%s" % os.path.join(dir,"pyraf"),
                 ])
-	sys.argv.remove(a)
+        sys.argv.remove(a)
         args.remove(a)
     elif a.startswith('--clean_dist'):
         for f in PYMODULES:

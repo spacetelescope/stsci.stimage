@@ -1,4 +1,4 @@
-import numerixenv
+from pytools import numerixenv
 numerixenv.check()
 
 import string,os,types,sys
@@ -10,10 +10,11 @@ import shutil
 import arrdriz
 
 # Import PyDrizzle utility modules
-import buildmask, fileutil, wcsutil, drutil
+import buildmask, drutil
 import outputimage, imtype
 from exposure import Exposure
 
+from pytools import fileutil, wcsutil
 import numpy as N
 import pyfits
 

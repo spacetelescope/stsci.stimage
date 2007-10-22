@@ -13,7 +13,7 @@ import numpy as N
 
 import pydrizzle
 from pydrizzle import buildasn
-import fileutil,wcsutil
+from pytools import fileutil,wcsutil
 
 IDCKEYS = {'WFPC2':'cubic','ACS':'idctab','STIS':'cubic','NICMOS':'cubic','detector':'idctab'}
 yes = True

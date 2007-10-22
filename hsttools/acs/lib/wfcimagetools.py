@@ -1,6 +1,6 @@
 import pyfits as p
 import numpy as n
-import parseinput
+from pytools import parseinput
 
 
 def stitch(inputfilename, extn, inputregion, outputfilename, outputsize, outputregion):

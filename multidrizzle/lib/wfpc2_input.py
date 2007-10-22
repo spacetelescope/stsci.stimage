@@ -4,7 +4,7 @@
 #   Purpose: Class used to model WFPC2 specific instrument data.
 
 import pydrizzle
-import fileutil
+from pytools import fileutil
 from input_image import InputImage
 import numpy as N
 

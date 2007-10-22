@@ -21,7 +21,7 @@ from math import ceil,floor
 import numpy as N
 from numpy import linalg
 
-import fileutil
+from pytools import fileutil
 from fileutil import buildRotMatrix
 
 # Convenience definitions

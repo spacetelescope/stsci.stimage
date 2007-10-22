@@ -4,7 +4,7 @@
 #   Purpose: Class used to model STIS specific instrument data.
 
 import pydrizzle
-import fileutil
+from pytools import fileutil
 import numpy as N
 
 from input_image import InputImage

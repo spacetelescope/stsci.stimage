@@ -10,7 +10,7 @@ __author__  = 'Christopher Hanley'
 
 import pydrizzle
 from pydrizzle import buildasn
-import fileutil
+from pytools import fileutil
 
 import glob
 from glob import glob

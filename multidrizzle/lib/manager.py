@@ -13,7 +13,7 @@ import shutil, os
 # Import Pydrizzle
 import pydrizzle
 from pydrizzle import drutil,buildmask
-import fileutil, wcsutil
+from pytools import fileutil, wcsutil
 
 # Import support for specific HST Instruments
 from acs_input import WFCInputImage, HRCInputImage, SBCInputImage
@@ -24,15 +24,15 @@ from nicmos_input import NICMOSInputImage, NIC1InputImage, NIC2InputImage, NIC3I
 # Import general tools
 import imagestats
 from imagestats import ImageStats
-import numcombine
+from pytools import numcombine
 from numcombine import numCombine
 import minmed
 from minmed import minmed
 import static_mask
 from static_mask import StaticMask
-import nimageiter
+from pytools import nimageiter
 from nimageiter import ImageIter,computeBuffRows,FileIter
-import iterfile
+from pytools import iterfile
 from iterfile import IterFitsFile
 
 __version__ = '1.7.0'

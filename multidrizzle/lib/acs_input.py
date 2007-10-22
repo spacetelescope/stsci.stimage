@@ -3,7 +3,7 @@
 #   Program: acs_input.py
 #   Purpose: Class used to model ACS specific instrument data.
 
-import fileutil
+from pytools import fileutil
 import numpy as n
 from input_image import InputImage
 

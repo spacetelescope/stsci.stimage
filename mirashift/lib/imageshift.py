@@ -13,14 +13,14 @@
     Version 0.2 - WJH (15-Dec-2005)
         
 """
-import parseinput
+from pytools import parseinput, fileutil
 import chipwavelets,linearfit
 
 import numpy as N
 import os
 
 import pydrizzle
-import fileutil
+
 
 
 __version__ = '0.2 (15 December 2005)'

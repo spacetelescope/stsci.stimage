@@ -63,31 +63,31 @@ class params:
     def __init__(self, camera):
 
         if camera == 1:
-	   self.hh   = 0.8
-	   self.bmax = 87.0
-	   self.tx   = 2.0
-	   self.ampscale = 20.0*1.30024e-5
-	   self.a1   = 0.0
-	   self.a2   = 0.003
-	   self.la   = 0
-	elif camera == 2:
-	   self.hh   = 0.8
-	   self.bmax = 87.0
-	   self.tx   = 2.0
-	   self.ampscale = 20.0*1.30024e-5
-	   self.a1   = -0.00014
-	   self.a2   = 0.07
-	   self.la   = 128
-	elif camera == 3:
-	   self.hh   = 0.8
-	   self.bmax = 87.0
-	   self.tx   = 2.0
-	   self.ampscale = 20.0*1.30024e-5
-	   self.a1   = -0.00014
-	   self.a2   = math.fabs(128.0*self.tx*self.a1)
-	   self.la   = 128
-	else:
-	   print " unknown camera number %d" %(camera)
+           self.hh   = 0.8
+           self.bmax = 87.0
+           self.tx   = 2.0
+           self.ampscale = 20.0*1.30024e-5
+           self.a1   = 0.0
+           self.a2   = 0.003
+           self.la   = 0
+        elif camera == 2:
+           self.hh   = 0.8
+           self.bmax = 87.0
+           self.tx   = 2.0
+           self.ampscale = 20.0*1.30024e-5
+           self.a1   = -0.00014
+           self.a2   = 0.07
+           self.la   = 128
+        elif camera == 3:
+           self.hh   = 0.8
+           self.bmax = 87.0
+           self.tx   = 2.0
+           self.ampscale = 20.0*1.30024e-5
+           self.a1   = -0.00014
+           self.a2   = math.fabs(128.0*self.tx*self.a1)
+           self.la   = 128
+        else:
+           print " unknown camera number %d" %(camera)
         
     
 class InputFile:
@@ -108,28 +108,28 @@ class InputFile:
         self.darkname = osfn(h['darkfile'])
 
         # open the dark reference file
-	self.dark = pyfits.open(self.darkname)
+        self.dark = pyfits.open(self.darkname)
 
         # load the zeroth-read image for use later
-	self.zread = f['sci',self.nsamp].data.astype(N.dtype('float32'))
+        self.zread = f['sci',self.nsamp].data.astype(N.dtype('float32'))
  
 
 class Readout:
 
     def __init__(self,input,sampnum):
 
-	self.imset  = sampnum
+        self.imset  = sampnum
         self.data   = input.f['sci',self.imset].data.astype(N.dtype('float32'))
-	self.header = input.f['sci',self.imset].header
+        self.header = input.f['sci',self.imset].header
         self.npix   = self.header['naxis1']
 
-	# subtract zeroth read
-	#self.data = self.data - input.zread
-	self.data -= input.zread
+        # subtract zeroth read
+        #self.data = self.data - input.zread
+        self.data -= input.zread
 
-	# subtract dark
-	if self.imset < input.nsamp:
-	   self.data -= input.dark['sci',self.imset+26-input.nsamp].data
+        # subtract dark
+        if self.imset < input.nsamp:
+           self.data -= input.dark['sci',self.imset+26-input.nsamp].data
 
 #..........................................................................
 # Exception definitions
@@ -291,8 +291,8 @@ def clean (usr_imgfile, usr_outfile):
         # subtract correction image from original raw image
         im.data = img.f['sci',imset].data - im.data
 
-	# make sure corrected pixel values don't go off the
-	# ends of the Int16 data range before writing to output
+        # make sure corrected pixel values don't go off the
+        # ends of the Int16 data range before writing to output
         im.data = N.clip(im.data,-32768.0,32767.0)
 
         # write corrected image to output file

@@ -27,7 +27,7 @@ Dependencies:
 """
 # The above text is duplicated in the __init__ file for the package, since
 #that's where it shows up for the user.
-import numerixenv #Temporary NUMERIX environment check 
+from pytools import numerixenv #Temporary NUMERIX environment check 
 import os 
 import exceptions
 import numpy as N, pyfits

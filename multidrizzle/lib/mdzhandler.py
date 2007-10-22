@@ -11,7 +11,7 @@
 import pyfits
 
 import pydrizzle
-import fileutil
+from pytools import fileutil
 
 __version__ = '0.1.02'
 

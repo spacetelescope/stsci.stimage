@@ -33,8 +33,7 @@ import numpy as N
 import pydrizzle
 from pydrizzle import drutil, buildasn, updateasn
 import pyfits
-import readgeis
-import fileutil
+from pytools import readgeis, fileutil
 import mdzhandler
 import manager
 from manager import ImageManager
@@ -42,9 +41,9 @@ import mdrizpars
 from procstep import ProcSteps, timestamp
 import geissupport
 from geissupport import *
-import makewcs
+from pytools import makewcs
 # This module is used to replicate IRAF style inputs.
-import parseinput
+from pytools import parseinput
 from parseinput import parseinput
 from parseinput import countinputs
 # This module is used to parse IVM file input

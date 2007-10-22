@@ -3,7 +3,7 @@ from math import floor,ceil,sqrt,pow
 
 import numpy as N
 
-import fileutil
+from pytools import fileutil
 import imagestats
 
         

@@ -17,9 +17,9 @@
 #                   of DGEOFILEs for subarray exposures.
 #
 import os
-import buildmask, fileutil, drutil,wcsutil,arrdriz
+import buildmask, drutil, arrdriz
 from obsgeometry import ObsGeometry
-
+from pytools import fileutil, wcsutil
 from math import ceil,floor
 
 import numpy as N

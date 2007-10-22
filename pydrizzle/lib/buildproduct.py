@@ -1,10 +1,10 @@
 """
 These functions rely on booleans for 'yes' and 'no', PyFITS and readgeis.
 """
-import pyfits, readgeis
+import pyfits
 import string,os,types
 import numpy as N
-import fileutil
+from pytools import fileutil, readgeis
 
 # Required keywords to build an extension with WCS info
 DTH_KEYWORDS=['CD1_1','CD1_2', 'CD2_1', 'CD2_2', 'CRPIX1',

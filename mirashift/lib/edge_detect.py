@@ -2,7 +2,7 @@ import numpy as N
 import ndimage as ND
 
 import imagestats
-from fileutil import DEGTORAD
+from pytools.fileutil import DEGTORAD
 from pydrizzle.drutil import buildRotMatrix
 import expandArray
 

@@ -31,9 +31,9 @@ Functions to build mask files for PyDrizzle.
 #
 import string,os,types
 
-import fileutil
+from pytools import fileutil, readgeis
 
-import pyfits,readgeis
+import pyfits
 import numpy as N
 
 yes = True

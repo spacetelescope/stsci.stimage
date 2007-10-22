@@ -61,7 +61,7 @@ iraf.task(multidrizzle = '/data/chulak1/dev/Multidrizzle/mdrizzle/multidrizzle.c
 import mdrizzle
 import pydrizzle
 from pydrizzle import drutil
-import fileutil
+from pytools import fileutil
 
 from pyraf.iraf import stsdas,hst_calib,acs,calacs
 

@@ -80,8 +80,8 @@ import pyfits
 # New numarray 0.6 import mode
 import numpy as N
 
-from fileutil import readShiftFile,buildRootname
-import wcsutil
+from pytools.fileutil import readShiftFile,buildRootname
+from pytools import wcsutil
 
 # List of supported default file types
 # It will look for these file types by default

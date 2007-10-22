@@ -4,12 +4,12 @@
 #   Purpose: Super class used to model astronomical data from observatory instruments.
 
 import pyfits
-import fileutil
+from pytools import fileutil
 
 import imagestats
 from imagestats import ImageStats
 
-import imageiter
+from pytools import imageiter
 from imageiter import ImageIter
 
 import numpy as N

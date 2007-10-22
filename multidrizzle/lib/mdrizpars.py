@@ -5,7 +5,7 @@ import sys,types,os
 
 import numpy as N
 
-import fileutil
+from pytools import fileutil
 from pydrizzle import traits102
 from pydrizzle.traits102 import *
 from pydrizzle.traits102.tktrait_sheet import TraitEditorBoolean, \
