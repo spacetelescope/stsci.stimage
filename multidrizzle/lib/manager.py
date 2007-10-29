@@ -1209,8 +1209,8 @@ class ImageManager:
                 darkimg = imageobj.getdarkimg()
                 skyimg = imageobj.getskyimg()
                 
-                ivm = (flat)**-2/(darkimg+(skyimg/flat)+sampimg+RN**2)
-                
+                ivm = (flat)**2/(darkimg+(skyimg/flat)+sampimg+RN**2)
+
                 #Open the mask image for updating
                 mask = fileutil.openImage(parlistentry['image'].maskname,mode='update')
                 
