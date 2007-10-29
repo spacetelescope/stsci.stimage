@@ -117,7 +117,7 @@ class ImageManager:
             #    creating one if it doesn't already exist.
             if not p['driz_mask']:
                 # No array has been created yet, so initialize it now...
-                _mask_array = N.ones(p['image'].image_shape,dtype=N.uint8)
+                _mask_array = None # N.ones(p['image'].image_shape,dtype=N.uint8)
                 # We also need to create a name for the mask array file
                 p['image'].maskname = p['exposure'].masklist[0]
                 # Build the mask image
@@ -150,7 +150,7 @@ class ImageManager:
                     p['exposure'].singlemaskname = p['exposure'].masklist[1]
                     
                     # Now create the mask file on disk
-                    _mask_array = N.ones(p['image'].image_shape,dtype=N.uint8)
+                    _mask_array = None # N.ones(p['image'].image_shape,dtype=N.uint8)
                     self._buildMaskImage(p['image'].singlemaskname,_mask_array)
                     del _mask_array
                     
