@@ -36,7 +36,7 @@ from math import *
 
 
 # Version
-__version__ = "6.0.0 (24-Apr-2007)"
+__version__ = "6.0.1 (30-Oct-2007)"
 
 # For History of changes and updates, see 'History'
 
@@ -162,9 +162,9 @@ class Pattern:
         image_handle = self.getHeaderHandle()
 
         if self.pars['section'] != None:
-            # If a section was specified, then there is only 1 member
-            # for this observation.
-            self.nmembers = 1
+            # If a section was specified, check the length of the list
+            # for the number of groups specified...
+            self.nmembers = len(self.pars['section'])
 
         # Determine type of input image and syntax needed to read data
         self.imtype = imtype.Imtype(filename,handle=self.image_handle,
@@ -231,9 +231,11 @@ class Pattern:
 
         self.detector = detector = str(self.header[self.DETECTOR_NAME])
 
+        if self.pars['section'] == None:
+            self.pars['section'] = [None]*self.nmembers
         # Build rootname here for each SCI extension...
         for i in range(self.nmembers):
-            _sciname = self.imtype.makeSciName(i+1,section=self.pars['section'])
+            _sciname = self.imtype.makeSciName(i+1,section=self.pars['section'][i])
             _dqname = self.imtype.makeDQName(i+1)
             _extname = self.imtype.dq_extname
 
@@ -1228,18 +1230,6 @@ class ACSObservation(Pattern):
         #  outname, output, outsingle
         self.setNames(filename,output)
 
-        """
-        if self.pars['section'] == None:
-            print 'self.nmembers as found by getHeaderHandle:',self.nmembers
-            self.nmembers = int(self.header['NEXTEND']) / self.NUM_IMSET
-            # In case not all expected extensions are present in the ACS image...
-            if self.nmembers == 0: self.nmembers = 1
-        else:
-            # If a section was specified, then there is only 1 member
-            # for this observation.
-            self.nmembers = 1
-        """
-
         # Set EXPTIME for exposure
         self.exptime = self.getExptime()
 
@@ -1292,14 +1282,6 @@ class STISObservation(Pattern):
         # Set EXPTIME for exposure
         self.exptime = self.getExptime()
 
-        """
-        if self.pars['section'] == None:
-            self.nmembers = int(self.header['NEXTEND']) / self.NUM_IMSET
-        else:
-            # If a section was specified, then there is only 1 member
-            # for this observation.
-            self.nmembers = 1
-        """
         # Now, build list of members and initialize them
         self.addMembers(filename)
 
@@ -1372,14 +1354,6 @@ class NICMOSObservation(Pattern):
         # Set EXPTIME for exposure
         self.exptime = self.getExptime()
 
-        """
-        if self.pars['section'] == None:
-            self.nmembers = int(self.header['NEXTEND']) / self.NUM_IMSET
-        else:
-            # If a section was specified, then there is only 1 member
-            # for this observation.
-            self.nmembers = 1
-        """
         # Now, build list of members and initialize them
         self.addMembers(filename)
 
@@ -1438,18 +1412,6 @@ class WFPCObservation(Pattern):
         # build output rootnames here...
         self.setNames(filename,output)
 
-        """
-        # Determine how many 'chips' make up the observation
-        if self.pars['section'] == None:
-            if gcount == None:
-                self.nmembers = int(self.header['NEXTEND']) / self.NUM_IMSET
-            else:
-                self.nmembers = int(gcount)
-        else:
-            # If a section was specified, then there is only 1 member
-            # for this observation.
-            self.nmembers = 1
-        """
         # Set EXPTIME for exposure
         self.exptime = self.getExptime()
 
@@ -1462,8 +1424,6 @@ class WFPCObservation(Pattern):
                     self.REFDATA[l]['psize'] = self.REFDATA[l]['psize'] * self.binned
                     self.REFDATA[l]['xoff'] = self.REFDATA[l]['xoff'] / self.binned
                     self.REFDATA[l]['yoff'] = self.REFDATA[l]['yoff'] / self.binned
-            
-
 
         # Now, build list of members and initialize them
         self.addMembers(filename)
@@ -1494,8 +1454,11 @@ class WFPCObservation(Pattern):
 
         _chip1_rot = None
         # Build rootname here for each SCI extension...
+        if self.pars['section'] == None:
+            self.pars['section'] = [None]*self.nmembers
+
         for i in range(self.nmembers):
-            _extname = self.imtype.makeSciName(i+1,section=self.pars['section'])
+            _extname = self.imtype.makeSciName(i+1,section=self.pars['section'][i])
 
             _detnum = fileutil.getKeyword(_extname,self.DETECTOR_NAME)
 
@@ -2206,8 +2169,8 @@ Optional parameters:
     field       User-specified parameters for output image
                 includes: psize, orient, ra, dec, shape
     units       Units for final product: 'counts' or 'cps'(DEFAULT)
-    section     Extension/group to be drizzled: FITS extension or group
-                syntax ('1' or 'sci,1') or None (DEFAULT: Use all chips).
+    section     Extension/group to be drizzled: list or single FITS extension(s)
+                 or group(s) syntax ('1' or 'sci,1') or None (DEFAULT: Use all chips).
     kernel      Specify which kernel to use in TDRIZZLE
                 'square'(default),'point','gaussian','turbo','tophat'
     pixfrac     drizzle pixfrac value (Default: 1.0)
@@ -2269,6 +2232,10 @@ More help on SkyField objects and their parameters can be obtained using:
         else:
             _input = input[0]
 
+        # Insure that the section parameter always becomes a list
+        if isinstance(section,list) == False and section != None:
+            section = [section]
+            
         if not fileutil.findFile(_input):
             raise IOError,'Can not find input file in current directory!'
 
@@ -2579,7 +2546,6 @@ More help on SkyField objects and their parameters can be obtained using:
             _hdrlist = []
 
             for plist in self.parlist:
-
                 # Read in the distortion correction arrays, if specifij8cw08n4q_raw.fitsed
                 _pxg,_pyg = plist['exposure'].getDGEOArrays()
 
@@ -2629,7 +2595,7 @@ More help on SkyField objects and their parameters can be obtained using:
                     _mask = plist['single_driz_mask']
                 else:
                     _mask = plist['driz_mask']
-
+                    
                 # Check to see whether there is a mask_array at all to use...
                 if isinstance(_mask,types.StringType):
                     if _mask != None and _mask != '':

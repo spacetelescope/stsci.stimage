@@ -78,21 +78,25 @@ def buildMaskImage(rootname,bitvalue,output,extname='DQ',extver=1):
     fdq = fileutil.openImage(rootname,memmap=0,mode='readonly')
     try:
         _extn = fileutil.findExtname(fdq,extname,extver=extver)
-        if _extn == None:
-            raise Exception
-
-        # Read in DQ array
-        #dqarr = fdq[extname,extver].data
-        dqarr = fdq[_extn].data
+        if _extn != None:
+            # Read in DQ array
+            dqarr = fdq[_extn].data
+        else:
+            dqarr = None
+            
         # For the case where there is no DQ array,
-        # as with RAW files, explicitly exit without
-        # creating any mask image.
+        # create a mask image of all ones.
         if dqarr == None:
-            raise Exception
-
+            # We need to get the dimensions of the output DQ array
+            # Since the DQ array is non-existent, look for the SCI extension
+            _sci_extn = fileutil.findExtname(fdq,'SCI',extver=extver)
+            if _sci_extn != None:
+                _shape = fdq[_sci_extn].data.shape
+                dqarr = N.ones(_shape,dtype=N.uint8)
+            else:
+                raise Exception
         # Build mask array from DQ array
         maskarr = buildMask(dqarr,bitvalue)
-
         #Write out the mask file as simple FITS file
         fmask = pyfits.open(maskname,'append')
         maskhdu = pyfits.PrimaryHDU(data=maskarr)
