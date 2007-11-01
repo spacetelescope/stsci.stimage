@@ -92,7 +92,7 @@ def buildMaskImage(rootname,bitvalue,output,extname='DQ',extver=1):
             _sci_extn = fileutil.findExtname(fdq,'SCI',extver=extver)
             if _sci_extn != None:
                 _shape = fdq[_sci_extn].data.shape
-                dqarr = N.ones(_shape,dtype=N.uint8)
+                dqarr = N.zeros(_shape,dtype=N.uint16)
             else:
                 raise Exception
         # Build mask array from DQ array
