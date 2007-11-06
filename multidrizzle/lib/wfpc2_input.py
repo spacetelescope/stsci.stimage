@@ -106,8 +106,8 @@ class WFPC2InputImage (InputImage):
 
         """
 
-        # The keyword for ACS flat fields in the primary header of the flt
-        # file is pfltfile.  This flat file is already in the required 
+        # The keyword for WFPC2 flat fields in the primary header of the flt
+        # file is FLATFILE.  This flat file is *not* already in the required 
         # units of electrons.
         
         filename = self.header['FLATFILE']
