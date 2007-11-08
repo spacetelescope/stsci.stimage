@@ -1463,16 +1463,12 @@ class WFPCObservation(Pattern):
             _detnum = fileutil.getKeyword(_extname,self.DETECTOR_NAME)
 
             # Start by looking for the corresponding WFPC2 'c1h' files
-            _dqfile = self._findDQFile()
-
+            _dqfile, _dqextn = self._findDQFile()
+            
             # Reset dqfile name in ImType class to point to new file
             self.imtype.dqfile = _dqfile
-
-            # Set the DQ extname to that used by WFPC2 C1H images
-            if _dqfile.find('.fits') > 0:
-                self.imtype.dq_extname = 'sdq'
-                self.imtype.dq_extn = '[sdq,1]'
-
+            self.imtype.dqextn = _dqextn
+            
             # Build mask file for this member chip
             _dqname = self.imtype.makeDQName(extver=_detnum)
             _masklist = []
@@ -1510,9 +1506,19 @@ class WFPCObservation(Pattern):
             dqfile = self.name[:-2]+'1h'
         else:
             # Looking for c1f FITS DQ file...
-            dqfile = self.name.replace('0h.fits','1h.fits')
-
-        return dqfile
+            # In the WFPC2 pipeline the extensions are called 'c0f' and 'c1f'
+            # and EXTNAME is 'sci'. Files are in MEF format.
+            # Readgeis creates output with extensions 'c0h' and 'c1h'
+            # and EXPNAME is 'sdq'
+            # Hence the code below ...
+            if 'c0h.fits' in self.name:
+                dqfile = self.name.replace('0h.fits','1h.fits')
+                dqextn = '[sdq,1]'
+            elif 'c0f.fits' in self.name:
+                dqfile = self.name.replace('0f.fits','1f.fits')
+                dqextn = '[sci,1]'
+            
+        return dqfile, dqextn
 
     def setOrient(self):
 
