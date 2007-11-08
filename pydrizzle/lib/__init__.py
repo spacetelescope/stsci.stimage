@@ -1467,7 +1467,7 @@ class WFPCObservation(Pattern):
             
             # Reset dqfile name in ImType class to point to new file
             self.imtype.dqfile = _dqfile
-            self.imtype.dqextn = _dqextn
+            self.imtype.dq_extn = _dqextn
             
             # Build mask file for this member chip
             _dqname = self.imtype.makeDQName(extver=_detnum)
