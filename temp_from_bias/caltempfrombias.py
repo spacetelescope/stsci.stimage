@@ -4,6 +4,7 @@
 # Program: caltempfrombias.py
 # Purpose: class to process data for a given filename
 # History: 10/31/07 - first version [DGrumm]
+#          11/08/07 - added nonlinearity application
 
 import os.path
 import sys
@@ -68,7 +69,7 @@ c1_blindoff=0.793
 c2_blindoff=[-0.343593]
 c3_blindoff=0.476092
 
-__version__ = "1.0 (2007 Oct 31)"
+__version__ = "1.1 (2007 Nov 08)"
 
 ERROR_RETURN = 2 
 
@@ -81,11 +82,13 @@ class CalTempFromBias:
 
     """
 
-    def __init__( self, input_file, spt_key, raw_key, force, noclean, verbosity):
+    def __init__( self, input_file, nref_par, spt_key, raw_key, force, noclean, verbosity):
         """constructor
 
         @param input_file: name of the file to be processed
         @type input_file: string
+        @param nref_par: name of the directory containing the nonlinearity file
+        @type nref_par: string
         @param spt_key: name of the keyword to be updated in spt file
         @type spt_key: string
         @param raw_key: name of the keyword to be updated in raw file
@@ -100,6 +103,7 @@ class CalTempFromBias:
         """
 
         self.input_file = input_file
+        self.nref_par = nref_par 
         self.spt_key = spt_key
         self.raw_key = raw_key
         self.force = force
@@ -112,7 +116,8 @@ class CalTempFromBias:
         """
 
         temp = 0.0
-        
+
+        nref_par = self.nref_par  
         raw_key = self.raw_key
         spt_key = self.spt_key 
         filename = self.input_file
@@ -145,15 +150,65 @@ class CalTempFromBias:
             print 'FATAL ERROR: ZOFFCORR has already been performed on this image. No temp information left'
             self.can_process = 0
 
+        # open nonlinearity file
+        if nref_par is not None:  
+           nref = os.path.expandvars( nref_par)
+        else:
+           nref = os.path.expandvars( "$nref")
+
+        nonlinfile_key = raw_header[ 'NLINFILE' ] # get nonlinearity file name from NLINFILE in header of input file
+        nl_file = nonlinfile_key.split('nref$')[1]
+        nonlin_file = os.path.join( nref, nl_file)
+
+        try:
+           fh_nl = pyfits.open( nonlin_file )
+           self.nonlin_file = nonlin_file            
+        except Exception, errmess:
+           opusutil.PrintMsg("F","FATAL ERROR "+ str(errmess))
+           sys.exit( ERROR_RETURN)
+
+        # read data from nonlinearity file
+        c1 = fh_nl[ 1 ].data; c2 = fh_nl[ 2 ].data; c3 = fh_nl[ 3 ].data
+
+        # do some bad pixel clipping
+        u = N.where((c2 > 3.6218723e-06)  | (c2 < -3.6678544e-07)) 
+        uu = N.where((c2 < 3.6218723e-06) & (c2 > -3.6678544e-07))
+
+        if len(u[0]) > 0 :
+           c2[u] = N.median(c2[uu])
+
+        u = N.where((c3 > 9.0923490e-11) | (c3 < -4.1401650e-11))
+        uu = N.where((c3 < 9.0923490e-11) & (c3 > -4.1401650e-11))
+
+        if len(u[0]) > 0:
+           c3[u] = N.median(c3[uu])
+
         if ( nsamp >= 3 ):       
-            im0 = fh_raw[ ((nsamp-1)*5)+1 ].data
+            im0 = fh_raw[ ((nsamp-1)*5)+1 ].data  
             im1 = fh_raw[ ((nsamp-2)*5)+1 ].data
             im2 = fh_raw[ ((nsamp-3)*5)+1 ].data
+            dtime0 = 0.203    # this is by definition - headers have 0.0 so can't use that
+            ext_hdr1 = fh_raw[((nsamp-2)*5)+1].header
+            dtime1 = ext_hdr1[ 'DELTATIM' ]
+            ext_hdr2 = fh_raw[((nsamp-3)*5)+1].header
+            dtime2 = ext_hdr2[ 'DELTATIM' ]
 
-            signal = ( (im2-im1)/0.302328 )
-            clean = im0-(signal * 0.203)
+            signal_raw = (im2-im1)+(((im2-im1)/dtime2)*(dtime0+dtime1)) # total counts accumulated (1st estimate)
+ 
+            signal0 = (signal_raw *(signal_raw*c2 + signal_raw**2*c3+1.0))/(dtime0+dtime1+dtime2) # refined 0 ADU countrate
+            
+            for ii in range(9):
+              signal_raw = signal0*(dtime0+dtime1) # pure 1st read signal if no nonlinearity
+              signal1 = (signal_raw / (signal_raw*c2 + signal_raw**2*c3 +1.0)) / (dtime0+dtime1) #1st read signal with nl
+              signal_raw = (im2-im1) + (signal1*(dtime0+dtime1)) # total counts accumulated (second estimate)
+              signal0 = (signal_raw * (signal_raw*c2 + signal_raw**2*c3 +1.0))/(dtime0+dtime1+dtime2) # doubly-refined 0 ADU countrate
 
-            if not self.noclean:
+            signal_raw = signal0 * dtime0 # pure 0th read signal if no nonlinearity 
+            signal = signal_raw / (signal_raw*c2 + signal_raw**2*c3 +1.0) # 0th read total counts with nonlinearity - this is what should be subtracted from the 0th read
+
+            clean = im0 - signal 
+
+            if  self.noclean: 
                clean = im0
 
 # if there are only 2 reads, can do a partial clean. Subtraction of the signal
@@ -198,7 +253,7 @@ class CalTempFromBias:
         sigma1 = 1e6
         state = [-1,-1,-1,-1]
 
-    #  ALGORITHM 2. Blind correction. 
+#  ALGORITHM 2. Blind correction. 
         quads = rawquads
         if ( camera == 1):
             quads[0] = quads[0]+((quads[2]-poly(quads[0],p_c1_13)) * c1_blindfac)
@@ -238,11 +293,11 @@ class CalTempFromBias:
            temp3 = qtemps_3
            sigma3 = 0.14
 
-        if ( camera == 3): # this is the only one I (dmg) have tested as of 101607
-           qtemps_3=[poly(quads[1],pt[camera-1,1,:]),poly(quads[2],pt[camera-1,2,:])]
-           qtemps_3 = qtemps_3 + ( N.mean([c3_q2off,c1_q3off]) / N.mean([(1./pt[camera-1,1,1]),(1./pt[camera-1,2,1])]) )
+        if ( camera == 3): 
+             #  For NIC3, avg of quads 2 and 3 is best. RMS after avg is 39 DN (0.14 K)
+           qtemps_3 = [poly(quads[1],[153.25747,0.0037115404]),poly(quads[2],[151.03888,0.0036755942])]
            temp3 = N.mean(qtemps_3)
-           sigma3 = 0.14 
+           sigma3 = 0.25
 
 ##############################################################################################
 # compare the error estimates of each of the algorithms and return the best one 
@@ -325,16 +380,17 @@ class CalTempFromBias:
 ## end of def calctemp()
 
     def print_pars(self):
-        """ Print input parameters.
+        """ Print parameters.
         """
-        print ' The input parameters are :'
+        print ' The parameters are :'
         print '  input_file:  ' , self.input_file
+        print '  nref_par:  ' , self.nref_par
         print '  spt_key: ' ,  self.spt_key
         print '  raw_key: ' ,  self.raw_key 
         print '  force: ' ,  self.force
         print '  noclean: ' ,  self.noclean
         print '  verbosity: ' ,  self.verbosity
-
+        print '  nonlinearity file: ' ,  self.nonlin_file
  
 
 #******************************************************************
@@ -348,7 +404,7 @@ def quadmed( im, border):
     @param border: border size (in pixels) aroud the perimeter of each quad to be excluded from the mean
     @type border: int
     
-    """
+    """ 
 #
 # Following Eddie's convention, the quads are numbered as follows:
 #
@@ -432,24 +488,28 @@ def main( cmdline):
     if ( args[0] ):
        filename = args[0]
     if ( len(args) > 1 ):
-       spt_key = args[1]
+       nref = args[1]
+    else:
+       nref = None
+    if ( len(args) > 2 ):
+       spt_key = args[2]
     else:
        spt_key = None
-    if ( len(args) > 2 ):
-       raw_key = args[2]
+    if ( len(args) > 3 ):
+       raw_key = args[3]
     else:
        raw_key = None
-    if ( len(args) > 3 ):
-       force = args[3]
+    if ( len(args) > 4 ):
+       force = args[4]
     else: 
        force = 0
-    if ( len(args) > 4 ):
-       noclean = args[4]
+    if ( len(args) > 5 ):
+       noclean = args[5]
     else:
        noclean = False
 
     try:            
-       tfb = CalTempFromBias( filename, spt_key, raw_key, force, noclean, verbosity)
+       tfb = CalTempFromBias( filename, nref, spt_key, raw_key, force, noclean, verbosity)
        CalTempFromBias.calctemp( tfb )
 
        if (verbosity >=1 ):
