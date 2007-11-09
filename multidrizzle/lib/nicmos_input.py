@@ -189,7 +189,7 @@ class NICMOSInputImage (InputImage):
         """
 
         # The keyword for NICMOS flat fields in the primary header of the flt
-        # file is pfltfile.  This flat file is already in the required 
+        # file is pfltfile.  This flat file is not already in the required 
         # units of electrons.
         
         filename = self.header['FLATFILE']
@@ -207,11 +207,46 @@ class NICMOSInputImage (InputImage):
                 data = N.ones(self.image_shape,dtype=self.image_dtype)
                 str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
                 print str
-        # For the WFPC2 flat we need to invert and multiply by the gain
-        # for use in Multidrizzle
-        flat = (1.0/data)/self.getGain()
+
+        # The NICMOS flat field needs to be gain corrected.
+        flat = data/self.getGain()
         return flat
         
+    def getdarkcurrent(self):
+        """
+        
+        Purpose
+        =======
+        Return the dark current for the NICMOS detectors.  This value
+        will be contained within an instrument specific keyword.
+        The value in the image header will be converted to units
+        of electrons.
+        
+        :units: electrons
+        
+        """
+        
+        darkcurrent = 0
+                
+#        try:
+#            darkcurrent = self.header['DARKTIME'] * darkrate
+#            
+#        except:
+#            darkcurrent = 0
+        
+        
+        return darkcurrent
+
+    def getsampimg(self):
+        """
+        Purpose
+        =======
+        Return the (samp * amp glow) image array.  This method will return
+        a zeros array for all detectors by default.  This method will be
+        modified to return the approptiate correction once it is determined.
+                
+        """
+        return N.zeros(self.image_shape,dtype=self.image_dtype)
 
 class NIC1InputImage(NICMOSInputImage):
 

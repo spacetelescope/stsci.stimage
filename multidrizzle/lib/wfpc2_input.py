@@ -136,7 +136,7 @@ class WFPC2InputImage (InputImage):
         
         Purpose
         =======
-        Return the dark current for the ACS detector.  This value
+        Return the dark current for the WFPC2 detector.  This value
         will be contained within an instrument specific keyword.
         The value in the image header will be converted to units
         of electrons.
