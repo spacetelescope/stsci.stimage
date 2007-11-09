@@ -174,6 +174,45 @@ class NICMOSInputImage (InputImage):
         del __handle
         del __sciext
 
+    def getflat(self):
+        """
+
+        Purpose
+        =======
+        Method for retrieving a detector's flat field.
+        
+        This method will return an array the same shape as the
+        image.
+
+        :units: electrons
+
+        """
+
+        # The keyword for NICMOS flat fields in the primary header of the flt
+        # file is pfltfile.  This flat file is already in the required 
+        # units of electrons.
+        
+        filename = self.header['FLATFILE']
+        
+        try:
+            handle = fileutil.openImage(filename,mode='readonly',memmap=0)
+            hdu = fileutil.getExtn(handle,extn=self.grp)
+            data = hdu.data
+        except:
+            try:
+                handle = fileutil.openImage(filename[5:],mode='readonly',memmap=0)
+                hdu = fileutil.getExtn(handle,extn=self.grp)
+                data = hdu.data
+            except:
+                data = N.ones(self.image_shape,dtype=self.image_dtype)
+                str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
+                print str
+        # For the WFPC2 flat we need to invert and multiply by the gain
+        # for use in Multidrizzle
+        flat = (1.0/data)/self.getGain()
+        return flat
+        
+
 class NIC1InputImage(NICMOSInputImage):
 
     def __init__(self, input, dqname, platescale, memmap=0):

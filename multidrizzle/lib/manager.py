@@ -1197,7 +1197,7 @@ class ImageManager:
                         
             imageobj = parlistentry['image']
             
-            if not issubclass(imageobj.__class__,(NICMOSInputImage,STISInputImage)):
+            if not issubclass(imageobj.__class__,STISInputImage):
                 print "Automatically creating IVM files..."
                 # If no IVM files were provided by the user we will 
                 # need to automatically generate them based upon 
