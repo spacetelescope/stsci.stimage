@@ -5,6 +5,7 @@
 # Purpose: class to process data for a given filename
 # History: 10/31/07 - first version [DGrumm]
 #          11/08/07 - added nonlinearity application
+#          11/21/07 - minor interface changes, including reodering of input parameters
 
 import os.path
 import sys
@@ -69,7 +70,7 @@ c1_blindoff=0.793
 c2_blindoff=[-0.343593]
 c3_blindoff=0.476092
 
-__version__ = "1.1 (2007 Nov 08)"
+__version__ = "1.2 (2007 Nov 21)"
 
 ERROR_RETURN = 2 
 
@@ -77,39 +78,39 @@ class CalTempFromBias:
     """Calculate the temperature from the bias for a given filename.
 
     example:
-       tfb = CalTempFromBias( filename, spt_key, raw_key, force, noclean, verbosity)
-       CalTempFromBias.calctemp(tfb)
+       tfb = CalTempFromBias( filename, spt_key, raw_key, nref_par, force, noclean, verbosity)
+       [temp, sigma, winner ]= CalTempFromBias.calctemp( tfb )
 
     """
 
-    def __init__( self, input_file, nref_par, spt_key, raw_key, force, noclean, verbosity):
+    def __init__( self, input_file, spt_key="SPTBTEMP", raw_key="RAWBTEMP",
+                  nref_par=None, force=0, noclean=False, verbosity=0):
         """constructor
 
         @param input_file: name of the file to be processed
         @type input_file: string
+        @param spt_key: name of keyword to update in SPT file
+        @type spt_key: string
+        @param raw_key: name of keyword to update in RAW file
+        @type raw_key: string
         @param nref_par: name of the directory containing the nonlinearity file
         @type nref_par: string
-        @param spt_key: name of the keyword to be updated in spt file
-        @type spt_key: string
-        @param raw_key: name of the keyword to be updated in raw file
-        @type raw_key: string
         @param force: number of algorithm whose value is to be returned,
                       regardless of which algorithm had the lowest estimated sigma.
-        @type force: int
+        @type force: read as a string, but valid values are 0,1,2,3 
         @param noclean: flag to force use of UNCLEANed 0th read.
-        @type noclean: int
+        @type noclean: string that is either True or False
         @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
         @type verbosity: string
         """
 
         self.input_file = input_file
+        self.spt_key = spt_key 
+        self.raw_key = raw_key 
         self.nref_par = nref_par 
-        self.spt_key = spt_key
-        self.raw_key = raw_key
         self.force = force
         self.noclean = noclean
         self.verbosity = verbosity
-
 
     def calctemp(self): 
         """ Calculate the temperature from the bias for the given input file
@@ -117,17 +118,28 @@ class CalTempFromBias:
 
         temp = 0.0
 
-        nref_par = self.nref_par  
-        raw_key = self.raw_key
-        spt_key = self.spt_key 
+        spt_key = self.spt_key
+        raw_key = self.raw_key 
+        nref_par = self.nref_par
+        noclean = self.noclean
         filename = self.input_file
         if not self.force:
-           force = None
+           force =  '0' 
         else:
-           force = self.force
+           force = str(self.force)
+        verbosity = self.verbosity
+
+        # check that specified 'force' is valid
+        if (force <> None):
+           if (( force <> "0") & ( force <> "1") & ( force <> "2") & ( force <> "3")):
+              opusutil.PrintMsg("F","ERROR "+ str('Invalid value of ')+str(force)+ str(' specified for force'))
 
        # get header
-        fh_raw = pyfits.open( self.input_file, mode='update' )        
+        try:
+           fh_raw = pyfits.open( filename ) 
+        except:
+           opusutil.PrintMsg("F","ERROR "+ str('Unable to open input file') + str(filename))
+          
         raw_header = fh_raw[0].header
 
         obsmode_key = raw_header[ 'OBSMODE' ]
@@ -143,29 +155,26 @@ class CalTempFromBias:
         zoffdone = zoffdone_key.lstrip().rstrip() # strip leading and trailing whitespace
 
         if ( obsmode <> 'MULTIACCUM'):
-            print 'FATAL ERROR: Image must be in MULTIACCUM mode.'
-            self.can_process = 0
+            opusutil.PrintMsg("F","ERROR "+ str('Image must be in MULTIACCUM mode'))
 
         if ( zoffdone == 'PERFORMED'):
-            print 'FATAL ERROR: ZOFFCORR has already been performed on this image. No temp information left'
-            self.can_process = 0
+            opusutil.PrintMsg("F","ERROR "+ str('ZOFFCORR has already been performed on this image. No temp information left'))
 
-        # open nonlinearity file
+        # get nonlinearity file name from NLINFILE in header of input file and open it
         if nref_par is not None:  
            nref = os.path.expandvars( nref_par)
         else:
            nref = os.path.expandvars( "$nref")
 
-        nonlinfile_key = raw_header[ 'NLINFILE' ] # get nonlinearity file name from NLINFILE in header of input file
+        nonlinfile_key = raw_header[ 'NLINFILE' ] 
         nl_file = nonlinfile_key.split('nref$')[1]
         nonlin_file = os.path.join( nref, nl_file)
 
         try:
            fh_nl = pyfits.open( nonlin_file )
            self.nonlin_file = nonlin_file            
-        except Exception, errmess:
-           opusutil.PrintMsg("F","FATAL ERROR "+ str(errmess))
-           sys.exit( ERROR_RETURN)
+        except:
+           opusutil.PrintMsg("F","ERROR "+ str('Unable to open nonlinearity file') + str(nonlin_file))
 
         # read data from nonlinearity file
         c1 = fh_nl[ 1 ].data; c2 = fh_nl[ 2 ].data; c3 = fh_nl[ 3 ].data
@@ -182,6 +191,9 @@ class CalTempFromBias:
 
         if len(u[0]) > 0:
            c3[u] = N.median(c3[uu])
+
+        if ( nsamp <= 1 ):
+           opusutil.PrintMsg("F","ERROR "+ str(' : nsamp <=1, so will not process'))
 
         if ( nsamp >= 3 ):       
             im0 = fh_raw[ ((nsamp-1)*5)+1 ].data  
@@ -207,14 +219,13 @@ class CalTempFromBias:
             signal = signal_raw / (signal_raw*c2 + signal_raw**2*c3 +1.0) # 0th read total counts with nonlinearity - this is what should be subtracted from the 0th read
 
             clean = im0 - signal 
-
-            if  self.noclean: 
+            if  (self.noclean == 'True'):
                clean = im0
 
-# if there are only 2 reads, can do a partial clean. Subtraction of the signal
-# measured in this way will have a  negative 0.302s shading imprint in it. The amplitude
-# of this will be temp-dependent. Best way to deal is to decide if there is enough
-# signal to warrant a subtraction. if not, just use the 0th read without any correction.
+# If there are only 2 reads, can do a partial clean. Subtraction of the signal
+#   measured in this way will have a  negative 0.302s shading imprint in it. The amplitude
+#   of this will be temp-dependent. Best way to deal is to decide if there is enough
+#   signal to warrant a subtraction. if not, just use the 0th read without any correction.
 
         if ( nsamp == 2 ):       
             im0 = fh_raw[ ((nsamp-1)*5)+1 ].data
@@ -227,25 +238,24 @@ class CalTempFromBias:
 
             if (N.median(signal*0.203) > threshold ):
                clean = im0-(signal * 0.203)
-               if noclean:
-                  clean = im0
-
+               
+            if  (self.noclean == 'True'):
+               clean = im0
 
 # Following Eddie's suggestion: I'll catch these rare cases and abort by searching for:
-#  nsamp=2 and filter is NOT blank, instead of doing what Eddie had which compares
-#  the median of the signal and the threshold
+#   nsamp=2 and filter is NOT blank, instead of original code which compares the median
+#   of the signal and the threshold
 
             filter_key = raw_header[ 'FILTER' ] 
-            filter = filter_key.lstrip().rstrip() 
+            filter = filter_key.lstrip().rstrip()
+            filter = str('BLANK')
             if (filter <> 'BLANK'):
-                print 'FATAL ERROR - can not determine the temperature from the bias'
-                self.can_process = 0
+                opusutil.PrintMsg("F","ERROR "+ str('can not determine the temperature from the bias'))
    
-# OK, now calculate the quad medians to feed the temp algorithms.
-# current state values are based on a border=5 mean.
+# Calculate the quad medians to feed the temp algorithms; current state values are based on a border=5 mean.
         rawquads = quadmed(clean, border=5)
 
-# start of cascade to select the most optimal temp algorithm *****************************************
+# This is the start of cascade to select the most optimal temp algorithm 
 
 # ALGORITHM 1. State finding. This is the big daddy-O. ****** DISABLED FOR NOW *******
         qtemps_1 = [-1,-1,-1,-1]
@@ -299,9 +309,8 @@ class CalTempFromBias:
            temp3 = N.mean(qtemps_3)
            sigma3 = 0.25
 
-##############################################################################################
-# compare the error estimates of each of the algorithms and return the best one 
-# the lowest sigma is the winner.
+# Compare the error estimates of each of the algorithms and return the best one; the 
+#   lowest sigma is the winner.
         winner = 1
         temp = temp1
         sig = sigma1
@@ -314,7 +323,7 @@ class CalTempFromBias:
            temp = temp3
            sig = sigma3
            winner = 3
-##  end of cascade to select the most optimal temp algorithm *******************************************
+# This is the end of cascade to select the most optimal temp algorithm 
 
 #  verbose output, if requested
         if (self.verbosity >1):
@@ -337,65 +346,93 @@ class CalTempFromBias:
             print '     Algorithm 2: ',temp2,' (K) +/- ',sigma2,' (sigma)'
             print '     Algorithm 3: ',temp3,' (K) +/- ',sigma3,' (sigma)'
             print '     ----------------------------------------------------------'
-            print '     The algorithm selected is ',winner,'.'
+            if (force <> None):
+                print '     The algorithm selected by this routine is ',winner,'.'
             print '  '
             print '**************************************************************************************'
 
 
-# if the force keyword is set, force the output to return the best value
-#  from that particular algorithm, even if it wasn't the best.
+#  If the force keyword is set, force the output to return the value
+#    from that particular algorithm, even if it wasn't the best.
         if ( force == "1"):
-            print 'Forcing Algorithm 1 result returned, at your request...'
+            print 'Forcing Algorithm 1 result to be returned, at your request...'
             winner = 1
             temp = temp1
             sig = sigma1
         if ( force == "2"):
-            print 'Forcing Algorithm 2 result returned, at your request...'
+            print 'Forcing Algorithm 2 result to be returned, at your request...'
             winner = 2
             temp = temp2
             sig = sigma2
         if ( force == "3"):
-            print 'Forcing Algorithm 3 result returned, at your request...'
+            print 'Forcing Algorithm 3 result to be returned, at your request...'
             winner = 3
             temp = temp3 
             sig = sigma3
-        if (force <> None):
-            print '... which forces temp = ' , temp,' and sigma = ' , sig
 
-    #  update headers if necessary
-        comm = str('Temp from bias, sigma=')+str(sig)+str(' (K), algo=')+str(winner)
+        if (force <> '0'):
+            print '... which gives temp = ' , temp,' and sigma = ' , sig
 
-        if (spt_key):
+        # close any open file handles
+        if fh_raw:
+          fh_raw.close()
+        if fh_nl:
+          fh_nl.close()
+
+        return temp, sig, winner
+
+## end of def calctemp()
+
+    def update_headers(self, temp, sig, winner, raw_key, spt_key):
+        """ Update headers of spt_key and raw_key if requested
+        @param temp: calculated temperature
+        @type temp: float
+        @param sig: standard deviation of calculated temperature
+        @type sig: float
+        @param winner: algorithm selected by script
+        @type winner: int
+        @param raw_key: name of keyword to update in RAW file
+        @type raw_key: string
+        @param spt_key: name of keyword to update in SPT file
+        @type spt_key: string
+        """
+
+        comm = str('Temp from bias, sigma=')+str(sig)+str(' (K)')
+        filename =  self.input_file
+
+        if (spt_key <> "None"):
             underbar = filename.find('_')
             spt_filename =  filename[:underbar] +'_spt.fits'
             fh_spt = pyfits.open( spt_filename , mode='update' )       
             spt_header = fh_spt[0].header
             spt_header.update(spt_key, temp, comment = comm)
+            spt_header.update("NUMMETH", str(winner), comment = "Algorithm method used" ) 
             fh_spt.close()
-        if (raw_key):
+        if (raw_key <>"None"):
+            fh_raw = pyfits.open( filename, mode='update' )      
+            raw_header = fh_raw[0].header 
             raw_header.update(raw_key, temp, comment = comm)
+            raw_header.update("NUMMETH", str(winner), comment = "Algorithm method used") 
             fh_raw.close()
 
-
-## end of def calctemp()
-
-    def print_pars(self):
-        """ Print parameters.
+        
+    def print_pars(self, raw_key, spt_key ):
+        """ Print parameters used.
         """
-        print ' The parameters are :'
+        print ' The parameters used are :'
         print '  input_file:  ' , self.input_file
         print '  nref_par:  ' , self.nref_par
-        print '  spt_key: ' ,  self.spt_key
-        print '  raw_key: ' ,  self.raw_key 
+        print '  spt_key: ' ,  spt_key
+        print '  raw_key: ' ,  raw_key 
         print '  force: ' ,  self.force
         print '  noclean: ' ,  self.noclean
         print '  verbosity: ' ,  self.verbosity
-        print '  nonlinearity file: ' ,  self.nonlin_file
+        print '  nonlinearity file: ' ,  self.nonlin_file   
  
 
 #******************************************************************
-# this quadmed does not have the following parameters that are in the idl version: section,
-#         avg, mask, and calculates mean only ( not median ).
+# This quadmed does not have the following parameters that are in the idl version: section,
+#    avg, mask, and calculates mean only ( not median ).
 def quadmed( im, border):
     """  This function computes the mean in the 4 quadrants of an input NxM array
 
@@ -472,7 +509,7 @@ def main( cmdline):
     usage = "usage:  %prog [options] inputfile"
     parser = OptionParser( usage)
 
-    parser.set_defaults( verbosity = tfbutil.VERBOSE)
+    parser.set_defaults( verbosity = tfbutil.QUIET)
 
     parser.add_option( "-q", "--quiet", action = "store_const",
             const = tfbutil.QUIET, dest = "verbosity",
@@ -486,19 +523,19 @@ def main( cmdline):
     verbosity = options.verbosity
 
     if ( args[0] ):
-       filename = args[0]
+        filename = args[0]
     if ( len(args) > 1 ):
-       nref = args[1]
+       spt_key = args[1]
+    else:
+       spt_key = "SPTBTEMP"
+    if ( len(args) > 2 ):
+       raw_key = args[2]
+    else:
+       raw_key = "RAWBTEMP"
+    if ( len(args) > 3 ):
+       nref = args[3]
     else:
        nref = None
-    if ( len(args) > 2 ):
-       spt_key = args[2]
-    else:
-       spt_key = None
-    if ( len(args) > 3 ):
-       raw_key = args[3]
-    else:
-       raw_key = None
     if ( len(args) > 4 ):
        force = args[4]
     else: 
@@ -508,18 +545,20 @@ def main( cmdline):
     else:
        noclean = False
 
-    try:            
-       tfb = CalTempFromBias( filename, nref, spt_key, raw_key, force, noclean, verbosity)
-       CalTempFromBias.calctemp( tfb )
+    try:
+       tfb = CalTempFromBias( filename, spt_key, raw_key, nref, force, noclean, verbosity) 
+       [temp, sigma, winner ]= CalTempFromBias.calctemp( tfb )
+
+       if ( spt_key <> "None" or raw_key<> "None" ): # update header(s) if either spt_key or raw_key set
+         tfb.update_headers( temp, sigma, winner, raw_key, spt_key )
 
        if (verbosity >=1 ):
-            tfb.print_pars()
+            tfb.print_pars( raw_key, spt_key )
 
        del tfb
 
     except Exception, errmess:
-       opusutil.PrintMsg("F","FATAL ERROR "+ str(errmess))
-       sys.exit( ERROR_RETURN)
+       opusutil.PrintMsg("F","ERROR "+ str(errmess))
 
 if __name__ == "__main__":
 
