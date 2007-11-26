@@ -4,6 +4,7 @@
 # Program: nic_rem_persist.py
 # Purpose: routine to remove persistence from NICMOS data
 # History: 11/19/07 - first version
+#        : 11/26/07 - incorporates dq arrays
 
 import pyfits
 import numpy as N
@@ -15,13 +16,17 @@ import persutil
 __version__ = "1.0 (2007 Nov 19)"
 
 ERROR_RETURN = -2
+DQ_ARRAY_SIZE = 256
 
 class NicRemPersist:
     """ Remove persistence from NICMOS data (on which pedsub has been run) using a medianed persistence model. 
 
-    example:
+    pyraf example:
        nrp = NicRemPersist( persist_lo, used_lo, persist_model, persist_mask, verbosity):
        NicRemPersist.persist( nrp )
+
+    command line example:
+       hal> ./nic_rem_persist.py -q persist_lo used_lo 'persistring.fits' 'persist_mask.fits'
 
     """
 
@@ -61,7 +66,7 @@ class NicRemPersist:
         num_files = len(file_list)
 
         if (verbosity > 0):
-            print ' The' , num_files, 'ped files are ' , file_list
+            print 'The' , num_files, 'ped files are ' , file_list
 
         sky = N.zeros( num_files, dtype=N.float64 )
         noise = N.zeros( num_files, dtype=N.float64 )
@@ -81,7 +86,8 @@ class NicRemPersist:
         except:    
            opusutil.PrintMsg("F"," ERROR "+ str('Unable to open the mask file') + str(persist_mask))
            sys.exit( ERROR_RETURN)
-        mask = fh_per_mask[0].data 
+           
+        per_mask = fh_per_mask[0].data  # persistence mask data (0 is good, non-0 is bad)
 
         for ii in range( num_files ):  # calculate and remove persistence from each file
 
@@ -91,24 +97,28 @@ class NicRemPersist:
           im = fh_pedsub[1].data    #  load file which has had pedsub run on it      
           med_mask = im *0  # for size; needed for median call
 
-    #     load a ringmedian version of the this ped file
+          dq_data = fh_pedsub[3].data  # read the dq array data (0 is good, non-0 is bad)
+          dq_plus_per_mask = dq_data + per_mask # combined mask
+
+    #     load a ring median version of the this ped file
           f_prefix = file_list[ii].split('.')[0]
           rm_file = f_prefix + str( '.rm.fits' )
           fh_rm = pyfits.open( rm_file )
           imrm = fh_rm[0].data
 
           src = im - imrm  # this image is zero except for sources
-
+          
           md, std = iterstatc( clip, src ) # returns median, standard deviation
 
           level = median(im, med_mask)
 
-    #     sigma clipping sources and rejecting bright regions >1.5*median  and masked part
-    #     only used pixels with clip standard deviations or less than  150% of the median
-          gd = ((src < md+clip*std) & (src > md-clip*std) & (im < 1.5*level) & (mask == 0))
+    #     sigma clipping sources and rejecting bright regions >1.5*median and masked part
+    #     only used pixels with clip standard deviations or less than 150% of the median;
+    #     using combined mask
+          gd = ((src < md+clip*std) & (src > md-clip*std) & (im < 1.5*level) & (dq_plus_per_mask == 0)) 
 
           num_gd = N.add.reduce( N.add.reduce( gd )) 
-          used[ ii ] =  float(num_gd)/float( src.shape[0]* src.shape[1])
+          used[ ii ] =  float(num_gd)/float( src.shape[0]* src.shape[1]) 
 
     #     set up the matrices for a linear system of equations
           y = im[gd]   #this is the image
@@ -193,7 +203,7 @@ def iterstatc( clip, d ):
     img = d
     md = img.mean()
     std = img.std()
-    for ii in range(6):  # to match number of times done in *pro
+    for ii in range(6): 
       gd = N.where((img < md+clip*std) & (img > md-clip*std))
       md = img[gd].mean()
       std = img[gd].std()
