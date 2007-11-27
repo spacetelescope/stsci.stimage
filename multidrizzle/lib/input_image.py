@@ -399,14 +399,14 @@ class InputImage(object):
         Purpose
         =======
         Return the (samp * amp glow) image array.  This method will return
-        a zeros array for all detectors by default.  
+        a ones array for all detectors by default.  
         
-        For detectors in which a zeros array is not appropriate, this method 
+        For detectors in which a oness array is not appropriate, this method 
         will need to be overloaded in a subclass.  One such case of this would
         be in the nicmos_image.py module.
         
         """
-        return N.zeros(self.image_shape,dtype=self.image_dtype)
+        return N.ones(self.image_shape,dtype=self.image_dtype)
 
 
     def getdarkcurrent(self):

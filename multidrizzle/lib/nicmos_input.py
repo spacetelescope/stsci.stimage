@@ -209,44 +209,72 @@ class NICMOSInputImage (InputImage):
                 print str
 
         # The NICMOS flat field needs to be gain corrected.
-        flat = data/self.getGain()
+        flat = (1.0/data)/self.getGain()
         return flat
         
+    def getsampimg(self):
+        """
+        
+        Purpose
+        =======
+        Return the samp image array.  This method will return
+        a ones for all detectors by default.  
+                
+        """
+        try:
+            hdulist = fileutil.openImage(self.name,mode='readonly',memmap=0)
+            sampimage = fileutil.getExtn(hdulist,extn="SAMP")
+        except:
+            sampimage = 1
+        return sampimage
+
+
     def getdarkcurrent(self):
         """
         
         Purpose
         =======
-        Return the dark current for the NICMOS detectors.  This value
-        will be contained within an instrument specific keyword.
-        The value in the image header will be converted to units
-        of electrons.
+        Return a SyntaxError since this operation is not support for this
+        object.
+        
+        """
+        raise SyntaxError, "This is not a valid operation for this object!"
+
+
+    def getdarkimg(self):
+        """
+        
+        Purpose
+        =======
+        Return an array representing the dark image for the detector.
         
         :units: electrons
         
         """
         
-        darkcurrent = 0
-                
-#        try:
-#            darkcurrent = self.header['DARKTIME'] * darkrate
-#            
-#        except:
-#            darkcurrent = 0
+        # The keyword for NICMOS dark in the primary header of the flt
+        # file is DARKFILE.  This flat file is not already in the required 
+        # units of electrons.
         
+        filename = self.header['DARKFILE']
         
-        return darkcurrent
+        try:
+            handle = fileutil.openImage(filename,mode='readonly',memmap=0)
+            hdu = fileutil.getExtn(handle,extn=self.grp)
+            data = hdu.data
+        except:
+            try:
+                handle = fileutil.openImage(filename[5:],mode='readonly',memmap=0)
+                hdu = fileutil.getExtn(handle,extn=self.grp)
+                data = hdu.data
+            except:
+                data = N.zeros(self.image_shape,dtype=self.image_dtype)
+                str = "Cannot find file "+filename+".  Treating darkimage as constant value of '0'.\n"
+                print str
 
-    def getsampimg(self):
-        """
-        Purpose
-        =======
-        Return the (samp * amp glow) image array.  This method will return
-        a zeros array for all detectors by default.  This method will be
-        modified to return the approptiate correction once it is determined.
-                
-        """
-        return N.zeros(self.image_shape,dtype=self.image_dtype)
+        return data/self.getGain()
+        
+        
 
 class NIC1InputImage(NICMOSInputImage):
 
