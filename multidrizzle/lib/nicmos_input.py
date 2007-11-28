@@ -189,7 +189,7 @@ class NICMOSInputImage (InputImage):
         """
 
         # The keyword for NICMOS flat fields in the primary header of the flt
-        # file is pfltfile.  This flat file is not already in the required 
+        # file is FLATFILE.  This flat file is not already in the required 
         # units of electrons.
         
         filename = self.header['FLATFILE']
