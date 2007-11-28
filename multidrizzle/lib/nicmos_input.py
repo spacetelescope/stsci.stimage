@@ -223,7 +223,8 @@ class NICMOSInputImage (InputImage):
         """
         try:
             hdulist = fileutil.openImage(self.name,mode='readonly',memmap=0)
-            sampimage = fileutil.getExtn(hdulist,extn="SAMP")
+            extnhdulist = fileutil.getExtn(hdulist,extn="SAMP")
+            sampimage = extnhdulist.data
         except:
             sampimage = 1
         return sampimage
