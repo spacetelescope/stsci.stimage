@@ -209,7 +209,9 @@ class NICMOSInputImage (InputImage):
                 print str
 
         # The NICMOS flat field needs to be gain corrected.
-        flat = (1.0/data)/self.getGain()
+        #flat = (1.0/data)/self.getGain()
+        flat = (1.0/data) # The flat field is normalized to unity.
+
         return flat
         
     def getsampimg(self):
@@ -235,45 +237,31 @@ class NICMOSInputImage (InputImage):
         
         Purpose
         =======
-        Return a SyntaxError since this operation is not support for this
-        object.
-        
-        """
-        raise SyntaxError, "This is not a valid operation for this object!"
-
-
-    def getdarkimg(self):
-        """
-        
-        Purpose
-        =======
-        Return an array representing the dark image for the detector.
+        Return the dark current for the NICMOS detectors.
         
         :units: electrons
         
         """
-        
-        # The keyword for NICMOS dark in the primary header of the flt
-        # file is DARKFILE.  This flat file is not already in the required 
-        # units of electrons.
-        
-        filename = self.header['DARKFILE']
-        
+                
         try:
-            handle = fileutil.openImage(filename,mode='readonly',memmap=0)
-            hdu = fileutil.getExtn(handle,extn=self.grp)
-            data = hdu.data
+            darkcurrent = self.header['exptime'] * self.darkrate
+            
         except:
-            try:
-                handle = fileutil.openImage(filename[5:],mode='readonly',memmap=0)
-                hdu = fileutil.getExtn(handle,extn=self.grp)
-                data = hdu.data
-            except:
-                data = N.zeros(self.image_shape,dtype=self.image_dtype)
-                str = "Cannot find file "+filename+".  Treating darkimage as constant value of '0'.\n"
-                print str
-
-        return data/self.getGain()
+            str =  "#############################################\n"
+            str += "#                                           #\n"
+            str += "# Error:                                    #\n"
+            str += "#   Cannot find the value for 'EXPTIME'     #\n"
+            str += "#   in the image header.  NICMOS input      #\n"
+            str += "#   images are expected to have this header #\n"
+            str += "#   keyword.                                #\n"
+            str += "#                                           #\n"
+            str += "#Error occured in the NICMOSInputImage class#\n"
+            str += "#                                           #\n"
+            str += "#############################################\n"
+            raise ValueError, str
+        
+        
+        return darkcurrent
         
         
 
@@ -284,6 +272,7 @@ class NIC1InputImage(NICMOSInputImage):
         self.instrument = 'NICMOS/1'
         self.full_shape = (256,256)
         self.platescale = platescale
+        self.darkrate = 0.08
 
     def _setDefaultReadnoise(self):
         self._rdnoise = 27.5
@@ -294,6 +283,7 @@ class NIC2InputImage(NICMOSInputImage):
         self.instrument = 'NICMOS/2'
         self.full_shape = (256,256)
         self.platescale = platescale
+        self.darkrate = 0.08
 
     def _setDefaultReadnoise(self):
         self._rdnoise = 27.5
@@ -304,6 +294,7 @@ class NIC3InputImage(NICMOSInputImage):
         self.instrument = 'NICMOS/3'
         self.full_shape = (256,256)
         self.platescale = platescale
+        self.darkrate = 0.15
 
     def _setDefaultReadnoise(self):
         self._rdnoise = 29.9

@@ -1222,7 +1222,7 @@ class ImageManager:
                 parlistentry['wt_scl'] = pow(parlistentry['exptime'],2)/pow(parlistentry['scale'],4)
 
             else:
-                print "NICMOS and STIS data is not yet supported with automatic IVM creation."
+                print "STIS data is not yet supported with automatic IVM creation."
 
     def _applyERR(self,parlistentry):
 
