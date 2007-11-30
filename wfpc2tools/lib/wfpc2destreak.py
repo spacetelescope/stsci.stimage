@@ -4,7 +4,7 @@
 # Program: wfpc2destreak.py
 # Purpose: routine to remove streaks due to bias from specified chip of wfpc2 data
 # History: 07/10/07 - first version
-#          08/10/07 - use overscan in the specified chipd in the d0f file, and apply it to the
+#          08/10/07 - use overscan in the specified chipd in the input d0f file, and apply it to the
 #                     corresponding chip in the c0f file,
 #                   - optionally do the 'overscan correction' only by setting overscan_only=True (default),
 #                   - output file name is now dervied from the input prefix and relevant chip 
@@ -62,7 +62,7 @@
 #     
 # Usage :
 #     For a dataset with multiple groups, to process group 4: hal> ./wfpc2destreak.py -q "u8zq0104m_d0f.fits" 4
-#     For a dataset with a single group: hal> ./wfpc2destreak.py -v "u9wp0401m_bjc_0.fits" 0
+#     For a dataset with a single group: hal> ./wfpc2destreak.py -v "u9wp0401m_d0f.fits"  0
 #
 ###########################################################################
 
@@ -85,15 +85,14 @@ class Wfpc2destreak:
     """ Calculate magnitude of and remove streaks from specified group of wfpc2 data.
 
     example: 
-       wfpc2_d = Wfpc2destreak( filename, group, verbosity)
-       Wfpc2destreak.destreak(wfpc2_d)
-       
+       wfpc2_d = wfpc2destreak.Wfpc2destreak( filename, group, verbosity)
+       wfpc2destreak.Wfpc2destreak.destreak(wfpc2_d)
     """
 
     def __init__( self, input_file, group, verbosity):
         """constructor
 
-        @param input_file: name of the file to be processed
+        @param input_file: name of the d0f file to be processed
         @type input_file: string
         @param group: number of group to process
         @type group: int
@@ -102,7 +101,7 @@ class Wfpc2destreak:
         """
 
         self.input_file = input_file
-        self.group = group
+        self.group = group 
         self.verbosity = verbosity
 
     def destreak( self ):
@@ -118,8 +117,8 @@ class Wfpc2destreak:
         if ( group == 0 ): # for single group image case
             d0f_data = data_cube
         else:
-            d0f_data = data_cube[group-1] # 0-based
-
+            d0f_data = data_cube[group-1] # 0-based 
+            
         xsize = fh_d0f[0].header.get( "NAXIS1"); ysize = fh_d0f[0].header.get( "NAXIS2")
 
         # read data from c0f file:   
@@ -129,10 +128,10 @@ class Wfpc2destreak:
 
        # read header from appropriate group in c0h file and make cardlist  
         c0h_file = c0f_prefix + str(".c0h")
-        c0_group_hdr = (readgeis.readgeis( c0h_file ))[group-1].header     
-      
+ 
+        c0_group_hdr = (readgeis.readgeis( c0h_file ))[group].header        
         group_hdr_c =  c0_group_hdr.ascardlist()
-        
+
         if (verbosity >=1 ): print 'Getting header information from c0h_file =', c0h_file 
 
        # read primary header in c0h file and make cardlist 
@@ -140,18 +139,18 @@ class Wfpc2destreak:
         p_hdr_c =  c0_pr_hdr.ascardlist()
 
        # combine group cardlist and primary cardlist starting with WFPC2 keywords, and make header from it 
-        new_hdr_c = group_hdr_c +  p_hdr_c      # waiting for Matt's input on how to revise this
-        new_h = pyfits.Header (cards = new_hdr_c ) 
+        new_hdr_c = group_hdr_c + p_hdr_c     
+        new_h = pyfits.Header (cards = new_hdr_c )
 
         if (verbosity >=1 ):print 'Will update data in c0f_file: ' ,c0f_file
-
+ 
         c0f_data_cube = fh_c0f[0].data 
 
         if ( group == 0 ): # for single group image case
            c0f_data = c0f_data_cube
         else:
            c0f_data = c0f_data_cube[group-1] # 0-based
-
+           
         clip_row_mean = N.zeros(ysize); good_row_mean = N.zeros(ysize)
 
     #   read d0f leading columns (between col_min and col_max) and reject Cosmic Rays
@@ -194,7 +193,7 @@ class Wfpc2destreak:
 
         smoothed_row_mean = boxcar( good_row_mean,(3,))  # smooth row mean over 3 rows
 
-        # do iterative sigma clipping on all 'interior' d0f pixels
+    # do iterative sigma clipping on all 'interior' d0f pixels
         int_d0f_data = d0f_data[ ix_min:xsize-1, iy_min:ysize-1 ] 
         for ii_iter in range(4):
               if ( ii_iter == 0):
