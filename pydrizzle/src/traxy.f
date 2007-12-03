@@ -62,6 +62,9 @@ C
 C V1.91 Modified to use common callable code
 C       Warren Hack, STScI, 25th June 2004
 C
+C V1.92 Added ALPHA, BETA to DRIVAL call
+C       Chris Hanley, STScI, 9 September 2007
+C
 C--
       IMPLICIT NONE
 
@@ -82,7 +85,7 @@ C Local variables
 
 C Geometrical parameters, the standard set
       DOUBLE PRECISION SCALE,ROT,XSH,YSH,LAM
-      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE
+      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE,ALPHA,BETA
       DOUBLE PRECISION RACEN,DECCEN,XREFP,YREFP,WCSIN(8),WCSOUT(8)
       DOUBLE PRECISION ORIENT,OUTSCL
       CHARACTER*80 COEFFS,SHFTUN,XGEOIM,YGEOIM
@@ -301,14 +304,16 @@ C Double precision version
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,
-     :            DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOUT,YOUT)
+     :            DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOUT,YOUT,
+     :            ALPHA,BETA)
       ELSE
          CALL DRIVAL(XIN,YIN,1,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,
-     :            .FALSE.,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOUT,YOUT)
+     :            .FALSE.,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOUT,YOUT,
+     :            ALPHA,BETA)
       ENDIF
 
 C Write out the result

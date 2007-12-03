@@ -301,8 +301,8 @@ C Logical flags
       LOGICAL ODCO
       LOGICAL DISIM
 
-C Secondary geometrical parameters, added in V1.5
-      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE
+C Secondary geometrical parameters
+      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE,ALPHA,BETA
       CHARACTER*8 SHFR2
       LOGICAL SECPAR
       LOGICAL ROTF2
@@ -804,7 +804,7 @@ C added in V1.4
      :           USEWCS,WCS,WCSOUT,
      :           COTY,CONUM,XCO,YCO,
      :           DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,
-     :           XMIN,XMAX,YMIN,YMAX,ISTAT)
+     :           XMIN,XMAX,YMIN,YMAX,ISTAT,ALPHA,BETA)
  
 C Assume we are using the whole frame unless set otherwise
       SUB=.FALSE.
@@ -1103,7 +1103,7 @@ C We can skip this if there is no overlap
      :      PFRACT,SCALE,ROT,XSH,YSH,WCS,WCSOUT,ROTFIR,
      :      SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :      CON,BITCON,INTAB,MAXIM,MAXEN,NEN,UNIQID,
-     :      UPDATE,USEWEI,USEWCS,ISTAT,NMISS,NSKIP)
+     :      UPDATE,USEWEI,USEWCS,ISTAT,NMISS,NSKIP,ALPHA,BETA)
 
 C Check the exit status
            IF(ISTAT.NE.0) GO TO 99
@@ -1160,7 +1160,7 @@ C Update the WCS
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,COTY,CONUM,XCO,YCO,
-     :            DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM)
+     :            DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,ALPHA,BETA)
 
 C Scale the output if not CPS output
          FS=1.0

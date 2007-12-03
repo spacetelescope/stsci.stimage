@@ -102,7 +102,7 @@ C Local variables
 
 C Geometrical parameters, the standard set
       DOUBLE PRECISION SCALE,ROT,XSH,YSH,LAM
-      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE
+      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE,ALPHA,BETA
       DOUBLE PRECISION RACEN,DECCEN,XREFP,YREFP,WCSIN(8),WCSOUT(8)
       DOUBLE PRECISION ORIENT,OUTSCL,PAM
       CHARACTER*80 COEFFS,SHFTUN,XGEOIM,YGEOIM,XYLIST,LINE
@@ -351,14 +351,16 @@ C Double precision version
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,
-     :            DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOUT,YOUT)
+     :            DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOUT,YOUT,
+     :            ALPHA,BETA)
          ELSE 
             CALL DRIVAL(XIN,YIN,1,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,
-     :            .FALSE.,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOUT,YOUT)
+     :            .FALSE.,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOUT,YOUT,
+     :            ALPHA,BETA)
          ENDIF
 
 C Transform a unit square to calculate the pixel area
@@ -376,7 +378,8 @@ C Transform a unit square to calculate the pixel area
      :            .FALSE.,0.0D0,0.0D0,0.0D0,1.0D0,1.0D0,SHFR2,ROTF2,
      :            .FALSE.,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,
-     :            .FALSE.,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XO,YO)
+     :            .FALSE.,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XO,YO,
+     :            ALPHA,BETA)
 
          PAM=DABS(0.5*((XO(2)-XO(4))*(YO(1)-YO(3)) -
      :              (XO(1)-XO(3))*(YO(2)-YO(4))))
@@ -469,7 +472,8 @@ C initialise some things
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,
-     :            DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOA,YOA)
+     :            DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOA,YOA,
+     :            ALPHA,BETA)
 
 C Copy to single precision
          DO I=1,NXIN

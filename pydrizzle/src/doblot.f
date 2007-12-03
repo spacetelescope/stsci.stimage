@@ -4,7 +4,8 @@
      :     DISIM,PXG,PYG,PXDIM,PYDIM,
      :     XIN,YIN,XOUT,YOUT,
      :     SCALE,ROT,XSH,YSH,USEWCS,WCSIN,WCSOUT,
-     :     GEOMOD,SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2)
+     :     GEOMOD,SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2, 
+     :     ALPHA,BETA)
 C
 C This routine does the interpolation of the input array
 C In version 1.0 and later this is done using the standard DRIVAL
@@ -26,6 +27,7 @@ C
       DOUBLE PRECISION XCO(CONUM),YCO(CONUM)
       DOUBLE PRECISION WCSIN(8),WCSOUT(8)
       DOUBLE PRECISION XOUT(ONX),YOUT(ONX),XIN(ONX),YIN(ONX),YV
+      DOUBLE PRECISION ALPHA, BETA
       REAL XO,YO
       REAL MISVAL,KSCALE,SINSCL
       REAL NRIEVL,EF,S2
@@ -99,7 +101,8 @@ C addition correction to separate the distortion induced scale change
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSOUT,WCSIN,
      :            COTY,CONUM,XCO,YCO,DISIM,
-     :            PXG,PYG,PXDIM,PYDIM,XOUT,YOUT)
+     :            PXG,PYG,PXDIM,PYDIM,XOUT,YOUT,
+     :            ALPHA, BETA)
 
          SCALL=SQRT(1.0D0/ABS(0.5D0*
      :              ((XOUT(2)-XOUT(4))*(YOUT(1)-YOUT(3)) -
@@ -119,7 +122,7 @@ C Now calculate how much of this is from the geometric distortion
      :            USEWCS,WCSOUT,WCSIN,
      :            COTY,CONUM,XCO,YCO,DISIM,
      :            PXG,PYG,PXDIM,PYDIM,
-     :            XOUT,YOUT)
+     :            XOUT,YOUT, ALPHA, BETA)
 
          SCDIS=SQRT(1.0D0/
      :            ABS(0.5D0*((XOUT(2)-XOUT(4))*(YOUT(1)-YOUT(3)) -
@@ -166,7 +169,7 @@ C Transform this vector
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSOUT,WCSIN,
      :            COTY,CONUM,XCO,YCO,DISIM,
-     :            PXG,PYG,PXDIM,PYDIM,XOUT,YOUT)
+     :            PXG,PYG,PXDIM,PYDIM,XOUT,YOUT, ALPHA, BETA)
 
 C Loop through the output positions and do the interpolation
          DO I=1,ONX
@@ -219,7 +222,8 @@ C Not needed for WBLOT
          CALL BUPWCS(WCSIN,WCSOUT,DNX,DNY,ONX,ONY,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
-     :            USEWCS,COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,PXDIM,PYDIM)
+     :            USEWCS,COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,PXDIM,PYDIM,
+     :            ALPHA,BETA)
       ENDIF
 
       RETURN

@@ -1,4 +1,4 @@
-/* drutil.f -- translated by f2c (version 20031025).
+/* drutil.f -- translated by f2c (version 20060506).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -1159,8 +1159,8 @@ doublereal mgf2_(doublereal *lam)
 	doublereal *wcsin, doublereal *wcsout, integer *coty, integer *conum, 
 	doublereal *xco, doublereal *yco, logical *disim, real *pxg, real *
 	pyg, integer *xgdim, integer *ygdim, integer *xmin, integer *xmax, 
-	integer *ymin, integer *ymax, integer *istat, ftnlen align_len, 
-	ftnlen shfr2_len)
+	integer *ymin, integer *ymax, integer *istat, doublereal *alpha, 
+	doublereal *beta, ftnlen align_len, ftnlen shfr2_len)
 {
     /* System generated locals */
     integer pxg_dim1, pxg_offset, pyg_dim1, pyg_offset;
@@ -1180,7 +1180,8 @@ doublereal mgf2_(doublereal *lam)
 	    doublereal *, doublereal *, char *, logical *, logical *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
 	    doublereal *, logical *, real *, real *, integer *, integer *, 
-	    doublereal *, doublereal *, ftnlen, ftnlen);
+	    doublereal *, doublereal *, doublereal *, doublereal *, ftnlen, 
+	    ftnlen);
 
 
 /* LCORN - transform the range of input pixel coordinates covered */
@@ -1222,7 +1223,7 @@ doublereal mgf2_(doublereal *lam)
 	    scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 
 	    shfr2, rotf2, usewcs, &wcsin[1], &wcsout[1], coty, conum, &xco[1],
 	     &yco[1], disim, &pxg[pxg_offset], &pyg[pyg_offset], xgdim, ygdim,
-	     xout, yout, (ftnlen)8, (ftnlen)8);
+	     xout, yout, alpha, beta, (ftnlen)8, (ftnlen)8);
 /* Calculate the extreme values */
 /* Computing MAX */
     d__1 = max(xout[0],xout[1]), d__1 = max(d__1,xout[2]);
@@ -1251,7 +1252,7 @@ doublereal mgf2_(doublereal *lam)
 	    scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 
 	    shfr2, rotf2, usewcs, &wcsin[1], &wcsout[1], coty, conum, &xco[1],
 	     &yco[1], disim, &pxg[pxg_offset], &pyg[pyg_offset], xgdim, ygdim,
-	     xout, yout, (ftnlen)8, (ftnlen)8);
+	     xout, yout, alpha, beta, (ftnlen)8, (ftnlen)8);
     for (i__ = 1; i__ <= 16; ++i__) {
 	if (xout[i__ - 1] > xma) {
 	    xma = xout[i__ - 1];
@@ -1287,8 +1288,8 @@ doublereal mgf2_(doublereal *lam)
 	yscale, char *shfr2, logical *rotf2, logical *usewcs, doublereal *
 	wcsin, doublereal *wcsout, integer *coty, integer *conum, doublereal *
 	xco, doublereal *yco, logical *disim, real *xg, real *yg, integer *
-	xgdim, integer *ygdim, doublereal *xout, doublereal *yout, ftnlen 
-	align_len, ftnlen shfr2_len)
+	xgdim, integer *ygdim, doublereal *xout, doublereal *yout, doublereal 
+	*alpha, doublereal *beta, ftnlen align_len, ftnlen shfr2_len)
 {
     /* System generated locals */
     integer xg_dim1, xg_offset, yg_dim1, yg_offset, i__1;
@@ -1354,6 +1355,9 @@ doublereal mgf2_(doublereal *lam)
 /* Added "refpix" support using higher values of COTY, */
 /*    Richard Hook, ST-ECF/STScI, December 2003 */
 
+/* Added time dependent distortion solution based upon */
+/*    parameters ALPHA and BETA. */
+/*    Christopher Hanley, STSCI, September 2007 */
 /* Secondary geometrical parameters, added in V1.5 */
 /* -- */
     /* Parameter adjustments */
@@ -1728,6 +1732,10 @@ doublereal mgf2_(doublereal *lam)
 		    xcorn += (doublereal) xg[ix + iy * xg_dim1];
 		    ycorn += (doublereal) yg[ix + iy * yg_dim1];
 		}
+		xcorn = xcorn + *beta * (xcorn - xcen) / xcen + *alpha * (
+			ycorn - ycen) / ycen;
+		ycorn = ycorn - *beta * (ycorn - ycen) / ycen + *alpha * (
+			xcorn - xcen) / xcen;
 /* Apply the linear transform */
 /* There are two ways this can be done - shift then */
 /* rotate or rotate then shift */
@@ -2900,8 +2908,8 @@ L140:
 	shfr2, logical *rotf2, logical *con, logical *bitcon, integer *intab, 
 	integer *maxim, integer *maxen, integer *nen, integer *uniqid, 
 	logical *update, logical *usewei, logical *usewcs, integer *istat, 
-	integer *nmiss, integer *nskip, ftnlen kernel_len, ftnlen align_len, 
-	ftnlen shfr2_len)
+	integer *nmiss, integer *nskip, doublereal *alpha, doublereal *beta, 
+	ftnlen kernel_len, ftnlen align_len, ftnlen shfr2_len)
 {
     /* System generated locals */
     integer data_dim1, data_offset, wei_dim1, wei_offset, ndat_dim1, 
@@ -2962,14 +2970,15 @@ L140:
 	    doublereal *, doublereal *, char *, logical *, logical *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
 	    doublereal *, logical *, real *, real *, integer *, integer *, 
-	    doublereal *, doublereal *, ftnlen, ftnlen), chover_(doublereal *,
-	     integer *, integer *, integer *, integer *, integer *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, ftnlen, 
+	    ftnlen), chover_(doublereal *, integer *, integer *, integer *, 
+	    integer *, integer *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, char *, logical *, logical *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, char *, 
-	    logical *, logical *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, char *, logical *, logical *, 
-	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
-	    doublereal *, logical *, real *, real *, integer *, integer *, 
-	    doublereal *, integer *, integer *, ftnlen, ftnlen);
+	    logical *, logical *, doublereal *, doublereal *, integer *, 
+	    integer *, doublereal *, doublereal *, logical *, real *, real *, 
+	    integer *, integer *, doublereal *, integer *, integer *, 
+	    doublereal *, doublereal *, ftnlen, ftnlen);
     static integer newcon;
     static real lanlut[512];
 
@@ -3074,7 +3083,8 @@ L140:
 		scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, 
 		yscale, shfr2, rotf2, usewcs, &wcs[1], &wcsout[1], coty, 
 		conum, &xco[1], &yco[1], disim, &pxg[pxg_offset], &pyg[
-		pyg_offset], xgdim, ygdim, xout, yout, (ftnlen)8, (ftnlen)8);
+		pyg_offset], xgdim, ygdim, xout, yout, alpha, beta, (ftnlen)8,
+		 (ftnlen)8);
 	scall = sqrt(1.f / (d__1 = ((xout[1] - xout[3]) * (yout[0] - yout[2]) 
 		- (xout[0] - xout[2]) * (yout[1] - yout[3])) * .5f, abs(d__1))
 		);
@@ -3089,7 +3099,8 @@ L140:
 		scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, 
 		yscale, shfr2, rotf2, usewcs, &wcs[1], &wcsout[1], coty, 
 		conum, &xco[1], &yco[1], disim, &pxg[pxg_offset], &pyg[
-		pyg_offset], xgdim, ygdim, xout, yout, (ftnlen)8, (ftnlen)8);
+		pyg_offset], xgdim, ygdim, xout, yout, alpha, beta, (ftnlen)8,
+		 (ftnlen)8);
 	scdis = sqrt(1.f / (d__1 = ((xout[1] - xout[3]) * (yout[0] - yout[2]) 
 		- (xout[0] - xout[2]) * (yout[1] - yout[3])) * .5f, abs(d__1))
 		);
@@ -3170,7 +3181,8 @@ L140:
 		    align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 
 		    shfr2, rotf2, usewcs, &wcs[1], &wcsout[1], coty, conum, &
 		    xco[1], &yco[1], disim, &pxg[pxg_offset], &pyg[pyg_offset]
-		    , xgdim, ygdim, &ofrac, &x1, &x2, (ftnlen)8, (ftnlen)8);
+		    , xgdim, ygdim, &ofrac, &x1, &x2, alpha, beta, (ftnlen)8, 
+		    (ftnlen)8);
 /* If the line falls completely off the output then skip it */
 	    if (ofrac != 0.) {
 /* We know there are some misses */
@@ -3197,8 +3209,8 @@ L140:
 			    secpar, xsh2, ysh2, rot2, xscale, yscale, shfr2, 
 			    rotf2, usewcs, &wcs[1], &wcsout[1], coty, conum, &
 			    xco[1], &yco[1], disim, &pxg[pxg_offset], &pyg[
-			    pyg_offset], xgdim, ygdim, &xob[x1], &yob[x1], (
-			    ftnlen)8, (ftnlen)8);
+			    pyg_offset], xgdim, ygdim, &xob[x1], &yob[x1], 
+			    alpha, beta, (ftnlen)8, (ftnlen)8);
 /* Now we consider the different cases, first the "point" option */
 /* where a single pixel in the output image is affected */
 		    if (s_cmp(kernel, "point", (ftnlen)5, (ftnlen)5) == 0) {
@@ -3575,8 +3587,8 @@ L140:
 			    yscale, shfr2, rotf2, usewcs, &wcs[1], &wcsout[1],
 			     coty, conum, &xco[1], &yco[1], disim, &pxg[
 			    pxg_offset], &pyg[pyg_offset], xgdim, ygdim, &xo[
-			    x1 + xo_dim1], &yo[x1 + yo_dim1], (ftnlen)8, (
-			    ftnlen)8);
+			    x1 + xo_dim1], &yo[x1 + yo_dim1], alpha, beta, (
+			    ftnlen)8, (ftnlen)8);
 		    i__2 = x2 - x1 + 1;
 		    drival_(&xi[x1 + (xi_dim1 << 1)], &yi[x1 + (yi_dim1 << 1)]
 			    , &i__2, dnx, dny, onx, ony, &c_true, xsh, ysh, 
@@ -3585,7 +3597,8 @@ L140:
 			    1], &wcsout[1], coty, conum, &xco[1], &yco[1], 
 			    disim, &pxg[pxg_offset], &pyg[pyg_offset], xgdim, 
 			    ygdim, &xo[x1 + (xo_dim1 << 1)], &yo[x1 + (
-			    yo_dim1 << 1)], (ftnlen)8, (ftnlen)8);
+			    yo_dim1 << 1)], alpha, beta, (ftnlen)8, (ftnlen)8)
+			    ;
 		    i__2 = x2 - x1 + 1;
 		    drival_(&xi[x1 + xi_dim1 * 3], &yi[x1 + yi_dim1 * 3], &
 			    i__2, dnx, dny, onx, ony, &c_true, xsh, ysh, rot, 
@@ -3593,8 +3606,8 @@ L140:
 			    xscale, yscale, shfr2, rotf2, usewcs, &wcs[1], &
 			    wcsout[1], coty, conum, &xco[1], &yco[1], disim, &
 			    pxg[pxg_offset], &pyg[pyg_offset], xgdim, ygdim, &
-			    xo[x1 + xo_dim1 * 3], &yo[x1 + yo_dim1 * 3], (
-			    ftnlen)8, (ftnlen)8);
+			    xo[x1 + xo_dim1 * 3], &yo[x1 + yo_dim1 * 3], 
+			    alpha, beta, (ftnlen)8, (ftnlen)8);
 		    i__2 = x2 - x1 + 1;
 		    drival_(&xi[x1 + (xi_dim1 << 2)], &yi[x1 + (yi_dim1 << 2)]
 			    , &i__2, dnx, dny, onx, ony, &c_true, xsh, ysh, 
@@ -3603,7 +3616,8 @@ L140:
 			    1], &wcsout[1], coty, conum, &xco[1], &yco[1], 
 			    disim, &pxg[pxg_offset], &pyg[pyg_offset], xgdim, 
 			    ygdim, &xo[x1 + (xo_dim1 << 2)], &yo[x1 + (
-			    yo_dim1 << 2)], (ftnlen)8, (ftnlen)8);
+			    yo_dim1 << 2)], alpha, beta, (ftnlen)8, (ftnlen)8)
+			    ;
 		    i__2 = x2;
 		    for (i__ = x1; i__ <= i__2; ++i__) {
 /* Offset within the subset */
@@ -3725,8 +3739,8 @@ L140:
 	doublereal *rot2, doublereal *xscale, doublereal *yscale, char *shfr2,
 	 logical *rotf2, logical *usewcs, integer *coty, integer *conum, 
 	doublereal *xco, doublereal *yco, logical *disim, real *pxg, real *
-	pyg, integer *xgdim, integer *ygdim, ftnlen align_len, ftnlen 
-	shfr2_len)
+	pyg, integer *xgdim, integer *ygdim, doublereal *alpha, doublereal *
+	beta, ftnlen align_len, ftnlen shfr2_len)
 {
     /* System generated locals */
     integer pxg_dim1, pxg_offset, pyg_dim1, pyg_offset;
@@ -3745,8 +3759,8 @@ L140:
 	    doublereal *, doublereal *, char *, logical *, logical *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
 	    doublereal *, logical *, real *, real *, integer *, integer *, 
-	    doublereal *, doublereal *, ftnlen, ftnlen), umsput_(char *, 
-	    integer *, integer *, integer *, ftnlen);
+	    doublereal *, doublereal *, doublereal *, doublereal *, ftnlen, 
+	    ftnlen), umsput_(char *, integer *, integer *, integer *, ftnlen);
 
 
 /* Update the WCS to include the drizzling transformations */
@@ -3793,7 +3807,7 @@ L140:
 	    scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 
 	    shfr2, rotf2, usewcs, &wcsin[1], &wcsout[1], coty, conum, &xco[1],
 	     &yco[1], disim, &pxg[pxg_offset], &pyg[pyg_offset], xgdim, ygdim,
-	     xout, yout, (ftnlen)8, (ftnlen)8);
+	     xout, yout, alpha, beta, (ftnlen)8, (ftnlen)8);
     *disim = olddis;
 /* We can immediately set the reference point on the sky */
     wcsout[1] = xout[0];
@@ -3816,7 +3830,7 @@ L140:
 	    scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 
 	    shfr2, rotf2, usewcs, &wcsin[1], &wcsout[1], coty, conum, &xco[1],
 	     &yco[1], disim, &pxg[pxg_offset], &pyg[pyg_offset], xgdim, ygdim,
-	     xout, yout, (ftnlen)8, (ftnlen)8);
+	     xout, yout, alpha, beta, (ftnlen)8, (ftnlen)8);
 /* Restore order */
     *coty = scoty;
     *disim = olddis;
@@ -3997,8 +4011,8 @@ L80:
 	doublereal *rot2, doublereal *xscale, doublereal *yscale, char *shfr2,
 	 logical *rotf2, logical *usewcs, integer *coty, integer *conum, 
 	doublereal *xco, doublereal *yco, logical *disim, real *pxg, real *
-	pyg, integer *pxdim, integer *pydim, ftnlen align_len, ftnlen 
-	shfr2_len)
+	pyg, integer *pxdim, integer *pydim, doublereal *alpha, doublereal *
+	beta, ftnlen align_len, ftnlen shfr2_len)
 {
     /* System generated locals */
     integer pxg_dim1, pxg_offset, pyg_dim1, pyg_offset;
@@ -4016,7 +4030,8 @@ L80:
 	    doublereal *, doublereal *, char *, logical *, logical *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
 	    doublereal *, logical *, real *, real *, integer *, integer *, 
-	    doublereal *, doublereal *, ftnlen, ftnlen);
+	    doublereal *, doublereal *, doublereal *, doublereal *, ftnlen, 
+	    ftnlen);
 
 
 /* Update the WCS to include the drizzling transformations */
@@ -4059,7 +4074,7 @@ L80:
 	    scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 
 	    shfr2, rotf2, usewcs, &wcsin[1], &wcsout[1], coty, conum, &xco[1],
 	     &yco[1], disim, &pxg[pxg_offset], &pyg[pyg_offset], pxdim, pydim,
-	     xout, yout, (ftnlen)8, (ftnlen)8);
+	     xout, yout, alpha, beta, (ftnlen)8, (ftnlen)8);
 /* Convert the output pixel position to a sky position using */
 /* the WCS */
     xy2rd_(xout, yout, r__, d__, &wcsin[1]);
@@ -4145,8 +4160,8 @@ L80:
 	 logical *rotf2, logical *usewcs, doublereal *wcsin, doublereal *
 	wcsout, integer *coty, integer *conum, doublereal *xco, doublereal *
 	yco, logical *disim, real *pxg, real *pyg, integer *xgdim, integer *
-	ygdim, doublereal *ofrac, integer *x1, integer *x2, ftnlen align_len, 
-	ftnlen shfr2_len)
+	ygdim, doublereal *ofrac, integer *x1, integer *x2, doublereal *alpha,
+	 doublereal *beta, ftnlen align_len, ftnlen shfr2_len)
 {
     /* System generated locals */
     integer pxg_dim1, pxg_offset, pyg_dim1, pyg_offset, i__1, i__2;
@@ -4167,7 +4182,8 @@ L80:
 	    doublereal *, doublereal *, char *, logical *, logical *, 
 	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
 	    doublereal *, logical *, real *, real *, integer *, integer *, 
-	    doublereal *, doublereal *, ftnlen, ftnlen);
+	    doublereal *, doublereal *, doublereal *, doublereal *, ftnlen, 
+	    ftnlen);
 
 
 /* Check how much of a line will overlap an output image, if any, */
@@ -4221,7 +4237,7 @@ L80:
 	    scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, yscale, 
 	    shfr2, rotf2, usewcs, &wcsin[1], &wcsout[1], coty, conum, &xco[1],
 	     &yco[1], disim, &pxg[pxg_offset], &pyg[pyg_offset], xgdim, ygdim,
-	     xout, yout, (ftnlen)8, (ftnlen)8);
+	     xout, yout, alpha, beta, (ftnlen)8, (ftnlen)8);
 /* Check where the overlap starts and ends */
     i__2 = np;
     for (i__ = 1; i__ <= i__2; ++i__) {

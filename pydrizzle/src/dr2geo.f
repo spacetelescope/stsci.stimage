@@ -21,6 +21,7 @@ C
 
 C Geometrical parameters, the standard set
       DOUBLE PRECISION SCALE,ROT,XSH,YSH,LAM
+      DOUBLE PRECISION ALPHA, BETA
       DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE
       CHARACTER*80 XGEOIM,YGEOIM
       INTEGER XGDIM,YGDIM
@@ -43,6 +44,8 @@ C Geometrical parameters, the standard set
       PYG=0
       XSH=0.0
       YSH=0.0
+      ALPHA = 0.0
+      BETA = 0.0
       ROT=0.0
       SCALE=1.0
       DISIM=.FALSE.
@@ -102,7 +105,7 @@ C Convert the positions
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,
-     :            MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOUT,YOUT)
+     :            MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,XOUT,YOUT, ALPHA, BETA)
 
          DO I=1,NX
             XOUT(I)=XOUT(I)-XIN(I)

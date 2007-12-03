@@ -137,7 +137,7 @@ C We give these minimal dimensions
 
 C Secondary geometrical parameters, added in V1.5
       LOGICAL SECPAR
-      REAL XSH2,YSH2,ROT2,XSCALE,YSCALE
+      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE,ALPHA,BETA
       CHARACTER*8 SHFR2
       LOGICAL ROTF2
       CHARACTER*50 VERS
@@ -205,7 +205,7 @@ C Do the drizzling
      :     PFRACT,SCALE,ROT,XSH,YSH,WCS,WCSOUT,ROTFIR,
      :     SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :     CON,BITCON,INTAB,MAXIM,MAXEN,NEN,UNIQID,
-     :     UPDATE,USEWEI,USEWCS,ISTAT,NMISS,NSKIP)
+     :     UPDATE,USEWEI,USEWCS,ISTAT,NMISS,NSKIP,ALPHA,BETA)
 
 C The arrays NDAT and NCOU will have been updated
 C Check for meaningful values

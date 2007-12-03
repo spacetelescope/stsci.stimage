@@ -1,4 +1,4 @@
-/* tdriz.f -- translated by f2c (version 20031025).
+/* tdriz.f -- translated by f2c (version 20060506).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -14,7 +14,7 @@
 
 /* Common Block Declarations */
 
-extern struct {
+struct {
     logical verbose;
 } verbose_;
 
@@ -37,9 +37,10 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
 	align, doublereal *pfract, char *kernel, char *coeffs, char *inun, 
 	real *expin, real *wtscl, char *filstr, doublereal *wcs, integer *
 	vflag, integer *clen, integer *nmiss, integer *nskip, char *vers, 
-	ftnlen shftfr_len, ftnlen shftun_len, ftnlen shfr2_len, ftnlen 
-	align_len, ftnlen kernel_len, ftnlen coeffs_len, ftnlen inun_len, 
-	ftnlen filstr_len, ftnlen vers_len)
+	doublereal *alpha, doublereal *beta, ftnlen shftfr_len, ftnlen 
+	shftun_len, ftnlen shfr2_len, ftnlen align_len, ftnlen kernel_len, 
+	ftnlen coeffs_len, ftnlen inun_len, ftnlen filstr_len, ftnlen 
+	vers_len)
 {
     /* System generated locals */
     integer data_dim1, data_offset, wei_dim1, wei_offset, ndat_dim1, 
@@ -81,8 +82,8 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
 	     logical *, doublereal *, doublereal *, doublereal *, doublereal *
 	    , doublereal *, char *, logical *, logical *, logical *, integer *
 	    , integer *, integer *, integer *, integer *, logical *, logical *
-	    , logical *, integer *, integer *, integer *, ftnlen, ftnlen, 
-	    ftnlen);
+	    , logical *, integer *, integer *, integer *, doublereal *, 
+	    doublereal *, ftnlen, ftnlen, ftnlen);
     static integer conum, istat;
     extern /* Subroutine */ int upwcs_(doublereal *, doublereal *, integer *, 
 	    integer *, integer *, integer *, doublereal *, doublereal *, 
@@ -90,9 +91,9 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, char *, logical *, logical *, integer *, integer *, 
 	    doublereal *, doublereal *, logical *, real *, real *, integer *, 
-	    integer *, ftnlen, ftnlen), getgeo_(char *, integer *, doublereal 
-	    *, integer *, integer *, integer *, doublereal *, doublereal *, 
-	    integer *, integer *, ftnlen);
+	    integer *, doublereal *, doublereal *, ftnlen, ftnlen), getgeo_(
+	    char *, integer *, doublereal *, integer *, integer *, integer *, 
+	    doublereal *, doublereal *, integer *, integer *, ftnlen);
     static real filval;
     static logical bitcon, update, secpar, usewei;
     extern /* Subroutine */ int putfil_(real *, real *, integer *, integer *, 
@@ -242,7 +243,7 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
 /* Distortion image arrays */
 /* Context related things */
 /* We give these minimal dimensions */
-/* Secondary geometrical parameters, added in V1.5 */
+/* Secondary geometrical parameters */
 /* Keep quiet */
     /* Parameter adjustments */
     wei_dim1 = *nx;
@@ -285,15 +286,14 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
     getgeo_(coeffs, &idd, &lam, &coty, &c__100, &conum, xco, yco, clen, &
 	    istat, (ftnlen)80);
     if (istat != 0) {
-    ret_val = (real) istat;
-    return ret_val;
+	return ret_val;
     }
 /* Set DISIM logical based on whether distortion images have */
 /*  been passed in for use or not. */
     if (*xgdim == 2 && *ygdim == 2) {
 	disim = FALSE_;
     } else {
-	disim = TRUE_; 
+	disim = TRUE_;
     }
 /* Setup reasonable defaults for the drizzling */
 /*      XMIN=1 */
@@ -357,7 +357,8 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
 	     expin, pfract, scale, &rot, xsh, ysh, &wcs[1], wcsout, &rotfir, &
 	    secpar, xsh2, ysh2, rot2, xscale, yscale, shfr2, &rotf2, &con, &
 	    bitcon, intab, &c__100, &c__100, &nen, uniqid, &update, &usewei, &
-	    usewcs, &istat, nmiss, nskip, (ftnlen)8, (ftnlen)8, (ftnlen)8);
+	    usewcs, &istat, nmiss, nskip, alpha, beta, (ftnlen)8, (ftnlen)8, (
+	    ftnlen)8);
 /* Check for meaningful values */
     if (s_cmp(filstr, "INDEF", (ftnlen)5, (ftnlen)5) != 0 && s_cmp(filstr, 
 	    "indef", (ftnlen)5, (ftnlen)5) != 0) {
@@ -401,8 +402,8 @@ L100001:
 	upwcs_(&wcs[1], &wcs[1], nx, ny, onx, ony, xsh, ysh, &rot, scale, 
 		align, &rotfir, &secpar, xsh2, ysh2, rot2, xscale, yscale, 
 		shfr2, &rotf2, &usewcs, &coty, &conum, xco, yco, &disim, &pxg[
-		pxg_offset], &pyg[pyg_offset], xgdim, ygdim, (ftnlen)8, (
-		ftnlen)8);
+		pxg_offset], &pyg[pyg_offset], xgdim, ygdim, alpha, beta, (
+		ftnlen)8, (ftnlen)8);
     }
 /* Return the value of status */
     ret_val = (real) istat;

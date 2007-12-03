@@ -3,6 +3,7 @@
 #include <Python.h>
 
 #include <numpy/arrayobject.h>
+
 #include <numpy/libnumarray.h>
 
 #include "f2c.h"
@@ -43,6 +44,7 @@ tdriz(PyObject *obj, PyObject *args)
     long shiftfr_len, shiftun_len, inun_len;
     long vers_len, fillstr_len;
     long shfr2_len;
+    double alpha, beta;
 
     
 	extern doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
@@ -55,16 +57,17 @@ tdriz(PyObject *obj, PyObject *args)
     integer *ygdim, char *align, doublereal *pfract, char *kernel, 
 	char *coeffs, char *inun, doublereal *expin, real *wtscl, char *filstr, 
 	doublereal *wcs, integer *vflag, integer *clen, integer *nmiss, 
-	integer *nskip, char *vers, ftnlen shftfr_len, ftnlen shftun_len,
+	integer *nskip, char *vers, doublereal *alpha, doublereal *beta,
+	ftnlen shftfr_len, ftnlen shftun_len,
     ftnlen shfr2_len, ftnlen align_len, ftnlen kernel_len, 
     ftnlen coeffs_len, ftnlen inun_len, ftnlen filstr_len, ftnlen vers_len);
 	
-    if (!PyArg_ParseTuple(args,"OOOOOlllllddssdddddddsOOsdsssffsOlll",
+    if (!PyArg_ParseTuple(args,"OOOOOlllllddssdddddddsOOsdsssffsOllldd",
             &oimg,&owei,&oout,&owht,&ocon,&uniqid, &ystart,&xmin,&ymin,&dny,
             &xsh,&ysh, &shiftfr,&shiftun, &rot,&scale, 
             &xsh2, &ysh2, &xscale, &yscale, &rot2, &shfr2, &opxg, &opyg, 
             &align,&pfract, &kernel,&coeffs, &inun, &expin,&wtscl, &fillstr,
-            &owcsin, &nmiss, &nskip, &vflag)){
+            &owcsin, &nmiss, &nskip, &vflag, &alpha, &beta)){
          return PyErr_Format(gl_Error, "arrdriz.tdriz: Invalid Parameters.");
     }
     
@@ -117,7 +120,7 @@ tdriz(PyObject *obj, PyObject *args)
                     align, &pfract, kernel, coeffs, inun, 
                     &expin, &wtscl, fillstr, 
                     NA_OFFSETDATA(wcsin), &vflag, &coeffs_len, 
-                    &nmiss, &nskip, vers, 
+                    &nmiss, &nskip, vers,&alpha,&beta, 
                     shiftfr_len, shiftun_len, shfr2_len, align_len, 
                     kernel_len, coeffs_len, inun_len, 
                     fillstr_len, vers_len); 
@@ -250,7 +253,7 @@ tblot(PyObject *obj, PyObject *args)
     long xgdim, ygdim;
     long align_len, interp_len, coeffs_len;
     long shfr2_len;
-    
+    double alpha,beta;
     /*
     extern float tblot_(float *, float *, int *, int *, int *, int *, 
     int *, int *, int *, int *, 
@@ -268,15 +271,15 @@ tblot(PyObject *obj, PyObject *args)
     real *pxg, real *pyg, 
     integer *xgdim, integer *ygdim, char *align, char *interp, char *
 	coeffs, real *ef, real *misval, real *sinscl, integer *clen, integer *
-	vflag, 
+	vflag, doublereal *alpha, doublereal *beta,
     ftnlen shfr2_len, ftnlen align_len, ftnlen interp_len, ftnlen coeffs_len);
     
-	if (!PyArg_ParseTuple(args,"OOllllddddfdddddsOOsssfffl",&oimg,&oout,
+	if (!PyArg_ParseTuple(args,"OOllllddddfdddddsOOsssfffldd",&oimg,&oout,
            &xmin,&xmax,&ymin,&ymax,
            &xsh,&ysh,&rot,&scale,&kscale,
            &xsh2,&ysh2,&xscale,&yscale,&rot2,&shfr2,
            &opxg,&opyg, &align,&interp,&coeffs,&ef,&misval,
-           &sinscl,&vflag)){
+           &sinscl,&vflag,&alpha,&beta)){
          return PyErr_Format(gl_Error, "arrdriz.tblot: Invalid Parameters.");
     }
     
@@ -310,7 +313,7 @@ tblot(PyObject *obj, PyObject *args)
                     NA_OFFSETDATA(pxg),NA_OFFSETDATA(pyg),
                     &xgdim,&ygdim,
                     align, interp, coeffs, &ef, &misval, &sinscl, 
-                    &coeffs_len, &vflag, shfr2_len,
+                    &coeffs_len, &vflag, &alpha,&beta,shfr2_len,
                     align_len, interp_len, coeffs_len); 
     
     Py_DECREF(img);
@@ -330,9 +333,9 @@ tblot(PyObject *obj, PyObject *args)
 
 static PyMethodDef arrdriz_methods[] =
 {
-    {"tdriz",  tdriz, METH_VARARGS, "triz(image, weight, output, outweight, xsh, ysh, rot, scale, align, pfract, kernel, coeffs, vflag)"},
+    {"tdriz",  tdriz, METH_VARARGS, "triz(image, weight, output, outweight, xsh, ysh, rot, scale, align, pfract, kernel, coeffs, vflag,alpha,beta)"},
     /*{"twdriz",  tdriz, METH_VARARGS, "triz(image, weight, output, outweight, ystart, xmin, ymin, dny, wcsin, wcsout,pxg,pyg,pfract, kernel, coeffs, fillstr,nmiss,nskip,vflag)"},*/
-    {"tblot",  tblot, METH_VARARGS, "tblot(image, output, xsh, ysh, rot, scale, align, interp, coeffs, misval, sinscl, vflag)"},
+    {"tblot",  tblot, METH_VARARGS, "tblot(image, output, xsh, ysh, rot, scale, align, interp, coeffs, misval, sinscl, vflag,alpha,beta)"},
     {0,            0}                             /* sentinel */
 };
 

@@ -115,7 +115,7 @@ C Local variables
 
 C Geometrical parameters, the standard set
       DOUBLE PRECISION SCALE,ROT,XSH,YSH,LAM
-      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE
+      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE,ALPHA,BETA
       DOUBLE PRECISION RACEN,DECCEN
       DOUBLE PRECISION ORIENT,OUTSCL
       CHARACTER*80 COEFFS,SHFTUN,XGEOIM,YGEOIM
@@ -434,7 +434,7 @@ C when blotting
      :           USEWCS,WCSOUT,WCSIN,
      :           COTY,CONUM,XCO,YCO,
      :           DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,
-     :           XMIN,XMAX,YMIN,YMAX,ISTAT)
+     :           XMIN,XMAX,YMIN,YMAX,ISTAT.ALPHA,BETA)
 
 C Assume we are using the whole frame unless set otherwise
       SUB=.FALSE.
@@ -628,7 +628,8 @@ C Now do the actual combination using interpolation
      :      DISIM,MEMR(PXG),MEMR(PYG),XGDIM,YGDIM,
      :      MEMD(PXIN),MEMD(PYIN),MEMD(PXOUT),MEMD(PYOUT),
      :      SCALE,ROT,XSH,YSH,USEWCS,WCSIN,WCSOUT,
-     :      GEOMOD,SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2)
+     :      GEOMOD,SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
+     :      ALPHA,BETA)
 
 C Write out the new image
       IF(VERBOSE)

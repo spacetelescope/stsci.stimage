@@ -2,7 +2,8 @@
      :                  DNX,DNY,ONX,ONY,XSH,YSH,DROT, SCALE,KSCALE,
      :                 XSH2,YSH2,XSCALE,YSCALE,ROT2, SHFR2,  
      :                 PXG,PYG,XGDIM,YGDIM,
-     :                 ALIGN,INTERP,COEFFS,EF,MISVAL,SINSCL,CLEN,VFLAG)
+     :                 ALIGN,INTERP,COEFFS,EF,MISVAL,SINSCL,CLEN,VFLAG,
+     :                 ALPHA,BETA)
 C++
 C
 C TBLOT.F "Reverse drizzling" 
@@ -63,7 +64,7 @@ C Buffers
 
 C Geometrical parameters, the standard set
       DOUBLE PRECISION  SCALE,DROT,ROT,XSH,YSH,LAM
-      DOUBLE PRECISION  XSH2,YSH2,ROT2,XSCALE,YSCALE
+      DOUBLE PRECISION  XSH2,YSH2,ROT2,XSCALE,YSCALE,ALPHA,BETA
       CHARACTER*80 COEFFS
       CHARACTER*8 SHFR2,ALIGN,GEOMOD
       INTEGER CLEN
@@ -187,7 +188,8 @@ C Now do the actual combination using interpolation
      :      DISIM, PXG,PYG,XGDIM,YGDIM,
      :      XIN,YIN,XOUT,YOUT,
      :      SCALE,ROT,XSH,YSH,USEWCS,WCSIN,WCSOUT,GEOMOD,
-     :      SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2)
+     :      SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
+     :      ALPHA,BETA)
 
  99   CONTINUE
       END

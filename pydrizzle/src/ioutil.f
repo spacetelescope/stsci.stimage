@@ -2130,7 +2130,7 @@ C Update the WCS
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,COTY,CONUM,XCO,YCO,
-     :            DISIM,PXG,PYG)
+     :            DISIM,PXG,PYG,ALPHA,BETA)
 
       ISTAT=0
       RETURN

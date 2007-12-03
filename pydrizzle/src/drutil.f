@@ -899,7 +899,7 @@ C
      :           SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :           USEWCS,WCSIN,WCSOUT,
      :           COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,YGDIM,
-     :           XMIN,XMAX,YMIN,YMAX,ISTAT)
+     :           XMIN,XMAX,YMIN,YMAX,ISTAT, ALPHA, BETA)
  
 C
 C LCORN - transform the range of input pixel coordinates covered
@@ -931,6 +931,7 @@ C
 
 C Secondary geometrical parameters, added in V1.5
       DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE
+	  DOUBLE PRECISION ALPHA, BETA
       CHARACTER*8 SHFR2
       LOGICAL ROTF2,DISIM
 
@@ -952,7 +953,7 @@ C Transform onto output coordinate system
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,
-     :            PXG,PYG,XGDIM,YGDIM,XOUT,YOUT)
+     :            PXG,PYG,XGDIM,YGDIM,XOUT,YOUT,ALPHA,BETA)
 
 C Calculate the extreme values
       XMA=MAX(XOUT(1),XOUT(2),XOUT(3),XOUT(4))
@@ -977,7 +978,7 @@ C Now check a few more points on the edges
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,
-     :            PXG,PYG,XGDIM,YGDIM,XOUT,YOUT)
+     :            PXG,PYG,XGDIM,YGDIM,XOUT,YOUT, ALPHA, BETA)
 
       DO I=1,16
          IF(XOUT(I).GT.XMA) XMA=XOUT(I)
@@ -1001,7 +1002,7 @@ C Calculate limits allowing for a 5 pixel margin of error
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,XG,YG,XGDIM,YGDIM,
-     :            XOUT,YOUT)
+     :            XOUT,YOUT, ALPHA, BETA)
 C
 C DRIVAL - apply the standard Drizzle transformation
 C          from input to output pixel coordinates.
@@ -1034,11 +1035,16 @@ C
 C Added "refpix" support using higher values of COTY,
 C    Richard Hook, ST-ECF/STScI, December 2003
 C
+C Added time dependent distortion solution based upon
+C    parameters ALPHA and BETA.
+C    Christopher Hanley, STSCI, September 2007
+
       IMPLICIT NONE
       INTEGER N,DNX,DNY,ONX,ONY,I
       LOGICAL REG
       DOUBLE PRECISION XIN(N),YIN(N),XOUT(N),YOUT(N)
       DOUBLE PRECISION XCEN,YCEN,XF,YF,XCORN,YCORN
+      DOUBLE PRECISION ALPHA, BETA
       DOUBLE PRECISION XSH,YSH,ROT,SCALE
       INTEGER COTY,CONUM,COOFF,IX,IY
       PARAMETER (COOFF=100)
@@ -1064,7 +1070,6 @@ C Secondary geometrical parameters, added in V1.5
       DOUBLE PRECISION SINTH2,COSTH2
       
 C--
-
       IF(ALIGN.EQ.'corner') THEN
          XCEN=DBLE(DNX/2.0)+0.5
          YCEN=DBLE(DNY/2.0)+0.5
@@ -1380,6 +1385,10 @@ C If we have a distortion image we add here
             XCORN=XCORN+DBLE(XG(IX,IY))
             YCORN=YCORN+DBLE(YG(IX,IY))
          ENDIF
+	   XCORN = XCORN + BETA*(XCORN-XCEN)/XCEN +
+     :                 ALPHA*(YCORN-YCEN)/YCEN
+       YCORN = YCORN - BETA*(YCORN-YCEN)/YCEN +
+     :                 ALPHA*(XCORN-XCEN)/XCEN
 
 C Apply the linear transform
 C There are two ways this can be done - shift then
@@ -2218,7 +2227,7 @@ C
      :     PFRACT,SCALE,ROT,XSH,YSH,WCS,WCSOUT,ROTFIR,
      :     SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :     CON,BITCON,INTAB,MAXIM,MAXEN,NEN,UNIQID,
-     :     UPDATE,USEWEI,USEWCS,ISTAT,NMISS,NSKIP)
+     :     UPDATE,USEWEI,USEWCS,ISTAT,NMISS,NSKIP,ALPHA,BETA)
 C
 C This module does the actual mapping of input flux to output images using
 C "boxer", a code written by Bill Sparks for FOC geometric
@@ -2256,7 +2265,8 @@ C
       DOUBLE PRECISION XIB(DNX),YIB(DNX),XOB(DNX),YOB(DNX)
       DOUBLE PRECISION R2,ES,EFAC,NSIG,XCEN,YCEN
       DOUBLE PRECISION OVER,TEM
-
+	  DOUBLE PRECISION ALPHA, BETA
+	  
 C Some things are still single
       REAL VC,WTSCL,D,DOW,DD
 
@@ -2296,6 +2306,7 @@ C Some initial settings - note that the reference pixel
 C position is determined by the value of ALIGN
       OLDCON=-1
 
+
 C The bitmask - trimmed to the appropriate range
       NP=(UNIQID-1)/32+1
       BV=2**(UNIQID-1-(32*(NP-1)))
@@ -2322,13 +2333,13 @@ C reference pixel as the reference here
          YIN(2)=YCEN+1.0D0
          YIN(3)=YCEN+1.0D0
          YIN(4)=YCEN
-
+	  
          CALL DRIVAL(XIN,YIN,4,DNX,DNY,ONX,ONY,.FALSE.,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCS,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,YGDIM,
-     :            XOUT,YOUT)
+     :            XOUT,YOUT, ALPHA, BETA)
 
          SCALL=SQRT(1.0/ABS(0.5*((XOUT(2)-XOUT(4))*(YOUT(1)-YOUT(3)) -
      :              (XOUT(1)-XOUT(3))*(YOUT(2)-YOUT(4)))))
@@ -2341,12 +2352,13 @@ C Now calculate how much of this is from the geometric distortion
          SECPAR=.FALSE.
          USEWCS=.FALSE.
 
+
          CALL DRIVAL(XIN,YIN,4,DNX,DNY,ONX,ONY,.FALSE.,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCS,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,YGDIM,
-     :            XOUT,YOUT)
+     :            XOUT,YOUT, ALPHA, BETA)
 
          SCDIS=SQRT(1.0/ABS(0.5*((XOUT(2)-XOUT(4))*(YOUT(1)-YOUT(3)) -
      :              (XOUT(1)-XOUT(3))*(YOUT(2)-YOUT(4)))))
@@ -2429,7 +2441,7 @@ C Check the overlap with the output
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCS,WCSOUT,COTY,CONUM,XCO,YCO,
-     :            DISIM,PXG,PYG,XGDIM,YGDIM,OFRAC,X1,X2)
+     :            DISIM,PXG,PYG,XGDIM,YGDIM,OFRAC,X1,X2,ALPHA,BETA)
 
 C If the line falls completely off the output then skip it
        IF(OFRAC.NE.0.0D0) THEN
@@ -2461,7 +2473,7 @@ C Transform onto the output grid
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCS,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,YGDIM,
-     :            XOB(X1),YOB(X1))
+     :            XOB(X1),YOB(X1), ALPHA, BETA)
 
 C Now we consider the different cases, first the "point" option
 C where a single pixel in the output image is affected
@@ -2874,28 +2886,28 @@ C Transform onto the output grid
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCS,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,YGDIM,
-     :            XO(X1,1),YO(X1,1))
+     :            XO(X1,1),YO(X1,1), ALPHA, BETA)
 
       CALL DRIVAL(XI(X1,2),YI(X1,2),X2-X1+1,DNX,DNY,ONX,ONY,.TRUE.,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCS,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,YGDIM,
-     :            XO(X1,2),YO(X1,2))
+     :            XO(X1,2),YO(X1,2), ALPHA, BETA)
 
       CALL DRIVAL(XI(X1,3),YI(X1,3),X2-X1+1,DNX,DNY,ONX,ONY,.TRUE.,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCS,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,YGDIM,
-     :            XO(X1,3),YO(X1,3))
+     :            XO(X1,3),YO(X1,3), ALPHA, BETA)
 
       CALL DRIVAL(XI(X1,4),YI(X1,4),X2-X1+1,DNX,DNY,ONX,ONY,.TRUE.,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCS,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,YGDIM,
-     :            XO(X1,4),YO(X1,4))
+     :            XO(X1,4),YO(X1,4), ALPHA, BETA)
 
       DO I=X1,X2
 
@@ -3017,7 +3029,8 @@ C Set good status if we get this far
       SUBROUTINE UPWCS(WCSIN,WCSOUT,DNX,DNY,ONX,ONY,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
-     :            USEWCS,COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,YGDIM)
+     :            USEWCS,COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,
+     :            YGDIM,ALPHA,BETA)
 
 C 
 C Update the WCS to include the drizzling transformations
@@ -3050,6 +3063,7 @@ C
       DOUBLE PRECISION W5,W6,W7,W8
       DOUBLE PRECISION XIN(3),YIN(3),XOUT(3),YOUT(3)
       LOGICAL DISIM, OLDDIS
+	  DOUBLE PRECISION ALPHA, BETA
 
       REAL MEMR(1)
       COMMON /MEM/MEMR
@@ -3076,7 +3090,7 @@ C Transform
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,YGDIM,
-     :            XOUT,YOUT)
+     :            XOUT,YOUT, ALPHA, BETA)
       DISIM = OLDDIS
 C We can immediately set the reference point on the sky
       WCSOUT(1)=XOUT(1)
@@ -3104,7 +3118,7 @@ C Only use LINEAR terms and ignore distortion images
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,YGDIM,
-     :            XOUT,YOUT)
+     :            XOUT,YOUT, ALPHA, BETA)
 
 C Restore order
       COTY=SCOTY
@@ -3306,7 +3320,8 @@ C otherwise it must cross the top of the square
       SUBROUTINE BUPWCS(WCSIN,WCSOUT,DNX,DNY,ONX,ONY,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
-     :            USEWCS,COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,PXDIM,PYDIM)
+     :            USEWCS,COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,PXDIM,PYDIM,
+     :            ALPHA, BETA)
 
 C
 C Update the WCS to include the drizzling transformations
@@ -3338,6 +3353,7 @@ C
       DOUBLE PRECISION XIN(3),YIN(3),XOUT(3),YOUT(3)
       DOUBLE PRECISION R(3),D(3)
       DOUBLE PRECISION PI
+	  DOUBLE PRECISION ALPHA, BETA
       PARAMETER (PI=3.141592653589793)
 
       PARAMETER (OFF=0.1D1)
@@ -3359,7 +3375,7 @@ C Transform
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,
      :            COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,PXDIM,PYDIM,
-     :            XOUT,YOUT)
+     :            XOUT,YOUT, ALPHA, BETA)
 
 C Convert the output pixel position to a sky position using
 C the WCS
@@ -3439,7 +3455,7 @@ C Set the first value to avoid arithmetic problems
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,COTY,CONUM,XCO,YCO,
-     :            DISIM,PXG,PYG,XGDIM,YGDIM,OFRAC,X1,X2)
+     :            DISIM,PXG,PYG,XGDIM,YGDIM,OFRAC,X1,X2,ALPHA,BETA)
 C
 C Check how much of a line will overlap an output image, if any,
 C after applying the standard drizzle transformation.
@@ -3473,6 +3489,7 @@ C Secondary geometrical parameters, added in V1.5
       DOUBLE PRECISION Y,OFRAC
       DOUBLE PRECISION XVAL(NPOINT),YVAL(NPOINT)
       DOUBLE PRECISION XOUT(NPOINT),YOUT(NPOINT)
+	  DOUBLE PRECISION ALPHA, BETA
       LOGICAL LOGO(NPOINT)
       INTEGER MARGIN
       INTEGER X1,X2
@@ -3482,6 +3499,7 @@ C Secondary geometrical parameters, added in V1.5
 
 C Local variables
       INTEGER I,NP
+
 
 C Loop along line
       IF(DNX.LT.NPOINT) THEN
@@ -3513,7 +3531,7 @@ C Transform
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :            USEWCS,WCSIN,WCSOUT,COTY,CONUM,
      :            XCO,YCO,DISIM,PXG,PYG,XGDIM,YGDIM,
-     :            XOUT,YOUT)
+     :            XOUT,YOUT, ALPHA, BETA)
 
 C Check where the overlap starts and ends
       DO I=1,NP

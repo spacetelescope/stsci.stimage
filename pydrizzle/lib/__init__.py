@@ -154,6 +154,8 @@ class Pattern:
         self.offsets = None
         self.v2com = None
         self.v3com = None
+        self.alpha = 0
+        self.beta = 0
 
         # Read in Primary Header to reduce the overhead of getting
         # keyword values and setup PyFITS object
@@ -850,6 +852,9 @@ class Pattern:
 
             parameters['xsh'] =  _delta_x
             parameters['ysh'] =  _delta_y
+
+            parameters['alpha'] = self.alpha
+            parameters['beta'] = self.beta
 
             # Calculate any rotation relative to the orientation
             # AFTER applying ONLY the distortion coefficients without
@@ -2470,14 +2475,13 @@ More help on SkyField objects and their parameters can be obtained using:
                 # This call to 'arrdriz.tdriz' uses the F2C syntax
                 #
                 if (_insci.dtype > N.float32):
-                    #WARNING: Input array recast as a float32 array
                     _insci = _insci.astype(N.float32)
                 t = arrdriz.tblot(_insci, _outsci,xmin,xmax,ymin,ymax,
                             xsh,ysh, plist['rot'],plist['scale'], kscale,
                             0.0,0.0, 1.0,1.0, 0.0, 'output',
                             _pxg, _pyg,
                             'center',interp, plist['coeffs'], plist['exptime'],
-                            misval, sinscl, 1)
+                            misval, sinscl, 1,plist['alpha'],plist['beta'])
 
                 #
                 # End of F2C syntax
@@ -2698,7 +2702,6 @@ More help on SkyField objects and their parameters can be obtained using:
                 _dny = plist['blotny']
                 # Call 'drizzle' to perform image combination
                 if (_sciext.data.dtype > N.float32):
-                    #WARNING: Input array recast as a float32 array
                     _sciext.data = _sciext.data.astype(N.float32)
 
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
@@ -2708,7 +2711,7 @@ More help on SkyField objects and their parameters can be obtained using:
                             0.0,0.0, 1.0,1.0,0.0,'output',
                             _pxg,_pyg, 'center', plist['pixfrac'], plist['kernel'],
                             plist['coeffs'], _in_units, _expin,_wtscl,
-                            plist['fillval'], _inwcs, nmiss, nskip, 1)
+                            plist['fillval'], _inwcs, nmiss, nskip, 1,plist['alpha'],plist['beta'])
                 """
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
                             _outctx[_planeid], _uniqid, ystart, 1, 1, _dny,

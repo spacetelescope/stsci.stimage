@@ -1,4 +1,4 @@
-/* doblot.f -- translated by f2c (version 20031025).
+/* doblot.f -- translated by f2c (version 20060506).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -35,7 +35,8 @@ static logical c_true = TRUE_;
 	logical *usewcs, doublereal *wcsin, doublereal *wcsout, char *geomod, 
 	logical *secpar, doublereal *xsh2, doublereal *ysh2, doublereal *rot2,
 	 doublereal *xscale, doublereal *yscale, char *shfr2, logical *rotf2, 
-	ftnlen align_len, ftnlen geomod_len, ftnlen shfr2_len)
+	doublereal *alpha, doublereal *beta, ftnlen align_len, ftnlen 
+	geomod_len, ftnlen shfr2_len)
 {
     /* System generated locals */
     integer data_dim1, data_offset, ndat_dim1, ndat_offset, pxg_dim1, 
@@ -71,7 +72,7 @@ static logical c_true = TRUE_;
 	     doublereal *, char *, logical *, logical *, doublereal *, 
 	    doublereal *, integer *, integer *, doublereal *, doublereal *, 
 	    logical *, real *, real *, integer *, integer *, doublereal *, 
-	    doublereal *, ftnlen, ftnlen);
+	    doublereal *, doublereal *, doublereal *, ftnlen, ftnlen);
     extern doublereal ginter_(real *, real *, real *, integer *, integer *, 
 	    real *, integer *, real *, integer *, real *), nrievl_(real *, 
 	    real *, real *, integer *, integer *, integer *, integer *, real *
@@ -83,8 +84,8 @@ static logical c_true = TRUE_;
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, char *, logical *, logical *, integer *, integer *, 
 	    doublereal *, doublereal *, logical *, real *, real *, integer *, 
-	    integer *, ftnlen, ftnlen), umsput_(char *, integer *, integer *, 
-	    integer *, ftnlen);
+	    integer *, doublereal *, doublereal *, ftnlen, ftnlen), umsput_(
+	    char *, integer *, integer *, integer *, ftnlen);
 
     /* Fortran I/O blocks */
     static icilist io___23 = { 0, chars, 0, "('! Warning, ',I7,' points were"
@@ -166,8 +167,8 @@ static logical c_true = TRUE_;
 		ysh, rot, scale, align, rotfir, secpar, xsh2, ysh2, rot2, 
 		xscale, yscale, shfr2, rotf2, usewcs, &wcsout[1], &wcsin[1], 
 		coty, conum, &xco[1], &yco[1], disim, &pxg[pxg_offset], &pyg[
-		pyg_offset], pxdim, pydim, &xout[1], &yout[1], (ftnlen)8, (
-		ftnlen)8);
+		pyg_offset], pxdim, pydim, &xout[1], &yout[1], alpha, beta, (
+		ftnlen)8, (ftnlen)8);
 	scall = sqrt(1. / (d__1 = ((xout[2] - xout[4]) * (yout[1] - yout[3]) 
 		- (xout[1] - xout[3]) * (yout[2] - yout[4])) * .5, abs(d__1)))
 		;
@@ -182,8 +183,8 @@ static logical c_true = TRUE_;
 		ysh, rot, scale, align, rotfir, secpar, xsh2, ysh2, rot2, 
 		xscale, yscale, shfr2, rotf2, usewcs, &wcsout[1], &wcsin[1], 
 		coty, conum, &xco[1], &yco[1], disim, &pxg[pxg_offset], &pyg[
-		pyg_offset], pxdim, pydim, &xout[1], &yout[1], (ftnlen)8, (
-		ftnlen)8);
+		pyg_offset], pxdim, pydim, &xout[1], &yout[1], alpha, beta, (
+		ftnlen)8, (ftnlen)8);
 	scdis = sqrt(1. / (d__1 = ((xout[2] - xout[4]) * (yout[1] - yout[3]) 
 		- (xout[1] - xout[3]) * (yout[2] - yout[4])) * .5, abs(d__1)))
 		;
@@ -224,8 +225,8 @@ static logical c_true = TRUE_;
 		rot, scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, 
 		yscale, shfr2, rotf2, usewcs, &wcsout[1], &wcsin[1], coty, 
 		conum, &xco[1], &yco[1], disim, &pxg[pxg_offset], &pyg[
-		pyg_offset], pxdim, pydim, &xout[1], &yout[1], (ftnlen)8, (
-		ftnlen)8);
+		pyg_offset], pxdim, pydim, &xout[1], &yout[1], alpha, beta, (
+		ftnlen)8, (ftnlen)8);
 /* Loop through the output positions and do the interpolation */
 	i__2 = *onx;
 	for (i__ = 1; i__ <= i__2; ++i__) {
@@ -271,8 +272,8 @@ static logical c_true = TRUE_;
 	bupwcs_(&wcsin[1], &wcsout[1], dnx, dny, onx, ony, xsh, ysh, rot, 
 		scale, align, rotfir, secpar, xsh2, ysh2, rot2, xscale, 
 		yscale, shfr2, rotf2, usewcs, coty, conum, &xco[1], &yco[1], 
-		disim, &pxg[pxg_offset], &pyg[pyg_offset], pxdim, pydim, (
-		ftnlen)8, (ftnlen)8);
+		disim, &pxg[pxg_offset], &pyg[pyg_offset], pxdim, pydim, 
+		alpha, beta, (ftnlen)8, (ftnlen)8);
     }
     return 0;
 } /* doblot_ */

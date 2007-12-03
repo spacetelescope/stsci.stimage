@@ -1,4 +1,4 @@
-/* tblot.f -- translated by f2c (version 20031025).
+/* tblot.f -- translated by f2c (version 20060506).
    You must link the resulting object file with libf2c:
 	on Microsoft Windows system, link with libf2c.lib;
 	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
@@ -14,7 +14,7 @@
 
 /* Common Block Declarations */
 
-extern struct {
+struct {
     logical verbose;
 } verbose_;
 
@@ -34,8 +34,9 @@ static integer c__100 = 100;
 	doublereal *ysh2, doublereal *xscale, doublereal *yscale, doublereal *
 	rot2, char *shfr2, real *pxg, real *pyg, integer *xgdim, integer *
 	ygdim, char *align, char *interp, char *coeffs, real *ef, real *
-	misval, real *sinscl, integer *clen, integer *vflag, ftnlen shfr2_len,
-	 ftnlen align_len, ftnlen interp_len, ftnlen coeffs_len)
+	misval, real *sinscl, integer *clen, integer *vflag, doublereal *
+	alpha, doublereal *beta, ftnlen shfr2_len, ftnlen align_len, ftnlen 
+	interp_len, ftnlen coeffs_len)
 {
     /* System generated locals */
     address a__1[2];
@@ -72,7 +73,7 @@ static integer c__100 = 100;
 	    doublereal *, doublereal *, doublereal *, logical *, doublereal *,
 	     doublereal *, char *, logical *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, char *, logical *, 
-	    ftnlen, ftnlen, ftnlen);
+	    doublereal *, doublereal *, ftnlen, ftnlen, ftnlen);
     static logical rotfir;
     static integer intype;
     static logical usewcs;
@@ -220,7 +221,8 @@ static integer c__100 = 100;
 	     ony, &coty, &conum, xco, yco, &disim, &pxg[pxg_offset], &pyg[
 	    pyg_offset], xgdim, ygdim, xin, yin, xout, yout, scale, &rot, xsh,
 	     ysh, &usewcs, wcsin, wcsout, geomod, &secpar, xsh2, ysh2, rot2, 
-	    xscale, yscale, shfr2, &rotf2, (ftnlen)8, (ftnlen)8, (ftnlen)8);
+	    xscale, yscale, shfr2, &rotf2, alpha, beta, (ftnlen)8, (ftnlen)8, 
+	    (ftnlen)8);
 L99:
     return 0;
 } /* tblot_ */

@@ -45,6 +45,8 @@ C
 C V2.2, added xylist support.
 C         Richard Hook, ST-ECF @ STScI, 29th March 2004.
 C
+C V2.3, added ALPHA, BETA to DRIVAL call
+C         Chris Hanley, STScI, 9 Sept. 2007
 C--
       IMPLICIT NONE
 
@@ -66,7 +68,7 @@ C Local variables
 
 C Geometrical parameters, the standard set
       DOUBLE PRECISION SCALE,ROT,XSH,YSH,LAM
-      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE
+      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE,ALPHA,BETA
       DOUBLE PRECISION RACEN,DECCEN,XREFP,YREFP,WCSIN(8),WCSOUT(8)
       DOUBLE PRECISION ORIENT,OUTSCL
       CHARACTER*80 COEFFS,SHFTUN,XGEOIM,YGEOIM,XYLIST,LINE
@@ -325,7 +327,7 @@ C First check that the point is within the bounds
      :         SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :         USEWCS,WCSIN,WCSOUT,
      :         COTY,CONUM,XCO,YCO,DISIM,MEMR(PXG),MEMR(PYG),
-     :         XGDIM,YGDIM,XO,YO)
+     :         XGDIM,YGDIM,XO,YO,ALPHA,BETA)
 
             ELSE
               CALL DRIVAL(X,Y,3,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
@@ -333,7 +335,7 @@ C First check that the point is within the bounds
      :         SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :         USEWCS,WCSIN,WCSOUT,
      :         COTY,CONUM,XCO,YCO,.FALSE.,MEMR(PXG),MEMR(PYG),
-     :         XGDIM,YGDIM,XO,YO)
+     :         XGDIM,YGDIM,XO,YO,ALPHA,BETA)
             ENDIF
 
             DX1=XO(2)-XO(1)

@@ -51,6 +51,8 @@ C
 C V1.93, bug fix for calls to DRIVAL, Richard Hook, ST-ECF/STScI, 
 C        25th February 2005
 C
+C V1.94  Added Alpha,Beta to DRIVAL call for time depeendent distortion solution
+C        09 September 2007
 C--
       IMPLICIT NONE
 
@@ -72,7 +74,7 @@ C Local variables
 
 C Geometrical parameters, the standard set
       DOUBLE PRECISION SCALE,ROT,XSH,YSH,LAM
-      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE
+      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE, ALPHA, BETA
       DOUBLE PRECISION RACEN,DECCEN,XREFP,YREFP,WCSIN(8),WCSOUT(8)
       DOUBLE PRECISION ORIENT,OUTSCL
       CHARACTER*80 COEFFS,SHFTUN,XGEOIM,YGEOIM
@@ -297,7 +299,7 @@ C Check that the pixel is in the image (v1.92 addition)
      :         SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :         USEWCS,WCSIN,WCSOUT,
      :         COTY,CONUM,XCO,YCO,DISIM,MEMR(PXG),MEMR(PYG),
-     :         XGDIM,YGDIM,XO,YO)
+     :         XGDIM,YGDIM,XO,YO, ALPHA, BETA)
 
          ELSE
             CALL DRIVAL(X,Y,3,NXIN,NYIN,NXOUT,NYOUT,.FALSE.,
@@ -305,7 +307,7 @@ C Check that the pixel is in the image (v1.92 addition)
      :         SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :         USEWCS,WCSIN,WCSOUT,
      :         COTY,CONUM,XCO,YCO,.FALSE.,MEMR(PXG),MEMR(PYG),
-     :         XGDIM,YGDIM,XO,YO)
+     :         XGDIM,YGDIM,XO,YO, ALPHA, BETA)
          ENDIF
 
          DX1=XO(2)-XO(1)

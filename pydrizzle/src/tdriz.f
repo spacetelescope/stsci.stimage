@@ -3,7 +3,7 @@
      : XSH2,YSH2,XSCALE,YSCALE,ROT2, SHFR2,
      : PXG,PYG,XGDIM,YGDIM,ALIGN,
      : PFRACT,KERNEL,COEFFS,INUN,EXPIN,WTSCL,FILSTR,
-     : WCS,VFLAG,CLEN,NMISS,NSKIP,VERS)
+     : WCS,VFLAG,CLEN,NMISS,NSKIP,VERS,ALPHA,BETA)
 C
 C Call Drizzle without use of IRAF interfaces.
 C
@@ -193,9 +193,9 @@ C We give these minimal dimensions
       CHARACTER*8 ALIGN,KERNEL,INUN,SHFTFR,SHFTUN
       LOGICAL ROTFIR,UPDATE,USEWEI,INCPS,USEWCS,NOOVER
 
-C Secondary geometrical parameters, added in V1.5
+C Secondary geometrical parameters
       LOGICAL SECPAR
-      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE
+      DOUBLE PRECISION XSH2,YSH2,ROT2,XSCALE,YSCALE,ALPHA,BETA
       CHARACTER*8 SHFR2
       LOGICAL ROTF2
       CHARACTER*50 VERS
@@ -215,6 +215,8 @@ C Announce
 C Get geometric distortion coefficients
 C
       IDD = 0
+      
+
       CALL GETGEO(COEFFS,IDD,LAM,COTY,COMAX,CONUM,
      :                  XCO,YCO,CLEN,ISTAT)
       IF(ISTAT.NE.0) RETURN
@@ -299,7 +301,7 @@ C Do the drizzling
      :     PFRACT,SCALE,ROT,XSH,YSH,WCS,WCSOUT,ROTFIR,
      :     SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
      :     CON,BITCON,INTAB,MAXIM,MAXEN,NEN,UNIQID,
-     :     UPDATE,USEWEI,USEWCS,ISTAT,NMISS,NSKIP)
+     :     UPDATE,USEWEI,USEWCS,ISTAT,NMISS,NSKIP,ALPHA,BETA)
 
 C Check for meaningful values
       IF(FILSTR(1:5).NE.'INDEF'.AND.FILSTR(1:5).NE.'indef') THEN
@@ -326,7 +328,8 @@ C  Only need to do once per image, not once per section.
       CALL UPWCS(WCS,WCS,NX,NY,ONX,ONY,
      :            XSH,YSH,ROT,SCALE,ALIGN,ROTFIR,
      :            SECPAR,XSH2,YSH2,ROT2,XSCALE,YSCALE,SHFR2,ROTF2,
-     :            USEWCS,COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,YGDIM)
+     :            USEWCS,COTY,CONUM,XCO,YCO,DISIM,PXG,PYG,XGDIM,
+     :            YGDIM,ALPHA,BETA)
       ENDIF
 
 C Return the value of status
