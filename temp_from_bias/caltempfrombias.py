@@ -6,6 +6,8 @@
 # History: 10/31/07 - first version [DGrumm]
 #          11/08/07 - added nonlinearity application
 #          11/21/07 - minor interface changes, including reodering of input parameters
+#          12/04/07 - minor interface changes: no defaults for spt_key and raw_key;
+#                     under pyraf these keys are settable in both __init__() and in update_headers()
 
 import os.path
 import sys
@@ -70,7 +72,7 @@ c1_blindoff=0.793
 c2_blindoff=[-0.343593]
 c3_blindoff=0.476092
 
-__version__ = "1.2 (2007 Nov 21)"
+__version__ = "1.2"
 
 ERROR_RETURN = 2 
 
@@ -79,12 +81,11 @@ class CalTempFromBias:
 
     example:
        tfb = CalTempFromBias( filename, spt_key, raw_key, nref_par, force, noclean, verbosity)
-       [temp, sigma, winner ]= CalTempFromBias.calctemp( tfb )
-
+       [temp, sigma, winner ]= tfb.calctemp() 
     """
 
-    def __init__( self, input_file, spt_key="SPTBTEMP", raw_key="RAWBTEMP",
-                  nref_par=None, force=0, noclean=False, verbosity=0):
+    def __init__( self, input_file, spt_key=None, raw_key=None, nref_par=None,
+                  force=0, noclean=False, verbosity=0):
         """constructor
 
         @param input_file: name of the file to be processed
@@ -112,8 +113,11 @@ class CalTempFromBias:
         self.noclean = noclean
         self.verbosity = verbosity
 
+
     def calctemp(self): 
         """ Calculate the temperature from the bias for the given input file
+        @return: temp, sig, winner
+        @rtype: float, float, int
         """
 
         temp = 0.0
@@ -194,6 +198,7 @@ class CalTempFromBias:
 
         if ( nsamp <= 1 ):
            opusutil.PrintMsg("F","ERROR "+ str(' : nsamp <=1, so will not process'))
+           return None, None, None
 
         if ( nsamp >= 3 ):       
             im0 = fh_raw[ ((nsamp-1)*5)+1 ].data  
@@ -281,7 +286,6 @@ class CalTempFromBias:
            temp2 = (quads[3]/37.0)+75.15
            sigma2 = 0.10 	# this is an empirical quantity determined from EOL data
                             # it is used for comparison at the bottom of the cascade
-
 
 # ALGORITHM 3. Quietest-quad method. 
 # 	       (no attempt at state removal - just use the quad(s) with smallest LVPS amplitudes)
@@ -383,7 +387,7 @@ class CalTempFromBias:
 
 ## end of def calctemp()
 
-    def update_headers(self, temp, sig, winner, raw_key, spt_key):
+    def update_headers(self, temp, sig, winner, spt_key=None, raw_key=None, verbosity=0):  
         """ Update headers of spt_key and raw_key if requested
         @param temp: calculated temperature
         @type temp: float
@@ -391,39 +395,69 @@ class CalTempFromBias:
         @type sig: float
         @param winner: algorithm selected by script
         @type winner: int
-        @param raw_key: name of keyword to update in RAW file
-        @type raw_key: string
         @param spt_key: name of keyword to update in SPT file
         @type spt_key: string
+        @param raw_key: name of keyword to update in RAW file
+        @type raw_key: string
+        @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
+        @type verbosity: string
+        @return: status (not None for failure due to key not being specified)
+        @rtype: int
         """
 
+        if (spt_key == None):   
+            if (self.spt_key <> None):  # use value given in constructor
+                spt_key = self.spt_key
+            else:
+                opusutil.PrintMsg("F","ERROR "+ str('No value has been specified for spt_key'))               
+                return ERROR_RETURN
+        else:
+            self.spt_key = spt_key # for later use by print_pars()
+            if ( verbosity > 0):
+                print ' Using value of spt_key = ' , spt_key,' that has been passed to update_headers()'
+    
+            
+        if (raw_key == None): 
+            if (self.raw_key <> None):    # use value given in constructor
+                raw_key = self.raw_key
+            else:
+                opusutil.PrintMsg("F","ERROR "+ str('No value has been specified for raw_key'))               
+                return ERROR_RETURN
+        else:
+            self.raw_key = raw_key # for later use by print_pars()
+            if ( verbosity > 0):
+                print ' Using value of raw_key = ' , raw_key,' that has been passed to update_headers()'
+                                
         comm = str('Temp from bias, sigma=')+str(sig)+str(' (K)')
         filename =  self.input_file
 
-        if (spt_key <> "None"):
-            underbar = filename.find('_')
-            spt_filename =  filename[:underbar] +'_spt.fits'
-            fh_spt = pyfits.open( spt_filename , mode='update' )       
-            spt_header = fh_spt[0].header
-            spt_header.update(spt_key, temp, comment = comm)
-            spt_header.update("NUMMETH", str(winner), comment = "Algorithm method used" ) 
-            fh_spt.close()
-        if (raw_key <>"None"):
-            fh_raw = pyfits.open( filename, mode='update' )      
-            raw_header = fh_raw[0].header 
-            raw_header.update(raw_key, temp, comment = comm)
-            raw_header.update("NUMMETH", str(winner), comment = "Algorithm method used") 
-            fh_raw.close()
+        # update spt file
+        underbar = filename.find('_')
+        spt_filename =  filename[:underbar] +'_spt.fits'
+        fh_spt = pyfits.open( spt_filename , mode='update' )       
+        spt_header = fh_spt[0].header
+        spt_header.update(spt_key, temp, comment = comm)
+        spt_header.update("NUMMETH", str(winner), comment = "Algorithm method used" ) 
+        fh_spt.close()
 
+        # update raw file
+
+        fh_raw = pyfits.open( filename, mode='update' )      
+        raw_header = fh_raw[0].header 
+        raw_header.update(raw_key, temp, comment = comm)
+        raw_header.update("NUMMETH", str(winner), comment = "Algorithm method used") 
+        fh_raw.close()
+
+        return None
         
-    def print_pars(self, raw_key, spt_key ):
+    def print_pars(self):
         """ Print parameters used.
         """
         print ' The parameters used are :'
         print '  input_file:  ' , self.input_file
         print '  nref_par:  ' , self.nref_par
-        print '  spt_key: ' ,  spt_key
-        print '  raw_key: ' ,  raw_key 
+        print '  spt_key: ' ,  self.spt_key
+        print '  raw_key: ' ,  self.raw_key 
         print '  force: ' ,  self.force
         print '  noclean: ' ,  self.noclean
         print '  verbosity: ' ,  self.verbosity
@@ -522,38 +556,27 @@ def main( cmdline):
     tfbutil.setVerbosity( options.verbosity)  
     verbosity = options.verbosity
 
-    if ( args[0] ):
-        filename = args[0]
-    if ( len(args) > 1 ):
-       spt_key = args[1]
-    else:
-       spt_key = "SPTBTEMP"
-    if ( len(args) > 2 ):
-       raw_key = args[2]
-    else:
-       raw_key = "RAWBTEMP"
-    if ( len(args) > 3 ):
-       nref = args[3]
-    else:
-       nref = None
-    if ( len(args) > 4 ):
-       force = args[4]
-    else: 
-       force = 0
-    if ( len(args) > 5 ):
-       noclean = args[5]
-    else:
-       noclean = False
+    spt_key = None 
+    raw_key = None
+    nref = None
+    force = 0
+    noclean = False
+
+    if ( args[0] ): filename = args[0]
+    if ( len(args) > 1 ): spt_key = args[1]
+    if ( len(args) > 2 ): raw_key = args[2]
+    if ( len(args) > 3 ): nref = args[3]
+    if ( len(args) > 4 ): force = args[4]
+    if ( len(args) > 5 ): noclean = args[5]
 
     try:
        tfb = CalTempFromBias( filename, spt_key, raw_key, nref, force, noclean, verbosity) 
-       [temp, sigma, winner ]= CalTempFromBias.calctemp( tfb )
+       [temp, sigma, winner ]= tfb.calctemp() 
 
-       if ( spt_key <> "None" or raw_key<> "None" ): # update header(s) if either spt_key or raw_key set
-         tfb.update_headers( temp, sigma, winner, raw_key, spt_key )
+       stat = tfb.update_headers( temp, sigma, winner) 
 
-       if (verbosity >=1 ):
-            tfb.print_pars( raw_key, spt_key )
+       if ( (stat == None )and (verbosity > 0)):
+            tfb.print_pars()
 
        del tfb
 
