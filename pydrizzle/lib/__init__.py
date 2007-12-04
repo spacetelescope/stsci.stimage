@@ -3,6 +3,7 @@ numerixenv.check()
 
 import string,os,types,sys
 import shutil
+import datetime
 
 #from pyraf import iraf
 #from pyraf.iraf import stsdas,analysis,dither
@@ -1246,6 +1247,16 @@ class ACSObservation(Pattern):
 
         # Set up the input members and create the product meta-chip
         self.buildProduct(filename, output)
+        
+        # Compute the time dependent distrotion skew terms
+
+        # default date of 2004.5 = 2004-7-1
+        datedefault = datetime.datetime(2004,7,1)
+        year,month,day = self.header['date-obs'].split('-')
+        rdate = datetime.datetime(int(year),int(month),int(day))
+        self.alpha = 0.095+0.090*((rdate-datedefault).days/365.25)/2.5
+        self.beta = -0.029-0.030*((rdate-datedefault).days/365.25)/2.5
+
 
 class STISObservation(Pattern):
     """This class defines an observation with information specific
@@ -2703,7 +2714,6 @@ More help on SkyField objects and their parameters can be obtained using:
                 # Call 'drizzle' to perform image combination
                 if (_sciext.data.dtype > N.float32):
                     _sciext.data = _sciext.data.astype(N.float32)
-
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
                             _outctx[_planeid], _uniqid, ystart, 1, 1, _dny,
                             plist['xsh'],plist['ysh'], 'output','output',
