@@ -19,12 +19,13 @@ pythonver = 'python' + ver
 args = sys.argv[2:]
 #data_dir = py_libs
 
-PACKAGES = ['calcos', 'pyraf','numdisplay', 'imagestats', 'multidrizzle', 'saaclean', 'pydrizzle', 'pydrizzle.traits102', 'puftcorr', 'rnlincor', 'pyfits', 'pytools']
+PACKAGES = ['calcos','numdisplay', 'imagestats', 'multidrizzle', 'pydrizzle', 'pydrizzle.traits102', 'pytools', 'nictools']
 
-PACKAGE_DIRS = {'calcos':'calcos/lib', 'pyraf':'pyraf/lib','numdisplay':'numdisplay', 'imagestats':'imagestats/lib', 'multidrizzle':'multidrizzle/lib', 'saaclean':'saaclean/lib', 'pydrizzle':'pydrizzle/lib', 'pydrizzle.traits102':'pydrizzle/traits102', 'puftcorr':'puftcorr/lib', 'rnlincor':'rnlincor/lib', 'pyfits':'pyfits/lib', 'pytools':'pytools/lib'}
+PACKAGE_DIRS = {'calcos':'calcos/lib','numdisplay':'numdisplay', 'imagestats':'imagestats/lib', 'multidrizzle':'multidrizzle/lib', 'pydrizzle':'pydrizzle/lib', 'pydrizzle.traits102':'pydrizzle/traits102', 'pytools':'pytools/lib', 'nictools':'nictools/lib'}
 
 PYMODULES = STIS_MODULES
 
+    
 for a in args:
     if a.startswith('--local='):
         dir = os.path.abspath(a.split("=")[1])
@@ -55,8 +56,7 @@ class smart_install_data(install_data):
         return install_data.run(self)
 
 
-PYRAF_DATA_DIR = os.path.join('pyraf')
-PYRAF_CLCACHE_DIR = os.path.join('pyraf', 'clcache')
+
 
 IMAGESTATS_DATA_DIR = os.path.join('imagestats')
 IMAGESTATS_DATA_FILES = ['imagestats/lib/LICENSE.txt']
@@ -67,34 +67,36 @@ MULTIDRIZZLE_DATA_FILES = ['multidrizzle/lib/LICENSE.txt']
 NUMDISPLAY_DATA_DIR = os.path.join('numdisplay')
 NUMDISPLAY_DATA_FILES = ['numdisplay/imtoolrc', 'numdisplay/LICENSE.txt']
 
-PUFTCORR_DATA_DIR = os.path.join('puftcorr')
-PUFTCORR_DATA_FILES = ['puftcorr/lib/LICENSE.txt']
 
 PYDRIZZLE_DATA_DIR = os.path.join('pydrizzle')
 PYDRIZZLE_DATA_FILES = ['pydrizzle/lib/LICENSE.txt']
 
-SAACLEAN_DATA_FILES = ['saaclean/lib/SP_LICENSE']
-SAACLEAN_DATA_DIR = os.path.join('saaclean')
+NICTOOLS_DATA_FILES = ['nictools/lib/SP_LICENSE']
+NICTOOLS_DATA_DIR = os.path.join('nictools')
 
 
-DATA_FILES = [(PYRAF_DATA_DIR, PYRAF_DATA_FILES), (PYRAF_CLCACHE_DIR, PYRAF_CLCACHE), (NUMDISPLAY_DATA_DIR, NUMDISPLAY_DATA_FILES), (SAACLEAN_DATA_DIR, SAACLEAN_DATA_FILES), (IMAGESTATS_DATA_DIR, IMAGESTATS_DATA_FILES), (MULTIDRIZZLE_DATA_DIR, MULTIDRIZZLE_DATA_FILES), (PUFTCORR_DATA_DIR,PUFTCORR_DATA_FILES), (PYDRIZZLE_DATA_DIR, PYDRIZZLE_DATA_FILES)  ]
+DATA_FILES = [ (NUMDISPLAY_DATA_DIR, NUMDISPLAY_DATA_FILES), (NICTOOLS_DATA_DIR, NICTOOLS_DATA_FILES), (IMAGESTATS_DATA_DIR, IMAGESTATS_DATA_FILES), (MULTIDRIZZLE_DATA_DIR, MULTIDRIZZLE_DATA_FILES), (PYDRIZZLE_DATA_DIR, PYDRIZZLE_DATA_FILES)  ]
 
-EXTENSIONS = PYRAF_EXTENSIONS + PYDRIZZLE_EXTENSIONS + IMAGESTATS_EXTENSIONS
+EXTENSIONS = PYDRIZZLE_EXTENSIONS + IMAGESTATS_EXTENSIONS
 
-if sys.platform == 'win32':
-    PACKAGES.remove('pyraf')
-    del(PACKAGE_DIRS['pyraf'])
-    PACKAGES.remove('saaclean')
-    del(PACKAGE_DIRS['saaclean'])
-    PACKAGES.remove('puftcorr')
-    del(PACKAGE_DIRS['puftcorr'])
-    PACKAGES.remove('rnlincor')
-    del(PACKAGE_DIRS['rnlincor'])
-    #remove pyraf's data files
-    DATA_FILES = [(NUMDISPLAY_DATA_DIR, NUMDISPLAY_DATA_FILES), (IMAGESTATS_DATA_DIR, IMAGESTATS_DATA_FILES), (MULTIDRIZZLE_DATA_DIR, MULTIDRIZZLE_DATA_FILES), (PYDRIZZLE_DATA_DIR, PYDRIZZLE_DATA_FILES)]
+SCRIPTS = None
+#Only try to build PyRAF if the pyraf directory exists locally
+# and we're not on a windwos platform
+if os.path.exists(os.path.join('pyraf')) and sys.platform != 'win32':
+    PACKAGES.append('pyraf')
+    PACKAGE_DIRS['pyraf']='pyraf/lib'
+    PYRAF_DATA_DIR = os.path.join('pyraf')
+    PYRAF_CLCACHE_DIR = os.path.join('pyraf', 'clcache')
+    EXTENSIONS = EXTENSIONS + PYRAF_EXTENSIONS
+    DATA_FILES.extend([(PYRAF_DATA_DIR, PYRAF_DATA_FILES), (PYRAF_CLCACHE_DIR, PYRAF_CLCACHE)])
+    SCRIPTS = ['pyraf/lib/pyraf']
 
-    EXTENSIONS = PYDRIZZLE_EXTENSIONS + IMAGESTATS_EXTENSIONS
-    
+#Only install pyfits if the pyfits directory exists locally
+if os.path.exists(os.path.join('pyfits')):
+    PACKAGES.append('pyfits')
+    PACKAGE_DIRS['pyfits']='pyfits/lib'
+
+                     
 class smart_install_data(install_data):
     def run(self):
         #need to change self.install_dir to the library dir
@@ -103,7 +105,7 @@ class smart_install_data(install_data):
         return install_data.run(self)
 
 setup(name="STScI Python Software",
-      version="2.4",
+      version="2.5",
       description="",
       author="Science Software Branch, STScI",
       maintainer_email="help@stsci.edu",
@@ -113,7 +115,7 @@ setup(name="STScI Python Software",
       package_dir = PACKAGE_DIRS,
       cmdclass = {'install_data':smart_install_data},
       data_files = DATA_FILES,
-      scripts = ['pyraf/lib/pyraf'],
+      scripts = SCRIPTS,
       ext_modules = EXTENSIONS,
       )
 
