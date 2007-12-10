@@ -1509,6 +1509,10 @@ doublereal mgf2_(doublereal *lam)
 		    xcorn += (doublereal) xg[ix + iy * xg_dim1];
 		    ycorn += (doublereal) yg[ix + iy * yg_dim1];
 		}
+		xcorn = xcorn + *beta * (xcorn - xcen) / xcen + *alpha * (
+			ycorn - ycen) / ycen;
+		ycorn = ycorn - *beta * (ycorn - ycen) / ycen + *alpha * (
+			xcorn - xcen) / xcen;
 /* Apply the linear transform */
 /* There are two ways this can be done - shift then */
 /* rotate or rotate then shift */
@@ -1592,6 +1596,10 @@ doublereal mgf2_(doublereal *lam)
 		    xcorn += (doublereal) xg[ix + iy * xg_dim1];
 		    ycorn += (doublereal) yg[ix + iy * yg_dim1];
 		}
+		xcorn = xcorn + *beta * (xcorn - xcen) / xcen + *alpha * (
+			ycorn - ycen) / ycen;
+		ycorn = ycorn - *beta * (ycorn - ycen) / ycen + *alpha * (
+			xcorn - xcen) / xcen;
 /* Apply the linear transform */
 /* There are two ways this can be done - shift then */
 /* rotate or rotate then shift */
@@ -1660,6 +1668,10 @@ doublereal mgf2_(doublereal *lam)
 		    xcorn += (doublereal) xg[ix + iy * xg_dim1];
 		    ycorn += (doublereal) yg[ix + iy * yg_dim1];
 		}
+		xcorn = xcorn + *beta * (xcorn - xcen) / xcen + *alpha * (
+			ycorn - ycen) / ycen;
+		ycorn = ycorn - *beta * (ycorn - ycen) / ycen + *alpha * (
+			xcorn - xcen) / xcen;
 /* Apply the linear transform */
 /* There are two ways this can be done - shift then */
 /* rotate or rotate then shift */

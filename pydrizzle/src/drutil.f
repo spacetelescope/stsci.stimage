@@ -1205,6 +1205,11 @@ C If we have a distortion image we add here
             XCORN=XCORN+DBLE(XG(IX,IY))
             YCORN=YCORN+DBLE(YG(IX,IY))
          ENDIF
+		 
+	   XCORN = XCORN + BETA*(XCORN-XCEN)/XCEN +
+     :                 ALPHA*(YCORN-YCEN)/YCEN
+       YCORN = YCORN - BETA*(YCORN-YCEN)/YCEN +
+     :                 ALPHA*(XCORN-XCEN)/XCEN
 
          
 C Apply the linear transform
@@ -1276,6 +1281,11 @@ C (Removed the offsets because they cause a segfault, March, 2006)
             YCORN=YCORN+DBLE(YG(IX,IY))
          ENDIF
 
+	   XCORN = XCORN + BETA*(XCORN-XCEN)/XCEN +
+     :                 ALPHA*(YCORN-YCEN)/YCEN
+       YCORN = YCORN - BETA*(YCORN-YCEN)/YCEN +
+     :                 ALPHA*(XCORN-XCEN)/XCEN
+
 C Apply the linear transform
 C There are two ways this can be done - shift then
 C rotate or rotate then shift
@@ -1327,6 +1337,11 @@ C If we have a distortion image we add here
             XCORN=XCORN+DBLE(XG(IX,IY))
             YCORN=YCORN+DBLE(YG(IX,IY))
          ENDIF
+
+	   XCORN = XCORN + BETA*(XCORN-XCEN)/XCEN +
+     :                 ALPHA*(YCORN-YCEN)/YCEN
+       YCORN = YCORN - BETA*(YCORN-YCEN)/YCEN +
+     :                 ALPHA*(XCORN-XCEN)/XCEN
 
 C Apply the linear transform
 C There are two ways this can be done - shift then
