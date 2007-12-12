@@ -158,7 +158,7 @@ C Get geometric distortion coefficients
       IDD = 0
       CALL GETGEO(COEFFS,IDD,LAM,COTY,COMAX,CONUM,
      :                  XCO,YCO,CLEN,ISTAT)
-      IF(ISTAT.NE.0) RETURN
+      IF(ISTAT.NE.0) CALL EXIT(1)
 
 C Set DISIM logical based on whether distortion images have
 C  been passed in for use or not.

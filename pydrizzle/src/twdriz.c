@@ -62,6 +62,7 @@ doublereal twdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
     static logical fill;
     static integer ncon[1]	/* was [1][1] */;
     static real drot;
+    extern /* Subroutine */ int exit_(integer *);
     static integer xmin, ymin, xmax, ymax, coty;
     static char shfr2[8];
     static logical rotf2;
@@ -227,7 +228,7 @@ doublereal twdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
     getgeo_(coeffs, &idd, &lam, &coty, &c__100, &conum, xco, yco, clen, &
 	    istat, (ftnlen)80);
     if (istat != 0) {
-	return ret_val;
+	exit_(&c__1);
     }
 /* Set DISIM logical based on whether distortion images have */
 /*  been passed in for use or not. */
