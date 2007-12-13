@@ -146,7 +146,7 @@ class GeometryModel:
         lines = []
 
 
-        lines.append('# ACS polynomial distortion coefficients\n')
+        lines.append('# Polynomial distortion coefficients\n')
         lines.append('# Extracted from "%s" \n'%self.name)
         lines.append('refpix %f %f \n'%(xr,yr))
         if self.norder==3:
