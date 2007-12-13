@@ -119,7 +119,7 @@ if os.path.exists(os.path.join('pyfits')):
 if os.path.exists(os.path.join('pysynphot')):
     PACKAGES.append('pysynphot')
     PACKAGE_DIRS['pysynphot']='pysynphot/lib'
-    PYSYNPHOT_DATA_DIR = os.path.join('pysynphot')
+    PYSYNPHOT_DATA_DIR = os.path.join('pysynphot','data')
     DATA_FILES.extend([(PYSYNPHOT_DATA_DIR, PYSYNPHOT_DATA_FILES)])
 
                   
