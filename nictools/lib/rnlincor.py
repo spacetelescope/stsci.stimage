@@ -25,8 +25,8 @@ Dependencies:
 
 """
 
-__version__="0.75"
-__vdate__="2007-11-30"
+__version__="0.8"
+__vdate__="2007-12-14"
 
 from pytools import numerixenv #Temporary NUMERIX environment check 
 
@@ -263,7 +263,7 @@ def rnlincor(infile,outfile,**opt):
     try:
         skyval=f[imgext].header['skyval']
         print "Sky subtraction detected: compensating"
-        img=img-skyval
+        img=img+skyval
     except KeyError:
         skyval=None
 
@@ -312,9 +312,11 @@ def rnlincor(infile,outfile,**opt):
     #Apply the correction
     img*=mul
 
-    #If the sky subtraction was added in, take it back out
+    #If the sky subtraction was added in, take it back out.
+    #Use the mean value of the correction so that the skyval taken
+    #back out is a constant, like the one added in earlier.
     if skyval is not None:
-        img -= skyval*mul
+        img -= skyval*mul.mean()
 
     #Update the HDUlist and write out results
     update_data(f,imgext,img,mul)
