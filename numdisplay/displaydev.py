@@ -377,7 +377,7 @@ class ImageDisplay:
         """ Reads data from x,y position in active frame.""" 
     
         opcode = self._IIS_READ | self._PACKED
-        nbytes = pix.nelements() * pix.itemsize()
+        nbytes = pix.size * pix.itemsize
         frame = 1 << (self.frame-1)
         self._writeHeader(opcode,self._MEMORY, -nbytes, x, y, frame, 0)
         
