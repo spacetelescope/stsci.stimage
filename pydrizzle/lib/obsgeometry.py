@@ -966,14 +966,14 @@ class ObsGeometry:
         xin = [0] * 4
         yin = [0] * 4
 
-        xin[0]=1.
-        xin[1]=1.
+        xin[0]=0.
+        xin[1]=0.
         xin[2]=self.wcs.naxis1
         xin[3]=self.wcs.naxis1
-        yin[0]=1.
+        yin[0]=0.
         yin[1]=self.wcs.naxis2
         yin[2]=self.wcs.naxis2
-        yin[3]=1.
+        yin[3]=0.
 
         corners[:,0] = xin
         corners[:,1] = yin
