@@ -29,9 +29,9 @@ The sole input for this task is the filename of the WFPC2 image.
 
 OUTPUT:    
 The keywords which get updated are:
-    CTE100    - CTE for a source with an intensity of 100 electrons 
-    CTE1000   - CTE for a source with an intensity of 100 electrons
-    CTE10000  - CTE for a source with an intensity of 100 electrons
+    CTE_1E2  - CTE for a source with an intensity of 100 electrons 
+    CTE_1E3  - CTE for a source with an intensity of 1000 electrons
+    CTE_1E4  - CTE for a source with an intensity of 10000 electrons
 
 SYNTAX:
 This task can be run on an input WFPC2 image using either of the following 
@@ -57,41 +57,44 @@ import pyfits
 import pytools
 from pytools import readgeis,fileutil
 import imagestats
-__version__ = '0.1.0 (6-Nov-2007)'
+__version__ = '1.0 (19-Dec-2007)'
 
 # This contains the default values in electrons for the CTE sources
 DEFAULT_COUNTS = np.array([100,1000,10000],np.float32)
 
-def compute_chip_values(extn):
+chip_bg_factor = 10
+chip_lbg_factor = 1
+chip_lct_factor = 7
+
+def compute_chip_values(extn,nclip=3):
     chip_values = {}
     
-    # Read in required keywords from image headers
-    photflam = extn.header['photflam']
-    photzpt = extn.header['photzpt']
-
-    # Compute magnitudes for all the cases
-    chip_values['mags'] = -2.5 * np.log10(DEFAULT_COUNTS * photflam) + photzpt
-    chip_values['lct'] = np.log(DEFAULT_COUNTS) - 7
-
     # Determine the center of the chip as (Y,X)
     chip_shape = extn.data.shape
     chip_center = (chip_shape[0]/2.,chip_shape[1]/2.)
     chip_values['center'] = (chip_center[0] / 800.,chip_center[1]/800.)
-    center_region = extn.data[chip_center[0]-100.:chip_center[0]+100.,
-                              chip_center[1]-100.:chip_center[1]+100.]
+    center_slice = [slice(chip_center[0]-100.,chip_center[0]+100.),
+                    slice(chip_center[1]-100.,chip_center[1]+100.)]
+    center_region = extn.data[center_slice]
 
     # Compute the background as the clipped mode of the region.
-    chip_stats = imagestats.ImageStats(center_region,fields='mode',nclip=3)
-    chip_background = np.sqrt(np.power(chip_stats.mode,2) + 1)
-    chip_values['lbg'] = np.log(chip_background) - 1
-    chip_values['bg'] = chip_background - 10    
+    chip_stats = imagestats.ImageStats(center_region,fields='mode',
+                                    lower=-99.0,upper=4096.,
+                                    nclip=nclip,binwidth=0.01)
+    #chip_background = np.sqrt(np.power(chip_stats.mode,2) + 1)
+    chip_background = chip_stats.mode
+    chip_values['bg_raw'] = chip_background
+    chip_values['lbg'] = np.log(chip_background) - chip_lbg_factor
+    chip_values['bg'] = chip_background - chip_bg_factor    
+
+    # Compute e^(counts) for all the cases
+    chip_values['lct'] = np.log(DEFAULT_COUNTS) - chip_lct_factor
     
     return chip_values
     
-    
 def compute_XCTE(xpos,bg):
 
-    return 0.0021*np.exp(-0.234*bg)*xpos/800.
+    return 0.0021*np.exp(-0.234*bg)*xpos
     
 def compute_YCTE(chip_values,yr,xcte):
 
@@ -103,7 +106,7 @@ def compute_YCTE(chip_values,yr,xcte):
     lct = chip_values['lct']
     lct += 0.921*xcte
 
-    c1 = 0.0114*(0.670*np.exp(-0.246*lbg)+0.330*np.exp(-0.0359*bg))*(1.+0.335*yr-0.0074*yr*yr)*ypos/800.
+    c1 = 0.0114*(0.670*np.exp(-0.246*lbg)+0.330*np.exp(-0.0359*bg))*(1.+0.335*yr-0.0074*yr*yr)*ypos
     c2 = 3.55*np.exp(-0.474*lct)
     ycte = np.log(np.exp(c1)*(1+c2)-c2)/0.436 
 
@@ -111,15 +114,15 @@ def compute_YCTE(chip_values,yr,xcte):
     
     
 def update_CTE_keywords(hdr, cte,quiet=False):
-    hdr.update('CTE100',cte[0])
-    hdr.update('CTE1000',cte[1],after='CTE100')
-    hdr.update('CTE10000',cte[2],after='CTE1000')
+    hdr.update('CTE_1E2',cte[0])
+    hdr.update('CTE_1E3',cte[1],after='CTE_1E2')
+    hdr.update('CTE_1E4',cte[2],after='CTE_1E3')
     if not quiet:
-        print 'CTE100   = ',cte[0]
-        print 'CTE1000  = ',cte[1]
-        print 'CTE10000 = ',cte[2]
+        print 'CTE_1E2   = ',cte[0]
+        print 'CTE_1E3  = ',cte[1]
+        print 'CTE_1E4 = ',cte[2]
     
-def compute_CTE(filename,quiet=True):
+def compute_CTE(filename,quiet=True,nclip=3):
 
     newname = None
     if filename.find('.fits') < 0:
@@ -148,12 +151,16 @@ def compute_CTE(filename,quiet=True):
 
     for extn in fimg[1:]:
         if extn.header['extname'] == 'SCI':
-            chip_values = compute_chip_values(extn)
+            chip_values = compute_chip_values(extn,nclip=nclip)
                 
             # Compute XCTE and YCTE for all sources
             xcte = compute_XCTE(chip_values['center'][1],chip_values['bg'])
             ycte = compute_YCTE(chip_values, obs_mjd,xcte)
-            total_cte = xcte + ycte
+            if not quiet:
+                print 'Background computed to be: ',chip_values['bg_raw']
+            
+            # According to Eqn. 4 from Dolphin (2000, PASP, 112, 1397).
+            total_cte = xcte*chip_values['center'][1] + ycte*chip_values['center'][0]
             
             update_CTE_keywords(extn.header, total_cte,quiet=quiet)
 
@@ -162,13 +169,13 @@ def compute_CTE(filename,quiet=True):
         
     # If a GEIS image was used as the original input, update the new FITS file
     if update_mode == 'readonly':
-        fimg.writeto(newname)
+        fimg.flush(newname)
 
     # Close the file
     fimg.close()
            
-def run(filename):
-    compute_CTE(filename)
+def run(filename,quiet=True,nclip=3):
+    compute_CTE(filename,quiet=quiet,nclip=nclip)
 
 def help():
     print __doc__
