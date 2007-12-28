@@ -1251,15 +1251,15 @@ class ACSObservation(Pattern):
         # Compute the time dependent distrotion skew terms
 
         # default date of 2004.5 = 2004-7-1
-        if self.header['DETECTOR'] == 'WFC':
-            datedefault = datetime.datetime(2004,7,1)
-            year,month,day = self.header['date-obs'].split('-')
-            rdate = datetime.datetime(int(year),int(month),int(day))
-            self.alpha = 0.095+0.090*((rdate-datedefault).days/365.25)/2.5
-            self.beta = -0.029-0.030*((rdate-datedefault).days/365.25)/2.5
-        else:
-            self.alpha = 0
-            self.beta  = 0
+        #if self.header['DETECTOR'] == 'WFC':
+            #datedefault = datetime.datetime(2004,7,1)
+            #year,month,day = self.header['date-obs'].split('-')
+            #rdate = datetime.datetime(int(year),int(month),int(day))
+            #self.alpha = 0.095+0.090*((rdate-datedefault).days/365.25)/2.5
+            #self.beta = -0.029-0.030*((rdate-datedefault).days/365.25)/2.5
+        #else:
+        self.alpha = 0
+        self.beta  = 0
 
 
 class STISObservation(Pattern):
