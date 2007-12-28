@@ -70,7 +70,7 @@ SZ_BLOCK = 16384
 _default_imtdev = ("unix:/tmp/.IMT%d", "fifo:/dev/imt1i:/dev/imt1o","inet:5137")
 _default_fbconfig = 3
    
-class ImageWCS:
+class ImageWCS(object):
     _W_UNITARY = 0
     _W_LINEAR = 1
     _W_LOG = 2
@@ -223,7 +223,7 @@ def _open(imtdev=None):
                                     % imtdev)
 
 
-class ImageDisplay:
+class ImageDisplay(object):
 
     """Interface to IRAF-compatible image display"""
 
@@ -304,7 +304,7 @@ class ImageDisplay:
                 _fbconfig = int(fb)
                 break
         if not _fbconfig:
-            # If not mathcing configuration found, 
+            # If no matching configuration found, 
             # default to 'imt1024'
             _fbconfig = _default_fbconfig
             
@@ -439,6 +439,21 @@ class ImageDisplay:
         
         wcsinfo.update(self._read(self._SZ_WCSBUF))
         return wcsinfo
+
+    def readInfo(self):
+        """Read tx and ty from active frame of display device."""
+
+        frame = 1 << (self.frame-1)
+
+        self._writeHeader(self._IIS_READ, self._WCS, 0,0,0,frame,0)
+
+        wcsstr = self._read(self._SZ_WCSBUF)
+        _wcs = wcsstr.split()
+        tx = int(round(float(_wcs[5])))
+        ty = int(round(float(_wcs[6])))
+        # print "debug: ", wcsstr
+
+        return (tx, ty, self.fbwidth, self.fbheight)
 
     def syncWCS(self,wcsinfo):
 

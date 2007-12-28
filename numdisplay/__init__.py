@@ -106,7 +106,7 @@ __version__ = "1.3 (6-JUN-2007)"
 #
 
 
-class NumDisplay:
+class NumDisplay(object):
     """ Class to manage the attributes and methods necessary for displaying
         the array in the image display tool.
 
@@ -116,6 +116,7 @@ class NumDisplay:
             close():
 
             set(z1=None,z2=None,scale=None,factor=None,frame=None):
+            reset(names=None)
 
             display(pix, name=None, bufname=None):
 
@@ -168,36 +169,54 @@ class NumDisplay:
 
         if contrast != None:
             self.contrast = contrast
-        else:
-            self.contrast = None
 
         if z1 != None:
             self.z1 = z1
             self.zrange = 1  # 1 == True
-        else:
-            self.z1=None
 
         if z2 != None:
             self.z2 = z2
             self.zrange = 1  # 1 == True
-        else:
-            self.z2=None
 
 
         if transform:
             self.transform = transform
-        else:
-            self.transform = self._noTransform
 
         if scale != None:
             self.scale = scale
-        else:
-            self.scale = None
 
         if offset:
             self.offset = offset
+
+    def reset(self, names=None):
+        """Reset specific attributes, or all by default.
+
+        @param names: names of attributes to be reset, separated by commas
+            or spaces; the default is to reset all attributes to None
+        @type names: string or list of strings
+        """
+
+        if names:
+            if isinstance(names, str):
+                names = names.replace(",", " ")
+                names = names.split()
+            for name in names:
+                if name == "transform":
+                    self.transform = self._noTransform
+                elif name == "zrange":
+                    self.zrange = 0     # False
+                else:
+                    self.__setattr__(name, None)
+            if "z1" in names or "z2" in names:
+                self.zrange = 0         # False
         else:
+            self.contrast = None
+            self.z1 = None
+            self.z2 = None
+            self.transform = self._noTransform
+            self.scale = None
             self.offset = None
+            self.zrange = 0             # False
 
     def _noTransform(self, image):
         """ Applies NO transformation to image. Returns original.
@@ -224,11 +243,12 @@ class NumDisplay:
             status = "Image scaled to all one pixel value!"
             return bimage
         else:
-            scale =  _pmax / (iz2 - iz1 + 1)
+            scale =  (_pmax - _pmin) / (iz2 - iz1)
 
         # Now we can scale the pixels using a linear scale only (for now)
-        # Add '1' to clip value to account for zero indexing
-        bimage = n.clip(((image - iz1+1) * scale),_pmin,_pmax)
+        # Scale the pixel values:  iz1 --> _pmin, iz2 --> _pmax
+        bimage = (image - iz1) * scale + _pmin
+        bimage = n.clip(bimage,_pmin,_pmax)
         bimage = n.array(bimage,dtype=n.uint8)
 
         status = 'Image scaled to Z1: '+repr(iz1)+' Z2: '+repr(iz2)+'...'
