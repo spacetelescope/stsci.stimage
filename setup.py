@@ -7,7 +7,6 @@ from distutils.command.install_data import install_data
 
 from cfg_pyraf import PYRAF_DATA_FILES, PYRAF_SCRIPTS, PYRAF_EXTENSIONS, PYRAF_CLCACHE
 from cfg_pydrizzle import PYDRIZZLE_EXTENSIONS
-from cfg_modules import STIS_MODULES
 from cfg_imagestats import IMAGESTATS_EXTENSIONS
 from cfg_calcos import CALCOS_EXTENSIONS
 from cfg_pysynphot import PYSYNPHOT_DATA_FILES
@@ -23,7 +22,7 @@ args = sys.argv[2:]
 
 PACKAGES = ['calcos','numdisplay', 'imagestats',
             'multidrizzle', 'pydrizzle', 'pydrizzle.traits102',
-            'pytools', 'nictools']
+            'pytools', 'nictools', 'stistools', 'wfpc2tools']
 
 #The normal directory structure is {packagename:packagename/lib.}
 PACKAGE_DIRS = {}
@@ -34,9 +33,6 @@ PACKAGE_DIRS['numdisplay']='numdisplay'
 PACKAGE_DIRS['pydrizzle.traits102']='pydrizzle/traits102'
 
 
-PYMODULES = STIS_MODULES
-
-    
 for a in args:
     if a.startswith('--local='):
         dir = os.path.abspath(a.split("=")[1])
@@ -46,18 +42,7 @@ for a in args:
                 ])
         sys.argv.remove(a)
         args.remove(a)
-    elif a.startswith('--clean_dist'):
-        for f in PYMODULES:
-            print "cleaning distribution ..."
-            file = f + '.py'
-            try:
-                os.unlink(file)
-            except OSError: pass
-        sys.argv.remove(a)
-        sys.exit(0)
 
-    else:
-        print "Invalid argument  %s", a
 
 class smart_install_data(install_data):
     def run(self):
@@ -122,14 +107,6 @@ if os.path.exists(os.path.join('pysynphot')):
     PYSYNPHOT_DATA_DIR = os.path.join('pysynphot','data')
     DATA_FILES.extend([(PYSYNPHOT_DATA_DIR, PYSYNPHOT_DATA_FILES)])
 
-                  
-class smart_install_data(install_data):
-    def run(self):
-        #need to change self.install_dir to the library dir
-        install_cmd = self.get_finalized_command('install')
-        self.install_dir = getattr(install_cmd, 'install_lib')
-        return install_data.run(self)
-
 setup(name="STScI Python Software",
       version="2.5",
       description="",
@@ -137,7 +114,6 @@ setup(name="STScI Python Software",
       maintainer_email="help@stsci.edu",
       url="http://www.stsci.edu/resources/software_hardware/index_html?category=Data_Analysis",
       packages = PACKAGES,
-      py_modules = PYMODULES,
       package_dir = PACKAGE_DIRS,
       cmdclass = {'install_data':smart_install_data},
       data_files = DATA_FILES,
