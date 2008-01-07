@@ -15,7 +15,7 @@ import pydrizzle
 from pydrizzle import buildasn
 from pytools import fileutil,wcsutil
 
-IDCKEYS = {'WFPC2':'cubic','ACS':'idctab','STIS':'cubic','NICMOS':'cubic','detector':'idctab'}
+IDCKEYS = {'WFPC2':'idctab','ACS':'idctab','STIS':'cubic','NICMOS':'cubic','detector':'idctab'}
 yes = True
 no = False
 
