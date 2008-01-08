@@ -27,12 +27,14 @@
 #          11/09/07 - made script usable also as a unix standlaone program; output keywords for
 #                     pyr_mean, pyr_sigma, im_mean, im_sigma
 #          11/15/07 - added check for number of good values in image; will abort without correction if there are none
+#          01/08/08 - to eliminate cases in which NSIGMA < 0, switched CR rejection method for image region
+#                     to use cr_reject(), as pyramid region does; forced line slope fit to be 0.0 in both regions 
 #
 # Outline:
 #
 # 1. In the pyramid region, eliminate the CRs, then calculate the mean (pyr_mean) and sigma (pyr_sigma)
-# 2. In the 'interior' image region (starting to the right of the pyramid region), use iterative sigma
-#    clipping to calculate the mean (im_mean) and sigma (im_sigma)
+# 2. In the 'interior' image region (starting to the right of the pyramid region), eliminate the CRs, and
+#      calculate the mean (im_mean) and sigma (im_sigma)
 # 3. Calculate how high above the pyr values the image values are by:
 #        im_mean = pyr_mean + NSIGMA*pyr_sigma
 # 4. Determine which correction algorithm to use and apply it:
@@ -45,9 +47,9 @@
 #     - In the leading columns (2->group-specific value ), cosmic rays are identified and
 #         masked in the d0f data
 #     - For each row within these columns, the mean is calculated of the unmasked
-#         pixels; for all rows the global mean is calculated
+#         pixels; for all rows the 'global pyramid mean' is calculated
 #     - For each row, the smoothed mean is calculated over 3 rows
-#     - For each row in the image, the difference between the smoothed mean and the global
+#     - For each row in the image, the difference between the smoothed mean and the 'global pyramid mean'
 #         is subtracted from the c0f data
 #
 # ... and Pass2 is done as follows:
@@ -59,7 +61,7 @@
 #         is subtracted from the c0f data
 #
 # 5. The modified c0f data is written to a new file; e.g. "u8zq0104m_bjc_4.fits" for group 4
-#     
+#      
 # Usage :
 #     For a dataset with multiple groups, to process group 4: hal> ./wfpc2destreak.py -q "u8zq0104m_d0f.fits" 4
 #     For a dataset with a single group: hal> ./wfpc2destreak.py -v "u9wp0401m_d0f.fits"  0
@@ -110,7 +112,7 @@ class Wfpc2destreak:
         group = int(self.group)
         verbosity = self.verbosity
 
-        # read data from d0f file:
+    # read data from d0f file:
         fh_d0f = pyfits.open(input_file)
         data_cube = fh_d0f[0].data
 
@@ -121,12 +123,12 @@ class Wfpc2destreak:
             
         xsize = fh_d0f[0].header.get( "NAXIS1"); ysize = fh_d0f[0].header.get( "NAXIS2")
 
-        # read data from c0f file:   
+    # read data from c0f file:   
         c0f_prefix = input_file.split('_')[0]    
         c0f_file = c0f_prefix + str("_c0f.fits")
         fh_c0f = pyfits.open(c0f_file) 
 
-       # read header from appropriate group in c0h file and make cardlist  
+    # read header from appropriate group in c0h file and make cardlist  
         c0h_file = c0f_prefix + str(".c0h")
  
         c0_group_hdr = (readgeis.readgeis( c0h_file ))[group].header        
@@ -134,11 +136,11 @@ class Wfpc2destreak:
 
         if (verbosity >=1 ): print 'Getting header information from c0h_file =', c0h_file 
 
-       # read primary header in c0h file and make cardlist 
+    # read primary header in c0h file and make cardlist 
         c0_pr_hdr = (readgeis.readgeis( c0h_file ))[0].header
         p_hdr_c =  c0_pr_hdr.ascardlist()
 
-       # combine group cardlist and primary cardlist starting with WFPC2 keywords, and make header from it 
+    # combine group cardlist and primary cardlist starting with WFPC2 keywords, and make header from it 
         new_hdr_c = group_hdr_c + p_hdr_c     
         new_h = pyfits.Header (cards = new_hdr_c )
 
@@ -169,14 +171,15 @@ class Wfpc2destreak:
 
         BlackLevel = d0f_data[:,col_min:col_max]
 
-        mask = black_cr_reject(BlackLevel)    
+        mask = cr_reject(BlackLevel)    
         mask_2d = N.resize( mask, [BlackLevel.shape[0], BlackLevel.shape[1]])    
         masked_BlackLevel = BlackLevel * (1-mask_2d)  # gives 0 where there are Cosmic rsys
 
     # calculate global mean from all unmasked pixels in d0f file
         d0f_data_pix = N.where( masked_BlackLevel > 0.0)
         all_good_data = masked_BlackLevel[ d0f_data_pix ]
-        glob_mean = all_good_data.mean()
+        
+        glob_pyr_mean = all_good_data.mean() 
         pyr_mean = all_good_data.mean()  # clipped pyramid mean of d0f data 
         pyr_sigma = all_good_data.std()  # clipped pyramid sigma of d0f data
 
@@ -184,7 +187,7 @@ class Wfpc2destreak:
         for i_row in range( 0, ysize-1 ):
            row_data_a = masked_BlackLevel[i_row,:].astype( N.float64) 
 
-           if (row_data_a.std() <> 0.0) or (row_data_a.mean() <> 0.0   ):# for cases in which all values are 0.0
+           if (row_data_a.std() <> 0.0) or (row_data_a.mean() <> 0.0 ):# for cases in which all values are 0.0
              row_data_pix = N.where( row_data_a > 0.0)
              good_row_data = row_data_a[ row_data_pix ]
              good_row_mean[ i_row ] = good_row_data.mean()
@@ -193,30 +196,22 @@ class Wfpc2destreak:
 
         smoothed_row_mean = boxcar( good_row_mean,(3,))  # smooth row mean over 3 rows
 
-    # do iterative sigma clipping on all 'interior' d0f pixels
-        int_d0f_data = d0f_data[ ix_min:xsize-1, iy_min:ysize-1 ] 
-        for ii_iter in range(4):
-              if ( ii_iter == 0):
-                 int_d0f_mean1 = int_d0f_data.mean()
-                 int_d0f_std1 = int_d0f_data.std()
-              else:
-                 int_d0f_mean1 = good_val.mean()
-                 int_d0f_std1 = good_val.std()
+    # perform CR rejection on desired subarray of image section 
+        image_data = d0f_data[ ix_min:xsize-1, iy_min:ysize-1 ] 
+        im_mask = cr_reject(image_data)
+        im_mask_2d = N.resize( im_mask, [image_data.shape[0], image_data.shape[1]])    
+        masked_image = image_data * (1-im_mask_2d)  # gives 0 where there are Cosmic rsys
 
-              good_pix = N.where((( int_d0f_data < (int_d0f_mean1 + (NUM_SIG*int_d0f_std1))) &
-                                  (( int_d0f_data > (int_d0f_mean1 - (NUM_SIG*int_d0f_std1))))))
-              good_val =  int_d0f_data[good_pix]
+    # calculate image mean from all unmasked pixels in image data
+        good_image_pix = N.where( masked_image > 0.0)
+        good_image_data = masked_image[ good_image_pix ]
+    
+        if (len(good_image_data) < 1 ):  # no good values in image, so will abort this run, making no correction
+             opusutil.PrintMsg("F","ERROR - unable to calculate statistics on image, so will perform no correction")
+             sys.exit( ERROR_RETURN)
 
-              good_val = good_val.astype(N.float32)
-              if ( good_val.size == 0 ):
-                 break
-
-        if (len(good_val) < 1 ):  # no good values in image, so will abort this run, making no correction
-              opusutil.PrintMsg("F","ERROR - unable to calculate statistics on image, so will perform no correction")
-              sys.exit( ERROR_RETURN)
-        
-        im_mean = good_val.mean()
-        im_sigma =good_val.std()
+        im_mean = good_image_data.mean()
+        im_sigma =good_image_data.std()
 
         if (verbosity >1 ):
            print 'For the pyramid region: clipped mean = ' ,  pyr_mean, ', clipped_sigma = ' ,  pyr_sigma
@@ -259,14 +254,14 @@ class Wfpc2destreak:
           #         columns and global mean in the d0f data from the c0f data, updating data in c0f file   
            to_subtract_1 = N.zeros((ysize),dtype = N.float32)     
            for i_row in range( 0, xsize-1 ):
-              to_subtract_1[ i_row ] = smoothed_row_mean[ i_row ]- glob_mean
+              to_subtract_1[ i_row ] = smoothed_row_mean[ i_row ]- glob_pyr_mean
               new_c0f_data[i_row,col_max+1:] = c0f_data[i_row,col_max+1:] - to_subtract_1[ i_row ]  
         elif ( alg_type == "PASS12"): # do both Pass 1 & 2; Case B
           # PASS 1: for first correction, subtract difference between smoothed row mean from leading
           #         columns and global mean in the d0f data from the c0f data, updating data in c0f file   
            to_subtract_1 = N.zeros((ysize),dtype = N.float32)     
            for i_row in range( 0, xsize-1 ):
-              to_subtract_1[ i_row ] = smoothed_row_mean[ i_row ]- glob_mean
+              to_subtract_1[ i_row ] = smoothed_row_mean[ i_row ]- glob_pyr_mean
               new_c0f_data[i_row,col_max+1:] = c0f_data[i_row,col_max+1:] - to_subtract_1[ i_row ]  
           # PASS 2: for second correction, calculate row mean over entire c0f image using iterative sigma clipping and
           #         subtract difference between this row mean and the global mean    
@@ -286,24 +281,34 @@ class Wfpc2destreak:
                  else:
                       mean1 = good_val.mean()
                       std1 = good_val.std()
+                      
                  good_pix = N.where(((row_data_b < (mean1 + (NUM_SIG*std1))) & ((row_data_b > (mean1 - (NUM_SIG*std1))))))
                  good_val = row_data_b[good_pix]
                  good_val = good_val.astype(N.float32)
                  if ( good_val.size == 0 ):
                       break
 
-                 clip_row_mean[ i_row] = good_val.mean() 
+                 clip_row_mean[ i_row] = good_val.mean()
 
             # for each row, subtract difference between clipped mean and global clipped mean 
-           glob_clip_mean = clip_row_mean[1:ysize-2].mean() # calculate global clipped mean
+           glob_im_clip_mean = clip_row_mean[1:ysize-2].mean() # calculate global clipped mean
            for i_row in range (1, ysize-2 ):
-              to_subtract_2[ i_row ] = clip_row_mean[ i_row ]- glob_clip_mean
+              to_subtract_2[ i_row ] = clip_row_mean[ i_row ]- glob_im_clip_mean
               new_c0f_data[i_row,col_max+1:] -=  to_subtract_2[ i_row ]
+
         else: # will apply no correction; Cases A and C
            new_c0f_data = c0f_data.copy().astype(N.float32) 
 
         file_prefix = input_file.split('.')[0]
         outfile = c0f_prefix + str('_bjc_')+str(group)+str('.fits')
+
+        if (verbosity >=1 ):
+            print ' NSIGMA = ' , nsigma  
+            print ' PYRMEAN = ' , pyr_mean
+            print ' PYRSIGMA=  ', pyr_sigma
+            print ' IMMEAN  =   ', im_mean
+            print ' IMSIGMA =  ', im_sigma
+            print ' CORR_ALG =  ', alg_type
 
         write_to_file(new_c0f_data, outfile, new_h, alg_type, alg_cmt, verbosity, pyr_mean, pyr_sigma, im_mean, im_sigma)
 
@@ -324,7 +329,7 @@ class Wfpc2destreak:
 
 # end of class Wfpc2destreak
 
-def black_cr_reject(  BlackLevel):
+def cr_reject(  BlackLevel):
            
         """Identify and replace cosmic rays in the black level.
 
@@ -362,7 +367,7 @@ def black_cr_reject(  BlackLevel):
             intercept, normalized by BlackVariance.
        """
 
-        n_mad=15.; n_rms=[4., 4., 3.5]; n_neighbor=[2.5, 2.5, 2.5]
+        n_mad=15.; n_rms=[4., 4., 3.5]; n_neighbor=[2.5, 2.5, 2.5] 
 
         # Number of iterations in the loop to reject outliers.
         niter = len( n_rms)
@@ -391,6 +396,8 @@ def black_cr_reject(  BlackLevel):
 
         # fit is a straight line passing through (line0,y0) & (line1,y1).
         slope = (y1 - y0) / (line1 - line0)
+        slope = 0.0 # forcing, as non-zero value is not expected, and for consistency between regions (010808)
+
         fit = slope * linenum + (y0 - slope * line0)
         residual = black0 - fit.repeat( nx)
 
@@ -400,6 +407,7 @@ def black_cr_reject(  BlackLevel):
 
         # First find very bright cosmic rays (large, positive outliers).
         cr = N.where( residual > (n_mad * mad), 1, 0)
+        
         # Replace points identified as cosmic rays by the value of the
         # fit at that point; this is not really necessary because we'll
         # ignore currently identified cosmic rays when doing the fit.
@@ -418,6 +426,7 @@ def black_cr_reject(  BlackLevel):
             labels = N.where( mask == 0, 1, 0)
             rms = ndimage.standard_deviation( residual, labels=labels)
             rms = max (rms, 1.)
+
             new_cr = N.where( residual > (n_rms[iter] * rms), 1, 0)
 
             if ndimage.sum( new_cr) > 0:
@@ -436,7 +445,7 @@ def black_cr_reject(  BlackLevel):
         saveInfo( indep_var, black, fit, (ny, nx), slope, intercept, mask, cr, BlackLevel)
         return mask
      
-# end of black_cr_reject()
+# end of cr_reject()
 
 
 def check_neighbors( new_cr, residual, cutoff, black_shape):
@@ -546,6 +555,8 @@ def fitline( x, y, mask):
         if denom == 0.:
             raise ValueError, "Error fitting a line to black level array."
         slope = num / denom
+        slope = 0.0  # forcing, as non-zero value is not expected, and for consistency between regions (010808)
+
         intercept = mean_y - slope * mean_x
 
         return (slope, intercept)
