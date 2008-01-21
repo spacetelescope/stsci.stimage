@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os, os.path, sys
+import glob
 from distutils.core import setup
 from distutils.sysconfig import *
 from distutils.command.install_data import install_data
@@ -9,7 +10,6 @@ from cfg_pyraf import PYRAF_DATA_FILES, PYRAF_SCRIPTS, PYRAF_EXTENSIONS, PYRAF_C
 from cfg_pydrizzle import PYDRIZZLE_EXTENSIONS
 from cfg_imagestats import IMAGESTATS_EXTENSIONS
 from cfg_calcos import CALCOS_EXTENSIONS
-from cfg_pysynphot import PYSYNPHOT_DATA_FILES
 
 #py_includes = get_python_inc(plat_specific=1)
 py_libs =  get_python_lib(plat_specific=1)
@@ -100,12 +100,14 @@ if os.path.exists(os.path.join('pyfits')):
     PACKAGES.append('pyfits')
     PACKAGE_DIRS['pyfits']='pyfits/lib'
 
-#Only install pysynphot if the pysynphot directory exists locally
+# install pysynphot if the pysynphot directory exists
 if os.path.exists(os.path.join('pysynphot')):
-    PACKAGES.append('pysynphot')
-    PACKAGE_DIRS['pysynphot']='pysynphot/lib'
-    PYSYNPHOT_DATA_DIR = os.path.join('pysynphot','data')
-    DATA_FILES.extend([(PYSYNPHOT_DATA_DIR, PYSYNPHOT_DATA_FILES)])
+	PACKAGES.append('pysynphot')
+	PACKAGE_DIRS['pysynphot']='pysynphot/lib'
+	DATA_FILES.append( ( "pysynphot", glob.glob(os.path.join('pysynphot','test','etctest_base_class.py')) ) )
+	PYSYNPHOT_DATA_DIR = os.path.join('pysynphot','data')
+	DATA_FILES.append( ( PYSYNPHOT_DATA_DIR, glob.glob(os.path.join('pysynphot', 'data', 'generic', '*')) ) )
+	DATA_FILES.append( ( PYSYNPHOT_DATA_DIR, glob.glob(os.path.join('pysynphot', 'data', 'wavecat', '*')) ) )
 
 setup(name="STScI Python Software",
       version="2.5",
