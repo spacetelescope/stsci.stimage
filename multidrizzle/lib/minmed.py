@@ -249,7 +249,7 @@ class minmed:
                     errormsg1 += "        combine_grow: " + str(self.__combine_grow)+'\n'
                     errormsg1 += "############################################################\n"
                     raise ValueError,errormsg1
-                elif (_boxsize > self.__imageList[0].shape[0]):
+                elif (__boxsize > self.__imageList[0].shape[0]):
                     errormsg2 =  "############################################################\n"
                     errormsg2 += "# The boxcar convolution in minmed has failed.  The 'grow' #\n"
                     errormsg2 += "# parameter specified has resulted in a boxcar kernel that #\n"
