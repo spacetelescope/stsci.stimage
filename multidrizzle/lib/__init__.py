@@ -57,7 +57,7 @@ from stis_assoc_support import parseSTISIVM
 
 
 # Begin Version Information -------------------------------------------
-__version__ = '3.1.0dev (X XXX 2007)'
+__version__ = '3.1.0 (23 JAN 2008)'
 # End Version Information ---------------------------------------------
 
 class Multidrizzle:

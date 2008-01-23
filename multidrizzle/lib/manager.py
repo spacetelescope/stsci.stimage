@@ -324,10 +324,10 @@ class ImageManager:
         
         # Extract the dq array designation
         _dqname = plist['exposure'].dqname
-        _dq_root,_dq_extn = fileutil.parseFilename(_dqname)
-        _dqname = plist['orig_filename']+'['+_dq_extn+']'
-#        print "DQ name being build: ",_dqname
-
+        if _instrument != 'WFPC2':
+            _dq_root,_dq_extn = fileutil.parseFilename(_dqname)
+            _dqname = plist['orig_filename']+'['+_dq_extn+']'
+    
         if _instrument == 'ACS':
             if _detector == 'HRC': return HRCInputImage(input,_dqname,_platescale,memmap=0)
             if _detector == 'WFC': return WFCInputImage(input,_dqname,_platescale,memmap=0)
