@@ -22,7 +22,7 @@ def find_x(xdir=""):
         PYRAF_LIB_DIRS.append('/usr/X11R6/lib')
         PYRAF_INC_DIRS.append('/usr/X11R6/include')
     elif sys.platform == 'sunos5' :
-        PYRAF_LIB_DIRS.append('/usr/openwin/lib')
+        PYRAF_LIB_DIRS.append('/usr/openwin/lib') 
         PYRAF_INC_DIRS.append('/usr/openwin/include')
     else:
         try:
