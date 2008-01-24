@@ -31,7 +31,7 @@ class smart_install_data(install_data):
         return install_data.run(self)
 
 setup(name = "multidrizzle",
-      version = "3.1.0",
+      version = "3.2.0",
       description = "Automated process for HST image combination and cosmic-ray rejection",
       author = "Warren Hack, Christopher Hanley, Ivo Busko, Robert Jedrzejewski, and Anton Koekemoer",
       author_email = "help@stsci.edu",

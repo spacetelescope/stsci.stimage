@@ -345,7 +345,10 @@ class ImageManager:
             if _detector == 1: return NIC1InputImage(input,_dqname,_platescale,memmap=0)
             if _detector == 2: return NIC2InputImage(input,_dqname,_platescale,memmap=0)
             if _detector == 3: return NIC3InputImage(input,_dqname,_platescale,memmap=0)
-
+        if _instrument == 'WFC3':
+            if _detector == 'UVIS': return UVISInputImage(input,_dqname,_platescale,memmap=0)
+            if _detector == 'IR': return IRInputImage(input,_dqname,_platescale,memmap=0)
+        
         # If a supported instrument is not detected, print the following error message
         # and raise an exception.
         msg = 'Instrument: ' + str(_instrument) + '/' + str(_detector) + ' not yet supported!'

@@ -23,7 +23,7 @@ Further help can be obtained interactively using:
 """
 
 
-__docformat__ = 'restructuredtext'
+__docformat__ = "restructuredtext"
 
 
 
@@ -57,7 +57,7 @@ from stis_assoc_support import parseSTISIVM
 
 
 # Begin Version Information -------------------------------------------
-__version__ = '3.1.0 (23 JAN 2008)'
+__version__ = '3.2.0dev (XX XXX 2008)'
 # End Version Information ---------------------------------------------
 
 class Multidrizzle:
