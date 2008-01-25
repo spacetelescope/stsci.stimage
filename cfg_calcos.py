@@ -22,7 +22,7 @@ pythoninc = sysconfig.get_python_inc()
 numpyinc = numpy.get_include()
 numpynumarrayinc = nn.get_numarray_include_dirs()
 
-CALCOS_EXTENSIONS = [Extension("calcos.ccos", ["src/ccos.c"],
+CALCOS_EXTENSIONS = [Extension("calcos.ccos", ["calcos/src/ccos.c"],
            define_macros = [('NUMPY', '1')],
            include_dirs = [pythoninc, numpyinc, numpynumarrayinc])]
 
