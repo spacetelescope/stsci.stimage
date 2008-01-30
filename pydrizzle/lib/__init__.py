@@ -27,7 +27,7 @@ yes = True  # 1
 no = False  # 0
 
 # List of supported instruments/detectors
-INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS"]
+INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS","WFC3"]
 DEXPTIME = 'EXPTIME'
 DEFAULT_PARITY = [[1.0,0.0],[0.0,1.0]]
 
@@ -1335,8 +1335,6 @@ class STISObservation(Pattern):
         return (_exptime,_expstart,_expend)
 
 
-
-
 class NICMOSObservation(Pattern):
     """This class defines an observation with information specific
        to NICMOS exposures.
@@ -1392,6 +1390,39 @@ class NICMOSObservation(Pattern):
         self.buildProduct(filename, output)
 
 
+class WFC3Observation(Pattern):
+    """This class defines an observation with information specific
+       to ACS WFC exposures, including knowledge of how to mosaic both
+       chips."""
+    
+    __theta = 45.00
+    __ir_parity = fileutil.buildRotMatrix(__theta) * N.array([[-1.,1.],[-1.,1.]])
+    # Define a class variable for the gap between the chips
+    PARITY = {'UVIS':[[1.0,0.0],[0.0,-1.0]],'IR':__ir_parity}
+
+    def __init__(self, filename, output, pars=None):
+
+        # Now, initialize Pattern with all member Exposures...
+        Pattern.__init__(self, filename, output=output, pars=pars)
+
+        self.instrument = 'WFC3'
+
+        # build required name attributes:
+        #  outname, output, outsingle
+        self.setNames(filename,output)
+
+        # Set EXPTIME for exposure
+        self.exptime = self.getExptime()
+
+        # Build up list of chips in observation
+        self.addMembers(filename)
+
+        # Only need to worry about IDC tables for ACS...
+        self.computeOffsets()
+
+        # Set up the input members and create the product meta-chip
+        self.buildProduct(filename, output)
+        
 class WFPCObservation(Pattern):
     """This class defines an observation with information specific
        to WFPC2 exposures, including knowledge of how to mosaic the
@@ -1966,6 +1997,8 @@ def selectInstrument(filename,output,pars=_default_pars):
         member = STISObservation(filename,output,pars=pars)
     elif instrument == INSTRUMENT[3]:
         member = NICMOSObservation(filename,output,pars=pars)
+    elif instrument == INSTRUMENT[4]:
+        member = WFC3Observation(filename,output,pars=pars)
     else:
         #raise AttributeError, "Instrument '%s' not supported now."%instrument
         member = GenericObservation(filename,output,pars=pars)
