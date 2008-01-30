@@ -29,6 +29,14 @@
 #          11/15/07 - added check for number of good values in image; will abort without correction if there are none
 #          01/08/08 - to eliminate cases in which NSIGMA < 0, switched CR rejection method for image region
 #                     to use cr_reject(), as pyramid region does; forced line slope fit to be 0.0 in both regions 
+#          01/30/08 - 1. added user parameter 'bias_thresh': if this value is exceeded by the value of BIASEVEN from
+#                     the c0f file, no correction will be applied.  The default is to apply a correction if no
+#                     threshold is specified. 
+#                     2. added user parameter 'row_thresh': if this value exceeds the absolute value of the
+#                     calculated correction for a given row, no correction will be performed for that row. 
+#                     3. added user parameter to force a particular algorithm type. Allowed values are PASS1, PASS2,
+#                     PASS12, and 'OMIT'. Leaving this parameter blank is the default, and results in the program
+#                     determining the algorithm type and applying the correction.         
 #
 # Outline:
 #
@@ -37,7 +45,8 @@
 #      calculate the mean (im_mean) and sigma (im_sigma)
 # 3. Calculate how high above the pyr values the image values are by:
 #        im_mean = pyr_mean + NSIGMA*pyr_sigma
-# 4. Determine which correction algorithm to use and apply it:
+# 4. If the algorithm type is not forced by the user, the routine determines which correction algorithm
+#    to use and applies it:
 #   A.  If NSIGMA < = 1.0 apply no correction
 #   B.  If NSIGMA >1.0 and NSIGMA < =11.0 and im_sigma <= 2.0 apply Pass1 & 2
 #   C.  If NSIGMA >1.0 and NSIGMA < =11.0 and im_sigma > 2.0 apply no correction
@@ -63,8 +72,16 @@
 # 5. The modified c0f data is written to a new file; e.g. "u8zq0104m_bjc_4.fits" for group 4
 #      
 # Usage :
-#     For a dataset with multiple groups, to process group 4: hal> ./wfpc2destreak.py -q "u8zq0104m_d0f.fits" 4
-#     For a dataset with a single group: hal> ./wfpc2destreak.py -v "u9wp0401m_d0f.fits"  0
+#     For a dataset with multiple groups, to process group 4 using a bias threshold=280 and row threshold=0.1,
+#        letting the routine decide which correction type to apply:
+#        hal> ./wfpc2destreak.py -q "u8zq0104m_d0f.fits" 4 280. 0.1
+#     To force a specific correction type (say PASS2):
+#        hal> ./wfpc2destreak.py -q "u8zq0104m_d0f.fits" 4 280. 0.1 PASS2
+#     To force the routine to run without applying a correction:
+#        hal> ./wfpc2destreak.py -q "u8zq0104m_d0f.fits" 4 280. 0.1 'OMIT'
+#
+#     For a dataset with a single group - using a bias threshold=280 and a row threshold=0.1:
+#        hal> ./wfpc2destreak.py -q "u8zq0104m_d0f.fits" 0 280. 0.1
 #
 ###########################################################################
 
@@ -82,16 +99,17 @@ __version__ = "1.0 (2007 Nov 09)"
 NUM_SIG = 2.5  # number of sigma to use in sigma clipping
 TOT_ITER = 4   # maximum number of iterations for sigma clipping
 ERROR_RETURN = 2
+HUGE_VAL = 99999. # default for bias_thresh, row_thresh
 
 class Wfpc2destreak:
     """ Calculate magnitude of and remove streaks from specified group of wfpc2 data.
 
     example: 
-       wfpc2_d = wfpc2destreak.Wfpc2destreak( filename, group, verbosity)
+       wfpc2_d = wfpc2destreak.Wfpc2destreak( filename, group, verbosity, bias_thresh, row_thresh) 
        wfpc2destreak.Wfpc2destreak.destreak(wfpc2_d)
     """
 
-    def __init__( self, input_file, group, verbosity):
+    def __init__( self, input_file, group, verbosity, bias_thresh, row_thresh, force_alg_type):  
         """constructor
 
         @param input_file: name of the d0f file to be processed
@@ -100,17 +118,29 @@ class Wfpc2destreak:
         @type group: int
         @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
         @type verbosity: string
+        @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by BIASEVEN)
+        @type bias_thresh: float
+        @param row_thresh: row threshold (no correction will be performed if this exceeds the calculated row correction)
+        @type bias_thresh: float
+        @param force_alg_type: algorithm type to force
+        @type force_alg_type: string
         """
 
         self.input_file = input_file
         self.group = group 
         self.verbosity = verbosity
-
+        self.bias_thresh = bias_thresh   
+        self.row_thresh = row_thresh   
+        self.force_alg_type = force_alg_type
+        
     def destreak( self ):
         
         input_file = self.input_file
         group = int(self.group)
         verbosity = self.verbosity
+        bias_thresh = float(self.bias_thresh) 
+        row_thresh = float(self.row_thresh)
+        force_alg_type = self.force_alg_type
 
     # read data from d0f file:
         fh_d0f = pyfits.open(input_file)
@@ -123,11 +153,13 @@ class Wfpc2destreak:
             
         xsize = fh_d0f[0].header.get( "NAXIS1"); ysize = fh_d0f[0].header.get( "NAXIS2")
 
-    # read data from c0f file:   
+    # read data and BIASEVEN from c0f file: 
         c0f_prefix = input_file.split('_')[0]    
         c0f_file = c0f_prefix + str("_c0f.fits")
         fh_c0f = pyfits.open(c0f_file) 
-
+        biaseven = fh_c0f[0].header['BIASEVEN'] 
+        if (verbosity >=1 ):  print 'From the c0f file, BIASEVEN = ' , biaseven 
+          
     # read header from appropriate group in c0h file and make cardlist  
         c0h_file = c0f_prefix + str(".c0h")
  
@@ -138,7 +170,7 @@ class Wfpc2destreak:
 
     # read primary header in c0h file and make cardlist 
         c0_pr_hdr = (readgeis.readgeis( c0h_file ))[0].header
-        p_hdr_c =  c0_pr_hdr.ascardlist()
+        p_hdr_c = c0_pr_hdr.ascardlist()
 
     # combine group cardlist and primary cardlist starting with WFPC2 keywords, and make header from it 
         new_hdr_c = group_hdr_c + p_hdr_c     
@@ -220,8 +252,13 @@ class Wfpc2destreak:
     # Calculate the number of pyramid sigma above the clipped pyramid mean for the clipped image mean 
         nsigma = (im_mean - pyr_mean)/pyr_sigma
 
-        if (verbosity >1 ):print 'Determining which algorithm to use  ..'
-        if ( nsigma < 1.0 ): # Case A
+        if (verbosity >1 ):print 'Determining which algorithm to use ...'
+   
+        if ((bias_thresh < biaseven) and (force_alg_type == None)):#  apply no correction if bias_thresh < biaseven
+            alg_type = "None"
+            alg_cmt = "No correction will be applied"
+            if (verbosity >=1 ): print 'No correction will be applied because bias_thresh < BIASEVEN '
+        elif ( nsigma < 1.0 ): # Case A            
            if (verbosity >=1 ): print '  nsigma = ' , nsigma, ' < 1.0, so will apply no correction'
            alg_type = "None"
            alg_cmt = "No correction will be applied"
@@ -244,25 +281,50 @@ class Wfpc2destreak:
            alg_type = "PASS1"
            alg_cmt = "Pass 1 correction applied"
 
-        if (verbosity >1 ):
-           print 'Will use the correction algorithm: ', alg_type 
+        if (force_alg_type <> None):
+            alg_type = force_alg_type
+            if ( force_alg_type == 'PASS1'):
+               alg_cmt = "Pass 1 correction applied"
+            elif ( force_alg_type == 'PASS2'):
+               alg_cmt = "Pass 2 correction applied"
+            elif ( force_alg_type == 'PASS12'):
+               alg_cmt = "Pass 1 and 2 corrections applied"
+            else:
+               alg_type = "None"
+               alg_cmt = "No correction will be applied"
+            if (verbosity >1 ):
+               print ' The user has forced algorithm type: ' ,alg_type
+        else:  # let the program decide which algorithm type
+            if (verbosity >1 ):
+                print 'Based on statistics of the pyramid and image regions, this script will apply the correction type:', alg_type
             
         new_c0f_data = c0f_data.copy().astype(N.float32)  # will be updated array for c0f data
 
-        if ( alg_type == "PASS1") : # do Pass 1 only; Case D
+        low_row_p1 = 0 #  number of rows below row_threshold in PASS1 
+        high_row_p1 = 0 #  number of rows above row_threshold in PASS1
+        low_row_p2 = 0 #  number of rows below row_threshold in PASS2 
+        high_row_p2 = 0 #  number of rows above row_threshold in PASS2
+        to_sub_1_max = -HUGE_VAL ; to_sub_1_min = HUGE_VAL
+        to_sub_2_max = -HUGE_VAL ; to_sub_2_min = HUGE_VAL
+
+        if (( alg_type == "PASS1")or ( alg_type == "PASS12")) : # do Pass 1  
           # PASS 1: for first correction, subtract difference between smoothed row mean from leading
           #         columns and global mean in the d0f data from the c0f data, updating data in c0f file   
            to_subtract_1 = N.zeros((ysize),dtype = N.float32)     
            for i_row in range( 0, xsize-1 ):
               to_subtract_1[ i_row ] = smoothed_row_mean[ i_row ]- glob_pyr_mean
+
+              if (abs(to_subtract_1[ i_row ]) < row_thresh ): # make no correction 
+                 to_subtract_1[ i_row ] = 0.0 
+                 low_row_p1 +=1  
+              else:
+                 high_row_p1 +=1 
+                 to_sub_1_max = max(to_sub_1_max, to_subtract_1[ i_row ])  
+                 to_sub_1_min = min(to_sub_1_min, to_subtract_1[ i_row ])  
+
               new_c0f_data[i_row,col_max+1:] = c0f_data[i_row,col_max+1:] - to_subtract_1[ i_row ]  
-        elif ( alg_type == "PASS12"): # do both Pass 1 & 2; Case B
-          # PASS 1: for first correction, subtract difference between smoothed row mean from leading
-          #         columns and global mean in the d0f data from the c0f data, updating data in c0f file   
-           to_subtract_1 = N.zeros((ysize),dtype = N.float32)     
-           for i_row in range( 0, xsize-1 ):
-              to_subtract_1[ i_row ] = smoothed_row_mean[ i_row ]- glob_pyr_mean
-              new_c0f_data[i_row,col_max+1:] = c0f_data[i_row,col_max+1:] - to_subtract_1[ i_row ]  
+
+        if (( alg_type == "PASS2")or ( alg_type == "PASS12")) : # do Pass 2 
           # PASS 2: for second correction, calculate row mean over entire c0f image using iterative sigma clipping and
           #         subtract difference between this row mean and the global mean    
            row_data_b_mean = N.zeros(ysize)
@@ -294,21 +356,44 @@ class Wfpc2destreak:
            glob_im_clip_mean = clip_row_mean[1:ysize-2].mean() # calculate global clipped mean
            for i_row in range (1, ysize-2 ):
               to_subtract_2[ i_row ] = clip_row_mean[ i_row ]- glob_im_clip_mean
+
+              if (abs(to_subtract_2[ i_row ]) < row_thresh ): # make no correction
+                 to_subtract_2[ i_row ] = 0.0  
+                 low_row_p2 +=1  
+              else:
+                 high_row_p2 +=1 
+                 to_sub_2_max = max(to_sub_2_max, to_subtract_2[ i_row ])  
+                 to_sub_2_min = min(to_sub_2_min, to_subtract_2[ i_row ])  
+
               new_c0f_data[i_row,col_max+1:] -=  to_subtract_2[ i_row ]
 
-        else: # will apply no correction; Cases A and C
-           new_c0f_data = c0f_data.copy().astype(N.float32) 
+        if ((alg_type <> "PASS1") and (alg_type <> "PASS2") and (alg_type <> "PASS12")) : # apply no correction 
+            new_c0f_data = c0f_data.copy().astype(N.float32) 
 
         file_prefix = input_file.split('.')[0]
         outfile = c0f_prefix + str('_bjc_')+str(group)+str('.fits')
 
         if (verbosity >=1 ):
+            print 'The following means and sigmas pertain to all (uncorrected and corrected) rows:'
+            if ( alg_type == "PASS1" or  alg_type == "PASS12"):
+               print '  For PASS1: the total number of uncorrected, corrected rows: ', low_row_p1,',', high_row_p1  
+               if (high_row_p1 > 0 ):
+                  print '  For PASS1: fraction of rows corrected: ', (high_row_p1+0.0)/( high_row_p1+ low_row_p1+0.0)
+               print '  For PASS1: min, max of corrections are:', to_sub_1_min,',',to_sub_1_max  
+               print '  For PASS1: mean, std of corrections are: ',to_subtract_1.mean(),',',to_subtract_1.std()  
+            if ( alg_type == "PASS2" or  alg_type == "PASS12"):
+               print '  For PASS2: the total number of uncorrected, corrected rows: ', low_row_p2,',', high_row_p2  
+               if (high_row_p2 > 0 ):
+                  print '  For PASS2: fraction of rows corrected: ', (high_row_p2+0.0)/( high_row_p2+ low_row_p2+0.0)
+               print '  For PASS2: min, max of corrections are: ', to_sub_2_min,',',to_sub_2_max  
+               print '  For PASS2: mean, std of corrections are: ',to_subtract_2.mean(),',',to_subtract_2.std()  
+
             print ' NSIGMA = ' , nsigma  
             print ' PYRMEAN = ' , pyr_mean
-            print ' PYRSIGMA=  ', pyr_sigma
-            print ' IMMEAN  =   ', im_mean
-            print ' IMSIGMA =  ', im_sigma
-            print ' CORR_ALG =  ', alg_type
+            print ' PYRSIGMA = ', pyr_sigma
+            print ' IMMEAN = ', im_mean
+            print ' IMSIGMA = ', im_sigma
+            print ' CORR_ALG = ', alg_type
 
         write_to_file(new_c0f_data, outfile, new_h, alg_type, alg_cmt, verbosity, pyr_mean, pyr_sigma, im_mean, im_sigma)
 
@@ -325,8 +410,10 @@ class Wfpc2destreak:
         print 'The input parameters are :'
         print '  input d0f file:  ' , self.input_file
         print '  group:  ' , self.group
-
-
+        print '  bias_thresh:  ' , self.bias_thresh 
+        print '  row thresh:  ' , self.row_thresh 
+        print '  force algorithm type:  ' , self.force_alg_type
+        
 # end of class Wfpc2destreak
 
 def cr_reject(  BlackLevel):
@@ -396,7 +483,7 @@ def cr_reject(  BlackLevel):
 
         # fit is a straight line passing through (line0,y0) & (line1,y1).
         slope = (y1 - y0) / (line1 - line0)
-        slope = 0.0 # forcing, as non-zero value is not expected, and for consistency between regions (010808)
+        slope = 0.0 # forcing, as non-zero value is not expected, and for consistency between regions
 
         fit = slope * linenum + (y0 - slope * line0)
         residual = black0 - fit.repeat( nx)
@@ -555,7 +642,7 @@ def fitline( x, y, mask):
         if denom == 0.:
             raise ValueError, "Error fitting a line to black level array."
         slope = num / denom
-        slope = 0.0  # forcing, as non-zero value is not expected, and for consistency between regions (010808)
+        slope = 0.0  # forcing, as non-zero value is not expected, and for consistency between regions 
 
         intercept = mean_y - slope * mean_x
 
@@ -740,16 +827,37 @@ def main( cmdline):
             help="very verbose, print lots of information")
 
     (options, args) = parser.parse_args()
+  
     cwdutil.setVerbosity( options.verbosity)  
     verbosity = options.verbosity
 
     if ( args[0] ):
        filename = args[0]
+
     if ( args[1] ):
        group = args[1]
 
+    if ( len(args) > 2 ):
+      if ( args[2] ):
+         bias_thresh = args[2] 
+    else:
+      bias_thresh = HUGE_VAL 
+
+    if ( len(args) > 3 ):
+      if ( args[3] ):
+         row_thresh = args[3] 
+    else:
+      row_thresh = 0.0
+
+    if ( len(args) > 4 ): 
+      if ( args[4] ):
+         force_alg_type = args[4] 
+    else:
+      force_alg_type = None
+       
     try:            
-       wfpc2_d = Wfpc2destreak( filename, group, verbosity)
+       wfpc2_d = Wfpc2destreak( filename, group, verbosity, bias_thresh, row_thresh, force_alg_type)  
+       
        if (verbosity >=1 ):
             wfpc2_d.print_pars()
        Wfpc2destreak.destreak(wfpc2_d)
