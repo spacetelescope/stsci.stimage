@@ -1206,14 +1206,16 @@ class ImageManager:
                 # need to automatically generate them based upon 
                 # instrument specific information.
                 
+
                 flat = imageobj.getflat()
                 RN = imageobj.getReadNoiseImage()
                 sampimg = imageobj.getsampimg()
                 darkimg = imageobj.getdarkimg()
                 skyimg = imageobj.getskyimg()
                 
-                ivm = (flat)**2/(darkimg+(skyimg*flat)+sampimg*RN**2)
 
+                ivm = (flat)**2/(darkimg+(skyimg*flat)+sampimg*RN**2)
+                
                 #Open the mask image for updating
                 mask = fileutil.openImage(parlistentry['image'].maskname,mode='update')
                 

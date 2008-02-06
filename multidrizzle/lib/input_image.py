@@ -74,6 +74,12 @@ class InputImage(object):
         self._subtractedsky = 0.
         self._computedsky = None
 
+        # Get image size information for possible subarray use
+        self.ltv1 = self.header['LTV1'] * -1
+        self.ltv2 = self.header['LTV2'] * -1
+        self.size1 = self.header['NAXIS1'] + self.ltv1
+        self.size2 = self.header['NAXIS2'] + self.ltv2
+
     def setInstrumentParameters(self, instrpars, pri_header):
         """ Sets the instrument parameters.
         """
