@@ -115,12 +115,12 @@ class WFPC2InputImage (InputImage):
         try:
             handle = fileutil.openImage(filename,mode='readonly',memmap=0)
             hdu = fileutil.getExtn(handle,extn=self.grp)
-            data = hdu.data
+            data = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
         except:
             try:
                 handle = fileutil.openImage(filename[5:],mode='readonly',memmap=0)
                 hdu = fileutil.getExtn(handle,extn=self.grp)
-                data = hdu.data
+                data = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
             except:
                 data = N.ones(self.image_shape,dtype=self.image_dtype)
                 str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
