@@ -407,7 +407,7 @@ class InputImage(object):
         Return the (samp * amp glow) image array.  This method will return
         a ones array for all detectors by default.  
         
-        For detectors in which a oness array is not appropriate, this method 
+        For detectors in which a ones array is not appropriate, this method 
         will need to be overloaded in a subclass.  One such case of this would
         be in the nicmos_image.py module.
         
