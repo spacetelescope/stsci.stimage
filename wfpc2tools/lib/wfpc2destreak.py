@@ -29,14 +29,20 @@
 #          11/15/07 - added check for number of good values in image; will abort without correction if there are none
 #          01/08/08 - to eliminate cases in which NSIGMA < 0, switched CR rejection method for image region
 #                     to use cr_reject(), as pyramid region does; forced line slope fit to be 0.0 in both regions 
-#          01/30/08 - 1. added user parameter 'bias_thresh': if this value is exceeded by the value of BIASEVEN from
+#          01/30/08 - added user parameter 'bias_thresh': if this value is exceeded by the value of BIASEVEN from
 #                     the c0f file, no correction will be applied.  The default is to apply a correction if no
 #                     threshold is specified. 
-#                     2. added user parameter 'row_thresh': if this value exceeds the absolute value of the
+#                   - added user parameter 'row_thresh': if this value exceeds the absolute value of the
 #                     calculated correction for a given row, no correction will be performed for that row. 
-#                     3. added user parameter to force a particular algorithm type. Allowed values are PASS1, PASS2,
-#                     PASS12, and 'OMIT'. Leaving this parameter blank is the default, and results in the program
-#                     determining the algorithm type and applying the correction.         
+#                   - added user parameter 'force_alg_type' to force a particular algorithm type. Allowed
+#                     values are PASS1, PASS2, PASS12, and OMIT. Leaving this parameter blank is the default,
+#                     and results in the program determining the algorithm type and applying the correction.         
+#          02/08/08 - Because the group-specific value for BIASEVEN is not easily accessible, changed the code to
+#                     instead compare 'bias_thresh' to the calculated value of the image mean (im_mean). 
+#                   - the keyword 'BIASTHRE' is written to the header specifying the value of bias_thresh.
+#                   - the keyword 'ROWTHRES' is written to the header specifying the value of row_thresh.
+#                   - the keyword 'FORCETYP' is written to the header designating if the user has forced a specific
+#                     correction type.
 #
 # Outline:
 #
@@ -94,7 +100,7 @@ from optparse import OptionParser
 import ndimage
 import cwdutil, opusutil, sys
 
-__version__ = "1.0 (2007 Nov 09)"
+__version__ = "1.1 (2008 Feb 08)"
 
 NUM_SIG = 2.5  # number of sigma to use in sigma clipping
 TOT_ITER = 4   # maximum number of iterations for sigma clipping
@@ -118,7 +124,7 @@ class Wfpc2destreak:
         @type group: int
         @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
         @type verbosity: string
-        @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by BIASEVEN)
+        @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by im_mean)
         @type bias_thresh: float
         @param row_thresh: row threshold (no correction will be performed if this exceeds the calculated row correction)
         @type bias_thresh: float
@@ -153,12 +159,10 @@ class Wfpc2destreak:
             
         xsize = fh_d0f[0].header.get( "NAXIS1"); ysize = fh_d0f[0].header.get( "NAXIS2")
 
-    # read data and BIASEVEN from c0f file: 
+    # read data from c0f file: 
         c0f_prefix = input_file.split('_')[0]    
         c0f_file = c0f_prefix + str("_c0f.fits")
-        fh_c0f = pyfits.open(c0f_file) 
-        biaseven = fh_c0f[0].header['BIASEVEN'] 
-        if (verbosity >=1 ):  print 'From the c0f file, BIASEVEN = ' , biaseven 
+        fh_c0f = pyfits.open(c0f_file)
           
     # read header from appropriate group in c0h file and make cardlist  
         c0h_file = c0f_prefix + str(".c0h")
@@ -254,14 +258,14 @@ class Wfpc2destreak:
 
         if (verbosity >1 ):print 'Determining which algorithm to use ...'
    
-        if ((bias_thresh < biaseven) and (force_alg_type == None)):#  apply no correction if bias_thresh < biaseven
+        if ((bias_thresh < im_mean) and (force_alg_type == None)):#  apply no correction if bias_thresh < im_mean  
             alg_type = "None"
-            alg_cmt = "No correction will be applied"
-            if (verbosity >=1 ): print 'No correction will be applied because bias_thresh < BIASEVEN '
+            alg_cmt = "No correction applied"
+            if (verbosity >=1 ): print 'No correction applied because bias_thresh < im_mean '
         elif ( nsigma < 1.0 ): # Case A            
            if (verbosity >=1 ): print '  nsigma = ' , nsigma, ' < 1.0, so will apply no correction'
            alg_type = "None"
-           alg_cmt = "No correction will be applied"
+           alg_cmt = "No correction applied"
         elif (nsigma >= 1.0 and nsigma <= 11.0 and im_sigma <= 2.0): # Case B
            if (verbosity >1 ):
                print '  nsigma = ', nsigma , '( between 1.0 and 11.), and im_sigma = ', im_sigma ,' <=2.0 so will apply both PASS 1 & 2'
@@ -271,7 +275,7 @@ class Wfpc2destreak:
         elif (nsigma >= 1.0 and nsigma <= 11.0 and im_sigma > 2.0): # Case C
            if (verbosity >1 ): print '  nsigma = ', nsigma , '( between 1.0 and 11.), and im_sigma = ', im_sigma , ' >2.0 so will apply no correction'
            alg_type = "None"
-           alg_cmt = "No correction will be applied"
+           alg_cmt = "No correction applied"
         else: # Case D
            if (verbosity >1 ):             
                print '  nsigma = ', nsigma ,' and im_sigma = ', im_sigma
@@ -282,6 +286,7 @@ class Wfpc2destreak:
            alg_cmt = "Pass 1 correction applied"
 
         if (force_alg_type <> None):
+            forced_type = 'Yes'
             alg_type = force_alg_type
             if ( force_alg_type == 'PASS1'):
                alg_cmt = "Pass 1 correction applied"
@@ -291,10 +296,11 @@ class Wfpc2destreak:
                alg_cmt = "Pass 1 and 2 corrections applied"
             else:
                alg_type = "None"
-               alg_cmt = "No correction will be applied"
+               alg_cmt = "No correction applied"
             if (verbosity >1 ):
                print ' The user has forced algorithm type: ' ,alg_type
         else:  # let the program decide which algorithm type
+            forced_type = 'No'
             if (verbosity >1 ):
                 print 'Based on statistics of the pyramid and image regions, this script will apply the correction type:', alg_type
             
@@ -393,9 +399,10 @@ class Wfpc2destreak:
             print ' PYRSIGMA = ', pyr_sigma
             print ' IMMEAN = ', im_mean
             print ' IMSIGMA = ', im_sigma
-            print ' CORR_ALG = ', alg_type
+            print 'The correction type applied is CORR_ALG = ', alg_type
 
-        write_to_file(new_c0f_data, outfile, new_h, alg_type, alg_cmt, verbosity, pyr_mean, pyr_sigma, im_mean, im_sigma)
+        write_to_file(new_c0f_data, outfile, new_h, alg_type, alg_cmt, verbosity, pyr_mean, pyr_sigma, im_mean,
+                      im_sigma, bias_thresh, row_thresh, forced_type)
 
         # close open file handles
         if (fh_d0f):
@@ -788,7 +795,8 @@ def computeVarCovar( x, labels):
 # end of computeVarCovar()
 
 # write to specified filename with specified header
-def write_to_file(data, filename, hdr, alg_type, alg_cmt, verbosity, pyr_mean, pyr_sigma, im_mean, im_sigma): 
+def write_to_file(data, filename, hdr, alg_type, alg_cmt, verbosity, pyr_mean, pyr_sigma, im_mean,
+                  im_sigma, bias_thresh, row_thresh, forced_type ): 
 
     fimg = pyfits.HDUList()
     hdr.update(key='CORR_ALG', value=alg_type, comment=alg_cmt ) #  denoting which algorithm was used
@@ -796,6 +804,9 @@ def write_to_file(data, filename, hdr, alg_type, alg_cmt, verbosity, pyr_mean, p
     hdr.update(key='PYRSIGMA', value=pyr_sigma, comment="clipped sigma of pyramid region" )
     hdr.update(key='IMMEAN', value=im_mean, comment="clipped mean of image region" )
     hdr.update(key='IMSIGMA', value=im_sigma, comment="clipped sigma of image region" )
+    hdr.update(key='BIASTHRE', value=bias_thresh, comment="bias threshold (valid if CORR_ALG is not none)" ) 
+    hdr.update(key='ROWTHRES', value=row_thresh, comment="row threshold (valid if CORR_ALG is not none)" ) 
+    hdr.update(key='FORCETYP', value=forced_type, comment="correction type applied was forced (yes/no)" ) 
     fimghdu = pyfits.PrimaryHDU( header = hdr)
     fimghdu.data = data
     fimg.append(fimghdu)
@@ -859,6 +870,7 @@ def main( cmdline):
        wfpc2_d = Wfpc2destreak( filename, group, verbosity, bias_thresh, row_thresh, force_alg_type)  
        
        if (verbosity >=1 ):
+            print 'The version of this routine is: ',__version__
             wfpc2_d.print_pars()
        Wfpc2destreak.destreak(wfpc2_d)
 
