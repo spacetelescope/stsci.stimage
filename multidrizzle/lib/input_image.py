@@ -48,10 +48,13 @@ class InputImage(object):
         self.static_mask = None
         self.cte_dir = 1 
 
-        try:  # read amplifier to be used for HRC or STIS/CCD.
-           self.amp = fileutil.getKeyword(input,'CCDAMP')
-        except:  # set default if keyword missing    
-           self.amp = 'C'  # STIS default should be 'D' but 'C' and 'D' have the same readout direction so it's okay
+        # read amplifier to be used for HRC or STIS/CCD.
+        try:  
+            self.amp = fileutil.getKeyword(input,'CCDAMP')
+        # set default if keyword missing
+        except KeyError:
+            # STIS default should be 'D' but 'C' and 'D' have the same readout direction so it's okay
+            self.amp = 'C'  
         
         # Define the platescale and reference plate scale for the detector.
         self.platescale = platescale
@@ -75,8 +78,12 @@ class InputImage(object):
         self._computedsky = None
 
         # Get image size information for possible subarray use
-        self.ltv1 = self.header['LTV1'] * -1
-        self.ltv2 = self.header['LTV2'] * -1
+        try:
+            self.ltv1 = self.header['LTV1'] * -1
+            self.ltv2 = self.header['LTV2'] * -1
+        except KeyError:
+            self.ltv1 = 0
+            self.ltv2 = 0
         self.size1 = self.header['NAXIS1'] + self.ltv1
         self.size2 = self.header['NAXIS2'] + self.ltv2
 
