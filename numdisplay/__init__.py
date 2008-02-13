@@ -48,9 +48,23 @@
 
                 transform -- Python function to apply to array (function)
 
+                zscale -- use an algorithm like that in the IRAF display task.
+                          If zscale=True, any z1 and z2 set in the call to display
+                          are ignored.  Using zscale=True invalidates any transform
+                          specified in the call.
+
+                contrast -- same as the contrast parameter in the IRAF display
+                            task.  Only applies if zscale=True.  Default value = 0.25.
+                            Higher contrast values make z1 and z2 closer together,
+                            while lower values give a gentler (wider) range.
+
                 scale  -- multiplicative scale factor to apply to array (float/int)
+                          Persistent, so to reset it you must specify scale=1 in the
+                          display call.
 
                 offset -- additive factor to apply to array before scaling (float/int)
+                          This value is persistent, so to reset it you have to set it
+                          to 0.
 
                 frame  -- image buffer frame number in which to display array
                             (integer)
@@ -85,12 +99,16 @@
             >>> numdisplay.display(fdata,transform=numpy.log,offset=158.0)
         To redisplay the image with default full-range scaling:
             >>> numdisplay.display(fdata)
+        To redisplay using the IRAF display zscale algorithm, and with a contrast
+        value steeper than the default value of 0.25:
+            >>> numdisplay.display(fdata, zscale=True, contrast=0.5)
 
 """
 
 import numpy as n
 import math, string
 import displaydev
+import zscale as _zscale
 
 try:
     import geotrans
@@ -137,7 +155,7 @@ class NumDisplay(object):
         self.offset = None
 
         # default values for attributes used to determine pixel range values
-        self.zscale = 0
+        self.zscale = False
         self.stepline = 6
         self.contrast = 1    # Not implemented yet!
         self.nlines = 256    # Not implemented yet!
@@ -185,7 +203,7 @@ class NumDisplay(object):
         if scale != None:
             self.scale = scale
 
-        if offset:
+        if offset is not None:
             self.offset = offset
 
     def reset(self, names=None):
@@ -300,18 +318,19 @@ class NumDisplay(object):
         # Now, what kind of multiplicative scaling should be applied
         if self.scale:
             # Apply any additive offset to array
-            if self.offset:
+            if self.offset is not None:
                 return self.transform( (zpix+self.offset)*self.scale)
             else:
                 return self.transform( zpix*self.scale)
         else:
-            if self.offset:
+            if self.offset is not None:
                 return self.transform (zpix + self.offset)
             else:
                 return self.transform(zpix)
 
     def display(self, pix, name=None, bufname=None, z1=None, z2=None,
-             transform=None, scale=None, offset=None, frame=None):
+             transform=None, zscale=False, contrast=0.25, scale=None,
+             offset=None, frame=None):
 
         """ Displays byte-scaled (UInt8) n to XIMTOOL device.
             This method uses the IIS protocol for displaying the data
@@ -323,9 +342,22 @@ class NumDisplay(object):
 
         #Ensure that the input array 'pix' is a numpy array
         pix = n.array(pix)
+        self.z1 = z1
+        self.z2 = z2
 
         # If any of the display parameters are specified here, apply them
         #if z1 or z2 or transform or scale or offset or frame:
+        # If zscale=True (like IRAF's display) selected, calculate z1 and z2 from
+        # the data, and clear any transform specified in the call
+        # Offset and scale arew applied to the data and z1,z2, so they have no effect
+        # on the display
+        if zscale:
+            if transform != None:
+                print "transform disallowed when zscale=True"
+                transform = None
+
+            z1, z2 = _zscale.zscale(pix, contrast=contrast)
+
         self.set(frame=frame, z1=z1, z2=z2,
                 transform=transform, scale=scale, offset=offset)
 
