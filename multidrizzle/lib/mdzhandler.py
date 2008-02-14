@@ -9,8 +9,6 @@
 #                                       which row was selected for use. -- WJH
 
 import pyfits
-
-import pydrizzle
 from pytools import fileutil
 
 __version__ = '0.1.02'

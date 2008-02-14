@@ -3,7 +3,6 @@
 #   Program: wfpc2_input.py
 #   Purpose: Class used to model WFPC2 specific instrument data.
 
-import pydrizzle
 from pytools import fileutil
 from input_image import InputImage
 import numpy as N

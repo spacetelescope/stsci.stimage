@@ -23,41 +23,31 @@ Further help can be obtained interactively using:
 """
 
 
-__docformat__ = "restructuredtext"
+__docformat__ = 'restructuredtext'
 
 
 
 # Begin Import Modules ---------------------------------------------------
 import os, shutil, sys, string
 import numpy as N
-import pydrizzle
-from pydrizzle import drutil, buildasn, updateasn
+from pydrizzle import pydrizzle, process_input
+from pydrizzle import drutil
 import pyfits
-from pytools import readgeis, fileutil
+from pytools import fileutil
 import mdzhandler
 import manager
 from manager import ImageManager
 import mdrizpars
 from procstep import ProcSteps, timestamp
-import geissupport
-from geissupport import *
-from pytools import makewcs
 # This module is used to replicate IRAF style inputs.
 from pytools import parseinput
 from pytools.parseinput import parseinput
-from pytools.parseinput import countinputs
-# This module is used to parse IVM file input
-import parseIVM
-from parseIVM import parseIVM
-# This module is used to parse STIS association files
-import stis_assoc_support
-from stis_assoc_support import parseSTIS
-from stis_assoc_support import parseSTISIVM
+
 # End Import Modules -----------------------------------------------------
 
 
 # Begin Version Information -------------------------------------------
-__version__ = '3.2.0dev (XX XXX 2008)'
+__version__ = '3.2.0dev (refactoring 2008)'
 # End Version Information ---------------------------------------------
 
 class Multidrizzle:
@@ -121,7 +111,8 @@ help file.
                  input      = '*flt.fits',
                  output     = None,
                  editpars   = False,
-                 updatewcs  = True, 
+                 shiftfile  = None, 
+                 updatewcs = True,
                  **input_dict):
 
         timestamp()
@@ -129,7 +120,8 @@ help file.
 
         # Print version information for all external python modules used
         self.versions = versioninfo()        
-
+        self.shiftfile = shiftfile
+        self.updatewcs = updatewcs   
         # We need to parse the input to get the list of filenames
         # that are to be processed by Multidrizzle.
         #
@@ -164,21 +156,23 @@ help file.
         #                        Multidrizzle processing
         #
         #
-        self.output,self.files,self.ivmlist,self.numInputs,\
-        self.numASNfiles,self.parseSTISflag,self.parseWFPC2flag, \
-        self.translatedNames, self.translatedNameOrder, self.excludedFileList \
-            = self._parseInput(input,output)
+        #self.output,self.files,self.ivmlist,self.numInputs,\
+        #self.numASNfiles,self.parseSTISflag,self.parseWFPC2flag, \
+        #self.translatedNames, self.translatedNameOrder, self.excludedFileList \
+        #    = self._parseInput(input,output)
 
         # Initialize attribute for zero exposure time asn table.  Will only
         # be created if the input association file containings members whose
         # EXPTIME value is zero
-        self.zeroExptimeAsnTable = None
+        #self.zeroExptimeAsnTable = None
             
         # We need to make certain that we have not thrown out all of the data
         # because of the zero exposure time problem.
         #                
         # numInputs <= 0: We have no input.
         self.errorstate = False
+        
+        """
         try:
             if len(self.files) <= 0 or self.numInputs <= 0:
                 errorstr =  "#############################################\n"
@@ -202,20 +196,30 @@ help file.
             # End Multidrizzle processing cleanly
             self.errorstate = True
             return
-            
+        """ 
 
         # Remember the original user 'input' value
         self.input = input
+        asndict, ivmfiles, output = process_input.process_input(input, output=output, updatewcs=self.updatewcs, shiftfile=shiftfile)
+        self.asndict = asndict 
+        self.ivmlist = ivmfiles
+        self.output = output        
+        if not self.asndict:
+            self._buildEmptyDRZ()
+            self.errorstate = True
+            return
 
         # Check status of file processing.  If all files have been         
         # Report the names of the input files that have just been parsed.
-        self.printInputFiles()
+        self.files = [fileutil.buildRootname(f) for f in self.asndict['order']]
 
+        self.printInputFiles()
+        
         # Check input files.  This is the private method used to call the 
         # MAKEWCS application.  MAKEWCS is used to recompute and update the
         # WCS for input images, which updatewcs makes optional
-        self.updatewcs = updatewcs   
-        self._checkInputFiles(self.files, updatewcs)
+
+        #self._checkInputFiles(self.files, updatewcs)
 
         # Initialize the master parameter dictionary.
         # This needs to be done after any input file conversion
@@ -378,12 +382,39 @@ help file.
         self.final_units = self.pars.master_pars['driz_final_units']
         
         # Build association object
-        association = self._setupAssociation()
+        #association = self._setupAssociation()
+        # Run PyDrizzle; make sure there are no intermediate products
+        # laying around...  
+        #self.asndict.update(shiftfile=self.shiftfile)
+        #asnname = fileutil.buildNewRootname(self.asndict['output'], extn='_asn.fits')
+        #print 'asnname', asnname
+        
+        assoc = pydrizzle._PyDrizzle(self.asndict, output=self.output, 
+                                    idckey=self.coeffs, 
+                                    section=self.driz_sep_pars['group'],
+                                    bits_single=self.driz_sep_bits,
+                                    bits_final=self.final_bits,
+                                    )
+
+        # Use PyDrizzle to clean up any previously produced products...
+        if self.clean:
+            assoc.clean()
+
+        print 'Initial parameters: '
+        assoc.printPars(format=1)
+
+        # Add any specifed IVM filenames to the association object
+        if not self.ivmlist:
+            for ind in range(len(self.files)):
+                assoc.parlist[ind]['ivmname'] = None
+        else:
+            for ind in range(len(self.files)):
+                assoc.parlist[ind]['ivmname'] = self.ivmlist[ind]
 
         # Build the manager object.
-        self.image_manager = ImageManager(association, self.context, self.instrpars, self.workinplace, \
-                                          self.staticfile, self.updatewcs) 
-
+        #self.image_manager = ImageManager(association, self.context, self.instrpars, self.workinplace, \
+        #self.staticfile, self.updatewcs) 
+        self.image_manager = ImageManager(assoc, self.context, self.instrpars, self.workinplace, self.staticfile) 
         # Do unit conversion of the 'sci' data if necessary
         self.image_manager.doUnitConversions()
 
@@ -404,8 +435,11 @@ help file.
 
         # Open the first image of the excludedFileList to use as a template to build
         # the DRZ file.
-        try :
-            img = pyfits.open(self.excludedFileList[0])        
+        inputfile = parseinput(self.input)[0][0]
+        #try :
+            #img = pyfits.open(self.excludedFileList[0]) 
+        img = pyfits.open(inputfile)        
+        """
         except:
             errstr  = "#################################\n"
             errstr += "#                               #\n"
@@ -414,7 +448,7 @@ help file.
             errstr += "#                               #\n"
             errstr += "#################################\n"
             raise RuntimeError,errstr
-
+        """
         # Create the fitsobject
         fitsobj = pyfits.HDUList()
         # Copy the primary header
@@ -500,321 +534,7 @@ help file.
             print "          ",str(filename)
         print "Output rootname: ", str(self.output)
         
-    
-    def _parseInput(self,input,output):
 
-        """ 
-        
-        METHOD : _parseInput (private method)
-        PURPOSE: Interprets input from user to build list of files to process. 
-        INPUT  : input - String representing user input string
-                 output - String representing user output string
-        OUTPUT : 
-        """
-
-        # Define the return variables        
-        newoutput = output # String containing output file name.  This value could
-                           # be modified here if it is not provided by the user and
-                           # it is contained in the assocation table.  Alternatively,
-                           # if no value is ever provided by the user or an assocation table,
-                           # it will be set to a value of 'final' if there is more than one
-                           # input file or to the rootname of the input file if there is
-                           # only one.
-
-        
-        filelist = []  # Python list containing the name of all files that will need to
-                       # to be processed by Multidrizzle.
-        
-        ivmlist = [] # Python list containing the name of all inverse variance map files (IVM)
-                     # that will need to be processed by Multidrizzle
-
-        numInputs = 0 # Number of input files that have been identified for processing by
-                      # by Multidrizzle
-                      
-        numASNfiles = 0 # Number of ASN files that were given to Multidrizzle as input.
-
-        translatedNames = {} # Tranlation dictionary giving the relationship between
-                             # newly created file names and the names of files on which
-                             # they are originally based.
-                             
-        translatedNameOrder = [] # Simple list used to track the order in which input files
-                                 # were given to Multidrizzle.
-
-        excludedFileList = [] # Simple list used to store the names of files excluded
-                              # from multidrizzle processing because the EXPTIME value
-                              # in their header was 0.
-
-        # Examine the input to determine the number of input files and the number of 
-        # association files (in any) provided by the user.  If the input was an '@' file
-        # with IVM file input then we need to determine the numInputs value in a 
-        # special way.
-        numInputs,numASNfiles = countinputs(input)
-
-        
-        # The '@' file is a special case because it can have one or two columns depending
-        # on if 'IVM' files have been provided.
-        if input[0] == '@':
-            # Define temporary list object
-            inputfiles = []
-            
-            # Read in all the lines from the '@' file into a list.
-            file = open(input[1:]).readlines()
-            
-            
-            # Assume that if there are two entries on the first line, then we are going
-            # to be dealing with IVM files.
-            if (len(file[0].split()) == 2):
-                for line in file:
-                    inputfiles.append(line)
-                newoutput = output
- 
-                # We now need to determine if IVM files have been included as input.
-                # If IVM files have been provided, we need to separate the list into
-                # one for the standard input images and one for the IVM files.
-                filelist,ivmlist = parseIVM(inputfiles)
-
-                # Now determine the number of input files
-                numInputs = len(filelist)
-                
-
-            # If there are not two entries on the first line we are in the default case
-            # for the parseinput function.
-            else:
-                filelist,newoutput = parseinput(input,output)
-        else:
-            # Parse the user input into a python list object and extract the
-            # output name from the assocation table if given.
-            filelist,newoutput = parseinput(input,output)
-        
-        # Check that input files were actually found on disk.  If not, raise an exception
-        # and print an error message.  There are a number of reasons that no data could
-        # have been found on disk.
-        #   1) The user is in the wrong directory
-        #   2) The user is trying to give a partial file name and not using wild-cards
-        #   etc...
-        if (len(filelist) == 0):
-            errorstr =  "\n######################################################\n"
-            errorstr += "#                                                    #\n"
-            errorstr += "# ERROR:                                             #\n"
-            errorstr += "#  No valid files were found for an input string of: #\n"
-            errorstr += "          " + str(input) + "\n"
-            errorstr += "#                                                    #\n"
-            errorstr += "#  Two possible reasons this error may have occured  #\n"
-            errorstr += "#  are:                                              #\n"
-            errorstr += "#    - With the release of Multidrizzle 2.4.0,       #\n"
-            errorstr += "#      the processing of filename fragments without  #\n"
-            errorstr += "#      the use of wild-cards is no longer allowed.   #\n"
-            errorstr += "#      (use '*flt.fits' instead of 'flt.fits')       #\n"
-            errorstr += "#                                                    #\n"
-            errorstr += "#    - The directory you are running Multidrizzle    #\n"
-            errorstr += "#      in does not contain the specified files.      #\n"     
-            errorstr += "#                                                    #\n"
-            errorstr += "######################################################\n\n"
-            raise ValueError,errorstr
-        
-        
-        # Now we need to determine what type of data we are dealing with.  At this time
-        # there are 4  cases that we need to be concerned about:
-        # 1) WFPC2 GEIS Input (c0h or hhh file extensions)
-        # 2) STIS association files
-        # 3) A default case
-        #
-        # Case 1: WFPC2 GEIS INPUT
-        #   GEIS formated files must be converted to multi extension FITS format prior
-        #   to Multidrizzle processing.  
-        #
-        # Case 2: STIS association file input
-        #   STIS assocation files (i.e. *_flt.fits files with multiple 'sci' extensions) must
-        #   be split into separate multi extension FITS files prior to Multidrizzle processing.
-        # 
-        # Case 3: Default Case
-        #   All input files are already in multi extension FITS format.
-        #
-        # For all of the above cases, each file EXPTIME keyword will be checked for a 0
-        # value.  If the data is corrupt (i.e. EXPTIME  = 0), it will be thrown out of the 
-        # Multidrizzle processing list.  This error checking for STIS and WFPC2 will be
-        # handled by the instrument specifc parsing fucntions (parseWFPC2 and parseSTIS).
-        #
-        
-        # The list 'newfilelist' represents the final list of files to be processed.  GEIS
-        # files will have been converted to multi extension FITS format.  STIS association
-        # files will have been split in separate exposures.
-        newfilelist = []
-        
-        # Initialize Boolean values
-        parseWFPC2flag = False
-        parseSTISflag = False
-                
-        for inputfile in filelist:                 
-            if fileutil.getKeyword(inputfile,'instrume') == 'WFPC2':
-                # ParseWFPC2 will return a single file name to add to the list of
-                # files to process
-                tmpfilename,tmpFlag = parseWFPC2(inputfile)
-                
-                # Determine if the 
-                if (tmpfilename == None):
-                    excludedFileList.append(inputfile)
-                else:
-                    newfilelist.append(tmpfilename)
-                
-                # Populate translation dictionary and ordered list
-                translatedNames[tmpfilename] = inputfile
-                translatedNameOrder.append(tmpfilename)
-                
-                # If the flag is set True once, it needs to always be True.  This is
-                # just an indicator that WFPC2 file conversions have occured.
-                if tmpFlag == True:
-                    parseWFPC2flag == True
-
-            elif fileutil.getKeyword(inputfile,'instrume') == 'STIS':
-                # ParseSTIS will be dealing with both single exposure and multiple exposure
-                # STIS files.  Because of that, parseSTIS will return a Python list that
-                # will extend the current newfilelist
-                tmplist,tmpExcludedList,tmpFlag = parseSTIS(inputfile)
-                
-                if (len(tmpExcludedList) != 0):
-                    excludedFileList.extend(tmpExcludedList)
-                else:                 
-                    newfilelist.extend(tmplist)
-                
-                # Populate translation dictionary
-                for fname in tmplist:
-                    translatedNames[fname] = inputfile
-                    translatedNameOrder.append(fname)
-
-                # If the flag is set True once, it needs to always be True.  This is 
-                # just an indicator that STIS file conversions have occured.
-                if tmpFlag == True:
-                    parseSTISflag == True
-            else:
-                # We currently only need to worry about the conversion of WFPC2 and STIS
-                # files as special cases so this is the current DEFAULT case.
-                if (fileutil.getKeyword(inputfile,'EXPTIME') <= 0.0):
-                    msgstr =  "####################################\n"
-                    msgstr += "#                                  #\n"
-                    msgstr += "# WARNING:                         #\n"
-                    msgstr += "#  EXPTIME keyword value of 0.0 in #\n"
-                    msgstr += "         " + str(inputfile) +"\n"
-                    msgstr += "#  has been detected.  Images with #\n"
-                    msgstr += "#  no exposure time will not be    #\n"
-                    msgstr += "#  used during processing.  If you #\n"
-                    msgstr += "#  wish this file to be used in    #\n"
-                    msgstr += "#  processing please give EXPTIME  #\n"
-                    msgstr += "#  a valid non-zero value.         #\n"
-                    msgstr += "#                                  #\n"
-                    msgstr += "####################################\n"
-                    print msgstr   
-                    excludedFileList.append(inputfile)
-                elif (fileutil.getKeyword(inputfile,'instrume') == 'ACS') \
-                      or fileutil.getKeyword(inputfile,'instrume') == 'STIS': 
-                    # Only for ACS, and STIS, check NGOODPIX
-                    # If all pixels are 'bad' on all chips, exclude this image
-                    # from further processing. 
-                    # Similar checks requiring comparing 'driz_sep_bits' against
-                    # WFPC2 c1f.fits arrays and NICMOS DQ arrays will need to be
-                    # done separately (and later).
-                    _file = fileutil.openImage(inputfile)
-                    _ngood = 0
-                    for extn in _file:
-                        if extn.header.has_key('EXTNAME') and extn.header['EXTNAME'] == 'SCI':
-                            _ngood += extn.header['NGOODPIX']
-                    _file.close()
-                    
-                    if (_ngood == 0):
-                        msgstr =  "####################################\n"
-                        msgstr += "#                                  #\n"
-                        msgstr += "# WARNING:                         #\n"
-                        msgstr += "#  NGOODPIX keyword value of 0 in  #\n"
-                        msgstr += "         " + str(inputfile) +"\n"
-                        msgstr += "#  has been detected.  Images with #\n"
-                        msgstr += "#  no valid pixels will not be     #\n"
-                        msgstr += "#  used during processing.  If you #\n"
-                        msgstr += "#  wish this file to be used in    #\n"
-                        msgstr += "#  processing, please check its DQ #\n"
-                        msgstr += "#  array and reset driz_sep_bits   #\n"
-                        msgstr += "#  and final_bits parameters       #\n"
-                        msgstr += "#  to accept flagged pixels.       #\n"
-                        msgstr += "#                                  #\n"
-                        msgstr += "####################################\n"
-                        print msgstr   
-                        excludedFileList.append(inputfile)
-                    else:
-                        newfilelist.append(inputfile)    
-                else:
-                    newfilelist.append(inputfile)    
-
-                # Populate translation dictionary
-                translatedNames[inputfile] = inputfile
-                translatedNameOrder.append(inputfile)
-
-
-        # We need to determine if the IVM files need to be convereted from GEIS to
-        # FITS format or STIS association to simple FITS format
-
-        #Create a newivmlist object
-        newivmlist = []
-
-        if (len(ivmlist) != 0):
-            if (len(excludedFileList) != 0):
-                errstr =  "#######################################\n"
-                errstr += "#                                     #\n"
-                errstr += "# WARNING:                            #\n"
-                errstr += "#  IVM files will not be used during  #\n"
-                errstr += "#  processing due to the exclusion    #\n"
-                errstr += "#  by Multidrizzle of input files     #\n"
-                errstr += "#  with EXPTIME values of 0.0         #\n"
-                errstr += "#                                     #\n"
-                errstr += "#  To use IVM files all input data    #\n"
-                errstr += "#  must be populated with non-zero    #\n"
-                errstr += "#  EXPTIME header keyword values.     #\n"
-                errstr += "#                                     #\n"
-                errstr += "#######################################\n"
-                raise ValueError, errstr
-            else:
-                # Examine each file in the ivmlist
-                for ivmfile in ivmlist:
-                    # initialize temporary objects
-                    tmpfilename = None
-                    tmplist = []
-
-                    if fileutil.getKeyword(ivmfile,'instrume') == 'WFPC2':
-                        # ParseWFPC2 will return a single file name to add to the list of
-                        # files to process
-                        tmpfilename,tmpFlag = parseWFPC2(ivmfile)
-                        newivmlist.append(tmpfilename)
-                    elif fileutil.getKeyword(ivmfile,'instrume') == 'STIS':
-                        # ParseSTIS will be dealing with both single exposure and multiple exposure
-                        # STIS files.  Because of that, parseSTIS will return a Python list that
-                        # will extend the current newfilelist
-                        tmplist = parseSTISIVM(ivmfile) 
-                        newivmlist.extend(tmplist)
-                    else:
-                        newivmlist.append(ivmfile)
-                    
-        if  ( (len(newivmlist)>0) and (len(newivmlist) != len(newfilelist))):
-            errorstr =  "#########################################\n"
-            errorstr += "#                                       #\n"
-            errorstr += "# ERROR: Number of IVM files does not   #\n"
-            errorstr += "# equal the number of input files.      #\n"
-            errorstr += "#                                       #\n"
-            errorstr += "# When providing IVM files as input,    #\n"
-            errorstr += "# there needs to be exactly one IVM     #\n"
-            errorstr += "# file for each input file.             #\n"
-            errorstr += "#                                       #\n"
-            errorstr += "#########################################\n"
-            raise ValueError, errorstr
-
-        # Setup default output name if none was provided either by user or in ASN table
-        if (newoutput == None) or (len(newoutput) == 0):
-            if len(newfilelist) == 1:
-                newoutput = newfilelist[0][0:newfilelist[0].find('_')]
-            else:
-                newoutput = 'final'
-
-        return newoutput, newfilelist, newivmlist, numInputs, numASNfiles, \
-                parseSTISflag, parseWFPC2flag, translatedNames, \
-                translatedNameOrder, excludedFileList
-        
     def _printInputPars(self,switches):
         print "\n\n**** Multidrizzle Parameter Input ****"
 
@@ -870,16 +590,16 @@ help file.
         self._printDictEntries("",self.instrpars)
         print "\n"
 
-    def _printDictEntries(self,prefix,dict):
+    def _printDictEntries(self,prefix,prdict):
         # Define list of items that is to be handled as a special printing case.
         itemlist = ['newmasks','ra','dec','build','group','coeffs','nsigma1','nsigma2']
         
-        sortedkeys = dict.keys()
+        sortedkeys = prdict.keys()
         sortedkeys.sort()
         
         for key in sortedkeys:
             if (itemlist.count(key) == 0):
-                print prefix+key, " = ", dict[key]
+                print prefix+key, " = ", prdict[key]
                         
 
     def setMedianPars(self):
@@ -930,19 +650,21 @@ help file.
                 # Copy file into new filename
                 shutil.copyfile(_img,_copy)
 
-    def _checkInputFiles(self, files, updatewcs):
+    #def _checkInputFiles(self, files, updatewcs):
 
         """ Checks input files before they are required later. """
 
         """ Checks that MAKEWCS is run on any ACS image in 'files' list. """
+        """
         for p in files:
             
             if fileutil.getKeyword(p,'idctab') != None:
                 if fileutil.getKeyword(p,'PA_V3') != None:
                     # Update the CD matrix using the new IDCTAB
                     # Not perfect, but it removes majority of errors...                   
-                     if updatewcs == True: makewcs.run(image=p)   # optionally update wcs 
-                    
+                    if updatewcs == True: 
+                        makewcs.run(input=p)   # optionally update wcs 
+                     
                 elif (os.path.exists(p[0:p.find('_')]+'_spt.fits')):
                     msgstr =  "\n########################################\n"
                     msgstr += "#                                      #\n"
@@ -975,8 +697,7 @@ help file.
                         # Close the input file.
                         img.close()
                         # Optionally run makewcs                        
-                        if updatewcs == True: makewcs.run(image=p) 
-                        
+                        if updatewcs == True: makewcs.run(input=p)
                     except:
                         # We have failed to add the PA_V3 value to the
                         # input file.  Raise an exception and give up.
@@ -985,7 +706,8 @@ help file.
                 else:
                     self.__pav3errmsg(p)
                     raise ValueError, "Multidrizzle exiting..."
-
+        """
+    """
     def __pav3errmsg(self,filename):
         msgstr =  "\n*******************************************\n"
         msgstr += "*                                         *\n"
@@ -1008,7 +730,7 @@ help file.
         
         print msgstr
         
-
+    """
     def _checkStaticFile(self, static_file):
 
         """ Checks input files before they are required later. """
@@ -1072,328 +794,6 @@ help file.
                 raise IOError, errorstr
 
 
-
-    def _setupAssociation(self):
-
-        """ 
-        
-        METHOD NAME : _setupAssocation 
-        PURPOSE     : Build the PyDrizzle association object.
-        INPUT       : Attributes of the multidrizzle object.  Required attributes are:
-                        - self.input
-                        - self.files
-                        - self.output
-                        - self.translatedNames
-                        - self.translatedNameOrder
-                        - self.ivmlist
-                        - self.numASNfiles
-                        - self.numInputs
-                        - self.parseSTISflag
-                        - self.parseWFPC2flag
-                        - self.shiftfile
-                        - self.excludedFileList
-                        - self.driz_sep_bits
-                        - self.final_bits
-        OUTPUT      : A new ASN file used as input to Pydrizzle.  Remember, PyDrizzle is
-                      invoked by Multidrizzle and used the assocation table to create the
-                      assoc.par object.
-        """
-
-        timestamp()
-        print ' *** '+'Setting up associated inputs..'+'\n *** '
-
-        # Setup default PyDrizzle 'output' parameter value
-        assoc_output = None
-
-        # There are a number of cases that we need to deal with when creating an assocation
-        # file for Pydrizzle use.
-                
-        # Case 1: No support for WFPC2 and STIS image combination.  Actually, there is no
-        # support for the combination of different HST data types in general.  However,
-        # we can only check for the STIS and WFPC2 case. 
-        if ((self.parseSTISflag == True) and (self.parseWFPC2flag == True)):
-            errorstr =  "####################################\n"
-            errorstr += "#                                  #\n"
-            errorstr += "# ERROR:                           #\n"
-            errorstr += "#  Multidrizzle does not support   #\n"
-            errorstr += "#  the combination of different    #\n"
-            errorstr += "#  types of instrument data.  The  #\n"
-            errorstr += "#  use of WFPC2 and STIS input is  #\n"
-            errorstr += "#  not currently supported.        #\n"
-            errorstr += "#                                  #\n"
-            errorstr += "####################################\n"
-            raise ValueError, errorstr
-        
-        # Case 2: Pass an existing association file to Pydrizzle.  No addition processing needed
-        # to be done to build an assocation table.
-        elif ((self.parseSTISflag != True) and (self.parseWFPC2flag != True) and \
-              (self.numInputs == 1) and (self.numASNfiles == 1)):
-            # We have only 1 entry in the file list and it is an association table.
-            #
-            # Define the assocation table variable.
-            driz_asn_file = self.input
-
-            # Update assocation table with shiftfile information if available.
-            self._checkAndUpdateAsn(driz_asn_file, self.shiftfile)
-
-            # If data has been thrown out due to input files having EXPTIMEs of 0,
-            # we will need to create a new assocation table with the excluded
-            # files removed.
-            if (len(self.excludedFileList) > 0):
-                # Create the name of the new assocation table
-                newAsnTable = self.input[:self.input.find('.fits')]+"_exptime0_asn.fits"
-                self.zeroExptimeAsnTable = newAsnTable
-
-                # Remove the self.zeroExptimeAsnTable file if it exisits
-                if os.path.exists(self.zeroExptimeAsnTable):
-                    os.remove(self.zeroExptimeAsnTable)
-                
-                # Open the current input association table
-                table = pyfits.open(self.input)
-                
-                # Get the number of rows for the current table
-                numrows = len(table[1].data)
-                
-                # Create a new pyfits table object
-                newtable=pyfits.new_table(table[1].columns, nrows=numrows-len(self.excludedFileList))
-
-                # Create a new excludes list
-                newExcludeList = []
-                for item in self.excludedFileList:
-                    newExcludeList.append(item[:item.rfind('_')])
-                    
-                # Iterate over the exising table excluding the entries for files in the newExcludeList
-                j=0
-                for i in range(numrows):
-                    if table[1].data.field(0)[i] not in newExcludeList:
-                        newtable.data[j]=table[1].data[i]
-                        j=j+1
-                        
-                # Write out the new assocation table to disk
-                newtable.writeto(newAsnTable)
-                
-                # Designate the new assocation table to be passed to PyDrizzle
-                driz_asn_file = newAsnTable
-
-
-        # Case 3: Only one file given as input. len(self.files) == 1.
-        elif (len(self.files) == 1):
-            # The name of the single file is set as Pydrizzle input variable.
-            driz_asn_file = self.files[0]
-            assoc_output = self.output
-
-        # Case 4: Parse flags set while throwing out assocation table shift information.
-        # There are either zero or multiple assocation files
-        # given as input.  Therfore we can ignore any shift information the assocation
-        # files may contain.  We only need to be concerned about shift information 
-        # provided from shiftfiles.  This requires a filename translation from the
-        # input filename to a name representing a single exposure multi extension FITS
-        # format file. 
-        elif ( ((self.parseWFPC2flag == True) or (self.parseSTISflag == True )) \
-            and ( (self.numASNfiles != 1) or ( (self.numASNfiles == 1) and (self.numInputs > 1)))):
-        
-            # If a shiftfile exists, populate a shiftfile dictionary
-            if self.shiftfile != None:
-                # read the shiftfile 
-                shiftdict = fileutil.readShiftFile(self.shiftfile)
-                
-                # Create a new shiftfile using the translated file names
-                #
-                # Open a new shiftfile
-                newshiftfile = 'MDZ_' + str(self.shiftfile)
-                fshift = open(newshiftfile,'w')
-                
-                # Add units, reference, form and frame values to the newly created shiftfile
-                fshift.write('# units: ' + shiftdict['units'] + '\n')
-                fshift.write('# frame: ' + shiftdict['frame'] + '\n')
-                fshift.write('# refimage: ' + shiftdict['refimage'] + '\n')
-                fshift.write('# form: ' + shiftdict['form'] + '\n')
-                
-                for fname in self.translatedNames.keys():
-                    shiftRecord = shiftdict[translatedNames[fname]]
-                    outputline =  str(fname) + "  " 
-                    # Report X shift
-                    outputline += str(shiftRecord[0]) + "  " 
-                    # Report Y shift
-                    outputline += str(shiftRecord[1]) + "  "
-                    # Check for existence of rotation value
-                    if shiftRecord[2] != None:
-                        outputline += str(shiftRecord[2]) + "  "
-                        
-                        # Check for existence of scaling value.  This will only
-                        # exist if a rotaion is provided as well.
-                        if shiftRecord[3] !=   None:
-                            outputline += str(shiftRecord[3])
-                   
-                    outputline += '\n'
-                    # Write out the current line
-                    fshift.write(outputline)
-                
-                # Close the new shiftfile
-                fshift.close()
-
-            else:
-                # Case for no shiftfile provided
-                shiftdict = None
-                newshiftfile = None
-                    
-            # Create a new assocation file
-            driz_asn_file = self._generateAsnTable(self.output, self.files, newshiftfile)
-        
-        # Case 5: Parse flages set, single assocation file given as only input.  A shift file
-        # may have been provided.  Name mangling needs to occur for STIS assocation files
-        # and WFPC2 GEIS input.
-        #
-        # To deal with this case, what we will do is use the exisiting shiftfile (if providied) to
-        # update the shift information in the user provided association table.  In this way,
-        # we will only be working with the original filenames.  Then, we will take the newly
-        # updated association table and convert the entries to use the names of the newly created
-        # files that now exist in multi extension FITS format.
-        elif ( ((self.parseSTISflag == True) or (self.parseWFPC2flag == True)) and \
-             ((self.numASNfiles == 1 ) and (self.numInputs == 1))): 
-
-            # We have only 1 entry in the file list and it is an association table.
-            # However, this assocation table is populated 
-            #
-            # Define a variable for the original assocation table.
-            orig_driz_asn_file = self.input
-
-            # Update original assocation table with original shiftfile information if available.
-            self._checkAndUpdateAsn(orig_driz_asn_file, self.shiftfile)
-
-            # Open the existing association table
-            origassocdict = readAsnTable(orig_driz_asn_file, None, prodonly=False)
-
-            # Create a new association table.
-            newassocdict = {}
-
-            # Step through the new file names and build new rows for the assocation table. 
-            #
-            # Extract 'drz' product output name
-            newassocdict['output']=self.output
-            
-            # Add the order information for new assocation table
-            for name in self.translatedNameOrder:
-                # Extract the rootname of the file for inclusion in the new association table
-                rootname = name[:name.rfind('.fits')]
-                newassocdict['order'].append(rootname)
-            
-            # Initialize Members dictionary.  Copying shift flags from original assoication table.
-            newassocdict['members'] = \
-                {'abshift':origassocdict['members']['abshift'],'dshift':origassocdict['members']['dshift']}
-            
-            
-            #Extract rootname of original file
-            #
-            # Build dictionary matching old rootnames with old full file names
-            oldrootname ={}
-            
-            for memname in origassocdict['members'].keys():
-                if memname != 'abshift' and memname != 'dshift':
-                    oldfilename = fileutil.buildRootname(memname)
-                    oldrootname[oldfilename]=memname
-                
-            # Add new names and shift information
-            for fname in newassocdict['order']:
-                # Extract original memname
-                origmemname = oldrootname[self.translatedNames[fname+'.fits']]
-                
-                # Copy assocation table row from the original association table and
-                # append it to the appropriate row for the translated memname.
-                newassocdict['members'][fname] =  origassocdict['members'][origmemname]
-
-            # Write out the mangled association dictionary to new association table.
-            driz_asn_file = buildasn.writeAsnDict(newassocdict,output='MDZ_'+self.output)
-            
-            
-        # Default Case: List of files.  This case includes the situation where a user has
-        # provided multiple ASN tables as inputs.  We do not support shift information
-        # from multiple ASN tables.  Any shift information provided in the ASN tables
-        # will be discarded.  The user can optionally provide a shfitfile relating all
-        # of the images from the multiple assocation tables.
-        #
-        # This also applies for a mix of assocation tables and other forms of input.  For
-        # example, if a user were to give an ASN table and a '@' file as input, the shift
-        # information from the ASN table would be discarded.
-        else:
-            # Create a new assocation file
-            driz_asn_file = self._generateAsnTable(self.output, self.files, self.shiftfile)
-             
-
-        # Run PyDrizzle; make sure there are no intermediate products
-        # laying around...        
-        assoc = pydrizzle.PyDrizzle(driz_asn_file, output=assoc_output, 
-                                    idckey=self.coeffs, 
-                                    section=self.driz_sep_pars['group'],
-                                    bits_single=self.driz_sep_bits,
-                                    bits_final=self.final_bits,
-                                    prodonly=False)
-
-        # Use PyDrizzle to clean up any previously produced products...
-        if self.clean:
-            assoc.clean()
-
-        print 'Initial parameters: '
-        assoc.printPars(format=1)
-
-        # Add any specifed IVM filenames to the association object
-        for plist in assoc.parlist:
-            fname,extname = fileutil.parseFilename(plist['data'])
-            
-            ivmname = None
-            
-            if len(self.ivmlist) > 0:
-                for index in xrange(len(self.ivmlist)):
-                    if self.files[index] == fname:
-                        ivmname = self.ivmlist[index] 
-                       
-            plist['ivmname'] = ivmname
-
-        return assoc
-
-
-    def _generateAsnTable(self,output, input, shfile):
-
-        """ Generates the association table. """
-
-        # Create the full filename of the association table
-        name = output + '_asn.fits'
-
-        # Delete the file if it exists.
-        if os.path.exists(name):
-            warningmsg =  "\n#########################################\n"
-            warningmsg += "#                                       #\n"
-            warningmsg += "# WARNING:                              #\n"
-            warningmsg += "#  The existing assocation table,      #\n"
-            warningmsg += "           " + str(name) + '\n'
-            warningmsg += "#  is being replaced by Multidrizzle.   #\n"
-            warningmsg += "#                                       #\n"
-            warningmsg += "#########################################\n\n"
-            print warningmsg
-            os.remove(name)
-
-        print 'building ASN table for: ',name
-        print 'based on suffix of:     ',input
-        print 'with a shiftfile of:    ',shfile
-
-        # Must strip out _asn.fits from name since buildAsnTable adds
-        # it back again...
-        buildasn.buildAsnTable(output,
-                               suffix=input,
-                               shiftfile=shfile)
-
-        print 'Assoc. table = ', name
-        print('')
-        print('')
-        
-        # Return the name of the new assocation table.
-        return name
-
-    def _checkAndUpdateAsn(self, name, shfile):
-        """ Updates association table with user-supplied shifts, if given. """
-        if fileutil.checkFileExists(name):
-            if (shfile != None) and (len(shfile) > 0):
-                updateasn.updateShifts(name,shfile,mode='replace')
 
     def _preMedian(self, skysub):
         """ Perform the steps that take place before median computation:
@@ -1486,9 +886,8 @@ help file.
             # Start by applying input parameters to redefine
             # the output frame as necessary
             self.image_manager._setOutputFrame(self.driz_sep_pars)
-
+        
             self._preMedian(skysub)
-
             if self.steps.doStep(ProcSteps.doMedian):
                 self.image_manager.createMedian(self.medianpars)
                 self.steps.markStepDone(ProcSteps.doMedian)
@@ -1504,6 +903,7 @@ help file.
             # Close open file handles opened by PyDrizzle
             # Now that we are done with the processing,
             # delete any input copies we created.
+
             if not self.workinplace:
                 self.image_manager.removeInputCopies()
 
@@ -1515,12 +915,12 @@ help file.
 
                 # Now have image_manager remove all image products
                 self.image_manager.removeMDrizProducts()
-                
+            """    
             # Remove the self.zeroExptimeAsnTable file if it exists
             if self.zeroExptimeAsnTable != None:
                 if os.path.exists(self.zeroExptimeAsnTable):
                     os.remove(self.zeroExptimeAsnTable)
-
+            """
         if self.pars.switches['timing']:
             self.steps.reportTimes()
 

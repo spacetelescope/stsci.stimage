@@ -3,7 +3,6 @@
 #   Program: stis_input.py
 #   Purpose: Class used to model STIS specific instrument data.
 
-import pydrizzle
 from pytools import fileutil
 import numpy as N
 

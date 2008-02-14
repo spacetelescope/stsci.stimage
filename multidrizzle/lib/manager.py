@@ -11,7 +11,7 @@ import pyfits
 import shutil, os
 
 # Import Pydrizzle
-import pydrizzle
+from pydrizzle import pydrizzle
 from pydrizzle import drutil,buildmask
 from pytools import fileutil, wcsutil
 
@@ -63,12 +63,11 @@ class ImageManager:
         same ImageManager object without worrying about opening or trying to close
         the same image more than once.
     """
-    def __init__(self, assoc, context, instrpars, workinplace, static_file, updatewcs):  
+    def __init__(self, assoc, context, instrpars, workinplace, static_file):  
         self.context = context
         self.assoc = assoc
         self.output = self.assoc.output
         self.workinplace = workinplace
-        self.updatewcs = updatewcs 
         self.static_file = static_file
 
         # Establish a default memory mapping behavior
@@ -327,7 +326,7 @@ class ImageManager:
         if _instrument != 'WFPC2':
             _dq_root,_dq_extn = fileutil.parseFilename(_dqname)
             _dqname = plist['orig_filename']+'['+_dq_extn+']'
-    
+
         if _instrument == 'ACS':
             if _detector == 'HRC': return HRCInputImage(input,_dqname,_platescale,memmap=0)
             if _detector == 'WFC': return WFCInputImage(input,_dqname,_platescale,memmap=0)
@@ -347,8 +346,8 @@ class ImageManager:
             if _detector == 3: return NIC3InputImage(input,_dqname,_platescale,memmap=0)
         if _instrument == 'WFC3':
             if _detector == 'UVIS': return UVISInputImage(input,_dqname,_platescale,memmap=0)
-            if _detector == 'IR': return IRInputImage(input,_dqname,_platescale,memmap=0)
-        
+            if _detector == 'IR': return IRInputImage(input,_dqname,_platescale,memmmap =0)
+
         # If a supported instrument is not detected, print the following error message
         # and raise an exception.
         msg = 'Instrument: ' + str(_instrument) + '/' + str(_detector) + ' not yet supported!'
@@ -1206,16 +1205,14 @@ class ImageManager:
                 # need to automatically generate them based upon 
                 # instrument specific information.
                 
-
                 flat = imageobj.getflat()
                 RN = imageobj.getReadNoiseImage()
                 sampimg = imageobj.getsampimg()
                 darkimg = imageobj.getdarkimg()
                 skyimg = imageobj.getskyimg()
                 
-
                 ivm = (flat)**2/(darkimg+(skyimg*flat)+sampimg*RN**2)
-                
+
                 #Open the mask image for updating
                 mask = fileutil.openImage(parlistentry['image'].maskname,mode='update')
                 
