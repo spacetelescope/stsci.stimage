@@ -129,7 +129,7 @@ def XYtoSky_pars(input,x=None,y=None,coords=None,colnames=None,linear=yes,
                     racol = pyfits.Column(name=raname,format='24a',array=C.array(ra))
                     deccol = pyfits.Column(name=decname,format='24a',array=C.array(dec))
                 else:
-                    # normal numarray objects
+                    # normal numpy objects
                     racol = pyfits.Column(name=raname,format='1d',array=ra)
                     deccol = pyfits.Column(name=decname,format='1d',array=dec)
                     
@@ -191,7 +191,7 @@ def XYtoSky_pars(input,x=None,y=None,coords=None,colnames=None,linear=yes,
 def XYtoSky(input, pos, idckey='IDCTAB', linear=yes, verbose=no):
     """ Convert input pixel position(s) into RA/Dec position(s).
         Output will be either an (ra,dec) pair or a 'list' of (ra,dec)
-        pairs, not a numarray, to correspond with the input position(s).
+        pairs, not a numpy, to correspond with the input position(s).
 
         Parameter:
             input - Filename with extension specification of image

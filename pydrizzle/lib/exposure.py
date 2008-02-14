@@ -349,7 +349,7 @@ class Exposure:
         return _dxgeo,_dygeo
 
     def getDGEOArrays(self):
-        """ Return numarray objects for the distortion correction
+        """ Return numpy objects for the distortion correction
             image arrays.
 
             If no DGEOFILE is specified, it will return
@@ -375,7 +375,7 @@ class Exposure:
             _pxgext = fileutil.getExtn(_xgfile,extn=_xgext)
             _pygext = fileutil.getExtn(_xgfile,extn=_ygext)
 
-            # Copy out the numarray objects for output
+            # Copy out the numpy objects for output
             _ltv1 = int(self.geometry.wcs.offset_x)
             _ltv2 = int(self.geometry.wcs.offset_y)
             if _ltv1 != 0. or _ltv2 != 0.:
@@ -500,9 +500,9 @@ class Exposure:
 
     def runDriz(self,pixfrac=1.0,kernel='turbo',fillval='INDEF'):
         """ Runs the 'drizzle' algorithm on this specific chip to create
-            a numarray object of the undistorted image.
+            a numpy object of the undistorted image.
 
-            The resulting drizzled image gets returned as a numarray object.
+            The resulting drizzled image gets returned as a numpy object.
         """
         #
         # Perform drizzling...

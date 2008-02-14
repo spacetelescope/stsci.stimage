@@ -41,17 +41,18 @@ except:
     DEFAULT_IDCDIR = os.getcwd()
 
 
+"""
 def factorial(n):
-    """ Compute a factorial for integer n. """
+    #Compute a factorial for integer n. 
     m = 1
     for i in range(int(n)):
         m = m * (i+1)
     return m
 
 def combin(j,n):
-    """ Return the combinatorial factor for j in n."""
+    #Return the combinatorial factor for j in n.
     return (factorial(j) / (factorial(n) * factorial( (j-n) ) ) )
-
+"""
 
 #################
 #
@@ -114,7 +115,7 @@ def getChipId(header):
     return chip
 
 
-def getIDCFile(image,keyword=None,directory=None):
+def getIDCFile(image,keyword="",directory=None):
     # Open the primary header of the file and read the name of
     # the IDCTAB.
     # Parameters:
@@ -160,8 +161,10 @@ def getIDCFile(image,keyword=None,directory=None):
 
     if idcfile != None and idcfile != '':
         # Now we need to recursively expand any IRAF symbols to full paths...
+        #if directory:
         idcfile = fileutil.osfn(idcfile)
-
+        
+            
     if idcfile == None:
         print 'WARNING: No valid distortion coefficients available!'
         print 'Using default unshifted, unscaled, unrotated model.'
@@ -169,7 +172,7 @@ def getIDCFile(image,keyword=None,directory=None):
     return idcfile,idctype
 
 
-def __buildIDCTAB(header, directory, kw = None):
+def __buildIDCTAB(header, directory, kw = 'cubic'):
     # Need to build IDCTAB filename from scratch
     instrument = header['INSTRUME']
     if instrument != 'NICMOS':
@@ -178,10 +181,12 @@ def __buildIDCTAB(header, directory, kw = None):
         detector = str(header['CAMERA'])
 
     # Default non-IDCTAB distortion model
+    """
     if (kw == None):
         keyword = 'cubic'
     else :
-        keyword = kw
+    """
+    keyword = kw
 
     if not directory:
         default_dir = DEFAULT_IDCDIR
@@ -248,96 +253,9 @@ def getIDCFileType(idcfile):
     return _type
 
 #
-# Function to read in coefficients from ASCII Cubic Drizzle
-# Coefficients table.
-#
-
-def readCubicTable(idcfile):
-    # Assumption: this will only be used for cubic file...
-    order = 3
-    # Also, this function does NOT perform any scaling on
-    # the coefficients, it simply passes along what is found
-    # in the file as is...
-
-    # Return a default geometry model if no coefficients filename
-    # is given.  This model will not distort the data in any way.
-    if idcfile == None:
-        return fileutil.defaultModel()
-
-    ifile = open(idcfile,'r')
-    # Search for the first line of the coefficients
-    _line = fileutil.rAsciiLine(ifile)
-
-    _found = no
-    while _found == no:
-        if _line[:7] in  ['cubic','quartic','quintic'] or _line[:4] == 'poly':
-            found = yes
-            break
-        _line = fileutil.rAsciiLine(ifile)
-
-    # Read in each row of coefficients, without line breaks or newlines
-    # split them into their values, and create a list for A coefficients
-    # and another list for the B coefficients
-    _line = fileutil.rAsciiLine(ifile)
-    a_coeffs = string.split(_line)
-
-    x0 = float(a_coeffs[0])
-    _line = fileutil.rAsciiLine(ifile)
-    a_coeffs[len(a_coeffs):] = string.split(_line)
-    # Scale coefficients for use within PyDrizzle
-    for i in range(len(a_coeffs)):
-        a_coeffs[i] = float(a_coeffs[i])
-
-    _line = fileutil.rAsciiLine(ifile)
-    b_coeffs = string.split(_line)
-    y0 = float(b_coeffs[0])
-    _line = fileutil.rAsciiLine(ifile)
-    b_coeffs[len(b_coeffs):] = string.split(_line)
-    # Scale coefficients for use within PyDrizzle
-    for i in range(len(b_coeffs)):
-        b_coeffs[i] = float(b_coeffs[i])
-
-    ifile.close()
-    del ifile
-    # Now, convert the coefficients into a Numeric array
-    # with the right coefficients in the right place.
-    # Populate output values now...
-    fx = N.zeros(shape=(order+1,order+1),dtype=N.float64)
-    fy = N.zeros(shape=(order+1,order+1),dtype=N.float64)
-    # Assign the coefficients to their array positions
-    fx[0,0] = 0.
-    fx[1] = N.array([a_coeffs[2],a_coeffs[1],0.,0.],dtype=N.float64)
-    fx[2] = N.array([a_coeffs[5],a_coeffs[4],a_coeffs[3],0.],dtype=N.float64)
-    fx[3] = N.array([a_coeffs[9],a_coeffs[8],a_coeffs[7],a_coeffs[6]],dtype=N.float64)
-    fy[0,0] = 0.
-    fy[1] = N.array([b_coeffs[2],b_coeffs[1],0.,0.],dtype=N.float64)
-    fy[2] = N.array([b_coeffs[5],b_coeffs[4],b_coeffs[3],0.],dtype=N.float64)
-    fy[3] = N.array([b_coeffs[9],b_coeffs[8],b_coeffs[7],b_coeffs[6]],dtype=N.float64)
-
-    # Used in Pattern.computeOffsets()
-    refpix = {}
-    refpix['XREF'] = None
-    refpix['YREF'] = None
-    refpix['V2REF'] = x0
-    refpix['V3REF'] = y0
-    refpix['XDELTA'] = 0.
-    refpix['YDELTA'] = 0.
-    refpix['PSCALE'] = None
-    refpix['DEFAULT_SCALE'] = no
-    refpix['centered'] = yes
-
-    return fx,fy,refpix,order
-
-# Function to compute the index of refraction for MgF2 at
-# the specified wavelength for use with Trauger coefficients
-def _MgF2(lam):
-    _sig = pow((1.0e7/lam),2)
-    return N.sqrt(1.0 + 2.590355e10/(5.312993e10-_sig) +
-        4.4543708e9/(11.17083e9-_sig) + 4.0838897e5/(1.766361e5-_sig))
-
-#
 # Function to read Trauger ASCII file and return cubic coefficients
 #
+"""
 def readTraugerTable(idcfile,wavelength):
 
     # Return a default geometry model if no coefficients filename
@@ -403,7 +321,7 @@ def readTraugerTable(idcfile,wavelength):
     refpix['centered'] = yes
 
     return fx,fy,refpix,order
-
+"""
 def rotateCubic(fxy,theta):
     # This function transforms cubic coefficients so that
     # they calculate pixel positions oriented by theta (the same
