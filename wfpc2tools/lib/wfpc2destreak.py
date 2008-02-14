@@ -43,6 +43,11 @@
 #                   - the keyword 'ROWTHRES' is written to the header specifying the value of row_thresh.
 #                   - the keyword 'FORCETYP' is written to the header designating if the user has forced a specific
 #                     correction type.
+#          02/14/08 - Changed the logic of the routine so that if an algorithm type is specified, that correction
+#                     will be made unless IMMEAN > BIASTHRESH, in which case no correction will be made and CORR_ALG
+#                     will be set to 'skipped'.  As before, only rows will be corrected for which the absolute
+#                     value of the correction is above the row threshold that the user set.
+#
 #
 # Outline:
 #
@@ -100,7 +105,7 @@ from optparse import OptionParser
 import ndimage
 import cwdutil, opusutil, sys
 
-__version__ = "1.1 (2008 Feb 08)"
+__version__ = "1.11 (2008 Feb 14)"
 
 NUM_SIG = 2.5  # number of sigma to use in sigma clipping
 TOT_ITER = 4   # maximum number of iterations for sigma clipping
@@ -258,51 +263,54 @@ class Wfpc2destreak:
 
         if (verbosity >1 ):print 'Determining which algorithm to use ...'
    
-        if ((bias_thresh < im_mean) and (force_alg_type == None)):#  apply no correction if bias_thresh < im_mean  
-            alg_type = "None"
-            alg_cmt = "No correction applied"
-            if (verbosity >=1 ): print 'No correction applied because bias_thresh < im_mean '
-        elif ( nsigma < 1.0 ): # Case A            
-           if (verbosity >=1 ): print '  nsigma = ' , nsigma, ' < 1.0, so will apply no correction'
-           alg_type = "None"
-           alg_cmt = "No correction applied"
-        elif (nsigma >= 1.0 and nsigma <= 11.0 and im_sigma <= 2.0): # Case B
-           if (verbosity >1 ):
-               print '  nsigma = ', nsigma , '( between 1.0 and 11.), and im_sigma = ', im_sigma ,' <=2.0 so will apply both PASS 1 & 2'
-               print '  Will use columns 2 through ', col_max,' in pyramid region to calculate Pass 1 corrections.'
-           alg_type = "PASS12"
-           alg_cmt = "Pass 1 and 2 corrections applied"
-        elif (nsigma >= 1.0 and nsigma <= 11.0 and im_sigma > 2.0): # Case C
-           if (verbosity >1 ): print '  nsigma = ', nsigma , '( between 1.0 and 11.), and im_sigma = ', im_sigma , ' >2.0 so will apply no correction'
-           alg_type = "None"
-           alg_cmt = "No correction applied"
-        else: # Case D
-           if (verbosity >1 ):             
-               print '  nsigma = ', nsigma ,' and im_sigma = ', im_sigma
-               print '  Neither   nsigma < 1.0 or  (nsigma >= 1.0 and nsigma <= 11.0 and im_sigma <= 2.0) so '
-               print '  will apply Pass 1 only'
-               print 'Will use columns 2 through ', col_max,' in pyramid region to calculate Pass 1 corrections.'
-           alg_type = "PASS1"
-           alg_cmt = "Pass 1 correction applied"
-
-        if (force_alg_type <> None):
-            forced_type = 'Yes'
-            alg_type = force_alg_type
-            if ( force_alg_type == 'PASS1'):
-               alg_cmt = "Pass 1 correction applied"
-            elif ( force_alg_type == 'PASS2'):
-               alg_cmt = "Pass 2 correction applied"
-            elif ( force_alg_type == 'PASS12'):
-               alg_cmt = "Pass 1 and 2 corrections applied"
-            else:
-               alg_type = "None"
-               alg_cmt = "No correction applied"
-            if (verbosity >1 ):
-               print ' The user has forced algorithm type: ' ,alg_type
-        else:  # let the program decide which algorithm type
-            forced_type = 'No'
-            if (verbosity >1 ):
-                print 'Based on statistics of the pyramid and image regions, this script will apply the correction type:', alg_type
+        if (force_alg_type == None):#  apply the correction selected by the routine
+           forced_type = 'No'
+           if (bias_thresh >= im_mean):#  determine the type of correction to apply
+              if ( nsigma < 1.0 ): # Case A            
+                 if (verbosity >=1 ): print '  nsigma = ' , nsigma, ' < 1.0, so will apply no correction'
+                 alg_type = "None"
+                 alg_cmt = "No correction applied"
+              elif (nsigma >= 1.0 and nsigma <= 11.0 and im_sigma <= 2.0): # Case B
+                 if (verbosity >1 ):
+                    print '  nsigma = ', nsigma , '( between 1.0 and 11.), and im_sigma = ', im_sigma ,' <=2.0 so will apply both PASS 1 & 2'
+                    print '  Will use columns 2 through ', col_max,' in pyramid region to calculate Pass 1 corrections.'
+                 alg_type = "PASS12"
+                 alg_cmt = "Pass 1 and 2 corrections applied"
+              elif (nsigma >= 1.0 and nsigma <= 11.0 and im_sigma > 2.0): # Case C
+                 if (verbosity >1 ): print '  nsigma = ', nsigma , '( between 1.0 and 11.), and im_sigma = ', im_sigma , ' >2.0 so will apply no correction'
+                 alg_type = "None"
+                 alg_cmt = "No correction applied"
+              else: # Case D
+                 if (verbosity >1 ):             
+                    print '  nsigma = ', nsigma ,' and im_sigma = ', im_sigma
+                    print '  Neither   nsigma < 1.0 or  (nsigma >= 1.0 and nsigma <= 11.0 and im_sigma <= 2.0) so '
+                    print '  will apply Pass 1 only'
+                    print 'Will use columns 2 through ', col_max,' in pyramid region to calculate Pass 1 corrections.'
+                 alg_type = "PASS1"
+                 alg_cmt = "Pass 1 correction applied"
+           else : # bias_thresh < im_mean) so apply no correction 
+              alg_type = "Skipped"
+              alg_cmt = "No correction applied"
+              if (verbosity >1 ): print ' The specified correction will be skipped because bias_thresh < im_mean'
+        else: # (force_alg_type <> None): correction type has been specified by user
+           forced_type = 'Yes'
+           if (bias_thresh >= im_mean):#  determine type of correction specified
+              alg_type = force_alg_type
+              if ( force_alg_type == 'PASS1'):
+                 alg_cmt = "Pass 1 correction applied"
+              elif ( force_alg_type == 'PASS2'):
+                 alg_cmt = "Pass 2 correction applied"
+              elif ( force_alg_type == 'PASS12'):
+                 alg_cmt = "Pass 1 and 2 corrections applied"
+              else:
+                 alg_type = "None"
+                 alg_cmt = "No correction applied"
+              if (verbosity >1 ):
+                 print ' The user has forced algorithm type: ' ,alg_type
+           else:  # let the program decide which algorithm type
+              alg_type = "Skipped"
+              alg_cmt = "No correction applied"
+              if (verbosity >1 ): print ' The specified correction will be skipped because bias_thresh < im_mean'
             
         new_c0f_data = c0f_data.copy().astype(N.float32)  # will be updated array for c0f data
 
@@ -804,8 +812,8 @@ def write_to_file(data, filename, hdr, alg_type, alg_cmt, verbosity, pyr_mean, p
     hdr.update(key='PYRSIGMA', value=pyr_sigma, comment="clipped sigma of pyramid region" )
     hdr.update(key='IMMEAN', value=im_mean, comment="clipped mean of image region" )
     hdr.update(key='IMSIGMA', value=im_sigma, comment="clipped sigma of image region" )
-    hdr.update(key='BIASTHRE', value=bias_thresh, comment="bias threshold (valid if CORR_ALG is not none)" ) 
-    hdr.update(key='ROWTHRES', value=row_thresh, comment="row threshold (valid if CORR_ALG is not none)" ) 
+    hdr.update(key='BIASTHRE', value=bias_thresh, comment="bias threshold (valid if CORR_ALG is not None and not Skipped)" ) 
+    hdr.update(key='ROWTHRES', value=row_thresh, comment="row threshold (valid if CORR_ALG is not None and not Skipped)" ) 
     hdr.update(key='FORCETYP', value=forced_type, comment="correction type applied was forced (yes/no)" ) 
     fimghdu = pyfits.PrimaryHDU( header = hdr)
     fimghdu.data = data
