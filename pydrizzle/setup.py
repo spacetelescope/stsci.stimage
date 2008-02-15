@@ -106,8 +106,8 @@ def dosetup(ext):
               author_email = "help@stsci.edu",
               license = "http://www.stsci.edu/resources/software_hardware/pyraf/LICENSE",
               platforms = ["Linux","Solaris", "MacOS X", "Windows"],
-              packages=['pydrizzle','pydrizzle/traits102'],
-              package_dir={'pydrizzle':'lib','pydrizzle/traits102':'traits102'},
+              packages=['pydrizzle','pydrizzle/traits102', 'pydrizzle/distortion'],
+              package_dir={'pydrizzle':'lib','pydrizzle/traits102':'traits102', 'pydrizzle/distortion':'lib/distortion'},
               cmdclass = {'install_data':smart_install_data},
               data_files = [('pydrizzle',['lib/LICENSE.txt'])],
               ext_modules=ext)
