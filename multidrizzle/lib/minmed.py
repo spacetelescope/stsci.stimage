@@ -52,8 +52,8 @@ class minmed:
             exposureTimeList,       # list of exposure times to use for the input images.
             backgroundValueList,    # list of image background values to use for the input images
             weightMaskList= None,   # list of imput data weight masks to use for pixel rejection.
-            combine_grow = 0,       # Radius (pixels) for neighbor rejection
-            combine_nsigma1 = 6,    # Significance for accepting minimum instead of median
+            combine_grow = 1,       # Radius (pixels) for neighbor rejection
+            combine_nsigma1 = 4,    # Significance for accepting minimum instead of median
             combine_nsigma2 = 3     # Significance for accepting minimum instead of median
 
             ):
