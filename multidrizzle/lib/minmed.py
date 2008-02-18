@@ -255,6 +255,7 @@ class minmed:
                 errormsg2 += "# specified an input value for the 'grow' parameter of:    #\n"
                 errormsg2 += "        combine_grow: " +str(self.__combine_grow)+'\n'
                 errormsg2 += "############################################################\n"
+                print self.__imageList[0].shape
                 raise ValueError,errormsg2
 
             # Attempt the boxcar convolution using the boxshape based upon the user input value of "grow"

@@ -162,7 +162,7 @@ class MDrizPars (HasTraits):
             'driz_sep_fillval':Trait('INDEF',TraitString()),
             'driz_sep_bits':Trait(0,AnyValue), 
             'median_newmasks':Trait(True, true_boolean, editor=bit_editor), 
-            'combine_type':Trait('median',enum_combine, editor=text_editor), 
+            'combine_type':Trait('minmed',enum_combine, editor=text_editor), 
             'combine_nsigma':Trait('4 3',TraitString()),
             'combine_nlow':Trait(0,AnyValue), 
             'combine_nhigh':Trait(1,AnyValue), 

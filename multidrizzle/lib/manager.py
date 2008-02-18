@@ -734,16 +734,25 @@ class ImageManager:
         _imgarr = masterList[0].data
         _bufsize = nimageiter.BUFSIZE
         _imgrows = _imgarr.shape[0]
+        print "_imgrows: ",_imgrows
         _nrows = computeBuffRows(_imgarr)
+        print "_nrows: ",_nrows
         _niter = int(_imgrows/_nrows)
+        print "_niter: ",_niter
         _lastrows = _imgrows - (_niter*_nrows) 
-
+        print "_lastrows: ",_lastrows
+        
         # check to see if this buffer size will leave enough rows for
         # the section returned on the last iteration
         if _lastrows < _overlap+1:
             _delta_rows = int((_overlap+1 - _lastrows)/_niter)
+            print "_delta_row: ",_delta_rows
+            print "_overlap+1: ",_overlap+1
+            print "_lastrows: ",_lastrows
+            print "_niter: ",_niter
             if _delta_rows < 1: _delta_rows = 1
             _bufsize += (_imgarr.shape[1]*_imgarr.itemsize) * _delta_rows
+        
         masterList[0].close()
         del _imgarr
 
