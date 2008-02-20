@@ -736,10 +736,13 @@ class ImageManager:
         _imgrows = _imgarr.shape[0]
         print "_imgrows: ",_imgrows
         _nrows = computeBuffRows(_imgarr)
+        _overlaprows = _nrows - (_overlap+1)
         print "_nrows: ",_nrows
-        _niter = int(_imgrows/_nrows)
+#        _niter = int(_imgrows/_nrows)
+        _niter = 1 + int( (_imgrows - _overlaprows)/_nrows)
         print "_niter: ",_niter
-        _lastrows = _imgrows - (_niter*_nrows) 
+#        _lastrows = _imgrows - (_niter*_nrows) 
+        _lastrows = _imgrows - ((_imgrows - _overlaprows)*(_niter-1) + _overlaprows)
         print "_lastrows: ",_lastrows
         
         # check to see if this buffer size will leave enough rows for
