@@ -22,7 +22,8 @@ args = sys.argv[2:]
 
 PACKAGES = ['calcos','numdisplay', 'imagestats',
             'multidrizzle', 'pydrizzle', 'pydrizzle.traits102',
-            'pytools', 'nictools', 'stistools', 'wfpc2tools']
+            'pydrizzle.distortion','pytools', 'nictools', 
+	    'stistools', 'wfpc2tools']
 
 #The normal directory structure is {packagename:packagename/lib.}
 PACKAGE_DIRS = {}
@@ -31,6 +32,7 @@ for p in PACKAGES:
 #Exceptions are allowed; put them here.
 PACKAGE_DIRS['numdisplay']='numdisplay'
 PACKAGE_DIRS['pydrizzle.traits102']='pydrizzle/traits102'
+PACKAGE_DIRS['pydrizzle.distortion']='pydrizzle/distortion'
 
 
 for a in args:
