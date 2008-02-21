@@ -32,7 +32,7 @@ for p in PACKAGES:
 #Exceptions are allowed; put them here.
 PACKAGE_DIRS['numdisplay']='numdisplay'
 PACKAGE_DIRS['pydrizzle.traits102']='pydrizzle/traits102'
-PACKAGE_DIRS['pydrizzle.distortion']='pydrizzle/distortion'
+PACKAGE_DIRS['pydrizzle.distortion']='pydrizzle/lib/distortion'
 
 
 for a in args:
