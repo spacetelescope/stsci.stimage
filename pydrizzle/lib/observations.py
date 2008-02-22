@@ -395,6 +395,7 @@ class WFPCObservation(Pattern):
         if self.name.find('.fits') < 0:
             # Working with a GEIS image...
             dqfile = self.name[:-2]+'1h'
+            dqextn = '[sdq,1]'
         else:
             # Looking for c1f FITS DQ file...
             # In the WFPC2 pipeline the extensions are called 'c0f' and 'c1f'
