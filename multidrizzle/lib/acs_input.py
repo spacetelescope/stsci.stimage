@@ -157,9 +157,9 @@ class HRCInputImage (ACSInputImage):
         self.platescale = platescale
 
         if ( self.amp == 'A' or self.amp == 'B' ) : # cte direction depends on amp (but is independent of chip)
-             self.cte_dir = 1   
+            self.cte_dir = 1   
         if ( self.amp == 'C' or self.amp == 'D' ) :
-             self.cte_dir = -1   
+            self.cte_dir = -1   
 
 class SBCInputImage (ACSInputImage):
 
