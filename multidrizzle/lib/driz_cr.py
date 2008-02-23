@@ -189,11 +189,11 @@ class DrizCR:
 
         # which pixels are masked by tail kernel depends on sign of ctedir (i.e.,readout direction):
         if ( ctedir == 1 ):  # HRC: amp C or D ; WFC: chip = sci,1 ; WFPC2
-           cr_ctegrow_kernel[ 0:ctegrow, ctegrow ]=1    #  'positive' direction
+            cr_ctegrow_kernel[ 0:ctegrow, ctegrow ]=1    #  'positive' direction
         if ( ctedir == -1 ): # HRC: amp A or B ; WFC: chip = sci,2
-           cr_ctegrow_kernel[ ctegrow+1:2*ctegrow+1, ctegrow ]=1    #'negative' direction
+            cr_ctegrow_kernel[ ctegrow+1:2*ctegrow+1, ctegrow ]=1    #'negative' direction
         if ( ctedir == 0 ):  # NICMOS: no cte tail correction
-           pass
+            pass
        
         # do the convolution
         NC.convolve2d( __crMask, cr_ctegrow_kernel, output = cr_ctegrow_kernel_conv)    
