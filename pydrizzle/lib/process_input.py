@@ -78,27 +78,11 @@ def process_input(input, output=None, ivmlist=None, updatewcs=True, prodonly=Fal
 
     # AsnTable will handle the case when output==None
     #asndict = fileutil.buildAsnDict(pydr_input, output=output,shiftfile=shiftfile)
-    if oldasndict:
-        if pydr_input[0].split('_')[1].split('.fits')[0] != 'flt':
-            asndict = update_member_names(oldasndict, pydr_input)
-        elif len(pydr_input) != len(filelist):
-            for f in filelist:
-                if f not in pydr_input:
-                    fname = fileutil.buildNewRootname(f)
-                    oldasndict['members'].pop(fname)
-                    oldasndict['order'].remove(fname)
-            asndict = oldasndict
-        else:
-            asndict = oldasndict
-    else:
-        #
-        #remove shiftfile from here, only allow updates
-        #!!!!!
-
-        asndict = asnutil.ASNTable(pydr_input, output=output) #, shiftfile=shiftfile)
-        asndict.create()
-        #if pydr_input[0].split('_')[-1].split('.fits')[0] != 'flt':
-        #asndict = update_member_names(asndict, pydr_input)
+    if not oldasndict:        
+        oldasndict = asnutil.ASNTable(pydr_input, output=output)
+        oldasndict.create()
+    
+    asndict = update_member_names(oldasndict, pydr_input)
             
     if shiftfile:
         asndict.update(shiftfile=shiftfile)
@@ -183,8 +167,6 @@ def checkFiles(filelist, ivmlist = None):
                 else:
                     newivmlist.append(newfilename)
 
-    #check_exptime(filelist)
-    
     newfilelist, ivmlist = update_input(filelist, ivmlist, removed_files)
 
     if newfilelist == []:
@@ -221,9 +203,8 @@ def checkFiles(filelist, ivmlist = None):
         errorstr += "#############################################\n\n"
         print errorstr
         
-    removed_ngood_files = checkNGOODPIX(newfilelist)    
+    removed_ngood_files = checkNGOODPIX(newfilelist)
     newfilelist, ivmlist = update_input(newfilelist, ivmlist, removed_ngood_files)
-
     if removed_ngood_files:
         msgstr =  "####################################\n"
         msgstr += "#                                  #\n"
@@ -357,13 +338,6 @@ def update_input(filelist, ivmlist=None, removed_files=None):
     if removed_files == []:
         return filelist, ivmlist
     else:
-        """
-        if ivmlist == None:
-            newfilelist[:] = filelist[:] 
-            for f in removed_files:
-                newfilelist.remove(f)
-        else:
-        """
         sci_ivm = zip(filelist, ivmlist)
         for f in removed_files:
             result=[sci_ivm.remove(t) for t in sci_ivm if t[0] == f ]
@@ -496,20 +470,35 @@ def update_member_names(oldasndict, pydr_input):
     be replaced by 'u9600201m_c0h' making sure that a MEf file is passed 
     as an input and not the corresponding GEIS file.
     """                 
-    nmembers = oldasndict['members'].copy()
+    omembers = oldasndict['members'].copy()
+    nmembers = {}
     translated_names = [f.split('.fits')[0] for f in pydr_input]
-    nkeys = nmembers.keys()
+    #nkeys = nmembers.keys()
+    """
     for file in pydr_input:
-        okey = file.split('_')[0]
+        #okey = file.split('.fits')[0]
+        okey = 	fileutil.buildNewRootname(file)
+        print 'okey', okey
+        dmem = nmembers.pop(okey)
         if okey in nkeys:
-            dmem = nmembers.pop(okey)
             nmembers[file.split('.fits')[0]]= dmem 
-        else:
-            dmem = nmembers.pop(okey)
-    
+    """
+    newkeys = [fileutil.buildNewRootname(file) for file in pydr_input]
+    keys_map = zip(newkeys, pydr_input)
+
+    iter = omembers.iteritems()
+    while True:
+        try:
+            okey,oval = iter.next()
+            if okey in newkeys:
+                nkey = pydr_input[newkeys.index(okey)]
+                nmembers[nkey.split('.fits')[0]] = oval
+        except StopIteration:
+            break
     oldasndict.pop('members')
     # replace should be always True to cover the case when flt files were removed
     # and the case when names were translated 
+    print 'nmembers', nmembers
     oldasndict.update(members=nmembers, replace=True)
     oldasndict['order'] = translated_names 
     return oldasndict
