@@ -226,7 +226,7 @@ class NICMOSInputImage (InputImage):
         try:
             hdulist = fileutil.openImage(self.name,mode='readonly',memmap=0)
             extnhdulist = fileutil.getExtn(hdulist,extn="SAMP")
-            sampimage = extnhdulist.data
+            sampimage = extnhdulist.data[self.ltv2:self.size2,self.ltv1:self.size1]
         except:
             sampimage = 1
         return sampimage
@@ -278,7 +278,14 @@ class NICMOSInputImage (InputImage):
         if tddobj == None:
             return N.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
         else:
-            return tddobj.getampglow() + tddobj.getlindark()
+            # Create Dark Object from AMPGLOW and Lineark Dark components
+            darkobj = (tddobj.getampglow() + tddobj.getlindark()*self.header['EXPTIME'])
+            
+            # Convert the darkobj from units of counts to electrons
+            darkboj = darkboj * self.getGain()
+            
+            # Return the darkimage taking into account an subarray information available
+            return darkobj[self.ltv2:self.size2,self.ltv1:self.size1]
         
 
 class NIC1InputImage(NICMOSInputImage):
