@@ -5,13 +5,14 @@
 #   History:
 #           Version 0.1.01, 05/17/04 -- Moved from manager.py; modified
 #                                       logic to access table rows. -- IB
-#           Version 0.1.01, 05/28/04 -- Added print statement for reporting
+#           Version 0.1.02, 05/28/04 -- Added print statement for reporting
 #                                       which row was selected for use. -- WJH
+#           Version 0.1.03, 01/14/08 -- Added .close() for MDRIZTAB -- WJH
 
 import pyfits
 from pytools import fileutil
 
-__version__ = '0.1.02'
+__version__ = '0.1.03'
 
 def getMultidrizzleParameters(files):
     """ Gets entry in MDRIZTAB where task parameters live.
@@ -57,7 +58,10 @@ def getMultidrizzleParameters(files):
             _row = i
     print '- MDRIZTAB: MultiDrizzle parameters read from row %s.'%(_row+1)
 
-    return _mdriztab[1].data[_row]
+    mpars = _mdriztab[1].data[_row]
+    _mdriztab.close() 
+
+    return mpars
 
 def _getRowsByFilter(table, filters):
     rows = []
