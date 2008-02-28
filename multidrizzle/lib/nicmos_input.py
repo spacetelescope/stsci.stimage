@@ -4,6 +4,7 @@
 #   Purpose: Class used to model NICMOS specific instrument data.
 
 from pytools import fileutil
+from nictools import readTDD
 import numpy as N
 
 from input_image import InputImage
@@ -262,6 +263,22 @@ class NICMOSInputImage (InputImage):
         
         return darkcurrent
         
+    def getdarkimg(self):
+        """
+        
+        Purpose
+        =======
+        Return an array representing the dark image for the detector.
+        
+        :units: electrons
+        
+        """
+        
+        tddobj = readTDD.fromcalfile(self.name)
+        if tddobj == None:
+            return N.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
+        else:
+            return tddobj.getampglow() + tddobj.getlindark()
         
 
 class NIC1InputImage(NICMOSInputImage):
