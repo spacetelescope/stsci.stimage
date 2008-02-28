@@ -11,31 +11,42 @@ from cfg_pydrizzle import PYDRIZZLE_EXTENSIONS
 from cfg_imagestats import IMAGESTATS_EXTENSIONS
 from cfg_calcos import CALCOS_EXTENSIONS
 
-#py_includes = get_python_inc(plat_specific=1)
-py_libs =  get_python_lib(plat_specific=1)
-ver = get_python_version()
-pythonver = 'python' + ver
-
-args = sys.argv[2:]
-#data_dir = py_libs
-
+# PACKAGES is the list of all packages that we want to install.  If you
+# want it, make sure it is listed here and in PACKAGE_DIRS
 
 PACKAGES = ['calcos','numdisplay', 'imagestats',
-            'multidrizzle', 'pydrizzle', 'pydrizzle.traits102',
-            'pydrizzle.distortion','pytools', 'nictools', 
-	    'stistools', 'wfpc2tools']
+    'multidrizzle', 'pydrizzle', 'pydrizzle.traits102',
+    'pydrizzle.distortion','pytools', 'nictools', 
+    'stistools', 'wfpc2tools']
+
+
+# uninstall_packages is a list of packages that we want to remove when we do
+# an install, but that we are not installing.  If an old package has been
+# removed from the distribution, list it here.
+#
+uninstall_packages = [ ] 
 
 #The normal directory structure is {packagename:packagename/lib.}
+#
+# PACKAGE_DIRS[x] is the relative directory where we can find the source code 
+# for # package x
+#
 PACKAGE_DIRS = {}
 for p in PACKAGES:
     PACKAGE_DIRS[p]="%s/lib"%p
+
 #Exceptions are allowed; put them here.
 PACKAGE_DIRS['numdisplay']='numdisplay'
 PACKAGE_DIRS['pydrizzle.traits102']='pydrizzle/traits102'
 PACKAGE_DIRS['pydrizzle.distortion']='pydrizzle/lib/distortion'
 
+args = sys.argv[2:]
 
-for a in args:
+# set this to check version numbers of imported modules after an install
+check_versions = 1
+
+for a in args :
+    print a
     if a.startswith('--local='):
         dir = os.path.abspath(a.split("=")[1])
         sys.argv.extend([
@@ -43,7 +54,7 @@ for a in args:
                 "--install-scripts=%s" % os.path.join(dir,"pyraf"),
                 ])
         sys.argv.remove(a)
-        args.remove(a)
+	args.remove(a)
 
 
 class smart_install_data(install_data):
@@ -52,8 +63,6 @@ class smart_install_data(install_data):
         install_cmd = self.get_finalized_command('install')
         self.install_dir = getattr(install_cmd, 'install_lib')
         return install_data.run(self)
-
-
 
 
 IMAGESTATS_DATA_DIR = os.path.join('imagestats')
@@ -104,15 +113,93 @@ if os.path.exists(os.path.join('pyfits')):
 
 # install pysynphot if the pysynphot directory exists
 if os.path.exists(os.path.join('pysynphot')):
-	PACKAGES.append('pysynphot')
-	PACKAGE_DIRS['pysynphot']='pysynphot/lib'
-	DATA_FILES.append( ( "pysynphot", glob.glob(os.path.join('pysynphot','test','etctest_base_class.py')) ) )
-	PYSYNPHOT_DATA_DIR = os.path.join('pysynphot','data')
-	DATA_FILES.append( ( PYSYNPHOT_DATA_DIR, glob.glob(os.path.join('pysynphot', 'data', 'generic', '*')) ) )
-	DATA_FILES.append( ( PYSYNPHOT_DATA_DIR, glob.glob(os.path.join('pysynphot', 'data', 'wavecat', '*')) ) )
+    PACKAGES.append('pysynphot')
+    PACKAGE_DIRS['pysynphot']='pysynphot/lib'
+    DATA_FILES.append( ( "pysynphot", glob.glob(os.path.join('pysynphot','test','etctest_base_class.py')) ) )
+    PYSYNPHOT_DATA_DIR = os.path.join('pysynphot','data')
+    DATA_FILES.append( ( PYSYNPHOT_DATA_DIR, glob.glob(os.path.join('pysynphot', 'data', 'generic', '*')) ) )
+    DATA_FILES.append( ( PYSYNPHOT_DATA_DIR, glob.glob(os.path.join('pysynphot', 'data', 'wavecat', '*')) ) )
+
+
+#
+#
+#
+def uninstall_modules( modules ) :
+    # bug: this function should observe the -q / -v flags
+    print "Begin uninstall"
+
+    # To uninstall a module, you need to know what directory it is in.
+    # To find that information, you can import it and look at __path__
+    # That will be a list of things that you can recursively remove to delete the
+    # module.
+
+    # BUT:  If you import something, it finds the module in the current directory.
+    # That is bad, because we have everything here with us. To fix that, purge the 
+    # current directory from sys.path before we start looking for modules.
+
+    cwd = os.getcwd()
+    l = [ ]
+    for x in sys.path :
+        if x == cwd or x == '' or x == '.' :
+            continue
+        l.append(x)
+    sys.path = l
+
+    # Now we walk the list of modules that we want to uninstall and
+    # remove each one.
+
+    import shutil
+
+    # I want to make sure that we remove all copies of the module that are
+    # in the search path.  If we don't, we might remove the first one, only
+    # to find another one behind it somewhere.  So, keep trying until we
+    # can't find anything more to delete.  
+    #
+    # If we can't remove one of the modules, we also can't remove anything
+    # that it shadows.  removed_list is a list of everything we tried to
+    # remove; if it is still there in a second pass, we ignore it so we
+    # don't get in to an infinite loop.
+
+    removed_list = [ ]
+    any_removed = 1
+    while any_removed :
+        any_removed=0
+        for x in modules :
+            try :
+                mod = __import__( x )
+            except :
+                # modules that don't exist are ok
+                continue
+
+            for dir in mod.__path__ :
+                if not dir in removed_list :
+                    removed_list.append(dir)
+                    try :
+                        shutil.rmtree(dir, 0)
+                    except :
+                        print "    remove",dir,"failed"
+                    any_removed=1
+    print "End uninstall"
+
+if sys.argv[1] == "uninstall" :
+    # Uninstall any old copies of packages that we don't want around.  That is
+    # a list of all the packages we are installing, plus a list of whatever
+    # other things we might be wanting to outdate.  (i.e. was in the last release
+    # but should not be in this one.  It would be better for distutils to have a 
+    # real uninstall, but I am not going to implement one right now.)
+    # I am assuming that "module" and "package" are the same thing, though I am 
+    # not sure that is strictly true.
+    uninstall_modules( PACKAGES + uninstall_packages )
+    sys.exit(0)
+
+if sys.argv[1] == "install" :
+    # If installing, also uninstall.  But we do not uninstall for anything
+    # except an explicit uninstall or a full install.  distutils knows
+    # many other actions that should not imply uninstall
+    uninstall_modules( PACKAGES + uninstall_packages )
 
 setup(name="STScI Python Software",
-      version="2.5",
+      version="2.7dev",
       description="",
       author="Science Software Branch, STScI",
       maintainer_email="help@stsci.edu",
@@ -125,8 +212,8 @@ setup(name="STScI Python Software",
       ext_modules = EXTENSIONS,
       )
 
-
-
-
-
+if check_versions :
+    # if installing everything, we can also check the module version numbers now
+    import testpk
+    testpk.testpk()
 
