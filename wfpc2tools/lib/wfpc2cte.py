@@ -57,7 +57,7 @@ import pyfits
 import pytools
 from pytools import readgeis,fileutil
 import imagestats
-__version__ = '1.0 (19-Dec-2007)'
+__version__ = '1.1 (29-Feb-2008)'
 
 # This contains the default values in electrons for the CTE sources
 DEFAULT_COUNTS = np.array([100,1000,10000],np.float32)
@@ -128,15 +128,16 @@ def compute_CTE(filename,quiet=True,nclip=3):
     if filename.find('.fits') < 0:
         # We are working with a GEIS image
         newname = fileutil.buildFITSName(filename)
-        update_mode = 'readonly'
     else:
         # We are working with a FITS image, so update it directly
         newname = filename
-        update_mode = 'update'
-        
+
+    update_mode = 'update'
     # Open the image in update mode.
     # If it is a GEIS image on input, convert to FITS using 'newname'   
+    # then update the FITS file only...
     fimg = fileutil.openImage(filename,mode=update_mode,fitsname=newname)
+    fimg.info()
     if isinstance(fimg[1],pyfits.TableHDU):
         fimg.close()
         print 'Input image is in the unsupported "waivered" FITS format. '
@@ -167,9 +168,7 @@ def compute_CTE(filename,quiet=True,nclip=3):
     if not quiet:
         print 'Updating keywords in: ',newname
         
-    # If a GEIS image was used as the original input, update the new FITS file
-    if update_mode == 'readonly':
-        fimg.flush(newname)
+    fimg.flush()
 
     # Close the file
     fimg.close()
