@@ -212,6 +212,8 @@ setup(name="STScI Python Software",
       ext_modules = EXTENSIONS,
       )
 
+# don't check versions until it works in the automatic build
+check_versions = 0
 if check_versions :
     # if installing everything, we can also check the module version numbers now
     import testpk
