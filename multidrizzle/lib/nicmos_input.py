@@ -10,7 +10,7 @@ import numpy as N
 from input_image import InputImage
 
 
-class NICMOSInputImage (InputImage):
+class NICMOSInputImage(InputImage):
 
     SEPARATOR = '_'
 
@@ -273,8 +273,11 @@ class NICMOSInputImage (InputImage):
         :units: electrons
         
         """
-        
+
+        # Read the temperature dependeant dark file.  The name for the file is taken from
+        # the TEMPFILE keyword in the primary header.
         tddobj = readTDD.fromcalfile(self.name)
+
         if tddobj == None:
             return N.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
         else:
