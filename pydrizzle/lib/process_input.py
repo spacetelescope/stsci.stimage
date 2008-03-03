@@ -45,10 +45,6 @@ def process_input(input, output=None, ivmlist=None, updatewcs=True, prodonly=Fal
 
         filelist = [fileutil.buildRootname(fname) for fname in oldasndict['order']]
         
-        # There's no way to specify ivm files through an association table
-        # so ivmlist is always None in this case
-        #newfilelist, ivmlist = checkFiles(filelist, ivmlist)
-        
     elif (isinstance(input, list) == False) and \
        (input[0] == '@') :
         # input is an @ file
@@ -63,8 +59,11 @@ def process_input(input, output=None, ivmlist=None, updatewcs=True, prodonly=Fal
         try:
             filelist, output = parseinput.parseinput(input, outputname=output)
         except IOError: raise
-        
-
+    
+    # sort the list of input files
+    # this ensures the list of input files has the same order on all platforms
+    # it can have ifferent order because listdir() uses inode order, not unix type order 
+    filelist.sort()
     newfilelist, ivmlist = checkFiles(filelist, ivmlist)
     if not newfilelist:
         return newfilelist, ivmlist, output
