@@ -80,11 +80,11 @@ def process_input(input, output=None, ivmlist=None, updatewcs=True, prodonly=Fal
     if not oldasndict:        
         oldasndict = asnutil.ASNTable(pydr_input, output=output)
         oldasndict.create()
-    
-    asndict = update_member_names(oldasndict, pydr_input)
-            
+                
     if shiftfile:
-        asndict.update(shiftfile=shiftfile)
+        oldasndict.update(shiftfile=shiftfile)
+
+    asndict = update_member_names(oldasndict, pydr_input)
 
     # Build output filename
     if output == None:
