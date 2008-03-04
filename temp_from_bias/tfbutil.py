@@ -17,6 +17,8 @@ nref_par = "/grp/hst/cdbs/nref/"
 noclean = False
 force = None
 
+__version__ = "1.3"
+
 def all_printMsg( message, level=VERBOSE):
 
     if verbosity >= level:     
@@ -26,8 +28,8 @@ def all_printMsg( message, level=VERBOSE):
 def printMsg( message, level=QUIET):
 
     if verbosity >= level:
-        print message
-        sys.stdout.flush()
+      print message
+      sys.stdout.flush()
 
 def setVerbosity( verbosity_level):
     """Copy verbosity to a variable that is global for this file.        
