@@ -112,12 +112,12 @@ class WFPC2InputImage (InputImage):
         filename = self.header['FLATFILE']
         
         try:
-            handle = fileutil.openImage(filename,mode='readonly',memmap=0)
+            handle = fileutil.openImage(filename,mode='readonly',writefits=False,memmap=0)
             hdu = fileutil.getExtn(handle,extn=self.grp)
             data = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
         except:
             try:
-                handle = fileutil.openImage(filename[5:],mode='readonly',memmap=0)
+                handle = fileutil.openImage(filename[5:],mode='readonly',writefits=False,memmap=0)
                 hdu = fileutil.getExtn(handle,extn=self.grp)
                 data = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
             except:
