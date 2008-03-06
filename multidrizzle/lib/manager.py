@@ -1097,15 +1097,16 @@ class ImageManager:
         if outputhdu['SCI'].header.has_key('BUNIT'):
             # Change the value of BUNIT to reflect the output
             # value of electrons/second
-            if self.assoc.parlist[0]['units'] == 'CPS':
+            if self.assoc.parlist[0]['units'] == 'cps':
                 outputhdu['SCI'].header['BUNIT'] = 'ELECTRONS/S'
             else:
                 outputhdu['SCI'].header['BUNIT'] = 'ELECTRONS'
         else:
-            if self.assoc.parlist[0]['units'] == 'CPS':
+            if self.assoc.parlist[0]['units'] == 'cps':
                 outputhdu['SCI'].header.update('BUNIT','ELECTRONS/S',comment="Units of science product")
             else:
                 outputhdu['SCI'].header.update('BUNIT','ELECTRONS',comment="Units of science product")
+        outputhdu.close()
 
     def updateMdrizskyHistory(self,build):
         """ Update the output SCI image with HISTORY cards
