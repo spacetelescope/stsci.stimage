@@ -100,7 +100,7 @@ help file.
                         
     median_keys = ['median_newmasks','combine_type','combine_nsigma',
                     'combine_nlow', 'combine_nhigh','combine_lthresh',
-                    'combine_hthresh','combine_grow','nsigma1','nsigma2' ]
+                    'combine_hthresh','combine_grow','combine_maskpt','nsigma1','nsigma2' ]
 
     drizcr_keys = ['driz_cr_snr','driz_cr_scale', 'driz_cr_corr',
                    'driz_cr_grow','driz_cr_ctegrow']    
@@ -535,73 +535,6 @@ help file.
         print "Output rootname: ", str(self.output)
         
 
-    def _printInputPars(self,switches):
-        print "\n\n**** Multidrizzle Parameter Input ****"
-
-        print "\n** General Parameters:"
-        print "input = ", self.input
-        print "output  = ",self.output
-        print "mdriztab = ", self.mdriztab
-        print "refimage  = ", self.driz_sep_pars['refimage']
-        print "runfile = ", self.runfile
-        print "workinplace = ", self.workinplace
-        print "updatewcs = ", self.updatewcs
-        print "coeffs = ", self.coeffs
-        print "context = ", self.context
-        print "clean  = ", self.clean
-        print "group = ", self.driz_sep_pars['group']
-        print "ra = ", self.driz_sep_pars['ra']
-        print "dec = ", self.driz_sep_pars['dec']
-        print "build = ", self.driz_sep_pars['build']
-        print "shiftfile =  ",self.shiftfile
-        print "staticfile = ",self.staticfile
-        
-        print "\n** Static Mask:"
-        print "static = ", switches['static']
-        print "static_sig = ", self.static_sig
-
-        print "\n** Sky Subtraction:"
-        print "skysub = ", switches['skysub']
-        self._printDictEntries("",self.skypars)
-                
-        print "\n** Separate Drizzle Images:"
-        print "driz_separate = ", switches['driz_separate']
-        self._printDictEntries('driz_sep_',self.driz_sep_pars)
-        
-        print "\n** Create Median Image:"
-        print "median = ", switches['median']
-        print "combine_newmasks = ",self.medianpars['newmasks']
-        print "combine_nsigma = ",self.medianpars['nsigma1']," ",self.medianpars['nsigma2']
-        self._printDictEntries('combine_',self.medianpars)
- 
-        print "\n** Blot Back the Median Image:"
-        print "blot = ", switches['blot']
-        self._printDictEntries('blot_',self.blotpars)
-
-        print "\n** Remove Cosmic Rays with DERIV, DRIZ_CR:"
-        print "driz_cr = ", switches['driz_cr']
-        self._printDictEntries("",self.drizcrpars)
-
-        print "\n** Combined Drizzled Image:"
-        print "driz_combine = ", switches['driz_combine']
-        self._printDictEntries('final_',self.driz_final_pars)
-        
-        print "\n** Instrument Parameters:"
-        self._printDictEntries("",self.instrpars)
-        print "\n"
-
-    def _printDictEntries(self,prefix,prdict):
-        # Define list of items that is to be handled as a special printing case.
-        itemlist = ['newmasks','ra','dec','build','group','coeffs','nsigma1','nsigma2']
-        
-        sortedkeys = prdict.keys()
-        sortedkeys.sort()
-        
-        for key in sortedkeys:
-            if (itemlist.count(key) == 0):
-                print prefix+key, " = ", prdict[key]
-                        
-
     def setMedianPars(self):
         """ Sets the special median parameters which need to
             be parsed out of the original input parameters. """
@@ -877,9 +810,6 @@ help file.
                                 driz_combine = driz_combine,
                                 timing = timing)
         
-        # Print the input parameters now that MDRIZTAB has had a chance to modify the default values
-        self._printInputPars(self.pars.switches)
-
         # Insure that if an error occurs,
         # all file handles are closed before exiting...
         try:

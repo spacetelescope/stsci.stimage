@@ -618,6 +618,7 @@ class ImageManager:
         print "USER PARAMETERS:"
         print "median          =  True"
         print "median_newmasks  = ",medianpars['newmasks']
+        print "combine_maskpt  = ",medianpars['maskpt']
         print "combine_type    = ",medianpars['type']  
         print "combine_nsigma  = ",medianpars['nsigma1']," ",medianpars['nsigma2']
         print "combine_nlow    = ",medianpars['nlow']
@@ -642,7 +643,8 @@ class ImageManager:
         else:
             hthresh = float(medianpars['hthresh'])
         grow = medianpars['grow']
-
+        maskpt = medianpars['maskpt']
+        
         """ Builds combined array from single drizzled images."""
         # Start by removing any previous products...
         fileutil.removeFile(self.medianfile)
@@ -669,7 +671,7 @@ class ImageManager:
                     self.weight_handles.append(_weight_file)
                     tmp_mean_value = ImageStats(_weight_file.data,lower=1e-8,lsig=None,usig=None,fields="mean",nclip=0)
                     
-                    _wht_mean.append(tmp_mean_value.mean * 0.7)
+                    _wht_mean.append(tmp_mean_value.mean * maskpt)
                     # Clear the memory used by reading in the whole data array for
                     # computing the mean.  This requires that subsequent access to
                     # the data values happens through the 'section' attribute of the HDU.

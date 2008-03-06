@@ -2,17 +2,10 @@
 #   Authors: Warren Hack, Ivo Busko, Christopher Hanley
 #   Program: mdzhandler.py
 #   Purpose: Module that handles the MDRIZTAB reference file.
-#   History:
-#           Version 0.1.01, 05/17/04 -- Moved from manager.py; modified
-#                                       logic to access table rows. -- IB
-#           Version 0.1.02, 05/28/04 -- Added print statement for reporting
-#                                       which row was selected for use. -- WJH
-#           Version 0.1.03, 01/14/08 -- Added .close() for MDRIZTAB -- WJH
 
 import pyfits
 from pytools import fileutil
 
-__version__ = '0.1.03'
 
 def getMultidrizzleParameters(files):
     """ Gets entry in MDRIZTAB where task parameters live.

@@ -13,8 +13,6 @@ from pydrizzle.traits102.tktrait_sheet import TraitEditorBoolean, \
 
 from procstep import ProcSteps
 
-__version__ = '1.0.0 (23 Feb 2006)'
-
 def toBoolean(flag): 
     if (flag == 1):
         return True
@@ -169,6 +167,7 @@ class MDrizPars (HasTraits):
             'combine_lthresh':Trait('',AnyValue), 
             'combine_hthresh':Trait('',AnyValue), 
             'combine_grow':Trait(1.0,TraitRange(0.0,21.0)),
+            'combine_maskpt':Trait(0.7,TraitRange(0.0,1.0)),
             'blot_interp':Trait('poly5',enum_interp, editor=text_editor), 
             'blot_sinscl':Trait(1.0,TraitRange(0.0,21.0)),
             'driz_cr_corr':Trait(False, true_boolean, editor=bit_editor),
@@ -230,7 +229,7 @@ class MDrizPars (HasTraits):
             TraitGroup('median',
                 'median_newmasks', 'combine_type', 'combine_nsigma',
                 'combine_nlow', 'combine_nhigh','combine_lthresh',
-                'combine_hthresh', 'combine_grow',
+                'combine_hthresh', 'combine_grow', 'combine_maskpt',
                 label='Median')
             ),
             TraitGroup(
@@ -271,7 +270,7 @@ class MDrizPars (HasTraits):
             'driz_sep_fillval', 'driz_sep_bits',
             'median_newmasks', 'combine_type', 'combine_nsigma',
             'combine_nlow', 'combine_nhigh','combine_lthresh',
-            'combine_hthresh', 'combine_grow',
+            'combine_hthresh', 'combine_grow', 'combine_maskpt',
             'blot_interp', 'blot_sinscl',
             'driz_cr_corr','driz_cr_snr', 'driz_cr_scale','driz_final_wht_type',
             'driz_final_outnx', 'driz_final_outny', 'driz_cr_grow', 'driz_cr_ctegrow',
