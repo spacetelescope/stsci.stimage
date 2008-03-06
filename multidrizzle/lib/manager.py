@@ -1089,6 +1089,23 @@ class ImageManager:
         self.assoc.run(save=True,build=drizpars['build'])
         
         self.updateMdrizskyHistory(drizpars['build'])
+        
+        # Update the BUINT keyword in the DRZ product with the
+        # appropriate output UNITS
+        outputhdu = fileutil.openImage(self.output,mode='update')
+        
+        if outputhdu['SCI'].header.has_key('BUNIT'):
+            # Change the value of BUNIT to reflect the output
+            # value of electrons/second
+            if self.assoc.parlist[0]['units'] == 'CPS':
+                outputhdu['SCI'].header['BUNIT'] = 'ELECTRONS/S'
+            else:
+                outputhdu['SCI'].header['BUNIT'] = 'ELECTRONS'
+        else:
+            if self.assoc.parlist[0]['units'] == 'CPS':
+                outputhdu['SCI'].header.update('BUNIT','ELECTRONS/S',comment="Units of science product")
+            else:
+                outputhdu['SCI'].header.update('BUNIT','ELECTRONS',comment="Units of science product")
 
     def updateMdrizskyHistory(self,build):
         """ Update the output SCI image with HISTORY cards
@@ -1203,32 +1220,29 @@ class ImageManager:
                         
             imageobj = parlistentry['image']
             
-            if not issubclass(imageobj.__class__,STISInputImage):
-                print "Automatically creating IVM files..."
-                # If no IVM files were provided by the user we will 
-                # need to automatically generate them based upon 
-                # instrument specific information.
-                
-                flat = imageobj.getflat()
-                RN = imageobj.getReadNoiseImage()
-                sampimg = imageobj.getsampimg()
-                darkimg = imageobj.getdarkimg()
-                skyimg = imageobj.getskyimg()
-                
-                ivm = (flat)**2/(darkimg+(skyimg*flat)+sampimg*RN**2)
+            print "Automatically creating IVM files..."
+            # If no IVM files were provided by the user we will 
+            # need to automatically generate them based upon 
+            # instrument specific information.
+            
+            flat = imageobj.getflat()
+            RN = imageobj.getReadNoiseImage()
+            sampimg = imageobj.getsampimg()
+            darkimg = imageobj.getdarkimg()
+            skyimg = imageobj.getskyimg()
+            
+            ivm = (flat)**2/(darkimg+(skyimg*flat)+sampimg*RN**2)
 
-                #Open the mask image for updating
-                mask = fileutil.openImage(parlistentry['image'].maskname,mode='update')
-                
-                # Multiply the IVM file by the input mask in place.        
-                mask[0].data = ivm * mask[0].data
-                mask.close()
-                
-                # Update 'wt_scl' parameter to match use of IVM file
-                parlistentry['wt_scl'] = pow(parlistentry['exptime'],2)/pow(parlistentry['scale'],4)
+            #Open the mask image for updating
+            mask = fileutil.openImage(parlistentry['image'].maskname,mode='update')
+            
+            # Multiply the IVM file by the input mask in place.        
+            mask[0].data = ivm * mask[0].data
+            mask.close()
+            
+            # Update 'wt_scl' parameter to match use of IVM file
+            parlistentry['wt_scl'] = pow(parlistentry['exptime'],2)/pow(parlistentry['scale'],4)
 
-            else:
-                print "STIS data is not yet supported with automatic IVM creation."
 
     def _applyERR(self,parlistentry):
 
