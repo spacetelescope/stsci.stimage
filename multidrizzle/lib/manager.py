@@ -1196,7 +1196,7 @@ class ImageManager:
         
         """
 
-        if parlistentry['ivmname'] != None:
+        if parlistentry.has_key('ivmname') and parlistentry['ivmname'] != None:
             print "Applying user supplied IVM files..."
 
             #Parse the input file name to get the extension we are working on
