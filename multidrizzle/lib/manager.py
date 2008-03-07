@@ -1094,7 +1094,11 @@ class ImageManager:
         
         # Update the BUINT keyword in the DRZ product with the
         # appropriate output UNITS
-        outputhdu = fileutil.openImage(self.output,mode='update')
+        if self.output == "final_drz.fits":
+            outputFileName = self.output
+        else:
+            outputFileName = self.output+"_drz.fits"
+        outputhdu = fileutil.openImage(outputFileName,mode='update')
         
         if outputhdu['SCI'].header.has_key('BUNIT'):
             # Change the value of BUNIT to reflect the output
