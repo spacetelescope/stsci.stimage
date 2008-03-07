@@ -96,7 +96,7 @@ def process_input(input, output=None, ivmlist=None, updatewcs=True, prodonly=Fal
 
 def checkFiles(filelist, ivmlist = None):
     """
-    1. Removes waiver fits files from input lists
+    1. Converts waiver fits sciece and data quality files to MEF format
     2. Converts all GEIS science and data quality files to MEF format
     3. Checks for stis association tables 
     4. Checks if kw idctab exists, if not tries to populate it 
@@ -136,17 +136,20 @@ def checkFiles(filelist, ivmlist = None):
         # Check for existence of waiver FITS input, and quit if found.
         # Or should we print a warning and continue but not use that file
         if imgfits and imgtype == 'waiver':
-            print "Warning: PyDrizzle does not support waiver fits format.\n"
-            print "Convert the input files to GEIS or multiextension FITS.\n"
-            print "Removing file %s from input list" %file[0] 
-            removed_files.append(file[0])
+            newfilename = waiver2mef(file[0], convert_dq=True)
+            if newfilename == None:
+                print "Removing file %s from input list - could not convert waiver to mef" %file[0]
+                removed_files.append(file[0])
+            else:
+                translated_names.append(newfilename)
+
         # If a GEIS image is provided as input, create a new MEF file with 
         # a name generated using 'buildFITSName()'
         # Convert the corresponding data quality file if present    
         if not imgfits:
             newfilename = geis2mef(file[0], convert_dq=True)
             if newfilename == None:
-                print "Removing file %s from input list" %file[0]
+                print "Removing file %s from input list - could not convert geis to mef" %file[0]
                 removed_files.append(file[0])
             else:
                 translated_names.append(newfilename)
@@ -225,6 +228,32 @@ def checkFiles(filelist, ivmlist = None):
                 
     return newfilelist, ivmlist
     
+def waiver2mef(sciname, newname=None, convert_dq=True):
+    """
+    Converts a GEIS science file and its corresponding 
+    data quality file (if present) to MEF format
+    Writes out both files to disk.
+    Returns the new name of the science image.
+    """
+    
+    def convert(file):
+        newfilename = fileutil.buildNewRootname(file, extn='_c0h.fits')
+        try:
+            newimage = fileutil.openImage(file,writefits=True,
+                                          fitsname=newfilename,clobber=True)
+            del newimage
+            return newfilename
+        except IOError:
+            print 'Warning: File %s could not be found' % file     
+            return None
+        
+    newsciname = convert(sciname)
+    if convert_dq:
+        dq_name = convert(fileutil.buildNewRootname(sciname, extn='_c1h.fits'))
+        
+    return newsciname   
+
+
 
 def geis2mef(sciname, convert_dq=True):
     """
@@ -472,16 +501,7 @@ def update_member_names(oldasndict, pydr_input):
     omembers = oldasndict['members'].copy()
     nmembers = {}
     translated_names = [f.split('.fits')[0] for f in pydr_input]
-    #nkeys = nmembers.keys()
-    """
-    for file in pydr_input:
-        #okey = file.split('.fits')[0]
-        okey = 	fileutil.buildNewRootname(file)
-        print 'okey', okey
-        dmem = nmembers.pop(okey)
-        if okey in nkeys:
-            nmembers[file.split('.fits')[0]]= dmem 
-    """
+
     newkeys = [fileutil.buildNewRootname(file) for file in pydr_input]
     keys_map = zip(newkeys, pydr_input)
 
@@ -497,7 +517,7 @@ def update_member_names(oldasndict, pydr_input):
     oldasndict.pop('members')
     # replace should be always True to cover the case when flt files were removed
     # and the case when names were translated 
-    print 'nmembers', nmembers
+
     oldasndict.update(members=nmembers, replace=True)
     oldasndict['order'] = translated_names 
     return oldasndict
