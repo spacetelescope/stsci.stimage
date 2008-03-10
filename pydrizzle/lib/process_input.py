@@ -1,4 +1,4 @@
-from pytools import parseinput, fileutil, readgeis, makewcs, asnutil
+from pytools import parseinput, fileutil, readgeis, makewcs, asnutil,irafglob
 import pyfits
 import os 
 
@@ -48,11 +48,16 @@ def process_input(input, output=None, ivmlist=None, updatewcs=True, prodonly=Fal
     elif (isinstance(input, list) == False) and \
        (input[0] == '@') :
         # input is an @ file
-        f = open(input)
+        f = open(input[1:])
+        # Read the first line in order to determine whether
+        # IVM files have been specified in a second column...
         line = f.readline()
         f.close()
+        # Parse the @-file with irafglob to extract the input filename
+        filelist = irafglob.irafglob(input, atfile=atfile_sci)
+        # If there is a second column...
         if len(line.split()) == 2:
-            filelist = irafglob.irafglob(input, atfile=atfile_sci)
+            # ...parse out the names of the IVM files as well 
             ivmlist = irafglob.irafglob(input, atfile=atfile_ivm)        
     else:
         #input is a string or a python list
