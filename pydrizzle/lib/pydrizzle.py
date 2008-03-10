@@ -21,7 +21,7 @@ _default_pars = {'psize':None,'default_rot':None,'idckey':None}
 
 INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS","WFC3"]
 
-__version__ = "6.0.refac (30-Oct-2007)"
+__version__ = "6.1.refac (10-Mar-2008)"
 
 
 class _PyDrizzle:
@@ -401,26 +401,27 @@ More help on SkyField objects and their parameters can be obtained using:
                 _bunit = None
                 if _sciext.header.has_key('BUNIT') and _sciext.header['BUNIT'].find('ergs') < 0:
                     _bunit = _sciext.header['BUNIT']
+                else: 
+                    _bunit = 'ELECTRONS/S'
 
-                if _bunit is not None:
-                    _bindx = _bunit.find('/')
-                    if plist['units'] == 'cps':
-                        # If BUNIT value does not specify count rate already...
-                        if _bindx < 1:
-                            # ... append '/SEC' to value
-                            _bunit += '/SEC'
-                        else:
-                            # reset _bunit here to None so it does not 
-                            #    overwrite what is already in header
-                            _bunit = None
+                _bindx = _bunit.find('/')
+                if plist['units'] == 'cps':
+                    # If BUNIT value does not specify count rate already...
+                    if _bindx < 1:
+                        # ... append '/SEC' to value
+                        _bunit += '/S'
                     else:
-                        if _bindx > 0:
-                            # remove '/SEC'
-                            _bunit = _bunit[:_bindx]
-                        else:
-                            # reset _bunit here to None so it does not 
-                            #    overwrite what is already in header
-                            _bunit = None 
+                        # reset _bunit here to None so it does not 
+                        #    overwrite what is already in header
+                        _bunit = None
+                else:
+                    if _bindx > 0:
+                        # remove '/S'
+                        _bunit = _bunit[:_bindx]
+                    else:
+                        # reset _bunit here to None so it does not 
+                        #    overwrite what is already in header
+                        _bunit = None 
 
                 # Compute what plane of the context image this input would
                 # correspond to:
@@ -565,7 +566,14 @@ More help on SkyField objects and their parameters can be obtained using:
 
                 del _pxg,_pyg
 
-
+                # Remember the name of the first image that goes into 
+                # this particular product
+                # This will insure that the header reports the proper
+                # values for the start of the exposure time used to make
+                # this product; in particular, TIME-OBS and DATE-OBS.
+                if _numchips == 0:
+                    _template = plist['data']
+                
                 if _nimg == 0 and self.debug == yes:
                     # Only update the WCS from drizzling the
                     # first image in the list, just like IRAF DRIZZLE
@@ -600,8 +608,10 @@ More help on SkyField objects and their parameters can be obtained using:
                     # Write output arrays to FITS file(s) and reset chip counter
                     #
                     _outimg = outputimage.OutputImage(_hdrlist, build=build, wcs=_wcs, single=single)
-                    _outimg.bunit = _bunit
-                    _outimg.writeFITS(plist['data'],_outsci,_outwht,ctxarr=_outctx,versions=_versions)
+                    _outimg.set_bunit(_bunit)
+                    _outimg.set_units(plist['units'])
+                    
+                    _outimg.writeFITS(_template,_outsci,_outwht,ctxarr=_outctx,versions=_versions)
                     del _outimg
                     #
                     # Reset chip counter for next output image...

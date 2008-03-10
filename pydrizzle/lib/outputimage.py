@@ -53,6 +53,7 @@ class OutputImage:
         self.parlist = plist
         _nimgs = len(self.parlist)
         self.bunit = None
+        self.units = 'cps'
 
         if not blot:
             self.output = plist[0]['output']
@@ -96,6 +97,15 @@ class OutputImage:
         self.outweight = _outweight
         self.outcontext = _outcontext
 
+    def set_bunit(self,bunit):
+        """ Method used to update the value of the bunit attribute."""
+        self.bunit = bunit
+        
+    def set_units(self,units):
+        """ Method used to record what units were specified by the user
+        for the output product."""
+        self.units = units
+        
 
     def writeFITS(self, template, sciarr, whtarr, ctxarr=None, versions=None, extlist=EXTLIST, overwrite=yes):
         """ Generate PyFITS objects for each output extension
@@ -210,7 +220,7 @@ class OutputImage:
 
             # If BUNIT keyword was found and reset, then 
             if self.bunit is not None:
-                scihdr.update('BUNIT',self.bunit)
+                scihdr.update('BUNIT',self.bunit,comment="Units of science product")
 
             if self.wcs:
                 # Update WCS Keywords based on PyDrizzle product's value
@@ -484,7 +494,7 @@ class OutputImage:
             hdr.update(_keyprefix+'INUN','counts',
                 comment= 'Drizzle, units of input image - counts or cps')
 
-            hdr.update(_keyprefix+'OUUN','cps',
+            hdr.update(_keyprefix+'OUUN',self.units,
                 comment= 'Drizzle, units of output image - counts or cps')
 
             hdr.update(_keyprefix+'FVAL',pl['fillval'],
