@@ -404,12 +404,14 @@ help file.
         assoc.printPars(format=1)
 
         # Add any specifed IVM filenames to the association object
-        if not self.ivmlist:
-            for ind in range(len(self.files)):
-                assoc.parlist[ind]['ivmname'] = None
-        else:
-            for ind in range(len(self.files)):
-                assoc.parlist[ind]['ivmname'] = self.ivmlist[ind]
+        for plist in assoc.parlist:
+            fname,extname = fileutil.parseFilename(plist['data'])
+            ivmname = None
+            if len(self.ivmlist) > 0:
+                for index in xrange(len(self.ivmlist)):
+                    if self.files[index] == fname:
+                        ivmname = self.ivmlist[index]
+            plist['ivmname'] = ivmname
 
         # Build the manager object.
         #self.image_manager = ImageManager(association, self.context, self.instrpars, self.workinplace, \
