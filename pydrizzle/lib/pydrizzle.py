@@ -109,9 +109,6 @@ More help on SkyField objects and their parameters can be obtained using:
         if isinstance(section,list) == False and section != None:
             section = [section]
             
-        # These parameters are needed for buildPars()
-        #self.input = input
-
         # Set the default value for 'build'
         self.build = yes
 
@@ -154,13 +151,15 @@ More help on SkyField objects and their parameters can be obtained using:
                 raise IOError,'No product found for association table.'
             # Append user specified parameters to shifts dictionary
             pardict.update(self.pars)
-            self.observation = selectInstrument(infile,output,pars=pardict)
-
+            #self.observation = selectInstrument(infile,output,pars=pardict)
+            self.observation = selectInstrument(infile,self.output,pars=pardict)
+        """
         if self.output == None:
             self.output = fileutil.buildNewRootname(asndict['output'],extn='_drz.fits')
             print 'Setting up output name: ',output
         else:
-            self.output = output
+        self.output = output
+        """
         # This call puts together the parameters for the input image
         # with those for the output to create a final parameter list
         # for running 'drizzle'.
@@ -946,9 +945,6 @@ class DitherProduct(Pattern):
         # Setup a default exposure to contain the results
         Pattern.__init__(self, None, output=output, pars=pars)
         self.pars = prodlist['members']
-        # Subtract 2 from len(members) to account for 'abshift' and 'dshift'
-        # entries in prodlist
-        #self.nmembers = self.nimages = len(prodlist['members']) - 2
         self.nmembers = self.nimages = len(prodlist['members']) 
         self.offsets = None
 

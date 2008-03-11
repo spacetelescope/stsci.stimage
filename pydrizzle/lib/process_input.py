@@ -63,6 +63,7 @@ def process_input(input, output=None, ivmlist=None, updatewcs=True, prodonly=Fal
         #input is a string or a python list
         try:
             filelist, output = parseinput.parseinput(input, outputname=output)
+            #filelist.sort()
         except IOError: raise
     
     # sort the list of input files
@@ -70,10 +71,19 @@ def process_input(input, output=None, ivmlist=None, updatewcs=True, prodonly=Fal
     # it can have ifferent order because listdir() uses inode order, not unix type order 
     filelist.sort()
     newfilelist, ivmlist = checkFiles(filelist, ivmlist)
+    
+    # Build output filename
+    if output == None:
+        output = fileutil.buildNewRootname(asndict['output'],extn='_drz.fits')
+    else:
+        if 'drz' not in output:
+            output = fileutil.buildNewRootname(output,extn='_drz.fits')
+    print 'Setting up output name: ',output
+    
     if not newfilelist:
-        return newfilelist, ivmlist, output
-        #return None, None, None
-
+        buildEmptyDRZ(input,output)
+        return None, None, output 
+    
     #make an asn table at the end
     if updatewcs:
         pydr_input = runmakewcs(newfilelist)  
@@ -81,7 +91,6 @@ def process_input(input, output=None, ivmlist=None, updatewcs=True, prodonly=Fal
         pydr_input = newfilelist
 
     # AsnTable will handle the case when output==None
-    #asndict = fileutil.buildAsnDict(pydr_input, output=output,shiftfile=shiftfile)
     if not oldasndict:        
         oldasndict = asnutil.ASNTable(pydr_input, output=output)
         oldasndict.create()
@@ -90,12 +99,16 @@ def process_input(input, output=None, ivmlist=None, updatewcs=True, prodonly=Fal
         oldasndict.update(shiftfile=shiftfile)
 
     asndict = update_member_names(oldasndict, pydr_input)
-
+    """
     # Build output filename
     if output == None:
         output = fileutil.buildNewRootname(asndict['output'],extn='_drz.fits')
-        print 'Setting up output name: ',output
-
+    else:
+        if 'drz' not in output:
+            output = fileutil.buildNewRootname(output,extn='_drz.fits')
+        
+    print 'Setting up output name: ',output
+    """
     return asndict, ivmlist, output
 
 
@@ -177,9 +190,11 @@ def checkFiles(filelist, ivmlist = None):
     newfilelist, ivmlist = update_input(filelist, ivmlist, removed_files)
 
     if newfilelist == []:
-        errormsg = "\n No valid input was found. Quitting ...\n"
-        raise IOError, errormsg
-    
+        return [], []
+    """
+    errormsg = "\n No valid input was found. Quitting ...\n"
+    raise IOError, errormsg
+    """
     if translated_names != []:
         # Since we don't allow input from different instruments
         # we can abandon the original input list and provide as 
@@ -526,4 +541,93 @@ def update_member_names(oldasndict, pydr_input):
     oldasndict.update(members=nmembers, replace=True)
     oldasndict['order'] = translated_names 
     return oldasndict
+
+
+
+def buildEmptyDRZ(input, output):
+    """
+    
+    METHOD  : _buildEmptyDRZ
+    PURPOSE : Create an empty DRZ file in a valid FITS format so that the HST
+              pipeline can handle the Multidrizzle zero expossure time exception
+              where all data has been excluded from processing.
+    INPUT   : None
+    OUTPUT  : DRZ file on disk
+     
+    """
+
+    # Open the first image of the excludedFileList to use as a template to build
+    # the DRZ file.
+    inputfile = parseinput.parseinput(input)[0][0]
+    #try :
+        #img = pyfits.open(self.excludedFileList[0]) 
+    img = pyfits.open(inputfile)        
+
+    # Create the fitsobject
+    fitsobj = pyfits.HDUList()
+    # Copy the primary header
+    hdu = img[0].copy()
+    fitsobj.append(hdu)
+    
+    # Modify the 'NEXTEND' keyword of the primary header to 3 for the 
+    #'sci, wht, and ctx' extensions of the newly created file.
+    fitsobj[0].header['NEXTEND'] = 3
+
+    # Create the 'SCI' extension
+    hdu = pyfits.ImageHDU(header=img['sci',1].header.copy(),data=None)
+    hdu.header['EXTNAME'] = 'SCI'    
+    fitsobj.append(hdu)
+    
+    # Create the 'WHT' extension
+    hdu = pyfits.ImageHDU(header=img['sci',1].header.copy(),data=None)
+    hdu.header['EXTNAME'] = 'WHT'    
+    fitsobj.append(hdu)
+    
+    # Create the 'CTX' extension
+    hdu = pyfits.ImageHDU(header=img['sci',1].header.copy(),data=None)
+    hdu.header['EXTNAME'] = 'CTX'    
+    fitsobj.append(hdu)        
+    
+    # Add HISTORY comments explaining the creation of this file.
+    fitsobj[0].header.add_history("** Multidrizzle has created this empty DRZ **")
+    fitsobj[0].header.add_history("** product because all input images were   **")
+    fitsobj[0].header.add_history("** excluded from processing because their  **")
+    fitsobj[0].header.add_history("** header EXPTIME values were 0.0.  If you **")
+    fitsobj[0].header.add_history("** still wish to use this data make the    **")
+    fitsobj[0].header.add_history("** EXPTIME values in the header non-zero.  **")
+    
+    # Change the filename in the primary header to reflect the name of the output
+    # filename.
+    fitsobj[0].header['FILENAME'] = str(output) #+"_drz.fits"
+    
+    # Change the ROOTNAME keyword to the ROOTNAME of the output PRODUCT
+    fitsobj[0].header['ROOTNAME'] = str(output.split('_drz.fits')[0])
+    print 'self.output', output
+    # Modify the ASN_MTYP keyword to contain "PROD-DTH" so it can be properly
+    # ingested into the archive catalog.
+    fitsobj[0].header['ASN_MTYP'] = 'PROD-DTH'
+    
+    errstr =  "#############################################\n"
+    errstr += "#                                           #\n"
+    errstr += "# ERROR:                                    #\n"
+    errstr += "#  Multidrizzle has created this empty DRZ  #\n"
+    errstr += "#  product because all input images were    #\n"
+    errstr += "#  excluded from processing because their   #\n"
+    errstr += "#  header EXPTIME values were 0.0.  If you  #\n"
+    errstr += "#  still wish to use this data make the     #\n"
+    errstr += "#  EXPTIME values in the header non-zero.   #\n"
+    errstr += "#                                           #\n"
+    errstr += "#############################################\n\n"
+    print errstr
+    
+    # If the file is already on disk delete it and replace it with the
+    # new file
+    dirfiles = os.listdir(os.curdir)
+    if (dirfiles.count(output) > 0):
+        os.remove(output)
+        print "       Replacing "+output+"..."
+        
+    # Write out the empty DRZ file
+    fitsobj.writeto(output)
+    return
 

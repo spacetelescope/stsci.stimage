@@ -2,8 +2,6 @@ from pytools import numerixenv
 numerixenv.check()
 import string
 import pydrizzle
-from pytools import fileutil, wcsutil
-import pyfits
 
 yes = True  # 1
 no = False  # 0
@@ -20,8 +18,9 @@ def PyDrizzle(input, output=None, field=None, units=None, section=None,
         shiftfile=None,updatewcs=True):
 
     import process_input
-    asndict, ivmlist, output = process_input.process_input(input, prodonly=prodonly, shiftfile=shiftfile)
-    name = fileutil.buildNewRootname(asndict['output'], extn='_asn.fits')
+    asndict, ivmlist, output = process_input.process_input(input, output=output, prodonly=prodonly, updatewcs=updatewcs, shiftfile=shiftfile)
+    if not asndict:
+        return None
     p = pydrizzle._PyDrizzle(asndict, output=output,field=field,
                              units=units, idckey=idckey, 
                              section=section, kernel= kernel,
@@ -37,4 +36,4 @@ def PyDrizzle(input, output=None, field=None, units=None, section=None,
     return p
 
 def help():
-    print pydrizzler._PyDrizzle.__doc__
+    print pydrizzle._PyDrizzle.__doc__
