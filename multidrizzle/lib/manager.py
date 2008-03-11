@@ -346,7 +346,7 @@ class ImageManager:
             if _detector == 3: return NIC3InputImage(input,_dqname,_platescale,memmap=0)
         if _instrument == 'WFC3':
             if _detector == 'UVIS': return UVISInputImage(input,_dqname,_platescale,memmap=0)
-            if _detector == 'IR': return IRInputImage(input,_dqname,_platescale,memmap =0)
+            if _detector == 'IR': return IRInputImage(input,_dqname,_platescale,memmmap =0)
 
         # If a supported instrument is not detected, print the following error message
         # and raise an exception.
@@ -1094,10 +1094,8 @@ class ImageManager:
         
         # Update the BUINT keyword in the DRZ product with the
         # appropriate output UNITS
-        if self.output == "final_drz.fits":
-            outputFileName = self.output
-        else:
-            outputFileName = self.output+"_drz.fits"
+        outputFileName = self.output
+
         outputhdu = fileutil.openImage(outputFileName,mode='update')
         
         if outputhdu['SCI'].header.has_key('BUNIT'):
