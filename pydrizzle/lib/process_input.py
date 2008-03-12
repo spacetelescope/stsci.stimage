@@ -72,14 +72,7 @@ def process_input(input, output=None, ivmlist=None, updatewcs=True, prodonly=Fal
     filelist.sort()
     newfilelist, ivmlist = checkFiles(filelist, ivmlist)
     
-    # Build output filename
-    if output == None:
-        output = fileutil.buildNewRootname(asndict['output'],extn='_drz.fits')
-    else:
-        if 'drz' not in output:
-            output = fileutil.buildNewRootname(output,extn='_drz.fits')
-    print 'Setting up output name: ',output
-    
+   
     if not newfilelist:
         buildEmptyDRZ(input,output)
         return None, None, output 
@@ -99,7 +92,7 @@ def process_input(input, output=None, ivmlist=None, updatewcs=True, prodonly=Fal
         oldasndict.update(shiftfile=shiftfile)
 
     asndict = update_member_names(oldasndict, pydr_input)
-    """
+    
     # Build output filename
     if output == None:
         output = fileutil.buildNewRootname(asndict['output'],extn='_drz.fits')
@@ -108,7 +101,7 @@ def process_input(input, output=None, ivmlist=None, updatewcs=True, prodonly=Fal
             output = fileutil.buildNewRootname(output,extn='_drz.fits')
         
     print 'Setting up output name: ',output
-    """
+
     return asndict, ivmlist, output
 
 
@@ -555,7 +548,18 @@ def buildEmptyDRZ(input, output):
     OUTPUT  : DRZ file on disk
      
     """
+    if output == None:
+        if len(input) == 1:
+            oname = fu.buildNewRootname(input[0])
+        else:
+            oname = 'final'
+        output = fileutil.buildNewRootname(output,extn='_drz.fits')
+    else:
+        if 'drz' not in output:
+            output = fileutil.buildNewRootname(output,extn='_drz.fits')
 
+    print 'Setting up output name: ',output
+            
     # Open the first image of the excludedFileList to use as a template to build
     # the DRZ file.
     inputfile = parseinput.parseinput(input)[0][0]
