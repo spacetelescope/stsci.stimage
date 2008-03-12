@@ -2,12 +2,12 @@
 #
 # Author: Dave Grumm (based on work by Tomas Dahlen and Eddie Bergeron)
 # Program: fsutil.py
-# Purpose: utility functions for makemedmask in 'Finesky'
-# History: 03/04/08 - first version
+# Purpose: utility functions for 'Finesky'
+# History: 03/12/08 - first version
 
 import sys
 
-__version__ = "0.1 (2008 Mar 4)"
+__version__ = "0.1 (2008 Mar 12)"
 
 QUIET = 0 # verbosity levels
 VERBOSE = 1
