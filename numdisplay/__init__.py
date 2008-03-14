@@ -115,7 +115,7 @@ try:
 except ImportError:
     geotrans = None
 
-__version__ = "1.3 (6-JUN-2007)"
+__version__ = "1.4 (13-FEB-2008)"
 #
 # Version 0.1-alpha: Initial release
 #       WJH 7-Oct-2003
