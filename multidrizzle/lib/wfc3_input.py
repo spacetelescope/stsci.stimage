@@ -149,6 +149,20 @@ class WFC3IRInputImage(IRInputImage):
 
     def __init__(self, input, dqname, platescale, memmap=0):
         IRInputImage.__init__(self,input,dqname,platescale,memmap=0)
+        
+        # define the cosmic ray bits value to use in the dq array
+        self.cr_bits_value = 4096
+        self.platescale = platescale
+        
+        # Effective gain to be used in the driz_cr step.  Since the
+        # NICMOS images have already been converted to electrons the 
+        # effective gain is 1.
+        self._effGain = 1
+ 
+        # no cte correction for NICMOS so set cte_dir=0.
+        print('\nWARNING: No cte correction will be made for this NICMOS data.\n')
+        self.cte_dir = 0   
+
         self.instrument = 'WFC3/IR'
         self.full_shape = (1000,1000)
         self.platescale = platescale
@@ -184,4 +198,148 @@ class WFC3IRInputImage(IRInputImage):
                 _handle[0].header.update('MDRIZSKY',self.getSubtractedSky(), 
                                          comment="Sky value subtracted by Multidrizzle")                
         finally:
-            _handle.close()
+            _handle.close()        
+        
+    def setInstrumentParameters(self, instrpars, pri_header):
+        """ This method overrides the superclass to set default values into
+            the parameter dictionary, in case empty entries are provided.
+        """
+        if self._isNotValid (instrpars['gain'], instrpars['gnkeyword']):
+            instrpars['gnkeyword'] = 'ATODGNA,ATODGNB,ATODGNC,ATODGND'
+        if self._isNotValid (instrpars['rdnoise'], instrpars['rnkeyword']):
+            instrpars['rnkeyword'] = 'READNSEA,READNSEB,READNSEC,READNSED'
+        if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
+            instrpars['expkeyword'] = 'EXPTIME'
+        if instrpars['crbit'] == None:
+            instrpars['crbit'] = self.cr_bits_value
+         
+        self._gain      = self.getInstrParameter(instrpars['gain'], pri_header,
+                                                 instrpars['gnkeyword'])
+        self._rdnoise   = self.getInstrParameter(instrpars['rdnoise'], pri_header,
+                                                 instrpars['rnkeyword'])
+        self._exptime   = self.getInstrParameter(instrpars['exptime'], pri_header,
+                                                 instrpars['expkeyword'])
+        self._crbit     = instrpars['crbit']
+
+        if self._gain == None or self._rdnoise == None or self._exptime == None:
+            print 'ERROR: invalid instrument task parameter'
+            raise ValueError
+
+    def getflat(self):
+        """
+
+        Purpose
+        =======
+        Method for retrieving a detector's flat field.
+        
+        This method will return an array the same shape as the
+        image.
+
+        :units: electrons
+
+        """
+
+        # The keyword for WFC3 IR flat fields in the primary header of the flt
+        # file is FLATFILE.  This flat file is not already in the required 
+        # units of electrons.
+        
+        filename = self.header['FLATFILE']
+        
+        try:
+            handle = fileutil.openImage(filename,mode='readonly',memmap=0)
+            hdu = fileutil.getExtn(handle,extn=self.grp)
+            data = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
+        except:
+            try:
+                handle = fileutil.openImage(filename[5:],mode='readonly',memmap=0)
+                hdu = fileutil.getExtn(handle,extn=self.grp)
+                data = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
+            except:
+                data = N.ones(self.image_shape,dtype=self.image_dtype)
+                str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
+                print str
+
+        flat = (1.0/data) # The flat field is normalized to unity.
+
+        return flat
+        
+    def getsampimg(self):
+        """
+        
+        Purpose
+        =======
+        Return the samp image array.  This method will return
+        a ones for all detectors by default.  
+                
+        """
+        try:
+            hdulist = fileutil.openImage(self.name,mode='readonly',memmap=0)
+            extnhdulist = fileutil.getExtn(hdulist,extn="SAMP")
+            sampimage = extnhdulist.data[self.ltv2:self.size2,self.ltv1:self.size1]
+        except:
+            sampimage = 1
+        return sampimage
+
+
+    def getdarkcurrent(self):
+        """
+        
+        Purpose
+        =======
+        Return the dark current for the WFC3IR detectors.
+        
+        :units: electrons
+        
+        """
+                
+        try:
+            darkcurrent = self.header['exptime'] * self.darkrate
+            
+        except:
+            str =  "#############################################\n"
+            str += "#                                           #\n"
+            str += "# Error:                                    #\n"
+            str += "#   Cannot find the value for 'EXPTIME'     #\n"
+            str += "#   in the image header.  WFC3IR input      #\n"
+            str += "#   images are expected to have this header #\n"
+            str += "#   keyword.                                #\n"
+            str += "#                                           #\n"
+            str += "#Error occured in the WFC3IRInputImage class#\n"
+            str += "#                                           #\n"
+            str += "#############################################\n"
+            raise ValueError, str
+        
+        
+        return darkcurrent
+        
+    def getdarkimg(self):
+        """
+        
+        Purpose
+        =======
+        Return an array representing the dark image for the detector.
+        
+        :units: electrons
+        
+        """
+
+        # Read the temperature dependeant dark file.  The name for the file is taken from
+        # the TEMPFILE keyword in the primary header.
+        tddobj = readTDD.fromcalfile(self.name)
+
+        if tddobj == None:
+            return N.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
+        else:
+            # Create Dark Object from AMPGLOW and Lineark Dark components
+            darkobj = (tddobj.getampglow() + tddobj.getlindark()*self.header['EXPTIME'])
+            
+            # Convert the darkobj from units of counts to electrons
+            darkboj = darkboj * self.getGain()
+            
+            # Return the darkimage taking into account an subarray information available
+            return darkobj[self.ltv2:self.size2,self.ltv1:self.size1]
+        
+
+    def _setchippars(self):
+        self._setDefaultReadnoise()
+
