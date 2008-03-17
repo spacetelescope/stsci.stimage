@@ -15,6 +15,8 @@ class IRInputImage(InputImage):
     the IR based instrument classes.
 
     """
+    SEPARATOR = '_'
+
 
     def __init__(self,input,dqname,platescale,memmap=0):
         """
