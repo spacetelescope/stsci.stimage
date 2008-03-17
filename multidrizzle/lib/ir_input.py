@@ -33,7 +33,5 @@ class IRInputImage(InputImage):
         if self.header.has_key('BUNIT'):       
             if self.header['BUINT'].find("/") != -1:
                 return True
-            else:
-                return False
         else:
-        
+            return False

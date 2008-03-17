@@ -20,7 +20,7 @@ class WFC3UVISInputImage(InputImage):
         self.platescale = platescale
         
         # Effective gain to be used in the driz_cr step.  Since the
-        # ACS images have already been converted to electrons,
+        # WFC3 UVIS images have already been converted to electrons,
         # the effective gain is 1.
         self._effGain = 1
 
@@ -28,7 +28,8 @@ class WFC3UVISInputImage(InputImage):
         self.full_shape = (4096,2048)
         self.platescale = platescale
 
-        if ( self.extn == 'sci,1') : # get cte direction, which depends on which chip but is independent of amp 
+        # get cte direction, which depends on which chip but is independent of amp 
+        if ( self.extn == 'sci,1') : 
             self.cte_dir = -1    
         if ( self.extn == 'sci,2') : 
             self.cte_dir = 1   
@@ -87,7 +88,7 @@ class WFC3UVISInputImage(InputImage):
 
         """
 
-        # The keyword for ACS flat fields in the primary header of the flt
+        # The keyword for WFC3 UVIS flat fields in the primary header of the flt
         # file is pfltfile.  This flat file is already in the required 
         # units of electrons.
         
@@ -115,10 +116,9 @@ class WFC3UVISInputImage(InputImage):
         
         Purpose
         =======
-        Return the dark current for the ACS detector.  This value
+        Return the dark current for the WFC3 UVIS detector.  This value
         will be contained within an instrument specific keyword.
-        The value in the image header will be converted to units
-        of electrons.
+        The value is in units of electrons.
         
         :units: electrons
         
@@ -133,11 +133,11 @@ class WFC3UVISInputImage(InputImage):
             str += "#                                           #\n"
             str += "# Error:                                    #\n"
             str += "#   Cannot find the value for 'MEANDARK'    #\n"
-            str += "#   in the image header.  ACS input images  #\n"
+            str += "#   in the image header.  WFC3 input images #\n"
             str += "#   are expected to have this header        #\n"
             str += "#   keyword.                                #\n"
             str += "#                                           #\n"
-            str += "# Error occured in the ACSInputImage class  #\n"
+            str += "# Error occured in WFC3UVISInputImage class #\n"
             str += "#                                           #\n"
             str += "#############################################\n"
             raise ValueError, str

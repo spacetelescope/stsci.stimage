@@ -7,6 +7,7 @@ from pytools import fileutil
 from nictools import readTDD
 import numpy as N
 
+from ir_input import IRInputImage
 from input_image import InputImage
 
 
