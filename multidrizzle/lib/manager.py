@@ -57,7 +57,7 @@ def modifyRootname(rootname,suffix=None):
 
     return rootname[:_indx]+suffix+rootname[_indx:]
 
-class ImageManager:
+class ImageManager(object):
     """ The ImageManager class handles most of the file I/O operations for the input
         images being processed.  Multiple InputImage objects can point to the
         same ImageManager object without worrying about opening or trying to close
