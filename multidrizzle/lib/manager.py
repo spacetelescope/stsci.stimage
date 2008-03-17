@@ -20,7 +20,7 @@ from acs_input import WFCInputImage, HRCInputImage, SBCInputImage
 from wfpc2_input import WFPC2InputImage, PCInputImage, WF2InputImage, WF3InputImage, WF4InputImage
 from stis_input import STISInputImage, CCDInputImage, FUVInputImage, NUVInputImage
 from nicmos_input import NICMOSInputImage, NIC1InputImage, NIC2InputImage, NIC3InputImage
-from wfc3_input import UVISInputImage, IRInputImage
+from wfc3_input import WFC3UVISInputImage, WFC3IRInputImage
 # Import general tools
 import imagestats
 from imagestats import ImageStats

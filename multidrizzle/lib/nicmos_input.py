@@ -10,12 +10,12 @@ import numpy as N
 from input_image import InputImage
 
 
-class NICMOSInputImage(InputImage):
+class NICMOSInputImage(IRInputImage):
 
     SEPARATOR = '_'
 
     def __init__(self, input,dqname,platescale,memmap=0):
-        InputImage.__init__(self,input,dqname,platescale,memmap=0)
+        IRInputImage.__init__(self,input,dqname,platescale,memmap=0)
         
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
