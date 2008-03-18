@@ -151,9 +151,9 @@ if __name__ == '__main__' :
         license = "http://www.stsci.edu/resources/software_hardware/pyraf/LICENSE",
         platforms = ['any'],
         packages = ['stscidocs'],
-	package_dir={'stscidocs':'lib'},
+        package_dir={'stscidocs':'lib'},
         cmdclass = {'install_data':smart_install_data},
-	data_files = [('stscidocs', '')]
+        data_files = [('stscidocs', '')]
         )
 
     ddir = os.path.join(data_dir[0], 'stscidocs')
