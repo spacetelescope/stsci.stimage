@@ -54,7 +54,7 @@ for a in args :
                 "--install-scripts=%s" % os.path.join(dir,"pyraf"),
                 ])
         sys.argv.remove(a)
-	args.remove(a)
+        args.remove(a)
 
 
 class smart_install_data(install_data):
