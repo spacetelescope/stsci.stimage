@@ -4,18 +4,11 @@
 #   Purpose:    Class that manages the creation of a global static
 #               mask which is used to mask pixels that are some
 #               sigma BELOW the mode computed for the image.
-#   History:
-#       Version 1.3.0, 02/25/05 -- Removed methods responsible for the updating
-#           of the the static mask with a user supplied static file.  The 
-#           application of the user's static file will now be handled by the
-#           ImageManager class in manager.py. -- CJH 
 
 import numpy as N
 
 import imagestats
 from imagestats import ImageStats
-
-__version__ = '1.3.0'
 
 class StaticMask:
     """

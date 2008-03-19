@@ -165,7 +165,6 @@ class WFC3IRInputImage(IRInputImage):
 
         self.instrument = 'WFC3/IR'
         self.full_shape = (1000,1000)
-        self.image_shape = (1000,1000)
         self.platescale = platescale
         self.darkrate = 0.01 #electrons/second
 
