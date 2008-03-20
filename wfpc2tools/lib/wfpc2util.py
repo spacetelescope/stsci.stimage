@@ -3,7 +3,7 @@
 import sys
 import time
 
-# Utility functions and parameters for Wfpc2destrweak
+# Utility functions and parameters for wfpc2destreak
 
 QUIET = 0 # verbosity levels
 VERBOSE = 1
