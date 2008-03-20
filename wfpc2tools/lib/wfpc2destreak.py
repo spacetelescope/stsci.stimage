@@ -51,8 +51,8 @@
 #                   - CR mask written as root+'_bjc_'+'Imask'+(group)+'.fits' for the d0f image region
 #                   - statistics are now written to the corrected file for the d0f pyramid region, original
 #                     c0f image region, corrected c0f image region, original d0f image region, and masked d0f image region.
-#                     Keywords for the mean, standard deviation, minimum, maximum, and number of pixels for each of these 5 regions.
-#                     The naming convention for these 30 keywords is:
+#                     Keywords are written for the mean, standard deviation, minimum, maximum, and number of pixels
+#                     for each of these 5 regions. The naming convention for these 30 keywords is:
 #                   -- P/C/D for either pyramid region, c0f image region, or d0f image region;
 #                   -- ORG/MSK/COR for either original (uncorrected) data, masked data, or corrected data;
 #                   -- MEAN/STD/MIN/MAX/PIX for either mean, sigma, minimum, maximum, of number of pixels in the region.
@@ -64,6 +64,10 @@
 #                        PYRSIGMA -> PMSKSTD
 #                        IMMEAN -> DMSKMEAN
 #                        IMSIGMA -> DMSKSTD
+#          03/20/08 - the pyraf command line parser is now used for all arguments. See the "Usage" section
+#                     below for examples in which parameters are overwritten.
+#                   - when using the pyraf/python command line, for each parameter that the user does not specify,
+#                     he/she is prompted for accepting the default value or overriding it.
 #
 # Outline:
 #
@@ -98,17 +102,31 @@
 #
 # 5. The modified c0f data is written to a new file; e.g. "u8zq0104m_bjc_4.fits" for group 4
 #      
-# Usage :
-#     For a dataset with multiple groups, to process group 4 using a bias threshold=280 and row threshold=0.1,
-#        letting the routine decide which correction type to apply:
-#        hal> ./wfpc2destreak.py -q "u8zq0104m_d0f.fits" 4 280. 0.1
-#     To force a specific correction type (say PASS2):
-#        hal> ./wfpc2destreak.py -q "u8zq0104m_d0f.fits" 4 280. 0.1 PASS2
-#     To force the routine to run without applying a correction:
-#        hal> ./wfpc2destreak.py -q "u8zq0104m_d0f.fits" 4 280. 0.1 'OMIT'
+# Linux command line short options and defaults (set in wfpc2util.py):
+#     -g: group (default = 4)
+#     -b: bias_thresh (default = 99999.)
+#     -r: row_thresh (default = 0.)
+#     -v: verbosity (default = verbose)
+#     -f: force_alg_type (default = None)
 #
-#     For a dataset with a single group - using a bias threshold=280 and a row threshold=0.1:
-#        hal> ./wfpc2destreak.py -q "u8zq0104m_d0f.fits" 0 280. 0.1
+# Usage examples:
+#    A. For a dataset with multiple groups, to process group 4 using a bias threshold=280 and row threshold=0.1,
+#       letting the routine decide which correction type to apply:
+#         hal> ./wfpc2destreak.py "u8zq0104m_d0f.fits"  -g 4 -b 280. -r 0.1  -v
+#    B. To force a specific correction type (say PASS2):
+#         hal> ./wfpc2destreak.py "u8zq0104m_d0f.fits"  -g 4 -b 280. -r 0.1 -f PASS2 
+#       This can also be specified using the 'long options':
+#         hal> ./wfpc2destreak.py "u8zq0104m_d0f.fits" --group=4 --bias_thresh=280. --row_thresh=0.1 --force_alg_type=PASS2 
+#    C. To force the routine to run without applying a correction:
+#         hal> ./wfpc2destreak.py "u8zq0104m_d0f.fits"  -g 4 -b 280. -r 0.1 -f OMIT -v
+#    D. To allow the routine to run with all of the defaults:
+#         hal> ./wfpc2destreak.py "u8zq0104m_d0f.fits"
+#    E.  For a dataset with a single group, using defaults for the thresholds, forcing PASS1:
+#         hal> ./wfpc2destreak.py "u8zq0104m_d0f.fits"  -g 0 -f PASS1
+#
+# Example 'A' under pyraf:
+# --> wfp = wfpc2destreak.Wfpc2destreak( "u8zq0104m_d0f.fits", group=4, bias_thresh=280, row_thresh=0.1, force_alg_type="PASS2")
+# --> wfp.destreak()
 #
 ###########################################################################
 
@@ -119,24 +137,24 @@ import pytools
 from pytools import numerixenv, readgeis
 from optparse import OptionParser
 import ndimage
-import cwdutil, opusutil, sys
+import wfpc2util, opusutil, sys, string
 
-__version__ = "1.12 (2008 Mar 14)"
+__version__ = "1.13 (2008 Mar 20)"
 
 NUM_SIG = 2.5  # number of sigma to use in sigma clipping
 TOT_ITER = 4   # maximum number of iterations for sigma clipping
 ERROR_RETURN = 2
-HUGE_VAL = 99999. # default for bias_thresh, row_thresh
 
 class Wfpc2destreak:
     """ Calculate magnitude of and remove streaks from specified group of wfpc2 data.
 
     example: 
-       wfpc2_d = wfpc2destreak.Wfpc2destreak( filename, group, verbosity, bias_thresh, row_thresh, force_alg_type) 
+       wfpc2_d = wfpc2destreak.Wfpc2destreak( filename, group=group, verbosity=verbosity, bias_thresh=bias_thresh,
+                 row_thresh=row_thresh, force_alg_type=force_alg_type) 
        wfpc2destreak.Wfpc2destreak.destreak(wfpc2_d)
     """
 
-    def __init__( self, input_file, group, verbosity, bias_thresh, row_thresh, force_alg_type):  
+    def __init__( self, input_file, group=None, verbosity=0, bias_thresh=None, row_thresh=None, force_alg_type=None):  
         """constructor
 
         @param input_file: name of the d0f file to be processed
@@ -148,25 +166,31 @@ class Wfpc2destreak:
         @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by im_mean)
         @type bias_thresh: float
         @param row_thresh: row threshold (no correction will be performed if this exceeds the calculated row correction)
-        @type bias_thresh: float
+        @type row_thresh: float
         @param force_alg_type: algorithm type to force
         @type force_alg_type: string
         """
 
+        if ( __name__ == 'wfpc2destreak'):  # for python interface, set defaults and check unspecified pars
+           [group, bias_thresh, row_thresh, force_alg_type] = check_pars(group, bias_thresh, row_thresh, force_alg_type)  
+
+        if (type( group ) == str): # ensure that group is an int
+           group = string.atoi(group)        
+
         self.input_file = input_file
-        self.group = group 
+        self.group = int(group) 
         self.verbosity = verbosity
-        self.bias_thresh = bias_thresh   
-        self.row_thresh = row_thresh   
+        self.bias_thresh = float(bias_thresh)  
+        self.row_thresh = float(row_thresh)   
         self.force_alg_type = force_alg_type        
         
     def destreak( self ):
         
         input_file = self.input_file
-        group = int(self.group)
+        group = self.group
         verbosity = self.verbosity
-        bias_thresh = float(self.bias_thresh) 
-        row_thresh = float(self.row_thresh)
+        bias_thresh = self.bias_thresh 
+        row_thresh = self.row_thresh
         force_alg_type = self.force_alg_type
 
     # read data from d0f file:
@@ -375,8 +399,9 @@ class Wfpc2destreak:
         high_row_p1 = 0 #  number of rows above row_threshold in PASS1
         low_row_p2 = 0 #  number of rows below row_threshold in PASS2 
         high_row_p2 = 0 #  number of rows above row_threshold in PASS2
-        to_sub_1_max = -HUGE_VAL ; to_sub_1_min = HUGE_VAL
-        to_sub_2_max = -HUGE_VAL ; to_sub_2_min = HUGE_VAL
+
+        to_sub_1_max = -wfpc2util.HUGE_VAL ; to_sub_1_min = wfpc2util.HUGE_VAL
+        to_sub_2_max = -wfpc2util.HUGE_VAL ; to_sub_2_min = wfpc2util.HUGE_VAL        
 
         if (( alg_type == "PASS1")or ( alg_type == "PASS12")) : # do Pass 1  
           # PASS 1: for first correction, subtract difference between smoothed row mean from leading
@@ -515,13 +540,85 @@ class Wfpc2destreak:
     def print_pars(self):
         """ Print parameters.
         """
-        print 'The input parameters are :'
+        print 'The values of the input parameters are :'
         print '  input d0f file:  ' , self.input_file
         print '  group:  ' , self.group
         print '  bias_thresh:  ' , self.bias_thresh 
         print '  row thresh:  ' , self.row_thresh 
         print '  force algorithm type:  ' , self.force_alg_type
-        
+
+
+def check_pars(group, bias_thresh, row_thresh, force_alg_type):  
+       """ When run under python, verify that each unspecified parameter should take the default value, and
+           give the user the opportunity to change it.
+
+       @param group: number of group to process
+       @type group: int
+       @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by im_mean)
+       @type bias_thresh: float
+       @param row_thresh: row threshold (no correction will be performed if this exceeds the calculated row correction)
+       @type row_thresh: float
+       @param force_alg_type: algorithm type to force
+       @type force_alg_type: string
+       @return: group, bias_thresh, row_thresh, force_alg_type
+       @rtype:  int, float, float, string
+       """
+       if (group == None):
+            group = wfpc2util.group
+            print ' You have not been specified a value for group; the default is:',  wfpc2util.group
+            print ' If you want to use the default, hit <enter>, otherwise type in the desired value'
+            inp = raw_input('? ')
+            if inp == '':
+               print ' The default value of ', group,' will be used'
+            else:
+               try:
+                   group = string.atoi(inp)
+               except:
+                   print ' The value entered (',inp,') is invalid so the default will be used'
+
+       if (bias_thresh == None):
+            bias_thresh = wfpc2util.bias_thresh
+            print ' You have not specified a value for bias_thresh; the default is:',  wfpc2util.bias_thresh
+            print ' If you want to use the default, hit <enter>, otherwise type in the desired value'
+            inp = raw_input('? ')
+            if inp == '':
+               print ' The default value of ', bias_thresh,' will be used'
+            else:
+               try:
+                   bias_thresh = string.atof(inp)
+               except:
+                   print ' The value entered (',inp,') is invalid so the default will be used'
+               
+       if (row_thresh == None):
+            row_thresh = wfpc2util.row_thresh
+            print ' You have not specified a value for row_thresh; the default is:',  wfpc2util.row_thresh
+            print ' If you want to use the default, hit <enter>, otherwise type in the desired value'
+            inp = raw_input('? ')
+            if inp == '':
+               print ' The default value of ', row_thresh,' will be used'
+            else:
+               try:
+                   row_thresh = string.atof(inp)
+               except:
+                   print ' The value entered (',inp,') is invalid so the default will be used'
+               
+       if (force_alg_type == None):
+            force_alg_type = wfpc2util.force_alg_type
+            print ' You have not specified a value for force_alg_type; the default is:',  wfpc2util.force_alg_type
+            print ' If you want to use the default, hit <enter>, otherwise type in the desired value'
+            inp = raw_input('? ')
+            if inp == '':
+               print ' The default value of ', force_alg_type,' will be used'
+            else:
+               inp = inp.upper() 
+               if ((inp <> "PASS1") and (inp <> "PASS2") and (inp <> "PASS12") and (inp <> "OMIT"))  :
+                  print ' The value entered (',inp,') is invalid so the default will be used'
+               else:
+                  force_alg_type = inp
+
+       return group, bias_thresh, row_thresh, force_alg_type
+
+       
 # end of class Wfpc2destreak
 
 def cr_reject(  BlackLevel):
@@ -962,7 +1059,8 @@ def write_mask(data, filename, verbosity):
     fimg.append(fimghdu)
     fimg.writeto(filename)
 
-def main( cmdline):
+#def main( cmdline):
+if __name__ =="__main__":
     """Get input file and other arguments, and call Wfpc2destreak
 
     The command-line options are:
@@ -976,47 +1074,45 @@ def main( cmdline):
     usage = "usage:  %prog [options] inputfile"
     parser = OptionParser( usage)
 
-    parser.set_defaults( verbosity = cwdutil.VERBOSE)
+    if ( sys.argv[1] ): filename = sys.argv[1]   
+
+    parser.set_defaults( verbosity = wfpc2util.VERBOSE)
 
     parser.add_option( "-q", "--quiet", action = "store_const",
-            const = cwdutil.QUIET, dest = "verbosity",
+            const = wfpc2util.QUIET, dest = "verbosity",
             help = "quiet, print nothing")
     parser.add_option( "-v", "--verbose", action="store_const",
-            const = cwdutil.VERY_VERBOSE, dest="verbosity",
+            const = wfpc2util.VERY_VERBOSE, dest="verbosity",
             help="very verbose, print lots of information")
+    parser.add_option( "-g", "--group", dest = "group",default = wfpc2util.group,
+            help = "number of group to process.")
+    parser.add_option( "-b", "--bias_thresh", dest = "bias_thresh",default = wfpc2util.bias_thresh,
+            help = "bias threshold.")
+    parser.add_option( "-r", "--row_thresh", dest = "row_thresh",default = wfpc2util.row_thresh,
+            help = "row threshold.")
+    parser.add_option( "-f", "--force_alg_type", dest = "force_alg_type",default = wfpc2util.force_alg_type,
+            help = "algorithm type to force.")         
 
     (options, args) = parser.parse_args()
   
-    cwdutil.setVerbosity( options.verbosity)  
+    wfpc2util.setVerbosity( options.verbosity)  
     verbosity = options.verbosity
+ 
+    wfpc2util.setGroup(options.group )
+    if options.group!=None: group = options.group
 
-    if ( args[0] ):
-       filename = args[0]
+    wfpc2util.setBias_thresh(options.bias_thresh )
+    if options.bias_thresh!=None: bias_thresh = options.bias_thresh
 
-    if ( args[1] ):
-       group = args[1]
+    wfpc2util.setRow_thresh(options.row_thresh )
+    if options.row_thresh!=None: row_thresh = options.row_thresh
 
-    if ( len(args) > 2 ):
-      if ( args[2] ):
-         bias_thresh = args[2] 
-    else:
-      bias_thresh = HUGE_VAL 
-
-    if ( len(args) > 3 ):
-      if ( args[3] ):
-         row_thresh = args[3] 
-    else:
-      row_thresh = 0.0
-
-    if ( len(args) > 4 ): 
-      if ( args[4] ):
-         force_alg_type = args[4] 
-    else:
-      force_alg_type = None
+    wfpc2util.setForce_alg_type(options.force_alg_type )
+    force_alg_type  = options.force_alg_type  
        
-    try:            
-       wfpc2_d = Wfpc2destreak( filename, group, verbosity, bias_thresh, row_thresh, force_alg_type)  
-       
+    try:
+       wfpc2_d = Wfpc2destreak( filename, group=group, verbosity=verbosity, bias_thresh=bias_thresh, row_thresh=row_thresh, force_alg_type=force_alg_type)
+   
        if (verbosity >=1 ):
             print 'The version of this routine is: ',__version__
             wfpc2_d.print_pars()
@@ -1027,10 +1123,4 @@ def main( cmdline):
     except Exception, errmess:
        opusutil.PrintMsg("F","FATAL ERROR "+ str(errmess))
        sys.exit( ERROR_RETURN)
-
-if __name__ == "__main__":
-
-    # Process
-    main( sys.argv[1:])
-
 
