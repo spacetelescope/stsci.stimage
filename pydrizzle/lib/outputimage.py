@@ -234,6 +234,7 @@ class OutputImage:
                 scihdr.update('CRVAL2',self.wcs.crval2)
                 scihdr.update('CRPIX1',self.wcs.crpix1)
                 scihdr.update('CRPIX2',self.wcs.crpix2)
+                scihdr.update('VAFACTOR',1.0)
 
         ##########
         # Now, build the output file
@@ -266,6 +267,7 @@ class OutputImage:
                 hdu.header.update('CRVAL2',self.wcs.crval2)
                 hdu.header.update('CRPIX1',self.wcs.crpix1)
                 hdu.header.update('CRPIX2',self.wcs.crpix2)
+                hdu.header.update('VAFACTOR',1.0)
 
             fo.append(hdu)
 
@@ -293,6 +295,8 @@ class OutputImage:
                 hdu.header.update('CRVAL2',self.wcs.crval2)
                 hdu.header.update('CRPIX1',self.wcs.crpix1)
                 hdu.header.update('CRPIX2',self.wcs.crpix2)
+                hdu.header.update('VAFACTOR',1.0)
+                
 
             fo.append(hdu)
 
@@ -350,6 +354,7 @@ class OutputImage:
                     hdu.header.update('CRVAL2',self.wcs.crval2)
                     hdu.header.update('CRPIX1',self.wcs.crpix1)
                     hdu.header.update('CRPIX2',self.wcs.crpix2)
+                    hdu.header.update('VAFACTOR',1.0)
 
                 # Add primary header to output file...
                 fwht.append(hdu)
@@ -388,6 +393,7 @@ class OutputImage:
                     hdu.header.update('CRVAL2',self.wcs.crval2)
                     hdu.header.update('CRPIX1',self.wcs.crpix1)
                     hdu.header.update('CRPIX2',self.wcs.crpix2)
+                    hdu.header.update('VAFACTOR',1.0)
 
                 fctx.append(hdu)
                 fctx.writeto(self.outcontext)
