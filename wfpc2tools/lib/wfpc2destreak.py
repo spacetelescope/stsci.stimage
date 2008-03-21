@@ -68,6 +68,7 @@
 #                     below for examples in which parameters are overwritten.
 #                   - when using the pyraf/python command line, for each parameter that the user does not specify,
 #                     he/she is prompted for accepting the default value or overriding it.
+#          03/21/08 - added some parameter type checking for linux comand line usage
 #
 # Outline:
 #
@@ -139,7 +140,7 @@ from optparse import OptionParser
 import ndimage
 import wfpc2util, opusutil, sys, string
 
-__version__ = "1.13 (2008 Mar 20)"
+__version__ = "1.14 (2008 Mar 21)"
 
 NUM_SIG = 2.5  # number of sigma to use in sigma clipping
 TOT_ITER = 4   # maximum number of iterations for sigma clipping
@@ -171,18 +172,18 @@ class Wfpc2destreak:
         @type force_alg_type: string
         """
 
+        # so aome parameter type checking
         if ( __name__ == 'wfpc2destreak'):  # for python interface, set defaults and check unspecified pars
-           [group, bias_thresh, row_thresh, force_alg_type] = check_pars(group, bias_thresh, row_thresh, force_alg_type)  
-
-        if (type( group ) == str): # ensure that group is an int
-           group = string.atoi(group)        
+           [group, bias_thresh, row_thresh, force_alg_type] = check_py_pars(group, bias_thresh, row_thresh, force_alg_type)  
+        else:
+           [group, bias_thresh, row_thresh, force_alg_type] = check_cl_pars(group, bias_thresh, row_thresh, force_alg_type)  
 
         self.input_file = input_file
         self.group = int(group) 
         self.verbosity = verbosity
         self.bias_thresh = float(bias_thresh)  
-        self.row_thresh = float(row_thresh)   
-        self.force_alg_type = force_alg_type        
+        self.row_thresh = float(row_thresh)
+        self.force_alg_type = force_alg_type
         
     def destreak( self ):
         
@@ -548,7 +549,7 @@ class Wfpc2destreak:
         print '  force algorithm type:  ' , self.force_alg_type
 
 
-def check_pars(group, bias_thresh, row_thresh, force_alg_type):  
+def check_py_pars(group, bias_thresh, row_thresh, force_alg_type):  
        """ When run under python, verify that each unspecified parameter should take the default value, and
            give the user the opportunity to change it.
 
@@ -615,6 +616,50 @@ def check_pars(group, bias_thresh, row_thresh, force_alg_type):
                   print ' The value entered (',inp,') is invalid so the default will be used'
                else:
                   force_alg_type = inp
+
+       return group, bias_thresh, row_thresh, force_alg_type
+
+
+def check_cl_pars(group, bias_thresh, row_thresh, force_alg_type):  
+       """ When run from linux coammand line, verify that each parameter is valid.
+
+       @param group: number of group to process
+       @type group: int
+       @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by im_mean)
+       @type bias_thresh: float
+       @param row_thresh: row threshold (no correction will be performed if this exceeds the calculated row correction)
+       @type row_thresh: float
+       @param force_alg_type: algorithm type to force
+       @type force_alg_type: string
+       @return: group, bias_thresh, row_thresh, force_alg_type
+       @rtype:  int, float, float, string
+       """
+
+       try:
+           if (type( group ) == str):
+              group = string.atoi(group)
+       except:
+           print ' The group value entered (',group,') is invalid. Try again'
+           sys.exit( ERROR_RETURN)
+
+       try:
+           bias_thresh = string.atof(bias_thresh)
+       except:
+           print ' The bias threshold value entered (',bias_thresh,') is invalid.'
+           sys.exit( ERROR_RETURN)
+
+       try:
+           row_thresh = string.atof(row_thresh)
+       except:
+           print ' The row threshold value entered (',row_thresh,') is invalid. Try again.'
+           sys.exit( ERROR_RETURN)
+
+       if (force_alg_type <> None ):
+          force_alg_type = force_alg_type.upper()  
+
+          if ((force_alg_type <> "PASS1") and (force_alg_type <> "PASS2") and (force_alg_type <> "PASS12") and (force_alg_type <> "OMIT"))  :
+               print ' The value entered (',force_alg_type,') is invalid. Try again.'
+               sys.exit( ERROR_RETURN)
 
        return group, bias_thresh, row_thresh, force_alg_type
 
