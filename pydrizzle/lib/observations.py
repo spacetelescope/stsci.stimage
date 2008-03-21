@@ -232,7 +232,7 @@ class WFC3Observation(Pattern):
     #__theta = 45.00
     #__ir_parity = fileutil.buildRotMatrix(__theta) * N.array([[-1.,1.],[-1.,1.]])
     # Define a class variable for the gap between the chips
-    PARITY = {'UVIS':[[1.0,0.0],[0.0,-1.0]],'IR':[[1.0,0.0],[0.0,-1.0]]}
+    PARITY = {'UVIS':[[-1.0,0.0],[0.0,1.0]],'IR':[[-1.0,0.0],[0.0,1.0]]}
 
     def __init__(self, filename, output, pars=None):
 
