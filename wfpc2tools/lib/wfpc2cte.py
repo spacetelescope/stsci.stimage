@@ -57,7 +57,7 @@ import pyfits
 import pytools
 from pytools import readgeis,fileutil
 import imagestats
-__version__ = '1.1 (29-Feb-2008)'
+__version__ = '1.2 (6-Mar-2008)'
 
 # This contains the default values in electrons for the CTE sources
 DEFAULT_COUNTS = np.array([100,1000,10000],np.float32)
@@ -114,9 +114,19 @@ def compute_YCTE(chip_values,yr,xcte):
     
     
 def update_CTE_keywords(hdr, cte,quiet=False):
-    hdr.update('CTE_1E2',cte[0])
-    hdr.update('CTE_1E3',cte[1],after='CTE_1E2')
-    hdr.update('CTE_1E4',cte[2],after='CTE_1E3')
+    # Start by checking to see if the keywords to be updated already exist
+    # If not, print a warning and insure quiet=False so the results get
+    # reported to STDOUT at the very least.
+    if hdr.has_key('CTE_1E2'):
+        hdr.update('CTE_1E2',cte[0])
+        hdr.update('CTE_1E3',cte[1],after='CTE_1E2')
+        hdr.update('CTE_1E4',cte[2],after='CTE_1E3')
+    else:    
+        print 'WARNING: CTE keywords not found in header.'
+        print '         Please add the keywords to '
+        pritn '         the group parameter block or the extension header.'
+        quiet = False
+
     if not quiet:
         print 'CTE_1E2   = ',cte[0]
         print 'CTE_1E3  = ',cte[1]
