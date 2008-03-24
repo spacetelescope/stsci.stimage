@@ -124,7 +124,7 @@ def update_CTE_keywords(hdr, cte,quiet=False):
     else:    
         print 'WARNING: CTE keywords not found in header.'
         print '         Please add the keywords to '
-        pritn '         the group parameter block or the extension header.'
+        print '         the group parameter block or the extension header.'
         quiet = False
 
     if not quiet:
