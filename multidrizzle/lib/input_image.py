@@ -399,23 +399,6 @@ class InputImage(object):
         """
         return N.ones(self.image_shape,dtype=self.image_dtype) * self._rdnoise
 
-
-    def getsampimg(self):
-        """
-        
-        Purpose
-        =======
-        Return the (samp * amp glow) image array.  This method will return
-        a ones array for all detectors by default.  
-        
-        For detectors in which a ones array is not appropriate, this method 
-        will need to be overloaded in a subclass.  One such case of this would
-        be in the nicmos_image.py module.
-        
-        """
-        return N.ones(self.image_shape,dtype=self.image_dtype)
-
-
     def getdarkcurrent(self):
         """
         

@@ -226,25 +226,7 @@ class WFC3IRInputImage(IRInputImage):
         flat = (1.0/data) # The flat field is normalized to unity.
 
         return flat
-        
-    def getsampimg(self):
-        """
-        
-        Purpose
-        =======
-        Return the samp image array.  This method will return
-        a ones for all detectors by default.  
                 
-        """
-        try:
-            hdulist = fileutil.openImage(self.name,mode='readonly',memmap=0)
-            extnhdulist = fileutil.getExtn(hdulist,extn="SAMP")
-            sampimage = extnhdulist.data[self.ltv2:self.size2,self.ltv1:self.size1]
-        except:
-            sampimage = 1
-        return sampimage
-
-        
     def getdarkcurrent(self):
         """
         
