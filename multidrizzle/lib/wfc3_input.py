@@ -226,7 +226,34 @@ class WFC3IRInputImage(IRInputImage):
         flat = (1.0/data) # The flat field is normalized to unity.
 
         return flat
-                
+
+    def getdarkimg(self):
+        """
+        
+        Purpose
+        =======
+        Return an array representing the dark image for the detector.
+        
+        :units: cps
+        
+        """
+        
+        # First attempt to get the dark image specified by the "DARKFILE"
+        # keyword in the primary keyword of the science data.
+        try:
+            filename = self.header["DARKFILE"]
+            handle = fileutil.openImage(filename,mode='readonly',memmap=0)
+            hdu = fileutil.getExtn(handle,extn="sci")
+            darkobj = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
+        # If the darkfile cannot be located, create the dark image from
+        # what we know about the detector dark current and assume a
+        # constant dark current for the whole image.
+        except:
+            try:
+                darkobj = N.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
+        return darkobj
+
+
     def getdarkcurrent(self):
         """
         
