@@ -249,8 +249,7 @@ class WFC3IRInputImage(IRInputImage):
         # what we know about the detector dark current and assume a
         # constant dark current for the whole image.
         except:
-            try:
-                darkobj = N.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
+            darkobj = N.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
         return darkobj
 
 
