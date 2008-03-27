@@ -33,9 +33,6 @@ class WFC3UVISInputImage(InputImage):
             self.cte_dir = -1    
         if ( self.extn == 'sci,2') : 
             self.cte_dir = 1   
-
-    def doUnitConversions(self):
-        self._effGain = 1
         
     def _isSubArray(self):
         _subarray = False
@@ -152,7 +149,6 @@ class WFC3IRInputImage(IRInputImage):
         
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
-        self.platescale = platescale
         
         # Effective gain to be used in the driz_cr step.  Since the
         # NICMOS images have already been converted to electrons the 
@@ -166,39 +162,7 @@ class WFC3IRInputImage(IRInputImage):
         self.instrument = 'WFC3/IR'
         self.full_shape = (1000,1000)
         self.platescale = platescale
-        self.darkrate = 0.01 #electrons/second
 
-    def _setDefaultReadnoise(self):
-        self._rdnoise = 22.0 # electrons
-
-    def updateMDRIZSKY(self,filename=None):
-    
-        if (filename == None):
-            filename = self.name
-            
-        try:
-            _handle = fileutil.openImage(filename,mode='update',memmap=0)
-        except:
-            raise IOError, "Unable to open %s for sky level computation"%filename
-
-        try:
-            # Assume the MDRIZSKY keyword is in the primary header.  Try to update
-            # the header value
-            try:
-                print "Updating MDRIZSKY in %s with %f"%(filename,
-                        self.getSubtractedSky()
-                        )
-                _handle[0].header['MDRIZSKY'] = self.getSubtractedSky()
-
-
-            # The MDRIZSKY keyword was not found in the primary header.  Add the
-            # keyword to the header and populate it with the subtracted sky value.
-            except:
-                print "Adding MDRIZSKY keyword to primary header with value %f"%(self.getSubtractedSky())
-                _handle[0].header.update('MDRIZSKY',self.getSubtractedSky(), 
-                                         comment="Sky value subtracted by Multidrizzle")                
-        finally:
-            _handle.close()        
         
     def setInstrumentParameters(self, instrpars, pri_header):
         """ This method overrides the superclass to set default values into
@@ -280,31 +244,33 @@ class WFC3IRInputImage(IRInputImage):
             sampimage = 1
         return sampimage
 
-
+        
     def getdarkcurrent(self):
         """
         
         Purpose
         =======
-        Return the dark current for the WFC3IR detectors.
+        Return the dark current for the WFC3/IR detector.  This value
+        will be contained within an instrument specific keyword.
         
         :units: electrons
         
         """
-                
+        
+        darkcurrent = 0
+        
         try:
-            darkcurrent = self.header['exptime'] * self.darkrate
-            
+            darkcurrent = self.header['MEANDARK']
         except:
             str =  "#############################################\n"
             str += "#                                           #\n"
             str += "# Error:                                    #\n"
-            str += "#   Cannot find the value for 'EXPTIME'     #\n"
-            str += "#   in the image header.  WFC3IR input      #\n"
-            str += "#   images are expected to have this header #\n"
+            str += "#   Cannot find the value for 'MEANDARK'    #\n"
+            str += "#   in the image header.  WFC3 input images #\n"
+            str += "#   are expected to have this header        #\n"
             str += "#   keyword.                                #\n"
             str += "#                                           #\n"
-            str += "#Error occured in the WFC3IRInputImage class#\n"
+            str += "# Error occured in WFC3IRInputImage class   #\n"
             str += "#                                           #\n"
             str += "#############################################\n"
             raise ValueError, str
@@ -312,34 +278,3 @@ class WFC3IRInputImage(IRInputImage):
         
         return darkcurrent
         
-    def getdarkimg(self):
-        """
-        
-        Purpose
-        =======
-        Return an array representing the dark image for the detector.
-        
-        :units: electrons
-        
-        """
-
-        # Read the temperature dependeant dark file.  The name for the file is taken from
-        # the TEMPFILE keyword in the primary header.
-        tddobj = readTDD.fromcalfile(self.name)
-
-        if tddobj == None:
-            return N.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
-        else:
-            # Create Dark Object from AMPGLOW and Lineark Dark components
-            darkobj = (tddobj.getampglow() + tddobj.getlindark()*self.header['EXPTIME'])
-            
-            # Convert the darkobj from units of counts to electrons
-            darkboj = darkboj * self.getGain()
-            
-            # Return the darkimage taking into account an subarray information available
-            return darkobj[self.ltv2:self.size2,self.ltv1:self.size1]
-        
-
-    def _setchippars(self):
-        self._setDefaultReadnoise()
-

@@ -84,97 +84,6 @@ class NICMOSInputImage(IRInputImage):
     def _setchippars(self):
         self._setDefaultReadnoise()
                 
-    def updateMDRIZSKY(self,filename=None):
-    
-        if (filename == None):
-            filename = self.name
-            
-        try:
-            _handle = fileutil.openImage(filename,mode='update',memmap=0)
-        except:
-            raise IOError, "Unable to open %s for sky level computation"%filename
-        try:
-        
-            # Get the exposure time for the image.  If the exposure time of the image
-            # is 0, set the MDRIZSKY value to 0.  Otherwise update the MDRIZSKY value
-            # in units of counts per second.
-            if (self.getExpTime() == 0.0):
-                str =  "*******************************************\n"
-                str += "*                                         *\n"
-                str += "* ERROR: Image EXPTIME = 0.               *\n"
-                str += "* MDRIZSKY header value cannot be         *\n"
-                str += "* converted to units of 'counts/s'        *\n"
-                str += "* MDRIZSKY will be set to a value of '0'  *\n"
-                str += "*                                         *\n"
-                str =  "*******************************************\n"
-                _handle[0].header['MDRIZSKY'] = 0
-                print str
-            else:
-                # Assume the MDRIZSKY keyword is in the primary header.  Try to update
-                # the header value
-                try:
-                    # We need to handle the updates of the header for data in 
-                    # original units of either counts per second or counts
-                    if (_handle[0].header['UNITCORR'].strip() == 'PERFORM'):
-                        print "Updating MDRIZSKY in %s with %f / %f / %f = %f"%(filename,
-                                self.getSubtractedSky(),
-                                self.getGain(), 
-                                self.getExpTime(),
-                                self.getSubtractedSky() / self.getGain() / self.getExpTime()
-                                )
-                        _handle[0].header['MDRIZSKY'] = self.getSubtractedSky() / self.getGain() / self.getExpTime()
-                    else:
-                        print "Updating MDRIZSKY in %s with %f / %f  = %f"%(filename,
-                                self.getSubtractedSky(),
-                                self.getGain(), 
-                                self.getSubtractedSky() / self.getGain() 
-                                )
-                        _handle[0].header['MDRIZSKY'] = self.getSubtractedSky() / self.getGain() 
-                        
-                # The MDRIZSKY keyword was not found in the primary header.  Add the
-                # keyword to the header and populate it with the subtracted sky value.
-                except:
-                    print "Cannot find keyword MDRIZSKY in %s to update"%filename
-                    if (_handle[0].header['UNITCORR'].strip() == 'PERFORM'):
-                        print "Adding MDRIZSKY keyword to primary header with value %f"%(self.getSubtractedSky()/self.getGain()/self.getExpTime())
-                        _handle[0].header.update('MDRIZSKY',self.getSubtractedSky()/self.getGain()/self.getExpTime(), 
-                            comment="Sky value subtracted by Multidrizzle")
-                    else:
-                        print "Adding MDRIZSKY keyword to primary header with value %f"%(self.getSubtractedSky()/self.getGain())
-                        _handle[0].header.update('MDRIZSKY',self.getSubtractedSky()/self.getGain(), 
-                            comment="Sky value subtracted by Multidrizzle")
-                    
-        finally:
-            _handle.close()
-
-    def doUnitConversions(self):
-        self._convert2electrons()
-
-    def _convert2electrons(self):
-        # Image information
-        __handle = fileutil.openImage(self.name,mode='update',memmap=0)
-        __sciext = fileutil.getExtn(__handle,extn=self.extn)        
-
-        # Determine if Multidrizzle is in units of counts/second or counts
-        #
-        # Counts per second case
-        if (__handle[0].header['UNITCORR'].strip() == 'PERFORM'):        
-            # Multiply the values of the sci extension pixels by the gain.
-            print "Converting %s from COUNTS/S to ELECTRONS"%(self.name)
-            # If the exptime is 0 the science image will be zeroed out.
-            conversionFactor = (self.getExpTime() * self.getGain()) 
-        # Counts case
-        else:
-            # Multiply the values of the sci extension pixels by the gain.
-            print "Converting %s from COUNTS to ELECTRONS"%(self.name)
-            # If the exptime is 0 the science image will be zeroed out.
-            conversionFactor = (self.getGain()) 
-        N.multiply(__sciext.data,conversionFactor,__sciext.data)        
-        
-        __handle.close()
-        del __handle
-        del __sciext
-
     def getflat(self):
         """
 
@@ -185,7 +94,7 @@ class NICMOSInputImage(IRInputImage):
         This method will return an array the same shape as the
         image.
 
-        :units: electrons
+        :units: cps
 
         """
 
@@ -209,8 +118,6 @@ class NICMOSInputImage(IRInputImage):
                 str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
                 print str
 
-        # The NICMOS flat field needs to be gain corrected.
-        #flat = (1.0/data)/self.getGain()
         flat = (1.0/data) # The flat field is normalized to unity.
 
         return flat
@@ -240,7 +147,7 @@ class NICMOSInputImage(IRInputImage):
         =======
         Return the dark current for the NICMOS detectors.
         
-        :units: electrons
+        :units: cps
         
         """
                 
@@ -271,7 +178,7 @@ class NICMOSInputImage(IRInputImage):
         =======
         Return an array representing the dark image for the detector.
         
-        :units: electrons
+        :units: cps
         
         """
 
@@ -283,11 +190,8 @@ class NICMOSInputImage(IRInputImage):
             return N.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
         else:
             # Create Dark Object from AMPGLOW and Lineark Dark components
-            darkobj = (tddobj.getampglow() + tddobj.getlindark()*self.header['EXPTIME'])
-            
-            # Convert the darkobj from units of counts to electrons
-            darkboj = darkboj * self.getGain()
-            
+            darkobj = tddobj.getampglow() + tddobj.getlindark()
+                        
             # Return the darkimage taking into account an subarray information available
             return darkobj[self.ltv2:self.size2,self.ltv1:self.size1]
         

@@ -389,8 +389,6 @@ help file.
         #self.image_manager = ImageManager(association, self.context, self.instrpars, self.workinplace, \
         #self.staticfile, self.updatewcs) 
         self.image_manager = ImageManager(assoc, self.context, self.instrpars, self.workinplace, self.staticfile) 
-        # Do unit conversion of the 'sci' data if necessary
-        self.image_manager.doUnitConversions()
 
         # Done with initialization.
         self.steps.markStepDone(ProcSteps.doInitialize)

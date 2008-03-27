@@ -91,48 +91,6 @@ class STISInputImage (InputImage):
             print 'ERROR: invalid instrument task parameter'
             raise ValueError
 
-
-    def updateMDRIZSKY(self,filename=None):
-    
-        if (filename == None):
-            filename = self.name
-            
-        try:
-            _handle = fileutil.openImage(filename,mode='update',memmap=0)
-        except:
-            raise IOError, "Unable to open %s for sky level computation"%filename
-        try:
-            try:
-                # Assume MDRIZSKY lives in primary header
-                print "Updating MDRIZSKY in %s with %f / %f = %f"%(filename,self.getSubtractedSky(),
-                        self.getGain(),
-                        self.getSubtractedSky() / self.getGain()
-                        )
-                _handle[0].header['MDRIZSKY'] = self.getSubtractedSky() / self.getGain()
-            except:
-                print "Cannot find keyword MDRIZSKY in %s to update"%filename
-                print "Adding MDRIZSKY keyword to primary header with value %f"%self.getSubtractedSky()
-                _handle[0].header.update('MDRIZSKY',self.getSubtractedSky()/self.getGain(), 
-                    comment="Sky value subtracted by Multidrizzle")
-        finally:
-            _handle.close()
-
-    def doUnitConversions(self):
-        self._convert2electrons()
-
-    def _convert2electrons(self):
-        # Image information
-        __handle = fileutil.openImage(self.name,mode='update',memmap=0)
-        __sciext = fileutil.getExtn(__handle,extn=self.extn)
-
-        # Multiply the values of the sci extension pixels by the gain.
-        print "Converting %s from COUNTS to ELECTRONS"%(self.name)
-        N.multiply(__sciext.data,self.getGain(),__sciext.data)        
-
-        __handle.close()
-        del __handle
-        del __sciext
-
     def _setMAMAchippars(self):
         self._setMAMADefaultGain()
         self._setMAMADefaultReadnoise()
@@ -152,7 +110,7 @@ class CCDInputImage(STISInputImage):
         self.platescale = platescale
   
         if ( self.amp == 'D' or self.amp == 'C' ) : # cte direction depends on amp 
-             self.cte_dir =  1 
+            self.cte_dir =  1 
         if ( self.amp == 'A' or self.amp == 'B' ) :
             self.cte_dir =  -1  
 

@@ -21,9 +21,6 @@ class ACSInputImage(InputImage):
         # ACS images have already been converted to electrons,
         # the effective gain is 1.
         self._effGain = 1
-
-    def doUnitConversions(self):
-        self._effGain = 1
         
     def _isSubArray(self):
         _subarray = False

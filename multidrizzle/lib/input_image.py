@@ -91,12 +91,6 @@ class InputImage(object):
         """ Sets the instrument parameters.
         """
         pass
-
-    def doUnitConversions(self):
-        """
-        Convert the sci extensions pixels to electrons
-        """
-        pass
         
     def getInstrParameter(self, value, header, keyword):
         """ This method gets a instrument parameter from a

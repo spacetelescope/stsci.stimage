@@ -21,6 +21,8 @@ from wfpc2_input import WFPC2InputImage, PCInputImage, WF2InputImage, WF3InputIm
 from stis_input import STISInputImage, CCDInputImage, FUVInputImage, NUVInputImage
 from nicmos_input import NICMOSInputImage, NIC1InputImage, NIC2InputImage, NIC3InputImage
 from wfc3_input import WFC3UVISInputImage, WFC3IRInputImage
+from ir_input import IRInputImage
+
 # Import general tools
 import imagestats
 from imagestats import ImageStats
@@ -256,11 +258,7 @@ class ImageManager(object):
         for p in self.assoc.parlist:
             p['image'].setInstrumentParameters (instrpars, p['exposure'].header)
 
-    def doUnitConversions(self):
-        for p in self.assoc.parlist:
-            p['image'].doUnitConversions()
-
-    # This is called upon initialization of this class...
+            
     def setupInputCopies(self,p,workinplace = False ):
         """ Make copies of all input science files, keeping track of
             the names of the copies and originals.
@@ -567,8 +565,6 @@ class ImageManager(object):
         
         # Start by applying input parameters to redefine
         # the output frame as necessary
-#        self._setOutputFrame(pars)
-
         for p in self.assoc.parlist:
 
             # First do some cleaning up, in case you are restarting...
@@ -584,19 +580,14 @@ class ImageManager(object):
             # Pass in the new wt_scale value
             p['wt_scl'] = pars['wt_scl']
 
-
-#            # Copy out filename for 'driz_mask' and
-#            # replace with static_mask Numarray object
-#            p['full_mask'] = p['driz_mask']
-#            if (self.static_mask != None):
-#                p['driz_mask'] = self.static_mask.getMask(p['image'].signature())
-#            else:
-#                p['driz_mask'] = None
-
             if (p['single_driz_mask'] == None and self.static_mask != None):
                 p['single_driz_mask'] = self.static_mask.getMask(p['image'].signature())
                 
-    
+            if isinstance(p['image'],IRInputImage):
+                p['in_units'] = 'cps'
+            else:
+                p['in_units'] = 'counts'
+            
             print("\ndrizzle data='"+p['data']+"' outdata='"+p['outsingle']+"' outweig='"+p['outsweight']+
                 "' in_mask='static_mask"+"' kernel='"+p['kernel']+
                 "' outnx="+str(p['outnx'])+" outny="+str(p['outny'])+" xsh="+str(p['xsh'])+" ysh="+str(p['ysh'])+
@@ -973,10 +964,10 @@ class ImageManager(object):
             else:
                 _orient = refimg_wcs.orientat
 
-           # Now, build output WCS using the SkyField class
-            # and default product's WCS as the initial starting point.
-            #
+            # Now, build output WCS using the SkyField class
+            # and default product's WCS as the initial starting point. 
             _new_field = pydrizzle.SkyField(wcs=refimg_wcs)
+
             # Update with user specified scale and rotation
             _new_field.set(psize=drizpars['scale'],orient=_orient)
         
@@ -987,8 +978,6 @@ class ImageManager(object):
 
             _new_field = pydrizzle.SkyField(shape=_final_shape)
 
-            #_orientat = self.assoc.observation.product.geometry.wcslin.orient
-            #_new_field.set(psize=scale, orient=_orientat + rot)
             _new_field.set(psize=drizpars['scale'], orient=drizpars['rot'],
                             ra=drizpars['ra'], dec=drizpars['dec'])
 
@@ -1021,6 +1010,11 @@ class ImageManager(object):
             if not self.context:
                 p['outcontext'] = ''
 
+            if isinstance(p['image'],IRInputImage):
+                p['in_units'] = 'cps'
+            else:
+                p['in_units'] = 'counts'
+
 
         print("drizzle.outnx = "+str(self.assoc.parlist[0]['outnx']))
         print("drizzle.outny = "+str(self.assoc.parlist[0]['outny']))
@@ -1028,7 +1022,7 @@ class ImageManager(object):
         print("drizzle.pixfrac = "+str(self.assoc.parlist[0]['pixfrac']))
         print("drizzle.shft_fr = 'output'")
         print("drizzle.shft_un = 'output'")
-        print("drizzle.in_un = 'counts'")
+        print("drizzle.in_un = '"+str(self.assoc.parlist[0]['in_units']))
         print("drizzle.out_un = '"+self.assoc.parlist[0]['units']+"'")
         print("drizzle.align = 'center'")
         print("drizzle.expkey = 'EXPTIME'")
@@ -1048,7 +1042,7 @@ class ImageManager(object):
         runlog.write("drizzle.pixfrac = "+str(self.assoc.parlist[0]['pixfrac'])+"\n")
         runlog.write("drizzle.shft_fr = 'output'\n")
         runlog.write("drizzle.shft_un = 'output'\n")
-        runlog.write("drizzle.in_un = 'counts'\n")
+        runlog.write("drizzle.in_un = "+str(self.assoc.parlist[0]['in_units'])+"\n")
         runlog.write("drizzle.out_un = '"+self.assoc.parlist[0]['units']+"'\n")
         runlog.write("drizzle.align = 'center'\n")
         runlog.write("drizzle.expkey = 'EXPTIME'\n")
@@ -1092,26 +1086,6 @@ class ImageManager(object):
         
         self.updateMdrizskyHistory(drizpars['build'])
         
-        # Update the BUINT keyword in the DRZ product with the
-        # appropriate output UNITS
-        outputFileName = self.output
-
-        outputhdu = fileutil.openImage(outputFileName,mode='update')
-        
-        if outputhdu['SCI'].header.has_key('BUNIT'):
-            # Change the value of BUNIT to reflect the output
-            # value of electrons/second
-            if self.assoc.parlist[0]['units'] == 'cps':
-                outputhdu['SCI'].header['BUNIT'] = 'ELECTRONS/S'
-            else:
-                outputhdu['SCI'].header['BUNIT'] = 'ELECTRONS'
-        else:
-            if self.assoc.parlist[0]['units'] == 'cps':
-                outputhdu['SCI'].header.update('BUNIT','ELECTRONS/S',comment="Units of science product")
-            else:
-                outputhdu['SCI'].header.update('BUNIT','ELECTRONS',comment="Units of science product")
-        outputhdu.close()
-
     def updateMdrizskyHistory(self,build):
         """ Update the output SCI image with HISTORY cards
             that document what MDRIZSKY value was applied to each

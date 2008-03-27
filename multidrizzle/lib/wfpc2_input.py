@@ -101,7 +101,7 @@ class WFPC2InputImage (InputImage):
         This method will return an array the same shape as the
         image.
         
-        :units: electrons
+        :units: counts
 
         """
 
@@ -126,7 +126,7 @@ class WFPC2InputImage (InputImage):
                 print str
         # For the WFPC2 flat we need to invert and multiply by the gain
         # for use in Multidrizzle
-        flat = (1.0/data)/self.getGain()
+        flat = (1.0/data)
         return flat
 
 
@@ -203,7 +203,7 @@ class WFPC2InputImage (InputImage):
             raise IOError, "Unable to open %s for sky level computation"%filename
 
          # Compute the sky level subtracted from all the WFPC2 detectors based upon the reference plate scale.
-        skyvalue = (self.getSubtractedSky()  * (self.refplatescale/self.platescale)**2) / self.getGain()
+        skyvalue = (self.getSubtractedSky()  * (self.refplatescale/self.platescale)**2)
         
         try:
             try:
@@ -216,22 +216,6 @@ class WFPC2InputImage (InputImage):
                 _handle[0].header.update('MDRIZSKY',skyvalue, comment="Sky value subtracted by Multidrizzle")
         finally:
             _handle.close()
-
-    def doUnitConversions(self):
-        self._convert2electrons()
-
-    def _convert2electrons(self):
-        # Image information
-        __handle = fileutil.openImage(self.name,mode='update',memmap=0)
-        __sciext = fileutil.getExtn(__handle,extn=self.extn)
-
-        # Multiply the values of the sci extension pixels by the gain.
-        print "Converting %s from DN to ELECTRONS"%(self.name)
-        N.multiply(__sciext.data,self.getGain(),__sciext.data)        
-
-        __handle.close()
-        del __handle
-        del __sciext
 
 
 class WF2InputImage (WFPC2InputImage):
