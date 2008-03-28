@@ -19,12 +19,7 @@ class STISInputImage (InputImage):
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 8192
         self.platescale = platescale
-        
-        # Effective gain to be used in the driz_cr step.  Since the
-        # STIS images have already benn converted to electons
-        # the effective gain is 1.
-        self._effGain = 1
-        
+                
     def getflat(self):
         """
 
@@ -113,6 +108,18 @@ class CCDInputImage(STISInputImage):
             self.cte_dir =  1 
         if ( self.amp == 'A' or self.amp == 'B' ) :
             self.cte_dir =  -1  
+
+    def getReadNoise(self):
+        """
+        
+        Purpose
+        =======
+        Method for trturning the readnoise of a detector (in DN).
+        
+        :units: DN
+        
+        """
+        return self._rdnoise / self.getGain()
 
 class NUVInputImage(STISInputImage):
     def __init__(self, input, dqname, platescale, memmap=0):

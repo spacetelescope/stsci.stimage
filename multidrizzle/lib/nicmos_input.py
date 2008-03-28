@@ -21,12 +21,7 @@ class NICMOSInputImage(IRInputImage):
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
         self.platescale = platescale
-        
-        # Effective gain to be used in the driz_cr step.  Since the
-        # NICMOS images have already been converted to electrons the 
-        # effective gain is 1.
-        self._effGain = 1
- 
+         
         # no cte correction for NICMOS so set cte_dir=0.
         print('\nWARNING: No cte correction will be made for this NICMOS data.\n')
         self.cte_dir = 0   
@@ -186,10 +181,10 @@ class NIC1InputImage(NICMOSInputImage):
         self.instrument = 'NICMOS/1'
         self.full_shape = (256,256)
         self.platescale = platescale
-        self.darkrate = 0.08
+        self.darkrate = 0.08/self.getGain() #ADU/s
 
     def _setDefaultReadnoise(self):
-        self._rdnoise = 27.5
+        self._rdnoise = 26.0/self.getGain() #ADU
 
 class NIC2InputImage(NICMOSInputImage):
     def __init__(self, input, dqname, platescale, memmap=0):
@@ -197,10 +192,10 @@ class NIC2InputImage(NICMOSInputImage):
         self.instrument = 'NICMOS/2'
         self.full_shape = (256,256)
         self.platescale = platescale
-        self.darkrate = 0.08
+        self.darkrate = 0.08/self.getGain() #ADU/s
 
     def _setDefaultReadnoise(self):
-        self._rdnoise = 27.5
+        self._rdnoise = 26.0/self.getGain() #ADU
 
 class NIC3InputImage(NICMOSInputImage):
     def __init__(self, input, dqname, platescale, memmap=0):
@@ -208,7 +203,7 @@ class NIC3InputImage(NICMOSInputImage):
         self.instrument = 'NICMOS/3'
         self.full_shape = (256,256)
         self.platescale = platescale
-        self.darkrate = 0.15
+        self.darkrate = 0.15/self.getGain() #ADU/s
 
     def _setDefaultReadnoise(self):
-        self._rdnoise = 29.9
+        self._rdnoise = 29.0/self.getGain() #ADU
