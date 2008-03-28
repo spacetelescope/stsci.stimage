@@ -140,11 +140,11 @@ class WFPC2InputImage (InputImage):
         The value in the image header will be converted to units
         of electrons.
         
-        :units: electrons
+        :units: counts
         
         """
         
-        darkrate = 0.005 #e-/s
+        darkrate = 0.005 / self.getGain() #count/s
         
         try:
             darkcurrent = self.header['DARKTIME'] * darkrate
@@ -166,6 +166,17 @@ class WFPC2InputImage (InputImage):
         
         return darkcurrent
 
+    def getReadNoise(self):
+        """
+        
+        Purpose
+        =======
+        Method for returning the readnoise of a detector (in counts).
+        
+        :units: counts
+        
+        """
+        return self._rdnoise / self.getGain()
 
     def _setchippars(self):
         pass
@@ -282,6 +293,6 @@ class PCInputImage (WFPC2InputImage):
             self._rdnoise = 5.24  
         elif self._headergain == 15:
             self._gain    = 13.99
-            self._rdnoise = 7.02
+            self._rdnoise = 7.02 
         else:
             raise ValueError, "! Header gain value is not valid for WFPC2"
