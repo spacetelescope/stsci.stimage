@@ -25,7 +25,7 @@ class NICMOSInputImage(IRInputImage):
         # no cte correction for NICMOS so set cte_dir=0.
         print('\nWARNING: No cte correction will be made for this NICMOS data.\n')
         self.cte_dir = 0   
-        
+        self._effGain = 1
         
     def setInstrumentParameters(self, instrpars, pri_header):
         """ This method overrides the superclass to set default values into

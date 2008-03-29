@@ -19,6 +19,7 @@ class STISInputImage (InputImage):
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 8192
         self.platescale = platescale
+        self._effGain = 1
                 
     def getflat(self):
         """
