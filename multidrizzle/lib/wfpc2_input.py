@@ -20,8 +20,6 @@ class WFPC2InputImage (InputImage):
 
         self.cte_dir = -1    # independent of amp, chip   
         
-        # Effective gain to be used in the driz_cr step.  Since the
-        # images are arlready to have been convered to electrons
         self._effGain = 1
 
         # Attribute defining the pixel dimensions of WFPC2 chips.
@@ -29,6 +27,20 @@ class WFPC2InputImage (InputImage):
         
         # Reference Plate Scale used for updates to MDRIZSKY
         self.refplatescale = 0.0996 # arcsec / pixel
+
+    def getEffGain(self):
+        """
+        
+        Purpose
+        =======
+        Method used to return the effective gain of a instrument's
+        detector.
+        
+        This method returns a single floating point value.
+
+        """
+
+        return self.getGain()
 
     def setInstrumentParameters(self, instrpars, pri_header):
         """ This method overrides the superclass to set default values into
