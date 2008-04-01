@@ -40,7 +40,7 @@ class WFPC2InputImage (InputImage):
 
         """
 
-        return self.getGain()
+        return self._effGain
 
     def setInstrumentParameters(self, instrpars, pri_header):
         """ This method overrides the superclass to set default values into
