@@ -69,6 +69,11 @@
 #                   - when using the pyraf/python command line, for each parameter that the user does not specify,
 #                     he/she is prompted for accepting the default value or overriding it.
 #          03/21/08 - added some parameter type checking for linux comand line usage
+#          04/03/08 - the calculation of the row-specific correction using PASS2 will ignore pixels that deviate from
+#                     the mode of the row by more than 4 sigma. The mode will be calculated by binning all pixels in row
+#                     in bins of width 1, and determining which bins has the highest frequency. Sigma
+#                     will be calculated from pixels over the entire image.
+#
 #
 # Outline:
 #
@@ -140,7 +145,8 @@ from optparse import OptionParser
 import ndimage
 import wfpc2util, opusutil, sys, string
 
-__version__ = "1.14 (2008 Mar 21)"
+
+__version__ = "2.00 (2008 Apr 3)"
 
 NUM_SIG = 2.5  # number of sigma to use in sigma clipping
 TOT_ITER = 4   # maximum number of iterations for sigma clipping
@@ -296,10 +302,10 @@ class Wfpc2destreak:
         smoothed_row_mean = boxcar( good_row_mean,(3,))  # smooth row mean over 3 rows
 
     # perform CR rejection on desired subarray of image section 
-        image_data = d0f_data[ ix_min:xsize-1, iy_min:ysize-1 ] 
+        image_data = d0f_data[ ix_min:xsize-1, iy_min:ysize-1 ]
         im_mask = cr_reject(image_data)
         im_mask_2d = N.resize( im_mask, [image_data.shape[0], image_data.shape[1]])    
-        masked_image = image_data * (1-im_mask_2d)  # gives 0 where there are Cosmic rsys
+        masked_image = image_data * (1-im_mask_2d)  # gives 0 where there are Cosmic rays
 
     # calculate stats for all pixels in d0f image region
         self.dorgmean =  image_data.mean()
@@ -421,13 +427,15 @@ class Wfpc2destreak:
 
               new_c0f_data[i_row,col_max+1:] = c0f_data[i_row,col_max+1:] - to_subtract_1[ i_row ]  
 
+
         if (( alg_type == "PASS2")or ( alg_type == "PASS12")) : # do Pass 2 
           # PASS 2: for second correction, calculate row mean over entire c0f image using iterative sigma clipping and
           #         subtract difference between this row mean and the global mean    
            row_data_b_mean = N.zeros(ysize)
            to_subtract_2 = N.zeros((ysize),dtype = N.float32)
 
-           for i_row in range (0, ysize-1 ):
+          # get the (clipped) sigma
+           for i_row in range (0, ysize-1 ):   
               row_data_b = new_c0f_data[i_row, col_max+1:]   
               mean1 = row_data_b.mean()
               row_data_b_mean[ i_row ] = row_data_b.mean()
@@ -444,12 +452,63 @@ class Wfpc2destreak:
                  good_pix = N.where(((row_data_b < (mean1 + (NUM_SIG*std1))) & ((row_data_b > (mean1 - (NUM_SIG*std1))))))
                  good_val = row_data_b[good_pix]
                  good_val = good_val.astype(N.float32)
-                 if ( good_val.size == 0 ):
+                 if   ( good_val.size == 0 ):
                       break
+                  
 
-                 clip_row_mean[ i_row] = good_val.mean()
+          # calculation of the row-specific correction using PASS2 will ignore pixels that deviate from
+          #   the mode of the row by more than 4 sigma. The mode will be calculated by binning all pixels in row
+          #   in bins of width 1, and determining which bins has the highest frequency. 
 
-            # for each row, subtract difference between clipped mean and global clipped mean 
+           min_val = int(new_c0f_data[0, col_max+1:].min()) # lower value of histogram   
+           max_val = int(new_c0f_data[0, col_max+1:].max()) # upper value of histogram   
+           xbin = N.arange(min_val, max_val )  
+
+           for i_row in range (0, ysize-1 ): 
+
+              row_data_b = new_c0f_data[i_row, col_max+1:]
+
+              the_hist = get_hist(row_data_b, xbin )              
+              max_freq = the_hist.max()
+              ind = N.where( max_freq == the_hist,1,0)
+              max_ind =  ( ind == 1 )
+              mode_min = xbin[max_ind][0];  mode_max = xbin[max_ind][0]+1              
+              the_mode = 0.5 * (mode_min + mode_max )
+
+              mean1 = row_data_b.mean()
+              row_data_b_mean[ i_row ] = row_data_b.mean()
+
+              good_pix = N.where(((row_data_b < (the_mode + (4.*std1))) & ((row_data_b > (the_mode - (4.*std1))))))
+              good_val = row_data_b[good_pix]
+              good_val = good_val.astype(N.float32)
+
+              bad_pix = N.where(((row_data_b >= (the_mode + (4.*std1))) | ((row_data_b <= (the_mode - (4.*std1))))))
+              bad_val = row_data_b[bad_pix]
+              bad_val = bad_val.astype(N.float32)
+
+              bad_pix_low = N.where((row_data_b <= (the_mode - (4.*std1))))
+              bad_val_low = row_data_b[bad_pix_low]
+              bad_val_low = bad_val_low.astype(N.float32)
+
+              bad_pix_hi = N.where((row_data_b >= (the_mode + (4.*std1))))
+              bad_val_hi = row_data_b[bad_pix_hi]
+              bad_val_hi = bad_val_hi.astype(N.float32)
+
+              if (verbosity >=1 ):  # print stats of good and rejected pixels for this row
+                 print '' ; print ' row = ' , i_row 
+                 print ' good pixels: number, min, mean, max, std = ' ,  good_val.size,good_val.min(),good_val.mean(),good_val.max(),good_val.std()
+                 print 'all rejected pixels: number, min, mean, max, std = ', bad_val.size,bad_val.min(),bad_val.mean(),bad_val.max(),bad_val.std()
+                 if   bad_val_low.size > 0 :
+                    print 'low rejected pixels: number, min, mean, max, std = ', bad_val_low.size,bad_val_low.min(),bad_val_low.mean(),bad_val_low.max(),bad_val_low.std()
+                 if   bad_val_hi.size > 0 :
+                    print 'high rejected pixels: number, min, mean, max, std = ' ,bad_val_hi.size,bad_val_hi.min(),bad_val_hi.mean(),bad_val_hi.max(),bad_val_hi.std()
+                 print ' rejecting values outside the range =  ' , the_mode - (4.*std1), the_mode + (4.*std1)
+                 print ' the mode = ', the_mode
+
+              clip_row_mean[ i_row] = good_val.mean()
+
+
+           # for each row, subtract difference between clipped mean and global clipped mean 
            glob_im_clip_mean = clip_row_mean[1:ysize-2].mean() # calculate global clipped mean
            for i_row in range (1, ysize-2 ):
               to_subtract_2[ i_row ] = clip_row_mean[ i_row ]- glob_im_clip_mean
@@ -619,6 +678,12 @@ def check_py_pars(group, bias_thresh, row_thresh, force_alg_type):
 
        return group, bias_thresh, row_thresh, force_alg_type
 
+
+def get_hist(a, bins):
+      nn =  N.searchsorted( N.sort(a), bins)
+      nn = N.concatenate([nn, [len(a)]])
+      return  nn[1:]-nn[:-1]
+  
 
 def check_cl_pars(group, bias_thresh, row_thresh, force_alg_type):  
        """ When run from linux coammand line, verify that each parameter is valid.
