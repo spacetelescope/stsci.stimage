@@ -1124,11 +1124,11 @@ def write_to_file(self, data, filename, hdr, forced_type, alg_type, alg_cmt, ver
     hdr.update(key='PORGMIN', value=self.porgmin, comment="min of all pixels in pyramid region" ) 
     hdr.update(key='PORGMAX', value=self.porgmax, comment="max of all pixels in pyramid region" )
 
-    hdr.update(key='PMSKPIX', value=self.pmskpix, comment="number of masked pixels in pyramid region" ) 
-    hdr.update(key='PMSKMEAN', value=self.pmskmean, comment="mean of masked pixels in pyramid region" ) 
-    hdr.update(key='PMSKSTD', value=self.pmskstd, comment="sigma of masked pixels in pyramid region" ) 
-    hdr.update(key='PMSKMIN', value=self.pmskmin, comment="min of masked pixels in pyramid region" ) 
-    hdr.update(key='PMSKMAX', value=self.pmskmax, comment="max of masked pixels in pyramid region" ) 
+    hdr.update(key='PMSKPIX', value=self.pmskpix, comment="number of unmasked pixels in pyramid region" ) 
+    hdr.update(key='PMSKMEAN', value=self.pmskmean, comment="mean of unmasked pixels in pyramid region" ) 
+    hdr.update(key='PMSKSTD', value=self.pmskstd, comment="sigma of unmasked pixels in pyramid region" ) 
+    hdr.update(key='PMSKMIN', value=self.pmskmin, comment="min of unmasked pixels in pyramid region" ) 
+    hdr.update(key='PMSKMAX', value=self.pmskmax, comment="max of unmasked pixels in pyramid region" ) 
 
     hdr.update(key='CORGPIX', value=self.corgpix, comment="number of pixels in original c0f image region" ) 
     hdr.update(key='CORGMEAN', value=self.corgmean, comment="mean in original c0f image region" ) 
@@ -1148,11 +1148,11 @@ def write_to_file(self, data, filename, hdr, forced_type, alg_type, alg_cmt, ver
     hdr.update(key='DORGMIN', value=self.dorgmin, comment="minimum in original d0f image region" ) 
     hdr.update(key='DORGMAX', value=self.dorgmax, comment="maximum in original d0f image region" )
 
-    hdr.update(key='DMSKPIX', value=self.dmskpix, comment="number of masked pixels in d0f image region" ) 
-    hdr.update(key='DMSKMEAN', value=self.dmskmean, comment="mean of masked d0f image region" ) 
-    hdr.update(key='DMSKSTD', value=self.dmskstd, comment="sigma of masked d0f image region" ) 
-    hdr.update(key='DMSKMIN', value=self.dmskmin, comment="minimum of masked d0f image region" ) 
-    hdr.update(key='DMSKMAX', value=self.dmskmax, comment="maximum of masked d0f image region" )
+    hdr.update(key='DMSKPIX', value=self.dmskpix, comment="number of unmasked pixels in d0f image region" ) 
+    hdr.update(key='DMSKMEAN', value=self.dmskmean, comment="mean of unmasked d0f image region" ) 
+    hdr.update(key='DMSKSTD', value=self.dmskstd, comment="sigma of unmasked d0f image region" ) 
+    hdr.update(key='DMSKMIN', value=self.dmskmin, comment="minimum of unmasked d0f image region" ) 
+    hdr.update(key='DMSKMAX', value=self.dmskmax, comment="maximum of unmasked d0f image region" )
     
     fimghdu = pyfits.PrimaryHDU( header = hdr)
     fimghdu.data = data
