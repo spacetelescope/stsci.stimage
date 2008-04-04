@@ -17,7 +17,7 @@ from cfg_calcos import CALCOS_EXTENSIONS
 PACKAGES = ['calcos','numdisplay', 'imagestats',
     'multidrizzle', 'pydrizzle', 'pydrizzle.traits102',
     'pydrizzle.distortion','pytools', 'nictools', 
-    'stistools', 'wfpc2tools']
+    'stistools', 'wfpc2tools', 'imagemanip']
 
 
 # uninstall_packages is a list of packages that we want to remove when we do
