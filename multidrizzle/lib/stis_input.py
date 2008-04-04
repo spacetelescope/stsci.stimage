@@ -7,6 +7,7 @@ from pytools import fileutil
 import numpy as N
 
 from input_image import InputImage
+from imagemanip import interp2d
 
 
 class STISInputImage (InputImage):
@@ -37,29 +38,52 @@ class STISInputImage (InputImage):
         """
 
         # The keyword for STIS flat fields in the primary header of the flt
-        # file is ???.  This flat file is *NOT* already in the required 
-        # units of electrons.
         
-        filename = self.header['???????']
+        lflatfile = self.header['LFLTFILE']
+        pflatfile = self.header['PFLTFILE']
         
-        # Try to open the file in the location specified by oref.
+        # Try to open the file in the location specified by LFLTFILE.
         try:
-            handle = fileutil.openImage(filename,mode='readonly',memmap=0)
+            handle = fileutil.openImage(lflatfile,mode='readonly',memmap=0)
             hdu = fileutil.getExtn(handle,extn=self.extn)
-            data = hdu.data
+            lfltdata = hdu.data
+            if lfltdata.shape != self.image_shape:
+                lfltdata = interp2d.expand2d(lfltdata,self.image_shape)
         except:
             # If the user forgot to specifiy oref try looking for the reference
             # file in the current directory
             try:
-                handle = fileutil.openImage(filename[5:],mode='readonly',memmap=0)
+                handle = fileutil.openImage(lfltfile[5:],mode='readonly',memmap=0)
                 hdu = fileutil.getExtn(handle,extn=self.extn)
-                data = hdu.data
+                lfltdata = hdu.data
             # No flat field was found.  Assume the flat field is a constant value of 1.
             except:
-                data = n.ones(self.image_shape,dtype=self.image_dtype)
+                lfltdata = n.ones(self.image_shape,dtype=self.image_dtype)
                 str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
                 print str
-        flat = data
+        
+        # Try to open the file in the location specified by PFLTFILE.
+        try:
+            handle = fileutil.openImage(pflatfile,mode='readonly',memmap=0)
+            hdu = fileutil.getExtn(handle,extn=self.extn)
+            pfltdata = hdu.data
+        except:
+            # If the user forgot to specifiy oref try looking for the reference
+            # file in the current directory
+            try:
+                handle = fileutil.openImage(pfltfile[5:],mode='readonly',memmap=0)
+                hdu = fileutil.getExtn(handle,extn=self.extn)
+                pfltdata = hdu.data
+            # No flat field was found.  Assume the flat field is a constant value of 1.
+            except:
+                pfltdata = n.ones(self.image_shape,dtype=self.image_dtype)
+                str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
+                print str
+        
+        print "lfltdata shape: ",lfltdata.shape
+        print "pfltdata shape: ",pfltdata.shape
+        flat = lfltdata * pfltdata
+        
         return flat
 
     def setInstrumentParameters(self, instrpars, pri_header):
@@ -110,6 +134,10 @@ class CCDInputImage(STISInputImage):
         if ( self.amp == 'A' or self.amp == 'B' ) :
             self.cte_dir =  -1  
 
+    def getdarkcurrent(self):
+        darkcurrent = 0.009 #electrons/sec
+        return darkcurrent / self.getGain()
+    
     def getReadNoise(self):
         """
         
@@ -195,6 +223,10 @@ class NUVInputImage(STISInputImage):
             # In this case, the user has specified both a gain and readnoise values.  Just use them as is.
             pass
 
+    def getdarkcurrent(self):
+        darkcurrent = 0.0013 #electrons/sec
+        return darkcurrent / self.getGain()
+
 class FUVInputImage(STISInputImage):
     def __init__(self, input, dqname, platescale, memmap=0):
         STISInputImage.__init__(self,input,dqname,platescale,memmap=0)
@@ -271,3 +303,6 @@ class FUVInputImage(STISInputImage):
         else:
             # In this case, the user has specified both a gain and readnoise values.  Just use them as is.
             pass
+    def getdarkcurrent(self):
+        darkcurrent = 0.07 #electrons/sec
+        return darkcurrent / self.getGain()
