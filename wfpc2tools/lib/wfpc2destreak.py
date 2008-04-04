@@ -71,8 +71,8 @@
 #          03/21/08 - added some parameter type checking for linux comand line usage
 #          04/03/08 - the calculation of the row-specific correction using PASS2 will ignore pixels that deviate from
 #                     the mode of the row by more than 4 sigma. The mode will be calculated by binning all pixels in row
-#                     in bins of width 1, and determining which bins has the highest frequency. Sigma
-#                     will be calculated from pixels over the entire image.
+#                     in bins of width 1, and determining which bin has the highest frequency. Sigma
+#                     will be calculated using iterative sigma-clipping all pixels over the entire image.
 #
 #
 # Outline:
@@ -99,12 +99,12 @@
 #         is subtracted from the c0f data
 #
 # ... and Pass2 is done as follows:
-#     - Over the entire d0f image, iterative sigma-clipping is performed to mask
-#         cosmic rays and bright sources         
-#     - For each row, the mean is calculated of the unmasked pixels; for all
-#         rows the global mean is calculated
-#     - For each row, the difference between the mean and the global
-#         is subtracted from the c0f data
+#     - Over the entire c0f image, iterative sigma-clipping is performed to mask
+#         cosmic rays and bright sources
+#     - For the entire image, the global mean and the (clipped) sigma is calculated for all unmasked pixels
+#     - For each row, the mode is calculated for a histogram of bin width = 1 using all pixels
+#     - For each row, the mean is calculated for pixels deviating from the mode by less than 4 sigma 
+#     - For each row, the difference between the mean and the global is subtracted from the c0f data
 #
 # 5. The modified c0f data is written to a new file; e.g. "u8zq0104m_bjc_4.fits" for group 4
 #      
@@ -273,9 +273,10 @@ class Wfpc2destreak:
         write_mask( masked_BlackLevel, mask_file, verbosity )
         if (verbosity >=1 ): print 'Wrote mask for d0f pyramid region to: ',mask_file
         
-    # calculate global mean from all unmasked pixels in d0f file
+    # calculate global mean from all unmasked pyramid region pixels in d0f file
         d0f_data_pix = N.where( masked_BlackLevel > 0.0)
         all_good_data = masked_BlackLevel[ d0f_data_pix ]
+        
         glob_pyr_mean = all_good_data.mean() 
         pyr_mean = all_good_data.mean()  # clipped pyramid mean of d0f data
         pyr_sigma = all_good_data.std()  # clipped pyramid sigma of d0f data
@@ -440,7 +441,8 @@ class Wfpc2destreak:
               mean1 = row_data_b.mean()
               row_data_b_mean[ i_row ] = row_data_b.mean()
 
-            #  for current row, do sigma clipping until either 4 iterations are perfomed or clipping removes all pixels
+            #  for current row, do sigma clipping until either 4 iterations are performed or clipping removes all pixels
+            #   (this is done now *only* for calculating sigma for using mode +/-4sigma for each row )
               for ii_iter in range(4):
                  if ( ii_iter == 0):
                       mean1 = row_data_b.mean()
@@ -455,7 +457,6 @@ class Wfpc2destreak:
                  if   ( good_val.size == 0 ):
                       break
                   
-
           # calculation of the row-specific correction using PASS2 will ignore pixels that deviate from
           #   the mode of the row by more than 4 sigma. The mode will be calculated by binning all pixels in row
           #   in bins of width 1, and determining which bins has the highest frequency. 
@@ -470,8 +471,8 @@ class Wfpc2destreak:
 
               the_hist = get_hist(row_data_b, xbin )              
               max_freq = the_hist.max()
-              ind = N.where( max_freq == the_hist,1,0)
-              max_ind =  ( ind == 1 )
+              ind = N.where( max_freq == the_hist, 1, 0)
+              max_ind = ( ind == 1 )
               mode_min = xbin[max_ind][0];  mode_max = xbin[max_ind][0]+1              
               the_mode = 0.5 * (mode_min + mode_max )
 
@@ -496,8 +497,10 @@ class Wfpc2destreak:
 
               if (verbosity >=1 ):  # print stats of good and rejected pixels for this row
                  print '' ; print ' row = ' , i_row 
-                 print ' good pixels: number, min, mean, max, std = ' ,  good_val.size,good_val.min(),good_val.mean(),good_val.max(),good_val.std()
-                 print 'all rejected pixels: number, min, mean, max, std = ', bad_val.size,bad_val.min(),bad_val.mean(),bad_val.max(),bad_val.std()
+                 if   good_val.size > 0 :
+                    print ' good pixels: number, min, mean, max, std = ' ,  good_val.size,good_val.min(),good_val.mean(),good_val.max(),good_val.std()
+                 if   bad_val.size > 0 :
+                    print 'all rejected pixels: number, min, mean, max, std = ', bad_val.size,bad_val.min(),bad_val.mean(),bad_val.max(),bad_val.std()
                  if   bad_val_low.size > 0 :
                     print 'low rejected pixels: number, min, mean, max, std = ', bad_val_low.size,bad_val_low.min(),bad_val_low.mean(),bad_val_low.max(),bad_val_low.std()
                  if   bad_val_hi.size > 0 :
