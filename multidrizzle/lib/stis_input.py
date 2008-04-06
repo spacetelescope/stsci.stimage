@@ -9,7 +9,6 @@ import numpy as N
 from input_image import InputImage
 from imagemanip import interp2d
 
-
 class STISInputImage (InputImage):
 
     SEPARATOR = '_'

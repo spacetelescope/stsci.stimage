@@ -9,15 +9,16 @@ from distutils.command.install_data import install_data
 from cfg_pyraf import PYRAF_DATA_FILES, PYRAF_SCRIPTS, PYRAF_EXTENSIONS, PYRAF_CLCACHE
 from cfg_pydrizzle import PYDRIZZLE_EXTENSIONS
 from cfg_imagestats import IMAGESTATS_EXTENSIONS
+from cfg_imagemanip import IMAGEMANIP_EXTENSIONS
 from cfg_calcos import CALCOS_EXTENSIONS
 
 # PACKAGES is the list of all packages that we want to install.  If you
 # want it, make sure it is listed here and in PACKAGE_DIRS
 
-PACKAGES = ['calcos','numdisplay', 'imagestats',
+PACKAGES = ['calcos','numdisplay', 'imagestats', 'imagemanip',
     'multidrizzle', 'pydrizzle', 'pydrizzle.traits102',
     'pydrizzle.distortion','pytools', 'nictools', 
-    'stistools', 'wfpc2tools', 'imagemanip']
+    'stistools', 'wfpc2tools']
 
 
 # uninstall_packages is a list of packages that we want to remove when we do
@@ -68,6 +69,9 @@ class smart_install_data(install_data):
 IMAGESTATS_DATA_DIR = os.path.join('imagestats')
 IMAGESTATS_DATA_FILES = ['imagestats/lib/LICENSE.txt']
 
+IMAGEMANIP_DATA_DIR = os.path.join('imagemanip')
+IMAGEMANIP_DATA_FILES = ['imagemanip/lib/LICENSE.txt']
+
 MULTIDRIZZLE_DATA_DIR = os.path.join('multidrizzle')
 MULTIDRIZZLE_DATA_FILES = ['multidrizzle/lib/LICENSE.txt']
 
@@ -85,9 +89,10 @@ DATA_FILES = [ (NUMDISPLAY_DATA_DIR, NUMDISPLAY_DATA_FILES),
                (NICTOOLS_DATA_DIR, NICTOOLS_DATA_FILES),
                (IMAGESTATS_DATA_DIR, IMAGESTATS_DATA_FILES),
                (MULTIDRIZZLE_DATA_DIR, MULTIDRIZZLE_DATA_FILES),
-               (PYDRIZZLE_DATA_DIR, PYDRIZZLE_DATA_FILES)  ]
+               (PYDRIZZLE_DATA_DIR, PYDRIZZLE_DATA_FILES),
+               (IMAGEMANIP_DATA_DIR, IMAGEMANIP_DATA_FILES)]
 
-EXTENSIONS = PYDRIZZLE_EXTENSIONS + IMAGESTATS_EXTENSIONS + CALCOS_EXTENSIONS
+EXTENSIONS = PYDRIZZLE_EXTENSIONS + IMAGESTATS_EXTENSIONS + IMAGEMANIP_EXTENSIONS + CALCOS_EXTENSIONS
 
 SCRIPTS = None
 

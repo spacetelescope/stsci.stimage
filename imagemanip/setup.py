@@ -18,9 +18,9 @@ pythoninc = sysconfig.get_python_inc()
 numpyinc = numpy.get_include()
 
 if sys.platform != 'win32':
-    imagestats_libraries = ['m']
+    imagemanip_libraries = ['m']
 else:
-    imagestats_libraries = ['']
+    imagemanip_libraries = ['']
 
 args = sys.argv[:]
 for a in args:
@@ -44,7 +44,7 @@ class smart_install_data(install_data):
 def getExtensions_numpy(args):
     ext = [Extension('imagemanip.bilinearinterp',['src/bilinearinterp.c'],
                              include_dirs = [pythoninc,numpyinc],
-                             libraries = imagestats_libraries)]
+                             libraries = imagemanip_libraries)]
 
     return ext
 
