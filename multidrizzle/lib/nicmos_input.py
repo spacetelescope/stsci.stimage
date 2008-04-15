@@ -130,7 +130,7 @@ class NICMOSInputImage(IRInputImage):
         """
                 
         try:
-            darkcurrent = self.header['exptime'] * self.darkrate
+            darkcurrent = self.header['exptime'] * (self.darkrate/self.getGain())
             
         except:
             str =  "#############################################\n"
@@ -173,7 +173,7 @@ class NICMOSInputImage(IRInputImage):
             # Return the darkimage taking into account an subarray information available
             return darkobj[self.ltv2:self.size2,self.ltv1:self.size1]
         
-
+    
 class NIC1InputImage(NICMOSInputImage):
 
     def __init__(self, input, dqname, platescale, memmap=0):
@@ -181,7 +181,7 @@ class NIC1InputImage(NICMOSInputImage):
         self.instrument = 'NICMOS/1'
         self.full_shape = (256,256)
         self.platescale = platescale
-        self.darkrate = 0.08/self.getGain() #ADU/s
+        self.darkrate = 0.08 #electrons/s
 
     def _setDefaultReadnoise(self):
         self._rdnoise = 26.0/self.getGain() #ADU
@@ -192,7 +192,7 @@ class NIC2InputImage(NICMOSInputImage):
         self.instrument = 'NICMOS/2'
         self.full_shape = (256,256)
         self.platescale = platescale
-        self.darkrate = 0.08/self.getGain() #ADU/s
+        self.darkrate = 0.08 #electrons/s
 
     def _setDefaultReadnoise(self):
         self._rdnoise = 26.0/self.getGain() #ADU
@@ -203,7 +203,7 @@ class NIC3InputImage(NICMOSInputImage):
         self.instrument = 'NICMOS/3'
         self.full_shape = (256,256)
         self.platescale = platescale
-        self.darkrate = 0.15/self.getGain() #ADU/s
+        self.darkrate = 0.15 #electrons/s
 
     def _setDefaultReadnoise(self):
         self._rdnoise = 29.0/self.getGain() #ADU
