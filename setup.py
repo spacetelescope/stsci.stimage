@@ -87,7 +87,7 @@ NICTOOLS_DATA_FILES = ['nictools/lib/SP_LICENSE']
 
 NDIMAGE_DATA_DIR = os.path.join('ndimage')
 NDIMAGE_DATA_DIR = os.path.join('ndimage/tests')
-NDIMAGE_DATA_FILES = ['ndimage/LICENSE.txt',"ndimagesvn/tests/slice112.raw","ndimage/tests/test_ndimage.py","ndimage/tests/test_segment.py"]
+NDIMAGE_DATA_FILES = ['ndimage/LICENSE.txt',"ndimage/tests/slice112.raw","ndimage/tests/test_ndimage.py","ndimage/tests/test_segment.py"]
 
 DATA_FILES = [ (NUMDISPLAY_DATA_DIR, NUMDISPLAY_DATA_FILES),
                (NICTOOLS_DATA_DIR, NICTOOLS_DATA_FILES),
