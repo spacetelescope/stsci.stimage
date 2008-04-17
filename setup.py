@@ -12,6 +12,7 @@ from cfg_imagestats import IMAGESTATS_EXTENSIONS
 from cfg_imagemanip import IMAGEMANIP_EXTENSIONS
 from cfg_calcos import CALCOS_EXTENSIONS
 from cfg_ndimage import NDIMAGE_EXTENSIONS
+from cfg_convolve import CONVOLVE_EXTENSIONS
 
 # PACKAGES is the list of all packages that we want to install.  If you
 # want it, make sure it is listed here and in PACKAGE_DIRS
@@ -19,7 +20,7 @@ from cfg_ndimage import NDIMAGE_EXTENSIONS
 PACKAGES = ['calcos','numdisplay', 'imagestats', 'imagemanip',
     'multidrizzle', 'pydrizzle', 'pydrizzle.traits102',
     'pydrizzle.distortion','pytools', 'nictools', 
-    'stistools', 'wfpc2tools','ndimage']
+    'stistools', 'wfpc2tools','ndimage','convolve']
 
 
 # uninstall_packages is a list of packages that we want to remove when we do
@@ -89,15 +90,20 @@ NDIMAGE_DATA_DIR = os.path.join('ndimage')
 NDIMAGE_DATA_DIR = os.path.join('ndimage/tests')
 NDIMAGE_DATA_FILES = ['ndimage/LICENSE.txt',"ndimage/tests/slice112.raw","ndimage/tests/test_ndimage.py","ndimage/tests/test_segment.py"]
 
+CONVOLVE_DATA_DIR = os.path.join('convolve')
+CONVOLVE_DATA_FILES = ['convolve/lib/LICENSE.txt']
+
 DATA_FILES = [ (NUMDISPLAY_DATA_DIR, NUMDISPLAY_DATA_FILES),
                (NICTOOLS_DATA_DIR, NICTOOLS_DATA_FILES),
                (IMAGESTATS_DATA_DIR, IMAGESTATS_DATA_FILES),
                (MULTIDRIZZLE_DATA_DIR, MULTIDRIZZLE_DATA_FILES),
                (PYDRIZZLE_DATA_DIR, PYDRIZZLE_DATA_FILES),
                (IMAGEMANIP_DATA_DIR, IMAGEMANIP_DATA_FILES),
-               (NDIMAGE_DATA_DIR, NDIMAGE_DATA_FILES)]
+               (NDIMAGE_DATA_DIR, NDIMAGE_DATA_FILES),
+               (CONVOLVE_DATA_DIR, CONVOLVE_DATA_FILES)
+           ]
 
-EXTENSIONS = PYDRIZZLE_EXTENSIONS + IMAGESTATS_EXTENSIONS + IMAGEMANIP_EXTENSIONS + CALCOS_EXTENSIONS + NDIMAGE_EXTENSIONS
+EXTENSIONS = PYDRIZZLE_EXTENSIONS + IMAGESTATS_EXTENSIONS + IMAGEMANIP_EXTENSIONS + CALCOS_EXTENSIONS + NDIMAGE_EXTENSIONS + CONVOLVE_EXTENSIONS
 
 SCRIPTS = None
 
