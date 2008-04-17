@@ -202,12 +202,6 @@ if sys.argv[1] == "uninstall" :
     uninstall_modules( PACKAGES + uninstall_packages )
     sys.exit(0)
 
-if sys.argv[1] == "install" :
-    # If installing, also uninstall.  But we do not uninstall for anything
-    # except an explicit uninstall or a full install.  distutils knows
-    # many other actions that should not imply uninstall
-    uninstall_modules( PACKAGES + uninstall_packages )
-
 setup(name="STScI Python Software",
       version="2.7dev",
       description="",
