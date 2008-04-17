@@ -13,6 +13,7 @@ from cfg_imagemanip import IMAGEMANIP_EXTENSIONS
 from cfg_calcos import CALCOS_EXTENSIONS
 from cfg_ndimage import NDIMAGE_EXTENSIONS
 from cfg_convolve import CONVOLVE_EXTENSIONS
+from cfg_image import IMAGE_EXTENSIONS
 
 # PACKAGES is the list of all packages that we want to install.  If you
 # want it, make sure it is listed here and in PACKAGE_DIRS
@@ -20,7 +21,7 @@ from cfg_convolve import CONVOLVE_EXTENSIONS
 PACKAGES = ['calcos','numdisplay', 'imagestats', 'imagemanip',
     'multidrizzle', 'pydrizzle', 'pydrizzle.traits102',
     'pydrizzle.distortion','pytools', 'nictools', 
-    'stistools', 'wfpc2tools','ndimage','convolve']
+    'stistools', 'wfpc2tools','ndimage','convolve','image']
 
 
 # uninstall_packages is a list of packages that we want to remove when we do
@@ -93,6 +94,9 @@ NDIMAGE_DATA_FILES = ['ndimage/LICENSE.txt',"ndimage/tests/slice112.raw","ndimag
 CONVOLVE_DATA_DIR = os.path.join('convolve')
 CONVOLVE_DATA_FILES = ['convolve/lib/LICENSE.txt']
 
+IMAGE_DATA_DIR = os.path.join('image')
+IMAGE_DATA_FILES = ['image/lib/LICENSE.txt']
+
 DATA_FILES = [ (NUMDISPLAY_DATA_DIR, NUMDISPLAY_DATA_FILES),
                (NICTOOLS_DATA_DIR, NICTOOLS_DATA_FILES),
                (IMAGESTATS_DATA_DIR, IMAGESTATS_DATA_FILES),
@@ -100,10 +104,11 @@ DATA_FILES = [ (NUMDISPLAY_DATA_DIR, NUMDISPLAY_DATA_FILES),
                (PYDRIZZLE_DATA_DIR, PYDRIZZLE_DATA_FILES),
                (IMAGEMANIP_DATA_DIR, IMAGEMANIP_DATA_FILES),
                (NDIMAGE_DATA_DIR, NDIMAGE_DATA_FILES),
-               (CONVOLVE_DATA_DIR, CONVOLVE_DATA_FILES)
+               (CONVOLVE_DATA_DIR, CONVOLVE_DATA_FILES),
+               (IMAGE_DATA_DIR, IMAGE_DATA_FILES)
            ]
 
-EXTENSIONS = PYDRIZZLE_EXTENSIONS + IMAGESTATS_EXTENSIONS + IMAGEMANIP_EXTENSIONS + CALCOS_EXTENSIONS + NDIMAGE_EXTENSIONS + CONVOLVE_EXTENSIONS
+EXTENSIONS = PYDRIZZLE_EXTENSIONS + IMAGESTATS_EXTENSIONS + IMAGEMANIP_EXTENSIONS + CALCOS_EXTENSIONS + NDIMAGE_EXTENSIONS + CONVOLVE_EXTENSIONS + IMAGE_EXTENSIONS
 
 SCRIPTS = None
 
