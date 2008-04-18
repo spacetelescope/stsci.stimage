@@ -11,9 +11,6 @@ from cfg_pydrizzle import PYDRIZZLE_EXTENSIONS
 from cfg_imagestats import IMAGESTATS_EXTENSIONS
 from cfg_imagemanip import IMAGEMANIP_EXTENSIONS
 from cfg_calcos import CALCOS_EXTENSIONS
-from cfg_ndimage import NDIMAGE_EXTENSIONS
-from cfg_convolve import CONVOLVE_EXTENSIONS
-from cfg_image import IMAGE_EXTENSIONS
 
 # PACKAGES is the list of all packages that we want to install.  If you
 # want it, make sure it is listed here and in PACKAGE_DIRS
@@ -21,7 +18,7 @@ from cfg_image import IMAGE_EXTENSIONS
 PACKAGES = ['calcos','numdisplay', 'imagestats', 'imagemanip',
     'multidrizzle', 'pydrizzle', 'pydrizzle.traits102',
     'pydrizzle.distortion','pytools', 'nictools', 
-    'stistools', 'wfpc2tools','ndimage','convolve','image']
+    'stistools', 'wfpc2tools']
 
 
 # uninstall_packages is a list of packages that we want to remove when we do
@@ -43,7 +40,7 @@ for p in PACKAGES:
 PACKAGE_DIRS['numdisplay']='numdisplay'
 PACKAGE_DIRS['pydrizzle.traits102']='pydrizzle/traits102'
 PACKAGE_DIRS['pydrizzle.distortion']='pydrizzle/lib/distortion'
-PACKAGE_DIRS['ndimage']='ndimage'
+
 args = sys.argv[2:]
 
 # set this to check version numbers of imported modules after an install
@@ -84,31 +81,18 @@ NUMDISPLAY_DATA_FILES = ['numdisplay/imtoolrc', 'numdisplay/LICENSE.txt']
 PYDRIZZLE_DATA_DIR = os.path.join('pydrizzle')
 PYDRIZZLE_DATA_FILES = ['pydrizzle/lib/LICENSE.txt']
 
-NICTOOLS_DATA_DIR = os.path.join('nictools')
 NICTOOLS_DATA_FILES = ['nictools/lib/SP_LICENSE']
+NICTOOLS_DATA_DIR = os.path.join('nictools')
 
-NDIMAGE_DATA_DIR = os.path.join('ndimage')
-NDIMAGE_DATA_DIR = os.path.join('ndimage/tests')
-NDIMAGE_DATA_FILES = ['ndimage/LICENSE.txt',"ndimage/tests/slice112.raw","ndimage/tests/test_ndimage.py","ndimage/tests/test_segment.py"]
-
-CONVOLVE_DATA_DIR = os.path.join('convolve')
-CONVOLVE_DATA_FILES = ['convolve/lib/LICENSE.txt']
-
-IMAGE_DATA_DIR = os.path.join('image')
-IMAGE_DATA_FILES = ['image/lib/LICENSE.txt']
 
 DATA_FILES = [ (NUMDISPLAY_DATA_DIR, NUMDISPLAY_DATA_FILES),
                (NICTOOLS_DATA_DIR, NICTOOLS_DATA_FILES),
                (IMAGESTATS_DATA_DIR, IMAGESTATS_DATA_FILES),
                (MULTIDRIZZLE_DATA_DIR, MULTIDRIZZLE_DATA_FILES),
                (PYDRIZZLE_DATA_DIR, PYDRIZZLE_DATA_FILES),
-               (IMAGEMANIP_DATA_DIR, IMAGEMANIP_DATA_FILES),
-               (NDIMAGE_DATA_DIR, NDIMAGE_DATA_FILES),
-               (CONVOLVE_DATA_DIR, CONVOLVE_DATA_FILES),
-               (IMAGE_DATA_DIR, IMAGE_DATA_FILES)
-           ]
+               (IMAGEMANIP_DATA_DIR, IMAGEMANIP_DATA_FILES)]
 
-EXTENSIONS = PYDRIZZLE_EXTENSIONS + IMAGESTATS_EXTENSIONS + IMAGEMANIP_EXTENSIONS + CALCOS_EXTENSIONS + NDIMAGE_EXTENSIONS + CONVOLVE_EXTENSIONS + IMAGE_EXTENSIONS
+EXTENSIONS = PYDRIZZLE_EXTENSIONS + IMAGESTATS_EXTENSIONS + IMAGEMANIP_EXTENSIONS + CALCOS_EXTENSIONS
 
 SCRIPTS = None
 
@@ -212,6 +196,12 @@ if sys.argv[1] == "uninstall" :
     # not sure that is strictly true.
     uninstall_modules( PACKAGES + uninstall_packages )
     sys.exit(0)
+
+if sys.argv[1] == "install" :
+    # If installing, also uninstall.  But we do not uninstall for anything
+    # except an explicit uninstall or a full install.  distutils knows
+    # many other actions that should not imply uninstall
+    uninstall_modules( PACKAGES + uninstall_packages )
 
 setup(name="STScI Python Software",
       version="2.7dev",
