@@ -26,18 +26,6 @@ NDIMAGE_EXTENSIONS = [
                include_dirs=['ndimage/src']+[pythoninc,numpyinc]
                ),
 
-    Extension('ndimage._segment', \
-              ['ndimage/src/segment/Segmenter_EXT.c',
-               'ndimage/src/segment/Segmenter_IMPL.c'],
-               include_dirs=['ndimage/src']+[pythoninc,numpyinc],
-               depends = ['ndimage/src/segment/ndImage_Segmenter_structs.h']
-               ),
-
-    Extension('ndimage._register', \
-              ['ndimage/src/register/Register_EXT.c',
-               'ndimage/src/register/Register_IMPL.c'],
-               include_dirs=['ndimage/src']+[pythoninc,numpyinc]
-
            )
 ]
 
