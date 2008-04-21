@@ -24,9 +24,9 @@ NDIMAGE_EXTENSIONS = [
                "ndimage/src/ni_morphology.c",
                "ndimage/src/ni_support.c"],
                include_dirs=['ndimage/src']+[pythoninc,numpyinc]
-               ),
+               )
 
-           )
+           
 ]
 
 
