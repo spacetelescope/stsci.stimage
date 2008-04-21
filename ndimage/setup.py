@@ -11,7 +11,7 @@ def configuration(parent_package='', top_path=None):
                  "src/ni_fourier.c","src/ni_interpolation.c",
                  "src/ni_measure.c",
                  "src/ni_morphology.c","src/ni_support.c"],
-        include_dirs=['src']+[get_include()],
+        include_dirs=['src']+[get_include()]
     )
 
     config.add_data_dir('tests')
