@@ -16,12 +16,12 @@ numpyinc = numpy.get_include()
 CONVOLVE_EXTENSIONS = [
 
                
-    Extension('_correlate', \
+    Extension('convolve._correlate', \
               ["convolve/src/_correlatemodule.c"],
               include_dirs = [numpyinc,pythoninc]+[numpy.get_numarray_include()]
               ),
               
-    Extension('_lineshape', \
+    Extension('convolve._lineshape', \
               ["convolve/src/_lineshapemodule.c"],
               include_dirs = [numpyinc,pythoninc]+[numpy.get_numarray_include()]
           )

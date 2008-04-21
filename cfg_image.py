@@ -14,7 +14,7 @@ pythoninc = sysconfig.get_python_inc()
 numpyinc = numpy.get_include()
 
 IMAGE_EXTENSIONS = [
-    Extension('_combine', \
+    Extension('image._combine', \
               ["image/src/_combinemodule.c"],
               include_dirs = [numpyinc,pythoninc]+[numpy.get_numarray_include()]
           )

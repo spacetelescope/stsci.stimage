@@ -15,7 +15,7 @@ numpyinc = numpy.get_include()
 
 NDIMAGE_EXTENSIONS = [
 
-    Extension("_nd_image", \
+    Extension("ndimage._nd_image", \
               ["ndimage/src/nd_image.c",
                "ndimage/src/ni_filters.c",
                "ndimage/src/ni_fourier.c",
@@ -26,14 +26,14 @@ NDIMAGE_EXTENSIONS = [
                include_dirs=['ndimage/src']+[pythoninc,numpyinc]
                ),
 
-    Extension('_segment', \
+    Extension('ndimage._segment', \
               ['ndimage/src/segment/Segmenter_EXT.c',
                'ndimage/src/segment/Segmenter_IMPL.c'],
                include_dirs=['ndimage/src']+[pythoninc,numpyinc],
                depends = ['ndimage/src/segment/ndImage_Segmenter_structs.h']
                ),
 
-    Extension('_register', \
+    Extension('ndimage._register', \
               ['ndimage/src/register/Register_EXT.c',
                'ndimage/src/register/Register_IMPL.c'],
                include_dirs=['ndimage/src']+[pythoninc,numpyinc]
