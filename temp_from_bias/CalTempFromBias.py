@@ -81,7 +81,7 @@ c3_q1off=[0,0,110,110,265,240,320,320,200,340,85,225.0,90.]
 c3_q2off=[0,-70,45,-105,40,-75,-5,0,-45,80,-50,105,75]
 c3_q3off=[0,-55,65,-60,90,-7,68,60,0,130,-35,128,68]
 c3_q4off=[0,10,125,137,300,285,375,380,255,410,105,270,100]
-pt=N.zeros((3,4,2), dtype=N.float64)	# (cam, quad, [intercept, slope])
+pt=N.zeros((3,4,2), dtype=N.float64) # (cam, quad, [intercept, slope])
 pt[0,0,:]=[145.11,0.003442]
 pt[0,1,:]=[148.66098,0.0035080553]
 pt[0,2,:]=[153.27612,0.0035567496]
@@ -316,22 +316,22 @@ class CalTempFromBias:
         if ( camera == 1):
             quads[0] = quads[0]+((quads[2]-poly(quads[0],p_c1_13)) * c1_blindfac)
             temp2 = poly(quads[0],blind_pt_c1_1) + c1_blindoff
-            sigma2 = 1e6 	# this is an empirical quantity determined from EOL data
+            sigma2 = 1e6    # this is an empirical quantity determined from EOL data
                             # it is used for comparison at the bottom of the cascade
         if ( camera == 2 ):
             quads[0] = quads[0]-((quads[2]-poly(quads[0],p_c2_13)) * c2_blindfac)
             temp2 = poly(quads[0],blind_pt_c2_1) + c2_blindoff
-            sigma2 = 1e6 	# this is an empirical quantity determined from EOL data
+            sigma2 = 1e6    # this is an empirical quantity determined from EOL data
                             # it is used for comparison at the bottom of the cascade
         if ( camera == 3): # this is the only one I (dmg) have tested as of 101607
            w = [4037.6680,1.1533126]
            quads[3] = (-(quads[3] - poly(quads[0],w)))
            temp2 = (quads[3]/37.0)+75.15
-           sigma2 = 0.10 	# this is an empirical quantity determined from EOL data
+           sigma2 = 0.10   # this is an empirical quantity determined from EOL data
                             # it is used for comparison at the bottom of the cascade
 
 # ALGORITHM 3. Quietest-quad method. 
-# 	       (no attempt at state removal - just use the quad(s) with smallest LVPS amplitudes)
+#       (no attempt at state removal - just use the quad(s) with smallest LVPS amplitudes)
         quads = rawquads
 
         if ( camera == 1 ):
@@ -374,7 +374,7 @@ class CalTempFromBias:
 
 #  verbose output, if requested
         if (self.verbosity >1):
-	    print '**************************************************************************************'
+            print '**************************************************************************************'
             print ' '
             print '    Camera: ',camera,'  State: ',state
             print '                                               Q1         Q2         Q3         Q4'
@@ -560,7 +560,7 @@ def quadmed( im, border):
     xsize = im.shape[1]
     ysize = im.shape[0]
 
-    quads = N.zeros((4), dtype=N.float64)	
+    quads = N.zeros((4), dtype=N.float64)
 
     if not border:
       border = 0
