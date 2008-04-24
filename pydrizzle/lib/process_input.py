@@ -553,7 +553,7 @@ def buildEmptyDRZ(input, output):
             oname = fu.buildNewRootname(input[0])
         else:
             oname = 'final'
-        output = fileutil.buildNewRootname(output,extn='_drz.fits')
+        output = fileutil.buildNewRootname(oname,extn='_drz.fits')
     else:
         if 'drz' not in output:
             output = fileutil.buildNewRootname(output,extn='_drz.fits')
