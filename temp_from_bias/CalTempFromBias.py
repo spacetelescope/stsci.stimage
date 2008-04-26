@@ -17,7 +17,7 @@
 #              --> [temp, sigma, winner ]= tfb.calctemp()
 #              --> stat = tfb.update_header( temp, sigma, winner)
 #              The same example under linux:
-#              hal> ./CalTempFromBias.py "n8tf30jnq_raw.fits" -e "SPT" -f "Q" -k "MYHKEY -s "MYEKEY" -v
+#              hal> ./CalTempFromBias.py "n8tf30jnq_raw.fits" -e "SPT" -f "Q" -k "MYHKEY" -s "MYEKEY" -v
 #            - only the filename parameter is required. The paramters spt_key and raw_key
 #              are no longer used. Currently the other parameters are:
 #                hdr_key: string for keyword name for temperature; default = "TFBT"
@@ -40,6 +40,7 @@
 #                TFB_RUN: time that temp-from-bias was run
 #                TFB_VERS: version of temp-from-bias that was run
 #            - the default values for all parameters are now set in the file tfbutil.py.
+#   04/25/08 - code version 1.4: deleted unused code for algorithm 1 and cameras 1 and 2
 #
 import os.path
 import sys, time
@@ -51,60 +52,14 @@ import pyfits
 
 # Coefficients that are in the file 'temp_from_bias.define' as of 10/12/07; these need to instead
 # be in a (fits) reference file.
-p_c1_12=[-957.67548,0.98115373]
-p_c1_13=[-2158.3193,0.96696346]
-p_c1_14=[1712.0793,1.0157240]
-p_c1_23=[-1211.0413,0.98569588]
-p_c1_24=[2708.0526,1.0354436]
-p_c1_34=[3979.5255,1.0504393]
-p_c2_12=[-1673.1728,0.98142379]
-p_c2_13=[2327.9074,1.0269492]
-p_c2_14=[4164.0788,1.0531190]
-p_c2_23=[4068.4664,1.0459572]
-p_c2_24=[5923.8728,1.0715554]
-p_c2_34=[1764.3628,1.0248831]
-p_c3_12=[324.85806,1.0075]
-p_c3_13=[492.06438,1.0050437]
-p_c3_14=[835.68030,1.0096758]
-p_c3_23=[215.15678,0.99948693]
-p_c3_24=[539.35265,1.0032465]
-p_c3_34=[327.12712,1.0039380]
-c1_q1off=[0,45,75,130,180,240,315,360,420,550,510,520,450.0]
-c1_q2off=[0,0,80,45,180,125,265,205,355,410,395,355,290.0]
-c1_q3off=[0,10,20,25,50,62,90,95,124,164,155,155,128.0]
-c1_q4off=[0,-10,35,10,70,35,125,70,145,155,167,145,105.0]
-c2_q1off=[0,-5,-60,-80,-155,-185,-198]
-c2_q2off=[0,-65,-115,-273,-343,-487,-500]
-c2_q3off=[0,-25,-115,-180,-293,-365,-405]
-c2_q4off=[0,20,-40,-5,-68,-50,-68.0]
-c3_q1off=[0,0,110,110,265,240,320,320,200,340,85,225.0,90.]
-c3_q2off=[0,-70,45,-105,40,-75,-5,0,-45,80,-50,105,75]
-c3_q3off=[0,-55,65,-60,90,-7,68,60,0,130,-35,128,68]
-c3_q4off=[0,10,125,137,300,285,375,380,255,410,105,270,100]
-pt=N.zeros((3,4,2), dtype=N.float64) # (cam, quad, [intercept, slope])
-pt[0,0,:]=[145.11,0.003442]
-pt[0,1,:]=[148.66098,0.0035080553]
-pt[0,2,:]=[153.27612,0.0035567496]
-pt[0,3,:]=[139.89991,0.0033898134]
-pt[1,0,:]=[152.62181,0.0035212949]
-pt[1,1,:]=[159.01768,0.0035824134]
-pt[1,2,:]=[144.86,0.003425]
-pt[1,3,:]=[138.44286,0.003343]
-pt[2,0,:]=[147.63,0.003495]
-pt[2,1,:]=[146.92948,0.0034619325]
-pt[2,2,:]=[146.21557,0.0034699612]
-pt[2,3,:]=[144.51,0.003455]
-blind_pt_c1_1=pt[0,0,:]
-blind_pt_c2_1=pt[1,0,:]
-blind_pt_c3_1=pt[2,0,:]
-c1_blindfac=1.49
-c2_blindfac=1.00
-c3_blindfac=7.40
-c1_blindoff=0.793
-c2_blindoff=[-0.343593]
-c3_blindoff=0.476092
+# Define some constants
+c2_min = 3.6218723e-06; c2_max = -3.6678544e-07; c3_min = 9.0923490e-11; c3_max = -4.1401650e-11    # used in bad pixel clipping
+p3_c2_0 = 4037.6680; p3_c2_1 = 1.1533126; p3_c2_sigma = 0.1                                         # camera 3, algorithm 2
+p3_c2_slope = 37.0; p3_c2_offset = 75.15                                                            # camera 3, algorithm 2
+pt3_2_0 = 153.25747; pt3_2_1 = 0.0037115404; pt3_3_0 = 151.03888; pt3_3_1 = 0.0036755942            # camera 3, algorithm 3
+p3_c3_sigma = 0.25                                                                                  # camera 3, algorithm 3
 
-__version__ = "1.3"
+__version__ = "1.4"   
 
 ERROR_RETURN = 2 
 
@@ -121,7 +76,7 @@ class CalTempFromBias:
                   force=None, noclean=False, verbosity=0):
         """constructor
 
-        @param input_file: name of the file to be processed
+        @param input_file: name of the file or filelist to be processed 
         @type input_file: string
         @type edit_type: string
         @param edit_type: type of file to update
@@ -159,7 +114,6 @@ class CalTempFromBias:
 
         if (self.verbosity >1):
            print ' Temp_from_bias run on ',self.tfb_run, ', version: ', self.tfb_version 
-
 
     def calctemp(self): 
         """ Calculate the temperature from the bias for the given input file
@@ -223,14 +177,14 @@ class CalTempFromBias:
         c1 = fh_nl[ 1 ].data; c2 = fh_nl[ 2 ].data; c3 = fh_nl[ 3 ].data
 
         # do some bad pixel clipping
-        u = N.where((c2 > 3.6218723e-06)  | (c2 < -3.6678544e-07)) 
-        uu = N.where((c2 < 3.6218723e-06) & (c2 > -3.6678544e-07))
+        u = N.where((c2 > c2_min)  | (c2 < c2_max))
+        uu = N.where((c2 < c2_min) & (c2 > c2_max))
 
         if len(u[0]) > 0 :
            c2[u] = N.median(c2[uu])
 
-        u = N.where((c3 > 9.0923490e-11) | (c3 < -4.1401650e-11))
-        uu = N.where((c3 < 9.0923490e-11) & (c3 > -4.1401650e-11))
+        u = N.where((c3 > c3_min) | (c3 < c3_max))  
+        uu = N.where((c3 < c3_min) & (c3 > c3_max))
 
         if len(u[0]) > 0:
            c3[u] = N.median(c3[uu])
@@ -305,68 +259,40 @@ class CalTempFromBias:
 
 # This is the start of cascade to select the most optimal temp algorithm 
 
-# ALGORITHM 1. State finding. This is the big daddy-O. ****** DISABLED FOR NOW *******
-        qtemps_1 = [-1,-1,-1,-1]
-        temp1 = N.mean(qtemps_1)
-        sigma1 = 1e6
-        state = [-1,-1,-1,-1]
-
 #  ALGORITHM 2. Blind correction. 
         quads = rawquads
-        if ( camera == 1):
-            quads[0] = quads[0]+((quads[2]-poly(quads[0],p_c1_13)) * c1_blindfac)
-            temp2 = poly(quads[0],blind_pt_c1_1) + c1_blindoff
-            sigma2 = 1e6    # this is an empirical quantity determined from EOL data
-                            # it is used for comparison at the bottom of the cascade
-        if ( camera == 2 ):
-            quads[0] = quads[0]-((quads[2]-poly(quads[0],p_c2_13)) * c2_blindfac)
-            temp2 = poly(quads[0],blind_pt_c2_1) + c2_blindoff
-            sigma2 = 1e6    # this is an empirical quantity determined from EOL data
-                            # it is used for comparison at the bottom of the cascade
-        if ( camera == 3): # this is the only one I (dmg) have tested as of 101607
-           w = [4037.6680,1.1533126]
+
+        if (( camera == 1) | (camera ==2)):      
+           print ' Cameras 1 and 2 not currently supported.'
+           return None, None, None
+           
+        if ( camera == 3): 
+           w = [ p3_c2_0, p3_c2_1 ] 
+
            quads[3] = (-(quads[3] - poly(quads[0],w)))
-           temp2 = (quads[3]/37.0)+75.15
-           sigma2 = 0.10   # this is an empirical quantity determined from EOL data
-                            # it is used for comparison at the bottom of the cascade
+           temp2 = (quads[3]/p3_c2_slope)+ p3_c2_offset 
+
+           sigma2 = p3_c2_sigma   # this is an empirical quantity determined from EOL data   
+                                  # it is used for comparison at the bottom of the cascade
 
 # ALGORITHM 3. Quietest-quad method. 
 #       (no attempt at state removal - just use the quad(s) with smallest LVPS amplitudes)
         quads = rawquads
 
-        if ( camera == 1 ):
-           #  For NIC1, avg of quads 3 and 4 is best. RMS after avg is 38 DN (0.14 K)
-           qtemps_3=[poly(quads[2],pt[camera-1,2,:]),poly(quads[3],pt[camera-1,3,:])]
-           # correct from the mean to state 0
-           qtemps_3 = qtemps_3 + ( N.mean([c1_q3off,c1_q4off]) / N.mean([(1./pt[camera-1,2,1]),(1./pt[camera-1,3,1])]) )
-           temp3 = N.mean(qtemps_3)
-           sigma3 = 0.14
-
-        if ( camera == 2):
-           # For NIC2, just quad 4 alone is best. RMS is 38 DN (0.14 K)
-           qtemps_3 = poly(quads[3],pt[camera-1,3,:])
-           #  correct from the mean to state 0
-           qtemps_3 = qtemps_3 + ( N.mean(c2_q4off) / (1./pt[camera-1,3,1]))
-           temp3 = qtemps_3
-           sigma3 = 0.14
-
         if ( camera == 3): 
              #  For NIC3, avg of quads 2 and 3 is best. RMS after avg is 39 DN (0.14 K)
-           qtemps_3 = [poly(quads[1],[153.25747,0.0037115404]),poly(quads[2],[151.03888,0.0036755942])]
+           qtemps_3 = [poly(quads[1],[ pt3_2_0, pt3_2_1]),poly(quads[2],[ pt3_3_0, pt3_3_1])]
+           
            temp3 = N.mean(qtemps_3)
-           sigma3 = 0.25
+           sigma3 = p3_c3_sigma 
 
-# Compare the error estimates of each of the algorithms and return the best one; the 
+# Compare the error estimates of algorithms 2 and 3 and return the best one; the 
 #   lowest sigma is the winner.
-        winner = 1
-        temp = temp1
-        sig = sigma1
-
-        if ((sigma2 < sigma1) and (sigma2 < sigma3)):
-           temp = temp2
-           sig = sigma2
-           winner = 2
-        if ((sigma3 < sigma2) and (sigma3 < sigma1)):
+        winner = 2  
+        temp = temp2
+        sig = sigma2
+        
+        if (sigma3 < sigma2):  
            temp = temp3
            sig = sigma3
            winner = 3
@@ -375,21 +301,15 @@ class CalTempFromBias:
 #  verbose output, if requested
         if (self.verbosity >1):
             print '**************************************************************************************'
-            print ' '
-            print '    Camera: ',camera,'  State: ',state
+            print ' '            
+            print '    Camera: ',camera 
             print '                                               Q1         Q2         Q3         Q4'
-            print 'Temps from Algorithm 1 (state-finding)  :  ',qtemps_1[0],'  ',qtemps_1[1],'  ',qtemps_1[2],'  ',qtemps_1[3]
             print 'Temp from Algorithm 2 (blind-correction):  ',temp2
             
-            if ( camera == 1):
-                print 'Temp(s) from Algorithm 3 (quietest-quad):                        ',qtemps_3[0],'  ',qtemps_3[1]
-            if ( camera == 2):
-                print 'Temp(s) from Algorithm 3 (quietest-quad):                                   ',qtemps_3
             if ( camera == 3):
                 print 'Temp(s) from Algorithm 3 (quietest-quad):             ',qtemps_3[0],'  ',qtemps_3[1]
             print '**************************************************************************************'
             print '   '
-            print '     Algorithm 1: ',temp1,' (K) +/- ',sigma1,' (sigma)  ',sigma1/N.sqrt(4),' (SDOM)'
             print '     Algorithm 2: ',temp2,' (K) +/- ',sigma2,' (sigma)'
             print '     Algorithm 3: ',temp3,' (K) +/- ',sigma3,' (sigma)'
             print '     ----------------------------------------------------------'
@@ -402,12 +322,9 @@ class CalTempFromBias:
 #  If the force keyword is set, force the output to return the value
 #    from that particular algorithm, even if it wasn't the best.
 
-        if (force <> None and force.upper()[0] == "S"):
-            if (self.verbosity >1):
-               print 'Forcing Algorithm 1 (State-finding) result to be returned, at your request...'
-            winner = 1
-            temp = temp1
-            sig = sigma1
+        if (force <> None and force.upper()[0] == "S"):   
+            print ' This algorithm is not supported.'
+            return None, None, None
 
         if (force <> None and force.upper()[0] == "B"):
             if (self.verbosity >1):
@@ -490,10 +407,8 @@ class CalTempFromBias:
             self.edit_type = edit_type # for later use by print_pars()
             if ( verbosity > 0):
                 print ' Using value of edit_type = ' , edit_type,' that has been passed to update_header()'
-           
-        if (winner == 1):# 'state-finding'
-           meth_used = "STATE FINDING"
-        elif (winner == 2):# 'blind-correction'
+
+        if (winner == 2):# 'blind-correction'  
            meth_used = "BLIND CORRECTION"
         else: # (winner == 3):# 'quietest-quad'
            meth_used = "QUIETEST-QUAD"
@@ -628,7 +543,7 @@ if __name__=="__main__":
     parser.add_option( "-n", "--nref_dir", dest = "nref_dir",default = tfbutil.nref_par,
             help = "Name of directory containing the non linearity file")    
     parser.add_option( "-f", "--force", dest = "force",default = tfbutil.force,
-            help = "Name of algorithm whose value is to be returned,regardless of which algorithm had the lowest estimated sigma. Valid values are None,State,Blind,Quietest")
+            help = "Name of algorithm whose value is to be returned,regardless of which algorithm had the lowest estimated sigma. Valid values are None,Blind,Quietest")
     parser.add_option( "-c", "--noclean", dest = "noclean",default = tfbutil.noclean,
             help = "Flag to force use of UNCLEANed 0th read.")
 
@@ -655,20 +570,30 @@ if __name__=="__main__":
     tfbutil.setForce(options.force )
     force = options.force 
 
-    try:
-       tfb = CalTempFromBias( filename, edit_type=edit_type, hdr_key=hdr_key, err_key=err_key, nref_par=nref_dir, force=force, noclean=noclean, verbosity=verbosity) 
+    num_files = 1 # if not a filelist
+    theList=[] # create empty list to populate with filenames
+    if ( filename[0] == '@' ):
+         filename = filename[1:]   # extract text file listing the files
 
-       [temp, sigma, winner ]= tfb.calctemp() 
+         for line in open(filename, 'r').readlines():
+             theList.append(line[:-1])
+         num_files =  len(theList)
+    else:
+         theList.append(filename)  # the list is the single file specified 
 
-       stat = tfb.update_header( temp, sigma, winner, edit_type, hdr_key, err_key) 
+    for ii_file in range(num_files):   # loop over all files in the list        
+        try:
+           tfb = CalTempFromBias( theList[ ii_file ] , edit_type=edit_type, hdr_key=hdr_key, err_key=err_key, nref_par=nref_dir, force=force, noclean=noclean, verbosity=verbosity) 
+           [temp, sigma, winner ]= tfb.calctemp() 
+           stat = tfb.update_header( temp, sigma, winner, edit_type, hdr_key, err_key) 
 
-       if ( (stat == None )and (verbosity > 0)):
-            tfb.print_pars()
+           if ( (stat == None )and (verbosity > 0)):
+                tfb.print_pars()
 
-       del tfb
+           del tfb
 
-    except Exception, errmess:
-       opusutil.PrintMsg("F","ERROR "+ str(errmess))
+        except Exception, errmess:
+           opusutil.PrintMsg("F","ERROR "+ str(errmess))
 
 
 
