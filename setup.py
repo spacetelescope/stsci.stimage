@@ -89,7 +89,7 @@ NICTOOLS_DATA_FILES = ['nictools/lib/SP_LICENSE']
 
 NDIMAGE_DATA_DIR = os.path.join('ndimage')
 NDIMAGE_DATA_DIR = os.path.join('ndimage/tests')
-NDIMAGE_DATA_FILES = ['ndimage/LICENSE.txt',"ndimage/tests/slice112.raw","ndimage/tests/test_ndimage.py","ndimage/tests/test_segment.py"]
+NDIMAGE_DATA_FILES = ['ndimage/LICENSE.txt',"ndimage/tests/test_ndimage.py"]
 
 CONVOLVE_DATA_DIR = os.path.join('convolve')
 CONVOLVE_DATA_FILES = ['convolve/lib/LICENSE.txt']
