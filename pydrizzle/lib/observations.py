@@ -38,7 +38,7 @@ class ACSObservation(Pattern):
 
         # default date of 2004.5 = 2004-7-1
         if self.header['DETECTOR'] == 'WFC' and self.acsTDD == 'T':
-            print " *** Applying ACS Time Dependent Distortion Solution *** "
+            " *** Applying ACS Time Dependent Distortion Solution *** "
             datedefault = datetime.datetime(2004,7,1)
             year,month,day = self.header['date-obs'].split('-')
             rdate = datetime.datetime(int(year),int(month),int(day))
@@ -203,7 +203,7 @@ class NICMOSObservation(Pattern):
         self.__theta = 0.0
         self.REFDATA = {'1':{'psize':0.0432,'xoff':0.0,'yoff':0.0,'v2':-296.9228,'v3':290.1827,'theta':self.__theta},
                         '2':{'psize':0.076,'xoff':0.0,'yoff':0.0,'v2':-319.9464,'v3':311.8579,'theta':self.__theta},
-                        '3':{'psize':0.0203758,'xoff':0.0,'yoff':0.0,'v2':-249.8170,'v3':235.2371,'theta':self.__theta}}
+                        '3':{'psize':0.203758,'xoff':0.0,'yoff':0.0,'v2':-249.8170,'v3':235.2371,'theta':self.__theta}}
         self.REFPIX = {'x':128.,'y':128.}
         # build output rootnames here...
         self.setNames(filename,output)
@@ -212,7 +212,7 @@ class NICMOSObservation(Pattern):
         self.exptime = self.getExptime()
 
         # Now, build list of members and initialize them
-        self.addMembers(filename)
+        self.addMembers()
 
         if self.members[0].geometry.ikey != 'idctab':
             # Correct distortion coefficients to match output pixel scale
@@ -223,7 +223,55 @@ class NICMOSObservation(Pattern):
         # Set up the input members and create the product meta-chip
         self.buildProduct(filename, output)
 
+    
+    def addMembers(self):
+        """ Build rootname for each SCI extension, and
+            create the mask image from the DQ extension.
+            It would then append a new Exposure object to 'members'
+            list for each extension.n8rfeym1q_raw1_cal1
+        """
 
+        self.detector = detector = str(self.header[self.DETECTOR_NAME])
+
+        if self.pars['section'] == None:
+            self.pars['section'] = [None]*self.nmembers
+     
+        # Build rootname here for each SCI extension...
+        for i in range(self.nmembers):
+            _sciname = self.imtype.makeSciName(i+1,section=self.pars['section'][i])
+            _dqname = self.imtype.makeDQName(i+1)
+            _extname = self.imtype.dq_extname
+
+            # Build mask files based on input 'bits' parameter values
+            _masklist = []
+            _masknames = []
+            #
+            # If we have a valid bits value...
+            # Creat the name of the output mask file
+            _maskname = buildmask.buildMaskName(_dqname,i+1)
+            _masknames.append(_maskname)
+            # Create the actual mask file now...
+            outmask = buildmask.buildMaskImage(_dqname,self.bitvalue[0],_maskname,extname=_extname,extver=i+1)
+            _masklist.append(outmask)
+
+            #
+            # Check to see if a bits value was provided for single drizzling...
+            # Different bits value specified for single drizzle step
+            # create new filename for single_drizzle mask file
+            _maskname = _maskname.replace('final_mask','single_mask')
+            _masknames.append(_maskname)
+
+            # Create new mask file with different bit value.
+            outmask = buildmask.buildMaskImage(_dqname,self.bitvalue[1],_maskname,extname=_extname,extver=i+1)
+            # Add new name to list for single drizzle step
+            _masklist.append(outmask)
+            _masklist.append(_masknames)
+            
+            self.members.append(Exposure(_sciname, idckey=self.idckey, dqname=_dqname,
+                    mask=_masklist, pa_key=self.pa_key, parity=self.PARITY[detector],
+                    idcdir=self.pars['idcdir'], group_indx = i+1,
+                    handle=self.image_handle,extver=i+1,exptime=self.exptime[0], ref_pscale=self.REFDATA[self.detector]['psize'],mt_wcs=self.pars['mt_wcs']))
+            
 class WFC3Observation(Pattern):
     """This class defines an observation with information specific
        to ACS WFC exposures, including knowledge of how to mosaic both
