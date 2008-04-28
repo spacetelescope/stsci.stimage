@@ -403,7 +403,7 @@ class ObsGeometry:
             tout=self.apply(pos)
 
             # Convert back to Numpy
-            out=N.array(tout,dtype=N.float64).apply
+            out=N.array(tout,dtype=N.float64)
             out.transpose()
 
             # Work out the shifts matrix
