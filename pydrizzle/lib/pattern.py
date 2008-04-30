@@ -117,8 +117,6 @@ class Pattern(object):
         self.offsets = None
         self.v2com = None
         self.v3com = None
-        self.alpha = 0
-        self.beta = 0
 
         # Read in Primary Header to reduce the overhead of getting
         # keyword values and setup PyFITS object
@@ -144,11 +142,12 @@ class Pattern(object):
         else:
             self.detector = 'detector'
 
+        """
         if self.header and self.header.has_key('WFCTDD'):
             self.acsTDD = self.header['WFCTDD']
         else:
             self.acsTDD = None
-
+        """
 
     def getHeaderHandle(self):
         """ Sets up the PyFITS image handle and Primary header
@@ -486,9 +485,9 @@ class Pattern(object):
             _scale = in_wcs.pscale * self.pars['scale']
 
         # Compute new CRVAL for current CRPIX position
-        in_wcs.crval1,in_wcs.crval2 = in_wcs.xy2rd(_crpix)
-        in_wcs.crpix1 = _crpix[0]
-        in_wcs.crpix2 = _crpix[1]
+        #in_wcs.crval1,in_wcs.crval2 = in_wcs.xy2rd(_crpix)
+        #in_wcs.crpix1 = _crpix[0]
+        #in_wcs.crpix2 = _crpix[1]
 
         #if not _refimage:
         # Update product WCS with the new values
@@ -704,6 +703,84 @@ class Pattern(object):
         _out_wcs.crpix1 = _cen[0]
         _out_wcs.crpix2 = _cen[1]
         """
+        
+    def translateShifts(self):
+        """
+        Translate the shifts specified in the ASNDICT (as read in from the 
+        shiftfile) into offsets in the sky, so they can be translated back
+        into the WCS of the PyDrizzle output product.
+        
+        NOTE:  Only works with 'delta' shifts now, and 
+                    requires that a 'refimage' be specified.
+        """
+        asndict = self.pars['asndict']
+                
+        # for each set of shifts, translate them into delta(ra,dec) based on refwcs
+        for img in asndict['order']:
+
+            xsh = asndict['members'][img]['xshift']
+            ysh = asndict['members'][img]['yshift']
+
+            if xsh == 0.0 and ysh == 0.0:
+                delta_ra = 0.0
+                delta_dec = 0.0
+            else:
+                #check the units for the shifts...
+                if asndict['members'][img]['shift_units'] == 'pixels':
+                    # Initialize the reference WCS for use in translation
+                    # NOTE: This assumes that a 'refimage' has been specified for
+                    #       every set of shifts.
+                    refwcs = wcsutil.WCSObject(asndict['members'][img]['refimage'])
+                    cp1 = refwcs.crpix1
+                    cp2 = refwcs.crpix2
+
+                    nra,ndec = refwcs.xy2rd((cp1+xsh,cp2+ysh))
+                    print '[translateShifts] nra,ndec: ',nra,ndec,xsh,ysh,cp1,cp2
+                    
+                    delta_ra = refwcs.crval1-nra
+                    delta_dec = refwcs.crval2-ndec
+                else:
+                    # Shifts already in units of RA/Dec (decimal degrees)
+                    # No conversion necessary
+                    delta_ra = xsh
+                    delta_dec = ysh
+                
+            asndict['members'][img]['delta_ra'] = delta_ra
+            asndict['members'][img]['delta_dec'] = delta_dec
+        
+    def getShifts(self,member):
+        """
+        Translate the delta's in RA/Dec for each image's shift into a 
+        shift of the undistorted image.
+ 
+        Input:
+            wcs - member.geometry.wcslin object
+ 
+        Output:
+            [xsh, ysh, rot, scale] - 
+                  Returns the full set of shift information as a list
+ 
+        """
+        asndict=self.pars['asndict']
+        in_wcs = member.geometry.wcslin
+        
+        mname = None
+        for img in asndict['order']: 
+            if member.name.find(img) > -1: 
+                mname = img
+                break
+        # translate delta's into shifts
+        ncrpix1,ncrpix2 = in_wcs.rd2xy((in_wcs.crval1+asndict['members'][img]['delta_ra'],
+                                        in_wcs.crval2+asndict['members'][img]['delta_dec']))
+
+        print '[getShifts] ncrpix1,ncrpix2: ',ncrpix1,ncrpix2
+
+        return [in_wcs.crpix1-ncrpix1,
+                in_wcs.crpix2-ncrpix2,
+                asndict['members'][img]['rot'],
+                asndict['members'][img]['scale']]
+        
+        
     # This method would use information from the product class and exposure class
     # to build the complete parameter list for running the 'drizzle' task
     def buildPars(self,ref=None):
@@ -767,6 +844,9 @@ class Pattern(object):
         # correctly fit to each input WCS
         ref_wcs.recenter()
 
+        # Convert shifts into delta RA/Dec values
+        self.translateShifts()
+        
         for member in self.members:
             in_wcs = member.geometry.wcslin
             in_wcs_orig = member.geometry.wcs
@@ -791,6 +871,9 @@ class Pattern(object):
             _delta_x = abxt[2]
             _delta_y = cdyt[2]
 
+            # Compute offset based on shiftfile values
+            xsh,ysh,drot,dscale = self.getShifts(member)
+            
             # Start building parameter dictionary for this chip
             parameters = ParDict()
             parameters['data'] = member.name
@@ -820,16 +903,16 @@ class Pattern(object):
             parameters['outnx'] = ref_wcs.naxis1
             parameters['outny'] = ref_wcs.naxis2
 
-            parameters['xsh'] =  _delta_x
-            parameters['ysh'] =  _delta_y
+            parameters['xsh'] =  _delta_x - xsh
+            parameters['ysh'] =  _delta_y - ysh
 
-            parameters['alpha'] = self.alpha
-            parameters['beta'] = self.beta
+            parameters['alpha'] = member.geometry.alpha
+            parameters['beta'] = member.geometry.beta
             
             # Calculate any rotation relative to the orientation
             # AFTER applying ONLY the distortion coefficients without
             # applying any additional rotation...
-            parameters['rot'] = _delta_rot
+            parameters['rot'] = _delta_rot - drot
 
             # Keep track of both the exposure information and
             # the combined product exposure time information.
@@ -845,7 +928,7 @@ class Pattern(object):
             # The pixel scale of the product corresponds to the
             # desired output pixel scale, and the model pscale for
             # the member represents the un-scaled pixel size for the input.
-            parameters['scale'] = _scale
+            parameters['scale'] = _scale * dscale
 
             # Parameters only used by 'wdrizzle'
             parameters['geomode'] = 'wcs'
@@ -853,9 +936,9 @@ class Pattern(object):
             parameters['deccen'] = ref_wcs.crval2
             parameters['orient'] = ref_wcs.orient
             parameters['outscl'] = ref_wcs.pscale
-            parameters['gpar_xsh'] = member.geometry.gpar_xsh
-            parameters['gpar_ysh'] = member.geometry.gpar_ysh
-            parameters['gpar_rot'] = member.geometry.gpar_rot
+            parameters['gpar_xsh'] = member.geometry.gpar_xsh - xsh
+            parameters['gpar_ysh'] = member.geometry.gpar_ysh - ysh
+            parameters['gpar_rot'] = member.geometry.gpar_rot - drot
 
             # Insure that the product WCS applied to each exposure gets set
             member.product_wcs = ref_wcs
@@ -1053,6 +1136,7 @@ class Pattern(object):
             #refp['XDELTA'] = vref[i][0] - v2com + chip.geometry.delta_x
             #refp['YDELTA'] = vref[i][1] - v3com + chip.geometry.delta_y
             offset_xy = N.dot(chiprot,xypos-offcen)*scale/ref_scale
+            
             refp['XDELTA'] = offset_xy[0]
             refp['YDELTA'] = offset_xy[1]
 

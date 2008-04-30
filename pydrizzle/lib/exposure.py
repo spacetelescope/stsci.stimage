@@ -589,7 +589,7 @@ class Exposure:
                     _pxg,_pyg,
                     'center', pixfrac, kernel,
                     self.coeffs, 'counts', _expin,_wtscl,
-                    fillval, _inwcs, nmiss, nskip, 1)
+                    fillval, _inwcs, nmiss, nskip, 1,0.,0.)
         #
         # End of F2C syntax
         #

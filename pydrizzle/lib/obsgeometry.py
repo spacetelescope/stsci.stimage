@@ -3,7 +3,7 @@ from math import ceil,floor
 
 # Import PyDrizzle utility modules
 from pytools import fileutil, wcsutil
-from distortion import models
+from distortion import models,mutil
 
 import numpy as N
 import drutil
@@ -130,12 +130,20 @@ class ObsGeometry:
                 self.model = models.TraugerModel(self.idcfile,float(_lam)/10.)
 
             elif ikey == 'wcs':
-                self.model = models.WCSModel(self.header, rootname)
+                if self.header.has_key('SICSPS'):
+                    self.model = models.WCSModel(self.header, rootname)
+                else:
+                    print 'WARNING: Not all SIP-related keywords found!'
+                    print '         Reverting to use of IDCTAB for distortion.'
+                    
+                    self.model =  models.IDCModel(self.idcfile,
+                        chip=chip, direction=self.direction, date=self.date,
+                        filter1=_filt1, filter2=_filt2, offtab=_offtab, binned=binned)
 
             else:
                 raise ValueError, "Unknown type of coefficients table %s"%idcfile
-
-            if self.idcfile == None:
+            
+            if self.idcfile == None and ikey != 'wcs':
                 #Update default model with WCS plate scale
                 self.model.setPScaleCoeffs(self.wcs.pscale)
 
@@ -146,7 +154,18 @@ class ObsGeometry:
             if self.model.refpix['XREF'] == None:
                 self.model.refpix['XREF'] = self.wcs.naxis1/2.
                 self.model.refpix['YREF'] = self.wcs.naxis2/2.
+                
+            # Implement time-dependent skew for those cases where it is needed
+            # Compute the time dependent distrotion skew terms
 
+            # default date of 2004.5 = 2004-7-1
+            if self.header.has_key('WFCTDD') and self.header['WFCTDD'] == 'T':
+                print " *** Applying ACS Time Dependent Distortion Solution *** "
+                self.alpha,self.beta = mutil.compute_wfc_tdd_coeffs(self.header['date-obs'])
+            else:
+                self.alpha = 0
+                self.beta  = 0
+            
             # Determine whether there is any offset for the image
             # as in the case of subarrays (based on LTV keywords)
             _ltv1,_ltv2 = drutil.getLTVOffsets(rootname,header=self.header)
@@ -182,6 +201,7 @@ class ObsGeometry:
                 self.wcs.chip_yref = self.wcs.naxis2/2.
                 self.model.refpix['CHIP_XREF'] = self.model.refpix['XREF']
                 self.model.refpix['CHIP_YREF'] = self.model.refpix['YREF']
+
             # Generate linear WCS to linear CD matrix
             self.undistortWCS()
         else:
@@ -224,9 +244,10 @@ class ObsGeometry:
             pscale = self.model.pscale
 
         _ratio = pscale / self.model.pscale
-
+        
         # Put input positions into full frame coordinates...
         pixpos = pixpos + N.array((self.wcs.offset_x,self.wcs.offset_y),dtype=N.float64)
+
         #v2,v3 = self.model.apply(pixpos, scale=pscale)
         v2,v3 = self.model.apply(pixpos,scale=_ratio,order=order)
 
@@ -469,7 +490,7 @@ class ObsGeometry:
         _xdelta = self.model.refpix['XDELTA']
         _ydelta = self.model.refpix['YDELTA']
 
-        # apply the distortion to them
+        # apply the distortion to them        
         _xc,_yc = self.apply(_xy)
         _xc += _xdelta + _cen[0]
         _yc += _ydelta + _cen[1]
@@ -518,7 +539,7 @@ class ObsGeometry:
         self.wcslin.crpix1 = self.wcslin.naxis1/2.
         self.wcslin.crpix2 = self.wcslin.naxis2/2.
 
-        # Compute the position of the distortion-corrected image center
+        # Compute the position of the distortion-corrected image center        
         _center = self.apply([(self.wcs.crpix1,self.wcs.crpix2)])
         self.wcslin.cenx = self.wcslin.crpix1 - _center[0]
         self.wcslin.ceny = self.wcslin.crpix2 - _center[1]

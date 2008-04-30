@@ -21,7 +21,7 @@ _default_pars = {'psize':None,'default_rot':None,'idckey':None}
 
 INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS","WFC3"]
 
-__version__ = "6.1.refac (10-Mar-2008)"
+__version__ = "6.1.refac2 (30-Apr-2008)"
 
 
 class _PyDrizzle:
@@ -104,6 +104,7 @@ More help on SkyField objects and their parameters can be obtained using:
 
         self.input = input
         self.output = output
+        asndict = input
 
         # Insure that the section parameter always becomes a list
         if isinstance(section,list) == False and section != None:
@@ -133,14 +134,13 @@ More help on SkyField objects and their parameters can be obtained using:
             'pixfrac':pixfrac,'idckey':idckey,'wt_scl':wt_scl,
             'fillval':fillval,'section':section, 'idcdir':idcdir+os.sep,
             'memmap':memmap,'dqsuffix':dqsuffix, 'in_units':in_units,
-            'bits':[bits_final,bits_single], 'mt_wcs': None}
+            'bits':[bits_final,bits_single], 'mt_wcs': None,'asndict':asndict}
         
         # Watch out for any errors.
         # If they arise, all open files need to be closed...
         self.observation = None
         self.parlist = None
         
-        asndict = input
         if len(asndict['order']) > 1:
             self.observation = DitherProduct(asndict,pars=self.pars)
         else:
@@ -976,7 +976,7 @@ class DitherProduct(Pattern):
         self.computeOffsets()
 
         # Apply any additional shifts from ASN table/shiftfile
-        self.applyAsnShifts(output)
+        #self.applyAsnShifts(output)
 
         # Preserve default DitherProduct Metachip WCS as wcslin
         self.product.exptime = self.exptime

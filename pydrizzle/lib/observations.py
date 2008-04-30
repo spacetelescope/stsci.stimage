@@ -1,7 +1,6 @@
 from pattern import *
 from pytools import fileutil
 import numpy as N
-import datetime
 
 class ACSObservation(Pattern):
     """This class defines an observation with information specific
@@ -33,20 +32,6 @@ class ACSObservation(Pattern):
 
         # Set up the input members and create the product meta-chip
         self.buildProduct(filename, output)
-
-        # Compute the time dependent distrotion skew terms
-
-        # default date of 2004.5 = 2004-7-1
-        if self.header['DETECTOR'] == 'WFC' and self.acsTDD == 'T':
-            " *** Applying ACS Time Dependent Distortion Solution *** "
-            datedefault = datetime.datetime(2004,7,1)
-            year,month,day = self.header['date-obs'].split('-')
-            rdate = datetime.datetime(int(year),int(month),int(day))
-            self.alpha = 0.095+0.090*((rdate-datedefault).days/365.25)/2.5
-            self.beta = -0.029-0.030*((rdate-datedefault).days/365.25)/2.5
-        else:
-            self.alpha = 0
-            self.beta  = 0
 
 
 class GenericObservation(Pattern):
