@@ -485,9 +485,9 @@ class Pattern(object):
             _scale = in_wcs.pscale * self.pars['scale']
 
         # Compute new CRVAL for current CRPIX position
-        #in_wcs.crval1,in_wcs.crval2 = in_wcs.xy2rd(_crpix)
-        #in_wcs.crpix1 = _crpix[0]
-        #in_wcs.crpix2 = _crpix[1]
+        in_wcs.crval1,in_wcs.crval2 = in_wcs.xy2rd(_crpix)
+        in_wcs.crpix1 = _crpix[0]
+        in_wcs.crpix2 = _crpix[1]
 
         #if not _refimage:
         # Update product WCS with the new values
@@ -735,7 +735,6 @@ class Pattern(object):
                     cp2 = refwcs.crpix2
 
                     nra,ndec = refwcs.xy2rd((cp1+xsh,cp2+ysh))
-                    print '[translateShifts] nra,ndec: ',nra,ndec,xsh,ysh,cp1,cp2
                     
                     delta_ra = refwcs.crval1-nra
                     delta_dec = refwcs.crval2-ndec
@@ -769,17 +768,24 @@ class Pattern(object):
             if member.name.find(img) > -1: 
                 mname = img
                 break
-        # translate delta's into shifts
-        ncrpix1,ncrpix2 = in_wcs.rd2xy((in_wcs.crval1+asndict['members'][img]['delta_ra'],
-                                        in_wcs.crval2+asndict['members'][img]['delta_dec']))
-
-        print '[getShifts] ncrpix1,ncrpix2: ',ncrpix1,ncrpix2
-
-        return [in_wcs.crpix1-ncrpix1,
-                in_wcs.crpix2-ncrpix2,
-                asndict['members'][img]['rot'],
-                asndict['members'][img]['scale']]
         
+        row = asndict['members'][img]
+        if row['delta_ra'] == 0.0 and row['delta_dec'] == 0.0:
+            xsh = 0.0
+            ysh = 0.0
+            drot = 0.0
+            dscale = 1.0
+        else:         
+            # translate delta's into shifts
+            ncrpix1,ncrpix2 = in_wcs.rd2xy((in_wcs.crval1+row['delta_ra'],
+                                            in_wcs.crval2+row['delta_dec']))
+
+            xsh = in_wcs.crpix1-ncrpix1
+            ysh = in_wcs.crpix2-ncrpix2
+            drot= row['rot']
+            dscale = row['scale']
+
+        return [xsh,ysh,drot,dscale]
         
     # This method would use information from the product class and exposure class
     # to build the complete parameter list for running the 'drizzle' task
@@ -873,7 +879,7 @@ class Pattern(object):
 
             # Compute offset based on shiftfile values
             xsh,ysh,drot,dscale = self.getShifts(member)
-            
+             
             # Start building parameter dictionary for this chip
             parameters = ParDict()
             parameters['data'] = member.name

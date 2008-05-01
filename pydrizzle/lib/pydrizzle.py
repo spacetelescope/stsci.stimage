@@ -969,6 +969,7 @@ class DitherProduct(Pattern):
 
         self.size = (output_wcs.naxis1,output_wcs.naxis2)
         self.product = Exposure(output,wcs=output_wcs,new=yes)
+        self.product.geometry.wcslin = self.product.geometry.wcs.copy()
 
         # Compute default offsets between all inputs...
         # This will be used when applying relative shifts from ASN table
