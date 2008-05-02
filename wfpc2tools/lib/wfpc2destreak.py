@@ -4,7 +4,7 @@
 # Program: wfpc2destreak.py
 # Purpose: routine to remove streaks due to bias from specified chip of wfpc2 data
 # History: 07/10/07 - first version
-#          08/10/07 - use overscan in the specified chipd in the input d0f file, and apply it to the
+#          08/10/07 - use overscan in the specified chip in the input d0f file, and apply it to the
 #                     corresponding chip in the c0f file,
 #                   - optionally do the 'overscan correction' only by setting overscan_only=True (default),
 #                   - output file name is now dervied from the input prefix and relevant chip 
@@ -61,7 +61,7 @@
 #                   - These values are also optionally written to the screen.
 #                   - The following keywords have been replaced (old -> new):  
 #                        PYRMEAN -> PMSKMEAN
-#                        PYRSIGMA -> PMSKSTD
+#                        PYRSIGMA -> PMSKSTD 
 #                        IMMEAN -> DMSKMEAN
 #                        IMSIGMA -> DMSKSTD
 #          03/20/08 - the pyraf command line parser is now used for all arguments. See the "Usage" section
@@ -72,12 +72,16 @@
 #          04/03/08 - the calculation of the row-specific correction using PASS2 will ignore pixels that deviate from
 #                     the mode of the row by more than 4 sigma. The mode will be calculated by binning all pixels in row
 #                     in bins of width 1, and determining which bin has the highest frequency. Sigma
-#                     will be calculated using iterative sigma-clipping all pixels over the entire image.
+#                     will be calculated by iterative sigma-clipping all pixels over the entire image.
+#          05/02/08 - instead of calculating corrections based on the d0f data and applying them to the c0f data, the
+#                     routine now reads a c0h fits file (whose image data are reals), calculates corrections based on this
+#                     image data, and applies the corrections to this data, updating the file in-place. As a result, the keywords
+#                     that are output have been modified.
 #
 #
 # Outline:
 #
-# 1. In the pyramid region of the d0f data, eliminate the CRs, then calculate the mean (pyr_mean) and sigma (pyr_sigma)
+# 1. In the pyramid region of the c0 data, eliminate the CRs, then calculate the mean (pyr_mean) and sigma (pyr_sigma)
 # 2. In the 'interior' image region (starting to the right of the pyramid region), eliminate the CRs, and
 #      calculate the mean (im_mean) and sigma (im_sigma)
 # 3. Calculate how high above the pyr values the image values are by:
@@ -91,22 +95,22 @@
 #
 # ... where Pass1 is done as follows:
 #     - In the leading columns (2->group-specific value ), cosmic rays are identified and
-#         masked in the d0f data
+#         masked in the c0 data
 #     - For each row within these columns, the mean is calculated of the unmasked
 #         pixels; for all rows the 'global pyramid mean' is calculated
 #     - For each row, the smoothed mean is calculated over 3 rows
 #     - For each row in the image, the difference between the smoothed mean and the 'global pyramid mean'
-#         is subtracted from the c0f data
+#         is subtracted from the c0 data
 #
 # ... and Pass2 is done as follows:
-#     - Over the entire c0f image, iterative sigma-clipping is performed to mask
+#     - Over the entire c0 image, iterative sigma-clipping is performed to mask
 #         cosmic rays and bright sources
 #     - For the entire image, the global mean and the (clipped) sigma is calculated for all unmasked pixels
 #     - For each row, the mode is calculated for a histogram of bin width = 1 using all pixels
 #     - For each row, the mean is calculated for pixels deviating from the mode by less than 4 sigma 
-#     - For each row, the difference between the mean and the global is subtracted from the c0f data
+#     - For each row, the difference between the mean and the global mean is subtracted from the c0 data
 #
-# 5. The modified c0f data is written to a new file; e.g. "u8zq0104m_bjc_4.fits" for group 4
+# 5. The modified c0 data is overwrites the data in the input file
 #      
 # Linux command line short options and defaults (set in wfpc2util.py):
 #     -g: group (default = 4)
@@ -118,20 +122,20 @@
 # Usage examples:
 #    A. For a dataset with multiple groups, to process group 4 using a bias threshold=280 and row threshold=0.1,
 #       letting the routine decide which correction type to apply:
-#         hal> ./wfpc2destreak.py "u8zq0104m_d0f.fits"  -g 4 -b 280. -r 0.1  -v
+#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 4 -b 280. -r 0.1  -v
 #    B. To force a specific correction type (say PASS2):
-#         hal> ./wfpc2destreak.py "u8zq0104m_d0f.fits"  -g 4 -b 280. -r 0.1 -f PASS2 
+#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 4 -b 280. -r 0.1 -f PASS2 
 #       This can also be specified using the 'long options':
-#         hal> ./wfpc2destreak.py "u8zq0104m_d0f.fits" --group=4 --bias_thresh=280. --row_thresh=0.1 --force_alg_type=PASS2 
+#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits" --group=4 --bias_thresh=280. --row_thresh=0.1 --force_alg_type=PASS2 
 #    C. To force the routine to run without applying a correction:
-#         hal> ./wfpc2destreak.py "u8zq0104m_d0f.fits"  -g 4 -b 280. -r 0.1 -f OMIT -v
+#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 4 -b 280. -r 0.1 -f OMIT -v
 #    D. To allow the routine to run with all of the defaults:
-#         hal> ./wfpc2destreak.py "u8zq0104m_d0f.fits"
+#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"
 #    E.  For a dataset with a single group, using defaults for the thresholds, forcing PASS1:
-#         hal> ./wfpc2destreak.py "u8zq0104m_d0f.fits"  -g 0 -f PASS1
+#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 0 -f PASS1
 #
 # Example 'A' under pyraf:
-# --> wfp = wfpc2destreak.Wfpc2destreak( "u8zq0104m_d0f.fits", group=4, bias_thresh=280, row_thresh=0.1, force_alg_type="PASS2")
+# --> wfp = wfpc2destreak.Wfpc2destreak( "u8zq0104m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.1, force_alg_type="PASS2")
 # --> wfp.destreak()
 #
 ###########################################################################
@@ -145,8 +149,7 @@ from optparse import OptionParser
 import ndimage
 import wfpc2util, opusutil, sys, string
 
-
-__version__ = "2.00 (2008 Apr 3)"
+__version__ = "2.10 (2008 May 2)"
 
 NUM_SIG = 2.5  # number of sigma to use in sigma clipping
 TOT_ITER = 4   # maximum number of iterations for sigma clipping
@@ -164,7 +167,7 @@ class Wfpc2destreak:
     def __init__( self, input_file, group=None, verbosity=0, bias_thresh=None, row_thresh=None, force_alg_type=None):  
         """constructor
 
-        @param input_file: name of the d0f file to be processed
+        @param input_file: name of the c0h file to be processed
         @type input_file: string
         @param group: number of group to process
         @type group: int
@@ -178,7 +181,7 @@ class Wfpc2destreak:
         @type force_alg_type: string
         """
 
-        # so aome parameter type checking
+        # do some parameter type checking
         if ( __name__ == 'wfpc2destreak'):  # for python interface, set defaults and check unspecified pars
            [group, bias_thresh, row_thresh, force_alg_type] = check_py_pars(group, bias_thresh, row_thresh, force_alg_type)  
         else:
@@ -192,7 +195,7 @@ class Wfpc2destreak:
         self.force_alg_type = force_alg_type
         
     def destreak( self ):
-        
+
         input_file = self.input_file
         group = self.group
         verbosity = self.verbosity
@@ -200,50 +203,25 @@ class Wfpc2destreak:
         row_thresh = self.row_thresh
         force_alg_type = self.force_alg_type
 
-    # read data from d0f file:
-        fh_d0f = pyfits.open(input_file)
-        data_cube = fh_d0f[0].data
+        file_prefix = input_file.split('.')[0] 
+
+    # read data from input c0h fits file:
+
+        fh_c0 = pyfits.open(input_file, mode='update')
+        c0_hdr = fh_c0[0].header 
+
+        data_cube = fh_c0[0].data
 
         if ( group == 0 ): # for single group image case
-            d0f_data = data_cube
+            c0_data = data_cube
         else:
-            d0f_data = data_cube[group-1] # 0-based 
+            c0_data = data_cube[group-1] # 0-based 
             
-        xsize = fh_d0f[0].header.get( "NAXIS1"); ysize = fh_d0f[0].header.get( "NAXIS2")
+        xsize = fh_c0[0].header.get( "NAXIS1"); ysize = fh_c0[0].header.get( "NAXIS2")
 
-    # read data from c0f file: 
-        c0f_prefix = input_file.split('_')[0]    
-        c0f_file = c0f_prefix + str("_c0f.fits")
-        fh_c0f = pyfits.open(c0f_file)
-          
-    # read header from appropriate group in c0h file and make cardlist  
-        c0h_file = c0f_prefix + str(".c0h")
- 
-        c0_group_hdr = (readgeis.readgeis( c0h_file ))[group].header        
-        group_hdr_c =  c0_group_hdr.ascardlist()
-
-        if (verbosity >=1 ): print 'Getting header information from c0h_file =', c0h_file 
-
-    # read primary header in c0h file and make cardlist 
-        c0_pr_hdr = (readgeis.readgeis( c0h_file ))[0].header
-        p_hdr_c = c0_pr_hdr.ascardlist()
-
-    # combine group cardlist and primary cardlist starting with WFPC2 keywords, and make header from it 
-        new_hdr_c = group_hdr_c + p_hdr_c     
-        new_h = pyfits.Header (cards = new_hdr_c )
-
-        if (verbosity >=1 ):print 'Will update data in c0f_file: ' ,c0f_file
- 
-        c0f_data_cube = fh_c0f[0].data 
-
-        if ( group == 0 ): # for single group image case
-           c0f_data = c0f_data_cube
-        else:
-           c0f_data = c0f_data_cube[group-1] # 0-based
-           
         clip_row_mean = N.zeros(ysize); good_row_mean = N.zeros(ysize)
 
-    # read d0f leading columns (between col_min and col_max) and reject Cosmic Rays
+    # read c0 leading columns (between col_min and col_max) and reject Cosmic Rays
         col_min = 2
 
         if ( group == 0 ): # for single group case only 
@@ -257,31 +235,32 @@ class Wfpc2destreak:
         if ( group == 4 ):
            col_max = 20 ; ix_min = 40; iy_min = 50
 
-        BlackLevel = d0f_data[:,col_min:col_max]
+        BlackLevel = c0_data[:,col_min:col_max]
 
         mask = cr_reject(BlackLevel)    
         mask_2d = N.resize( mask, [BlackLevel.shape[0], BlackLevel.shape[1]])    
         masked_BlackLevel = BlackLevel * (1-mask_2d)  # gives 0 where there are Cosmic rsys
 
-    # calculate stats for all pixels in d0f pyramid region
+    # calculate stats for all pixels in c0 pyramid region
         self.porgpix = BlackLevel.shape[0]* BlackLevel.shape[1]
         self.porgmean =  BlackLevel.mean(); self.porgstd = BlackLevel.std()
         self.porgmin = BlackLevel.min(); self.porgmax = BlackLevel.max()
 
-    # write mask file for d0f pyramid region
-        mask_file = c0f_prefix + str('_bjc_Pmask_')+str(group)+str('.fits')
+    # write mask file for c0 pyramid region
+        mask_file = file_prefix + str('_bjc_Pmask_')+str(group)+str('.fits')   
+    
         write_mask( masked_BlackLevel, mask_file, verbosity )
-        if (verbosity >=1 ): print 'Wrote mask for d0f pyramid region to: ',mask_file
+        if (verbosity >=1 ): print 'Wrote mask for c0 pyramid region to: ',mask_file
         
-    # calculate global mean from all unmasked pyramid region pixels in d0f file
-        d0f_data_pix = N.where( masked_BlackLevel > 0.0)
-        all_good_data = masked_BlackLevel[ d0f_data_pix ]
+    # calculate global mean from all unmasked pyramid region pixels in c0 file
+        c0_data_pix = N.where( masked_BlackLevel > 0.0)
+        all_good_data = masked_BlackLevel[ c0_data_pix ]
         
         glob_pyr_mean = all_good_data.mean() 
-        pyr_mean = all_good_data.mean()  # clipped pyramid mean of d0f data
-        pyr_sigma = all_good_data.std()  # clipped pyramid sigma of d0f data
+        pyr_mean = all_good_data.mean()  # clipped pyramid mean of c0 data
+        pyr_sigma = all_good_data.std()  # clipped pyramid sigma of c0 data
 
-    # calculate stats for unmasked pixels in d0f pyramid region
+    # calculate stats for unmasked pixels in c0 pyramid region
         BL_nz = N.where(masked_BlackLevel <> 0)
         self.pmskpix = masked_BlackLevel[BL_nz].shape[0]
         self.pmskmean = all_good_data.mean()
@@ -303,19 +282,19 @@ class Wfpc2destreak:
         smoothed_row_mean = boxcar( good_row_mean,(3,))  # smooth row mean over 3 rows
 
     # perform CR rejection on desired subarray of image section 
-        image_data = d0f_data[ ix_min:xsize-1, iy_min:ysize-1 ]
+        image_data = c0_data[ ix_min:xsize-1, iy_min:ysize-1 ]
         im_mask = cr_reject(image_data)
         im_mask_2d = N.resize( im_mask, [image_data.shape[0], image_data.shape[1]])    
         masked_image = image_data * (1-im_mask_2d)  # gives 0 where there are Cosmic rays
 
-    # calculate stats for all pixels in d0f image region
+    # calculate stats for all pixels in c0 image region
         self.dorgmean =  image_data.mean()
         self.dorgstd =  image_data.std()    
         self.dorgmin =  image_data.min()
         self.dorgmax =  image_data.max()
         self.dorgpix = image_data.shape[0]*image_data.shape[1]
 
-    # calc stats for unmasked pixels in d0f image region
+    # calc stats for unmasked pixels in c0 image region
         IR_nz = N.where( masked_image <> 0)
         self.dmskmean = masked_image[IR_nz].mean()
         self.dmskstd = masked_image[IR_nz].std()
@@ -323,9 +302,10 @@ class Wfpc2destreak:
         self.dmskmax = masked_image[IR_nz].max()
         self.dmskpix = masked_image[IR_nz].shape[0]        
 
-    # write mask file for d0f image region
-        mask_file = c0f_prefix + str('_bjc_Imask_')+str(group)+str('.fits')
-        if (verbosity >=1 ): print 'Wrote mask for d0f image region to: ',mask_file
+    # write mask file for c0 image region
+        mask_file = file_prefix + str('_bjc_Imask_')+str(group)+str('.fits')
+
+        if (verbosity >=1 ): print 'Wrote mask for c0 image region to: ',mask_file
         write_mask( masked_image, mask_file, verbosity )
 
     # calculate image mean from all unmasked pixels in image data
@@ -393,15 +373,16 @@ class Wfpc2destreak:
               alg_cmt = "No correction applied"
               if (verbosity >1 ): print ' The specified correction will be skipped because bias_thresh < im_mean'
             
-        new_c0f_data = c0f_data.copy().astype(N.float32)  # will be updated array for c0f data
+        # calculate statistics for original c0 image data
+        orig_c0_data = c0_data[0: xsize-1,col_max+1:].copy().astype(N.float32) 
+        orig_c0_data = c0_data[0: xsize-1,col_max+1:].copy().astype(N.float32) 
 
-        # calculate statistics for original c0f image data
-        orig_c0f_data = c0f_data[0: xsize-1,col_max+1:].astype(N.float32) # subarray of c0f_data 
-        self.corgmin = orig_c0f_data.min()
-        self.corgmax = orig_c0f_data.max()
-        self.corgmean = orig_c0f_data.mean()
-        self.corgstd = orig_c0f_data.std()
-        self.corgpix = orig_c0f_data.shape[0]*orig_c0f_data.shape[1]
+        self.dorgmin = orig_c0_data.min()
+        self.dorgmax = orig_c0_data.max()
+        self.dorgmean = orig_c0_data.mean()
+        self.dorgstd = orig_c0_data.std()
+        self.dorgpix = orig_c0_data.shape[0]*orig_c0_data.shape[1]
+        
         
         low_row_p1 = 0 #  number of rows below row_threshold in PASS1 
         high_row_p1 = 0 #  number of rows above row_threshold in PASS1
@@ -410,10 +391,10 @@ class Wfpc2destreak:
 
         to_sub_1_max = -wfpc2util.HUGE_VAL ; to_sub_1_min = wfpc2util.HUGE_VAL
         to_sub_2_max = -wfpc2util.HUGE_VAL ; to_sub_2_min = wfpc2util.HUGE_VAL        
-
+  
         if (( alg_type == "PASS1")or ( alg_type == "PASS12")) : # do Pass 1  
           # PASS 1: for first correction, subtract difference between smoothed row mean from leading
-          #         columns and global mean in the d0f data from the c0f data, updating data in c0f file   
+          #         columns and global mean in the data from the data
            to_subtract_1 = N.zeros((ysize),dtype = N.float32)     
            for i_row in range( 0, xsize-1 ):
               to_subtract_1[ i_row ] = smoothed_row_mean[ i_row ]- glob_pyr_mean
@@ -426,22 +407,24 @@ class Wfpc2destreak:
                  to_sub_1_max = max(to_sub_1_max, to_subtract_1[ i_row ])  
                  to_sub_1_min = min(to_sub_1_min, to_subtract_1[ i_row ])  
 
-              new_c0f_data[i_row,col_max+1:] = c0f_data[i_row,col_max+1:] - to_subtract_1[ i_row ]  
-
+              c0_data[i_row,col_max+1:] -= to_subtract_1[ i_row ]    #  modify in place
+      
 
         if (( alg_type == "PASS2")or ( alg_type == "PASS12")) : # do Pass 2 
-          # PASS 2: for second correction, calculate row mean over entire c0f image using iterative sigma clipping and
-          #         subtract difference between this row mean and the global mean    
+          # PASS 2: for second correction, calculate row mean over entire image using iterative sigma clipping and
+          #         subtract difference between this row mean and the global mean   
+          
            row_data_b_mean = N.zeros(ysize)
            to_subtract_2 = N.zeros((ysize),dtype = N.float32)
 
           # get the (clipped) sigma
            for i_row in range (0, ysize-1 ):   
-              row_data_b = new_c0f_data[i_row, col_max+1:]   
+              row_data_b = c0_data[i_row, col_max+1:]   
+
               mean1 = row_data_b.mean()
               row_data_b_mean[ i_row ] = row_data_b.mean()
 
-            #  for current row, do sigma clipping until either 4 iterations are performed or clipping removes all pixels
+            #  for current row of c0 data, do sigma clipping until either 4 iterations are performed or clipping removes all pixels 
             #   (this is done now *only* for calculating sigma for using mode +/-4sigma for each row )
               for ii_iter in range(4):
                  if ( ii_iter == 0):
@@ -460,14 +443,13 @@ class Wfpc2destreak:
           # calculation of the row-specific correction using PASS2 will ignore pixels that deviate from
           #   the mode of the row by more than 4 sigma. The mode will be calculated by binning all pixels in row
           #   in bins of width 1, and determining which bins has the highest frequency. 
-
-           min_val = int(new_c0f_data[0, col_max+1:].min()) # lower value of histogram   
-           max_val = int(new_c0f_data[0, col_max+1:].max()) # upper value of histogram   
+           min_val = int(c0_data[0, col_max+1:].min()) # lower value of histogram   
+           max_val = int(c0_data[0, col_max+1:].max()) # upper value of histogram 
+           
            xbin = N.arange(min_val, max_val )  
 
            for i_row in range (0, ysize-1 ): 
-
-              row_data_b = new_c0f_data[i_row, col_max+1:]
+              row_data_b = c0_data[i_row, col_max+1:] 
 
               the_hist = get_hist(row_data_b, xbin )              
               max_freq = the_hist.max()
@@ -495,7 +477,8 @@ class Wfpc2destreak:
               bad_val_hi = row_data_b[bad_pix_hi]
               bad_val_hi = bad_val_hi.astype(N.float32)
 
-              if (verbosity >=1 ):  # print stats of good and rejected pixels for this row
+
+              if (verbosity >1 ):  # print stats of good and rejected pixels for this row
                  print '' ; print ' row = ' , i_row 
                  if   good_val.size > 0 :
                     print ' good pixels: number, min, mean, max, std = ' ,  good_val.size,good_val.min(),good_val.mean(),good_val.max(),good_val.std()
@@ -514,6 +497,7 @@ class Wfpc2destreak:
            # for each row, subtract difference between clipped mean and global clipped mean 
            glob_im_clip_mean = clip_row_mean[1:ysize-2].mean() # calculate global clipped mean
            for i_row in range (1, ysize-2 ):
+
               to_subtract_2[ i_row ] = clip_row_mean[ i_row ]- glob_im_clip_mean
 
               if (abs(to_subtract_2[ i_row ]) < row_thresh ): # make no correction
@@ -524,22 +508,16 @@ class Wfpc2destreak:
                  to_sub_2_max = max(to_sub_2_max, to_subtract_2[ i_row ])  
                  to_sub_2_min = min(to_sub_2_min, to_subtract_2[ i_row ])  
 
-              new_c0f_data[i_row,col_max+1:] -=  to_subtract_2[ i_row ]
+              c0_data[i_row,col_max+1:] -=  to_subtract_2[ i_row ] 
 
-        if ((alg_type <> "PASS1") and (alg_type <> "PASS2") and (alg_type <> "PASS12")) : # apply no correction 
-            new_c0f_data = c0f_data.copy().astype(N.float32) 
+        # calculate and display statistics for corrected c0 image data
+        corr_c0_data = c0_data[0: xsize-1,col_max+1:].astype(N.float32) 
 
-        # calculate and display statistics for corrected c0f image data
-        corr_c0f_data = new_c0f_data[0: xsize-1,col_max+1:].astype(N.float32) # subarray of c0f_data for corrected stat calc
-
-        self.ccormin = corr_c0f_data.min()
-        self.ccormax = corr_c0f_data.max()
-        self.ccormean = corr_c0f_data.mean()
-        self.ccorstd = corr_c0f_data.std()
-        self.ccorpix = corr_c0f_data.shape[0]*corr_c0f_data.shape[1]
-            
-        file_prefix = input_file.split('.')[0]
-        outfile = c0f_prefix + str('_bjc_')+str(group)+str('.fits')
+        self.dcormin = corr_c0_data.min()
+        self.dcormax = corr_c0_data.max()
+        self.dcormean = corr_c0_data.mean()
+        self.dcorstd = corr_c0_data.std()
+        self.dcorpix = corr_c0_data.shape[0]*corr_c0_data.shape[1]
 
         if (verbosity >=1 ):
             print 'The following means and sigmas pertain to all (uncorrected and corrected) rows:'
@@ -559,52 +537,47 @@ class Wfpc2destreak:
             print 'The number of sigma that the clipped image mean exceeds the clipped pyramid region mean is NSIGMA=' , nsigma  
 
             print 'The following statistics keywords are written to the corrected data output:'
-            print '  - For all pixels in the pyramid region of the d0f data, the keywords and values for the '
+            print '  - For all pixels in the pyramid region of the c0 data, the keywords and values for the '
             print '    mean, std, min, max, and number of pixels are :'
             print '    PORGMEAN,    PORGSTD,    PORGMIN,    PORGMAX,    PORGPIX  '
             print '   ', self.porgmean,'   ', self.porgstd,'   ', self.porgmin,'   ', self.porgmax,'   ', self.porgpix
 
-            print '  - For the unmasked pixels in the pyramid region of the d0f data, the keywords and values for the '
+            print '  - For the unmasked pixels in the pyramid region of the input data, the keywords and values for the '
             print '    mean, std, min, max, and number of pixels are :'
             print '    PMSKMEAN,    PMSKSTD,    PMSKMIN,    PMSKMAX,    PMSKPIX  '
             print '   ', self.pmskmean,'   ', self.pmskstd,'   ', self.pmskmin,'   ', self.pmskmax,'   ', self.pmskpix 
 
-            print '  - For all pixels in the image region of the original c0f data, the keywords and values for the '
-            print '    mean, std, min, max, and number of pixels are :'
-            print '    CORGMEAN,    CORGSTD,    CORGMIN,    CORGMAX,    CORGPIX  '
-            print '   ', self.corgmean,'   ', self.corgstd,'   ', self.corgmin,'   ', self.corgmax,'   ', self.corgpix
-
-            print '  - For all pixels in the image region of the corrected c0f data, the keywords and values for the '
-            print '    mean, std, min, max, and number of pixels are :'
-            print '    CCORMEAN,    CCORSTD,    CCORMIN,    CCORMAX,    CCORPIX  '
-            print '   ', self.ccormean,'   ', self.ccorstd,'   ', self.ccormin,'   ', self.ccormax,'   ', self.ccorpix
-
-            print '  - For all pixels in the image region of the d0f data, the keywords and values for the '
-            print '    mean, std, min, max, and number of pixels are :'
-            print '    DORGMEAN,    DORGSTD,    DORGMIN,    DORGMAX,    DORGPIX  '
-            print '   ', self.dorgmean,'   ', self.dorgstd,'   ', self.dorgmin,'   ', self.dorgmax,'   ', self.dorgpix
-
-            print '  - For the unmasked pixels in the image region of the d0f data, the keywords and values for the '
+            print '  - For the unmasked pixels in the image region of the input data, the keywords and values for the '
             print '    mean, std, min, max, and number of pixels are :'
             print '    DMSKMEAN,    DMSKSTD,    DMSKMIN,    DMSKMAX,    DMSKPIX  '
             print '   ', self.dmskmean,'   ', self.dmskstd,'   ', self.dmskmin,'   ', self.dmskmax,'   ', self.dmskpix 
 
+            print '  - For all pixels in the image region of the original input data, the keywords and values for the '
+            print '    mean, std, min, max, and number of pixels are :'
+            print '    DORGMEAN,    DORGSTD,    DORGMIN,    DORGMAX,    DORGPIX  '
+            print '   ', self.dorgmean,'   ', self.dorgstd,'   ', self.dorgmin,'   ', self.dorgmax,'   ', self.dorgpix
+
+            print '  - For all pixels in the image region of the corrected input data, the keywords and values for the '
+            print '    mean, std, min, max, and number of pixels are :'
+            print '    DCORMEAN,    DCORSTD,    DCORMIN,    DCORMAX,    DCORPIX  '
+            print '   ', self.dcormean,'   ', self.dcorstd,'   ', self.dcormin,'   ', self.dcormax,'   ', self.dcorpix
+
             print 'The correction type applied is CORR_ALG = ', alg_type
 
-        write_to_file(self, new_c0f_data, outfile, new_h, forced_type, alg_type, alg_cmt, verbosity)
 
+        update_c0_file(self, c0_hdr, forced_type, alg_type, alg_cmt, verbosity) 
+            
         # close open file handles
-        if (fh_d0f):
-           fh_d0f.close()
-        if (fh_c0f):
-           fh_c0f.close()
+        if (fh_c0):
+           fh_c0.close()
+           
         if (verbosity >=1 ): print 'DONE '
 
     def print_pars(self):
         """ Print parameters.
         """
         print 'The values of the input parameters are :'
-        print '  input d0f file:  ' , self.input_file
+        print '  input c0 file:  ' , self.input_file
         print '  group:  ' , self.group
         print '  bias_thresh:  ' , self.bias_thresh 
         print '  row thresh:  ' , self.row_thresh 
@@ -843,47 +816,47 @@ def cr_reject(  BlackLevel):
 
 
 def check_neighbors( new_cr, residual, cutoff, black_shape):
-	"""Check for cosmic rays in neighboring pixels.
+        """Check for cosmic rays in neighboring pixels.
 
-	@param new_cr:  1-D array of ones or zeros (1 indicates a cosmic ray)
-	@type new_cr:  Int32
-	@param residual:  1-D array of residuals, black - fit
-	@type residual:  Float64
-	@param cutoff:  criterion for flagging an outlier as a cosmic ray
-	@type cutoff:  float
-	@param black_shape:  numbers of lines and columns in black
-	@type black_shape:  tuple
-	@return:  new_cr, possibly with additional cosmic rays flagged
-	@rtype:  Int32
-	"""
+        @param new_cr:  1-D array of ones or zeros (1 indicates a cosmic ray)
+        @type new_cr:  Int32
+        @param residual:  1-D array of residuals, black - fit
+        @type residual:  Float64
+        @param cutoff:  criterion for flagging an outlier as a cosmic ray
+        @type cutoff:  float
+        @param black_shape:  numbers of lines and columns in black
+        @type black_shape:  tuple
+        @return:  new_cr, possibly with additional cosmic rays flagged
+        @rtype:  Int32
+        """
 
-	(ny, nx) = black_shape
-	new_cr_2D = N.reshape( new_cr, black_shape)
-	residual_2D = N.reshape( residual, black_shape)
+        (ny, nx) = black_shape
+        new_cr_2D = N.reshape( new_cr, black_shape)
+        residual_2D = N.reshape( residual, black_shape)
 
-	(yindex, xindex) = N.where( new_cr_2D > 0)
+        (yindex, xindex) = N.where( new_cr_2D > 0)
 
-	for iii in range( len( yindex)):
-	    i = xindex[iii]
-	    j = yindex[iii]
-	    # check neighbors to the left
-	    for ii in range (i-1, -1, -1):
-		if new_cr_2D[j,ii] > 0:         # already flagged?
-		    break
-		if residual_2D[j,ii] > cutoff:
-		    new_cr_2D[j,ii] = 1
-		else:
-		    break
-	    # check neighbors to the right
-	    for ii in range (i+1, nx):
-		if new_cr_2D[j,ii] > 0:
-		    break
-		if residual_2D[j,ii] > cutoff:
-		    new_cr_2D[j,ii] = 1
-		else:
-		    break
+        for iii in range( len( yindex)):
+            i = xindex[iii]
+            j = yindex[iii]
+            # check neighbors to the left
+            for ii in range (i-1, -1, -1):
+                if new_cr_2D[j,ii] > 0:         # already flagged?
+                    break
+                if residual_2D[j,ii] > cutoff:
+                    new_cr_2D[j,ii] = 1
+                else:
+                    break
+            # check neighbors to the right
+            for ii in range (i+1, nx):
+                if new_cr_2D[j,ii] > 0:
+                    break
+                if residual_2D[j,ii] > cutoff:
+                    new_cr_2D[j,ii] = 1
+                else:
+                    break
 
-	return new_cr_2D.ravel()
+        return new_cr_2D.ravel()
 
 # end of check_neighbors()
 
@@ -1095,13 +1068,9 @@ def computeVarCovar( x, labels):
 # end of computeVarCovar()
 
 
-def write_to_file(self, data, filename, hdr, forced_type, alg_type, alg_cmt, verbosity):
-    """ write to specified filename with specified header
+def update_c0_file(self, hdr, forced_type, alg_type, alg_cmt, verbosity):
+    """ update input c0 file with specified header, and updated data
 
-    @param data: array of data to write
-    @type data: Float64
-    @param filename: name ofoutput file 
-    @type filename: string
     @param hdr: hdr
     @type hdr: Pyfits header object
     @param forced_type: specifies if an algorithm type is forced (yes/no)
@@ -1112,9 +1081,8 @@ def write_to_file(self, data, filename, hdr, forced_type, alg_type, alg_cmt, ver
     @type alg_cmt: string
     @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
     @type verbosity: string
-    """
 
-    fimg = pyfits.HDUList()
+    """
 
     hdr.update(key='CORR_ALG', value=alg_type, comment=alg_cmt ) #  denoting which algorithm was used
     hdr.update(key='BIASTHRE', value=self.bias_thresh, comment="bias threshold" ) 
@@ -1133,35 +1101,23 @@ def write_to_file(self, data, filename, hdr, forced_type, alg_type, alg_cmt, ver
     hdr.update(key='PMSKMIN', value=self.pmskmin, comment="min of unmasked pixels in pyramid region" ) 
     hdr.update(key='PMSKMAX', value=self.pmskmax, comment="max of unmasked pixels in pyramid region" ) 
 
-    hdr.update(key='CORGPIX', value=self.corgpix, comment="number of pixels in original c0f image region" ) 
-    hdr.update(key='CORGMEAN', value=self.corgmean, comment="mean in original c0f image region" ) 
-    hdr.update(key='CORGSTD', value=self.corgstd, comment="sigma in original c0f image region" ) 
-    hdr.update(key='CORGMIN', value=self.corgmin, comment="minimum in original c0f image region" ) 
-    hdr.update(key='CORGMAX', value=self.corgmax, comment="maximum in original c0f image region" )
+    hdr.update(key='DCORPIX', value=self.dcorpix, comment="number of pixels in corrected c0 image region" ) 
+    hdr.update(key='DCORMEAN', value=self.dcormean, comment="mean in corrected c0 image region" ) 
+    hdr.update(key='DCORSTD', value=self.dcorstd, comment="sigma in corrected c0 image region" ) 
+    hdr.update(key='DCORMIN', value=self.dcormin, comment="minimum in corrected c0 image region" ) 
+    hdr.update(key='DCORMAX', value=self.dcormax, comment="maximum in corrected c0 image region" ) 
 
-    hdr.update(key='CCORPIX', value=self.ccorpix, comment="number of pixels in corrected c0f image region" ) 
-    hdr.update(key='CCORMEAN', value=self.ccormean, comment="mean in corrected c0f image region" ) 
-    hdr.update(key='CCORSTD', value=self.ccorstd, comment="sigma in corrected c0f image region" ) 
-    hdr.update(key='CCORMIN', value=self.ccormin, comment="minimum in corrected c0f image region" ) 
-    hdr.update(key='CCORMAX', value=self.ccormax, comment="maximum in corrected c0f image region" ) 
+    hdr.update(key='DORGPIX', value=self.dorgpix, comment="number of pixels in original c0 image region" ) 
+    hdr.update(key='DORGMEAN', value=self.dorgmean, comment="mean in original c0 image region" ) 
+    hdr.update(key='DORGSTD', value=self.dorgstd, comment="sigma in original c0 image region" ) 
+    hdr.update(key='DORGMIN', value=self.dorgmin, comment="minimum in original c0 image region" ) 
+    hdr.update(key='DORGMAX', value=self.dorgmax, comment="maximum in original c0 image region" )
 
-    hdr.update(key='DORGPIX', value=self.dorgpix, comment="number of pixels in original d0f image region" ) 
-    hdr.update(key='DORGMEAN', value=self.dorgmean, comment="mean in original d0f image region" ) 
-    hdr.update(key='DORGSTD', value=self.dorgstd, comment="sigma in original d0f image region" ) 
-    hdr.update(key='DORGMIN', value=self.dorgmin, comment="minimum in original d0f image region" ) 
-    hdr.update(key='DORGMAX', value=self.dorgmax, comment="maximum in original d0f image region" )
-
-    hdr.update(key='DMSKPIX', value=self.dmskpix, comment="number of unmasked pixels in d0f image region" ) 
-    hdr.update(key='DMSKMEAN', value=self.dmskmean, comment="mean of unmasked d0f image region" ) 
-    hdr.update(key='DMSKSTD', value=self.dmskstd, comment="sigma of unmasked d0f image region" ) 
-    hdr.update(key='DMSKMIN', value=self.dmskmin, comment="minimum of unmasked d0f image region" ) 
-    hdr.update(key='DMSKMAX', value=self.dmskmax, comment="maximum of unmasked d0f image region" )
-    
-    fimghdu = pyfits.PrimaryHDU( header = hdr)
-    fimghdu.data = data
-    fimg.append(fimghdu)
-    fimg.writeto(filename)
-    if (verbosity >=1 ): print 'Wrote updated data to: ',filename
+    hdr.update(key='DMSKPIX', value=self.dmskpix, comment="number of unmasked pixels in c0 image region" ) 
+    hdr.update(key='DMSKMEAN', value=self.dmskmean, comment="mean of unmasked c0 image region" ) 
+    hdr.update(key='DMSKSTD', value=self.dmskstd, comment="sigma of unmasked c0 image region" ) 
+    hdr.update(key='DMSKMIN', value=self.dmskmin, comment="minimum of unmasked c0 image region" ) 
+    hdr.update(key='DMSKMAX', value=self.dmskmax, comment="maximum of unmasked c0 image region" )
 
 # write  mask
 def write_mask(data, filename, verbosity):
@@ -1172,7 +1128,7 @@ def write_mask(data, filename, verbosity):
     fimg.append(fimghdu)
     fimg.writeto(filename)
 
-#def main( cmdline):
+
 if __name__ =="__main__":
     """Get input file and other arguments, and call Wfpc2destreak
 
