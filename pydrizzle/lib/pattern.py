@@ -747,7 +747,7 @@ class Pattern(object):
             asndict['members'][img]['delta_ra'] = delta_ra
             asndict['members'][img]['delta_dec'] = delta_dec
         
-    def getShifts(self,member):
+    def getShifts(self,member,wcs):
         """
         Translate the delta's in RA/Dec for each image's shift into a 
         shift of the undistorted image.
@@ -761,7 +761,6 @@ class Pattern(object):
  
         """
         asndict=self.pars['asndict']
-        in_wcs = member.geometry.wcslin
         
         mname = None
         for img in asndict['order']: 
@@ -777,11 +776,11 @@ class Pattern(object):
             dscale = 1.0
         else:         
             # translate delta's into shifts
-            ncrpix1,ncrpix2 = in_wcs.rd2xy((in_wcs.crval1+row['delta_ra'],
-                                            in_wcs.crval2+row['delta_dec']))
+            ncrpix1,ncrpix2 = wcs.rd2xy((wcs.crval1+row['delta_ra'],
+                                         wcs.crval2+row['delta_dec']))
 
-            xsh = in_wcs.crpix1-ncrpix1
-            ysh = in_wcs.crpix2-ncrpix2
+            xsh = wcs.crpix1-ncrpix1
+            ysh = wcs.crpix2-ncrpix2
             drot= row['rot']
             dscale = row['scale']
 
@@ -878,8 +877,8 @@ class Pattern(object):
             _delta_y = cdyt[2]
 
             # Compute offset based on shiftfile values
-            xsh,ysh,drot,dscale = self.getShifts(member)
-             
+            xsh,ysh,drot,dscale = self.getShifts(member,ref_wcs)
+    
             # Start building parameter dictionary for this chip
             parameters = ParDict()
             parameters['data'] = member.name
@@ -909,8 +908,8 @@ class Pattern(object):
             parameters['outnx'] = ref_wcs.naxis1
             parameters['outny'] = ref_wcs.naxis2
 
-            parameters['xsh'] =  _delta_x - xsh
-            parameters['ysh'] =  _delta_y - ysh
+            parameters['xsh'] =  _delta_x + xsh
+            parameters['ysh'] =  _delta_y + ysh
 
             parameters['alpha'] = member.geometry.alpha
             parameters['beta'] = member.geometry.beta
