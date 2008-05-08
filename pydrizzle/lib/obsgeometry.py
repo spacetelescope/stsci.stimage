@@ -358,8 +358,10 @@ class ObsGeometry:
 
         # Need to 0.5 offset to xp,yp to compute the offset in the same way that
         # 'drizzle' computes it.
-        _xp = _naxis[0]/2. + 0.5
-        _yp = _naxis[1]/2. + 0.5
+        #_xp = _naxis[0]/2. + 0.5
+        #_yp = _naxis[1]/2. + 0.5
+        _xp = _naxis[0]/2. 
+        _yp = _naxis[1]/2. 
         _xt = _xoff + _xp
         _yt = _yoff + _yp
 

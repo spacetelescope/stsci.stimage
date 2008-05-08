@@ -21,7 +21,7 @@ _default_pars = {'psize':None,'default_rot':None,'idckey':None}
 
 INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS","WFC3"]
 
-__version__ = "6.1.refac2 (30-Apr-2008)"
+__version__ = "6.1.refac3 (8-May-2008)"
 
 
 class _PyDrizzle:
@@ -94,7 +94,7 @@ More help on SkyField objects and their parameters can be obtained using:
     def __init__(self, input, output=None, field=None, units=None, section=None,
         kernel=None,pixfrac=None,bits_final=0,bits_single=0,
         wt_scl='exptime', fillval=0.,idckey='', in_units='counts',
-        idcdir=DEFAULT_IDCDIR,memmap=0,dqsuffix=None):
+        idcdir=DEFAULT_IDCDIR,memmap=0,dqsuffix=None,shiftwcs=True):
 
         if idcdir == None: idcdir = DEFAULT_IDCDIR
         
@@ -134,7 +134,7 @@ More help on SkyField objects and their parameters can be obtained using:
             'pixfrac':pixfrac,'idckey':idckey,'wt_scl':wt_scl,
             'fillval':fillval,'section':section, 'idcdir':idcdir+os.sep,
             'memmap':memmap,'dqsuffix':dqsuffix, 'in_units':in_units,
-            'bits':[bits_final,bits_single], 'mt_wcs': None,'asndict':asndict}
+            'bits':[bits_final,bits_single], 'mt_wcs': None,'asndict':asndict,'shiftwcs':shiftwcs}
         
         # Watch out for any errors.
         # If they arise, all open files need to be closed...
@@ -976,8 +976,9 @@ class DitherProduct(Pattern):
         # or shiftfile.
         self.computeOffsets()
 
-        # Apply any additional shifts from ASN table/shiftfile
-        #self.applyAsnShifts(output)
+        if self.shiftwcs:
+            # Apply any additional shifts from ASN table/shiftfile
+            self.applyAsnShifts(output)
 
         # Preserve default DitherProduct Metachip WCS as wcslin
         self.product.exptime = self.exptime

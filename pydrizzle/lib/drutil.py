@@ -524,6 +524,7 @@ def wcsfit(img_geom, ref):
     for pix in xrange(len(_cpix_rd[0])):
         _cpix_xyref[pix,0],_cpix_xyref[pix,1] = ref_wcs.rd2xy((_cpix_rd[0][pix],_cpix_rd[1][pix]))
 
+
     # needed to handle correctly subarrays and wfpc2 data
     if img_wcs.delta_refx == 0.0 and img_wcs.delta_refy == 0.0:
         offx, offy = (0.0,0.0)

@@ -86,6 +86,7 @@ class Pattern(object):
         self.pars = pars
         self.output = output
         self.name = filename
+        self.shiftwcs = pars['shiftwcs']
 
         # Set default value, to be reset as needed by sub-class
         self.nmembers = 1
@@ -483,19 +484,20 @@ class Pattern(object):
         _scale = None
         if self.pars['scale'] != 0.:
             _scale = in_wcs.pscale * self.pars['scale']
-
+        in_wcs.recenter()
+        '''
         # Compute new CRVAL for current CRPIX position
         in_wcs.crval1,in_wcs.crval2 = in_wcs.xy2rd(_crpix)
         in_wcs.crpix1 = _crpix[0]
         in_wcs.crpix2 = _crpix[1]
-
+        '''
         #if not _refimage:
         # Update product WCS with the new values
 
         if _orient != None or _scale != None:
 
             in_wcs.updateWCS(orient=_orient,pixel_scale=_scale)
-
+        
     def getProductCorners(self):
         """ Compute the product's corner positions based on input exposure's
             corner positions.
@@ -743,7 +745,7 @@ class Pattern(object):
                     # No conversion necessary
                     delta_ra = xsh
                     delta_dec = ysh
-                
+            
             asndict['members'][img]['delta_ra'] = delta_ra
             asndict['members'][img]['delta_dec'] = delta_dec
         
@@ -753,7 +755,8 @@ class Pattern(object):
         shift of the undistorted image.
  
         Input:
-            wcs - member.geometry.wcslin object
+            member - Exposure class for chip
+            wcs    - PyDrizzle product WCS object
  
         Output:
             [xsh, ysh, rot, scale] - 
@@ -774,14 +777,14 @@ class Pattern(object):
             ysh = 0.0
             drot = 0.0
             dscale = 1.0
-        else:         
+        else:     
             # translate delta's into shifts
             ncrpix1,ncrpix2 = wcs.rd2xy((wcs.crval1+row['delta_ra'],
                                          wcs.crval2+row['delta_dec']))
 
-            xsh = wcs.crpix1-ncrpix1
-            ysh = wcs.crpix2-ncrpix2
-            drot= row['rot']
+            xsh = ncrpix1 - wcs.crpix1
+            ysh = ncrpix2 - wcs.crpix2
+            drot= -row['rot']
             dscale = row['scale']
 
         return [xsh,ysh,drot,dscale]
@@ -850,7 +853,8 @@ class Pattern(object):
         ref_wcs.recenter()
 
         # Convert shifts into delta RA/Dec values
-        self.translateShifts()
+        if not self.shiftwcs:
+            self.translateShifts()
         
         for member in self.members:
             in_wcs = member.geometry.wcslin
@@ -858,6 +862,13 @@ class Pattern(object):
 
             #_delta_rot = in_wcs.orient - ref_wcs.orient
             #_scale = ref_wcs.pscale / in_wcs.pscale
+
+            # Compute offset based on shiftfile values
+            if not self.shiftwcs:
+                xsh,ysh,drot,dscale = self.getShifts(member,ref_wcs)
+            else:
+                xsh,ysh,drot = 0.0,0.0,0.0
+                dscale = 1.0
 
             # Rigorously compute the orientation changes from WCS
             # information using algorithm provided by R. Hook from WDRIZZLE.
@@ -876,9 +887,6 @@ class Pattern(object):
             _delta_x = abxt[2]
             _delta_y = cdyt[2]
 
-            # Compute offset based on shiftfile values
-            xsh,ysh,drot,dscale = self.getShifts(member,ref_wcs)
-    
             # Start building parameter dictionary for this chip
             parameters = ParDict()
             parameters['data'] = member.name
