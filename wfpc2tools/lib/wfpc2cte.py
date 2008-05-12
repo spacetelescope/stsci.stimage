@@ -57,7 +57,7 @@ import pyfits
 import pytools
 from pytools import readgeis,fileutil
 import imagestats
-__version__ = '1.2 (6-Mar-2008)'
+__version__ = '1.2.1 (12-May-2008)'
 
 # This contains the default values in electrons for the CTE sources
 DEFAULT_COUNTS = np.array([100,1000,10000],np.float32)
