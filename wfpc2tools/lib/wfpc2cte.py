@@ -76,13 +76,15 @@ def compute_chip_values(extn,nclip=3):
     center_slice = [slice(chip_center[0]-100.,chip_center[0]+100.),
                     slice(chip_center[1]-100.,chip_center[1]+100.)]
     center_region = extn.data[center_slice]
-
     # Compute the background as the clipped mode of the region.
     chip_stats = imagestats.ImageStats(center_region,fields='mode',
                                     lower=-99.0,upper=4096.,
                                     nclip=nclip,binwidth=0.01)
-    #chip_background = np.sqrt(np.power(chip_stats.mode,2) + 1)
-    chip_background = chip_stats.mode
+    if chip_stats.mode >= 0:
+        chip_background = np.sqrt(np.power(chip_stats.mode,2) + 1)
+    else:
+        chip_background = 1.0
+    #chip_background = chip_stats.mode
     chip_values['bg_raw'] = chip_background
     chip_values['lbg'] = np.log(chip_background) - chip_lbg_factor
     chip_values['bg'] = chip_background - chip_bg_factor    
