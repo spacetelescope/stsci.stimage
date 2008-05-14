@@ -209,7 +209,7 @@ class GeometryModel:
         _cy = self.cy / (self.pscale * scale)
         _convert = no
         _p = pixpos
-
+        
         # Do NOT include any zero-point terms in CX,CY here
         # as they should not be scaled by plate-scale like rest
         # of coeffs...  This makes the computations consistent
@@ -298,6 +298,10 @@ class WCSModel(GeometryModel):
             self.name = header['rootname']
         else:
             self.name = rootname
+        self.name += '_sip'
+        if header.has_key('wfctdd') and header['wfctdd'] == 'T':
+            self.name += '_tdd'
+
         # Initialize all necessary distortion arrays with
         # default model...
         #self.cx,self.cy,self.refpix,self.order = mutil.defaultModel()

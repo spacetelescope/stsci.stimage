@@ -1,7 +1,8 @@
-from pytools import fileutil
+from pytools import fileutil,wcsutil
 import numpy as N
 import string
 import calendar
+import datetime
 
 # Set up IRAF-compatible Boolean values    
 yes = True
@@ -193,7 +194,7 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
     refpix['YDELTA'] = 0.0
     refpix['DEFAULT_SCALE'] = yes
     refpix['centered'] = no
-
+    
     # Now that we know which row to look at, read coefficients into the
     #   numeric arrays we have set up...
     # Setup which column name convention the IDCTAB follows
@@ -334,66 +335,50 @@ def readWCSCoeffs(header):
    
     #Read distortion coeffs from WCS header keywords and
     #populate distortion coeffs arrays.
-    
+        
     # Read in order for polynomials
     _xorder = header['a_order']
     _yorder = header['b_order']
     order = max(max(_xorder,_yorder),3)
 
     fx = N.zeros(shape=(order+1,order+1),dtype=N.float64)
-    fy = N.zeros(shape=(order+1,order+1),dtype=N.float64)
-
-    # Read in CD matrix
-    _cd11 = header['cd1_1']
-    _cd12 = header['cd1_2']
-    _cd21 = header['cd2_1']
-    _cd22 = header['cd2_2']
-    _cdmat = N.array([[_cd11,_cd12],[_cd21,_cd22]])
-    _theta = N.arctan2(-_cd12,_cd22)
-    _rotmat = N.array([[N.cos(_theta),N.sin(_theta)],
-                      [-N.sin(_theta),N.cos(_theta)]])
-    _rCD = N.dot(_rotmat,_cdmat)
-    _skew = N.arcsin(-_rCD[1][0] / _rCD[0][0])
-    _scale = _rCD[0][0] * N.cos(_skew) * 3600.
-    _scale2 = _rCD[1][1] * 3600.
-
+    fy = N.zeros(shape=(order+1,order+1),dtype=N.float64)    
+   
     # Set up refpix
     refpix = {}
     refpix['XREF'] = header['crpix1']
     refpix['YREF'] = header['crpix2']
     refpix['XSIZE'] = header['naxis1']
     refpix['YSIZE'] = header['naxis2']
-    refpix['PSCALE'] = _scale
-    refpix['V2REF'] = 0.
-    refpix['V3REF'] = 0.
-    refpix['THETA'] = RADTODEG(_theta)
+    refpix['PSCALE'] = header['SICSPS']
+    refpix['V2REF'] = header['SICS1POS']
+    refpix['V3REF'] = header['SICS2POS']
+    refpix['THETA'] = header['SICSROT']
     refpix['XDELTA'] = 0.0
     refpix['YDELTA'] = 0.0
     refpix['DEFAULT_SCALE'] = yes
-    refpix['centered'] = yes
+    refpix['centered'] = no
 
 
     # Set up template for coeffs keyword names
     cxstr = 'A_'
     cystr = 'B_'
+    
+    fx[0][0] = 0.0
+    fy[0][0] = 0.0
+    fx[1][0] = header['OCX10']
+    fx[1][1] = header['OCX11']
+    fy[1][0] = header['OCY10']
+    fy[1][1] = header['OCY11']
     # Read coeffs into their own matrix
     for i in xrange(_xorder+1):
         for j in xrange(i+1):
             xcname = cxstr+str(j)+'_'+str(i-j)
-            if header.has_key(xcname):
-                fx[i,j] = header[xcname]
-
-    # Extract Y coeffs separately as a different order may
-    # have been used to fit it.
-    for i in xrange(_yorder+1):
-        for j in xrange(i+1):
             ycname = cystr+str(j)+'_'+str(i-j)
-            if header.has_key(ycname):
-                fy[i,j] = header[ycname]
-
-    # Now set the linear terms
-    fx[0][0] = 1.0
-    fy[0][0] = 1.0
+            if header.has_key(xcname):
+                fx[i,j] = (fx[1][1]*header[xcname] + fx[1][0]*header[ycname])
+                fy[i,j] = (fy[1][1]*header[xcname] + fy[1][0]*header[ycname])
+        
 
     return fx,fy,refpix,order
 
@@ -603,3 +588,23 @@ def convertDate(date):
     _date_tuple = (int(_dates[0]), int(_dates[1]), int(_dates[2]), 0, 0, 0, 0, 0, 0)
 
     return calendar.timegm(_date_tuple)
+
+#
+#
+# Time-dependent skew correction functions
+#
+#
+def compute_wfc_tdd_coeffs(dateobs):
+    ''' Compute the alpha and beta terms for the ACS/WFC 
+        time-dependent skew correction as described in
+        ACS ISR 07-08 by J. Anderson.
+    '''
+    # default date of 2004.5 = 2004-7-1
+    datedefault = datetime.datetime(2004,7,1)
+    year,month,day = dateobs.split('-')
+    rdate = datetime.datetime(int(year),int(month),int(day))
+    alpha = 0.095+0.090*((rdate-datedefault).days/365.25)/2.5
+    beta = -0.029-0.030*((rdate-datedefault).days/365.25)/2.5
+
+    
+    return alpha,beta
