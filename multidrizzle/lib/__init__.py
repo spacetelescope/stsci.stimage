@@ -49,6 +49,12 @@ from pytools.parseinput import parseinput
 # Begin Version Information -------------------------------------------
 __version__ = '3.2.0dev (SM4 Release -- Development)'
 # End Version Information ---------------------------------------------
+# Revision based version info
+try:
+    import svn_version
+    __svn_version__ = svn_version.__svn_version__
+except:
+    __svn_version__ = 'Unable to determine SVN revision'
 
 class Multidrizzle:
     """ 

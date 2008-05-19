@@ -116,6 +116,8 @@ def dosetup(ext):
 
 
 if __name__ == "__main__":
+    import version
+    version.__set_svn_version__(fullInfo=False)
     getF2CDirs(args)
     ext = getNumpyExtensions()
     dosetup(ext)

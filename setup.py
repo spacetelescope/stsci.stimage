@@ -141,6 +141,15 @@ if os.path.exists(os.path.join('pysynphot')):
     DATA_FILES.append( ( PYSYNPHOT_DATA_DIR, glob.glob(os.path.join('pysynphot', 'data', 'generic', '*')) ) )
     DATA_FILES.append( ( PYSYNPHOT_DATA_DIR, glob.glob(os.path.join('pysynphot', 'data', 'wavecat', '*')) ) )
 
+#set SVN revision based version information for some packages
+def set_svn_info(path='./', fullInfo=True):
+    import version
+    version.__set_svn_version__(path=path, fullInfo=fullInfo)
+    
+pp=['pydrizzle', 'multidrizzle', 'pytools']
+
+for p in pp:
+    set_svn_info(path=p, fullInfo=False)
 
 #
 #

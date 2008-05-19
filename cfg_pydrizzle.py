@@ -36,7 +36,7 @@ pydrizzle_lib_dirs = []
 pydrizzle_inc_dirs.append(pythoninc)
 
 
-
+    
 def getF2CDirs(args):
     """ Defines the location of the F2C include and library directories. """
     if "--help" in sys.argv:

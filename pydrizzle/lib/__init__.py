@@ -10,6 +10,13 @@ from math import *
 
 # Version string is in pydrizzle.py
 __version__ = pydrizzle.__version__
+# rvision based version string
+try:
+    import svn_version
+    __svn_version__ = svn_version.__svn_version__
+except:
+    __svn_version__ = 'Unable to determine SVN revision'
+
 
 def PyDrizzle(input, output=None, field=None, units=None, section=None,
         kernel=None,pixfrac=None,bits_final=0,bits_single=0,

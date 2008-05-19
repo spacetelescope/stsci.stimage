@@ -12,6 +12,8 @@ pythonlib = sysconfig.get_python_lib(plat_specific=1)
 
 args = sys.argv[:]
 
+import version
+version.__set_svn_version__(fullInfo=False)
 
 for a in args:
     if a.startswith('--local='):
