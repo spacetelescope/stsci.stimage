@@ -3,6 +3,11 @@ import sys, os.path, string, shutil
 from distutils import sysconfig
 from distutils.command.install_data import install_data
 
+import version
+version.__set_svn_version__(fullInfo=False)
+if "versiononly" in sys.argv[:2] :
+    sys.exit(0)
+
 if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'final',0):
     raise SystemExit, "Python 2.3 or later required to build multidrizzle."
 
@@ -12,8 +17,6 @@ pythonlib = sysconfig.get_python_lib(plat_specific=1)
 
 args = sys.argv[:]
 
-import version
-version.__set_svn_version__(fullInfo=False)
 
 for a in args:
     if a.startswith('--local='):
