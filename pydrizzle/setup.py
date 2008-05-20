@@ -3,6 +3,13 @@ import sys, string, os.path, shutil
 from distutils import sysconfig
 from distutils.command.install_data import install_data
 
+# gather our subversion information and save it; quit if that is all we need
+import version
+version.__set_svn_version__(fullInfo=False)
+if "versiononly" in sys.argv[:2] :
+    sys.exit(0)
+
+
 if not hasattr(sys, 'version_info') or sys.version_info < (2,3,0,'alpha',0):
     raise SystemExit, "Python 2.3 or later required to build pydrizzle."
 
@@ -116,8 +123,6 @@ def dosetup(ext):
 
 
 if __name__ == "__main__":
-    import version
-    version.__set_svn_version__(fullInfo=False)
     getF2CDirs(args)
     ext = getNumpyExtensions()
     dosetup(ext)
