@@ -15,6 +15,15 @@ from cfg_ndimage import NDIMAGE_EXTENSIONS
 from cfg_convolve import CONVOLVE_EXTENSIONS
 from cfg_image import IMAGE_EXTENSIONS
 
+
+#set SVN revision based version information for some packages
+import version
+for path in ['pydrizzle', 'multidrizzle', 'pytools'] :
+    # not practical to distinguish who wants fullInfo and who doesn't
+    version.__set_svn_version__(path=path, fullInfo=True)
+if "versiononly" in sys.argv[:2] :
+    sys.exit(0)
+
 # PACKAGES is the list of all packages that we want to install.  If you
 # want it, make sure it is listed here and in PACKAGE_DIRS
 
@@ -140,16 +149,6 @@ if os.path.exists(os.path.join('pysynphot')):
     PYSYNPHOT_DATA_DIR = os.path.join('pysynphot','data')
     DATA_FILES.append( ( PYSYNPHOT_DATA_DIR, glob.glob(os.path.join('pysynphot', 'data', 'generic', '*')) ) )
     DATA_FILES.append( ( PYSYNPHOT_DATA_DIR, glob.glob(os.path.join('pysynphot', 'data', 'wavecat', '*')) ) )
-
-#set SVN revision based version information for some packages
-def set_svn_info(path='./', fullInfo=True):
-    import version
-    version.__set_svn_version__(path=path, fullInfo=fullInfo)
-    
-pp=['pydrizzle', 'multidrizzle', 'pytools']
-
-for p in pp:
-    set_svn_info(path=p, fullInfo=False)
 
 #
 #
