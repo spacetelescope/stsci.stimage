@@ -6,6 +6,14 @@ from distutils.core import setup
 from distutils.sysconfig import *
 from distutils.command.install_data import install_data
 
+# set SVN revision based version information for some packages
+import version
+for path in ['pydrizzle', 'multidrizzle', 'pytools'] :
+    # not practical to distinguish who wants fullInfo and who doesn't
+    version.__set_svn_version__(path=path, fullInfo=True)
+if "versiononly" in sys.argv[:2] :
+    sys.exit(0)
+
 from cfg_pyraf import PYRAF_DATA_FILES, PYRAF_SCRIPTS, PYRAF_EXTENSIONS, PYRAF_CLCACHE
 from cfg_pydrizzle import PYDRIZZLE_EXTENSIONS
 from cfg_imagestats import IMAGESTATS_EXTENSIONS
@@ -15,14 +23,6 @@ from cfg_ndimage import NDIMAGE_EXTENSIONS
 from cfg_convolve import CONVOLVE_EXTENSIONS
 from cfg_image import IMAGE_EXTENSIONS
 
-
-#set SVN revision based version information for some packages
-import version
-for path in ['pydrizzle', 'multidrizzle', 'pytools'] :
-    # not practical to distinguish who wants fullInfo and who doesn't
-    version.__set_svn_version__(path=path, fullInfo=True)
-if "versiononly" in sys.argv[:2] :
-    sys.exit(0)
 
 # PACKAGES is the list of all packages that we want to install.  If you
 # want it, make sure it is listed here and in PACKAGE_DIRS
