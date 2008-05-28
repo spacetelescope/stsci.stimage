@@ -40,7 +40,9 @@
 #                TFB_RUN: time that temp-from-bias was run
 #                TFB_VERS: version of temp-from-bias that was run
 #            - the default values for all parameters are now set in the file tfbutil.py.
-#   04/25/08 - code version 1.4: deleted unused code for algorithm 1 and cameras 1 and 2
+#   04/25/08 - code version 1.4: deleted unused code for algorithm 1 and cameras 1 and 2;
+#              the input file can now be a list (a text file having a single file listed on each line.)
+#   05/29/08 - code version 1.5: added epar interface, and ability to process filelists
 #
 import os.path
 import sys, time
@@ -49,6 +51,9 @@ import tfbutil
 import opusutil
 import numpy as N
 import pyfits
+import pytools 
+from pytools import parseinput 
+
 
 # Coefficients that are in the file 'temp_from_bias.define' as of 10/12/07; these need to instead
 # be in a (fits) reference file.
@@ -70,6 +75,7 @@ class CalTempFromBias:
        tfb = CalTempFromBias( filename, edit_type=edit_type, hdr_key=hdr_key, err_key=err_key,
              nref_par=nref_par, force=force, noclean=noclean, verbosity=verbosity)
        [temp, sigma, winner ]= tfb.calctemp()
+       tfb.print_pars()
        stat = tfb.update_header( temp, sigma, winner)         
     """
     def __init__( self, input_file, edit_type=None, hdr_key=None, err_key=None, nref_par=None,
@@ -112,250 +118,275 @@ class CalTempFromBias:
         self.tfb_version = __version__
         self.tfb_run = time.asctime()
 
+        outlist = parseinput.parseinput(input_file) ### extract the files in the list
+        self.num_files =  parseinput.countinputs(input_file)[0]
+        self.outlist0 = outlist[0]
+
         if (self.verbosity >1):
            print ' Temp_from_bias run on ',self.tfb_run, ', version: ', self.tfb_version 
+
 
     def calctemp(self): 
         """ Calculate the temperature from the bias for the given input file
         @return: temp, sig, winner
         @rtype: float, float, int
         """
-        temp = 0.0
 
-        edit_type = self.edit_type        
-        hdr_key = self.hdr_key
-        err_key = self.err_key
-        nref_par = self.nref_par
-        noclean = self.noclean
-        filename = self.input_file
-        force = self.force
-        verbosity = self.verbosity
+        self.temp_list = []
+        self.sigma_list = []
+        self.winner_list = []
+        self.nonlinfile_list = []
 
-       # get header
-        try:
-           fh_raw = pyfits.open( filename ) 
-        except:
-           opusutil.PrintMsg("F","ERROR "+ str('Unable to open input file') + str(filename))
-          
-        raw_header = fh_raw[0].header
+        for ii in range(self.num_files):
 
-        obsmode_key = raw_header[ 'OBSMODE' ]
-        obsmode = obsmode_key.lstrip().rstrip() # strip leading and trailing whitespace
+            temp = 0.0
+            edit_type = self.edit_type        
+            hdr_key = self.hdr_key
+            err_key = self.err_key
+            nref_par = self.nref_par
+            noclean = self.noclean
+            filename = self.outlist0[ii]        
+            force = self.force
+            verbosity = self.verbosity
 
-        nsamp_key = raw_header[ 'NSAMP' ]
-        nsamp = nsamp_key
+            if ( verbosity > 0):
+              print '   ' ; print '   '
+              print 'Calculating temp for file ',ii,' : ', filename
 
-        camera_key = raw_header[ 'CAMERA' ]
-        camera = camera_key
- 
-        zoffdone_key = raw_header[ 'ZOFFDONE' ]
-        zoffdone = zoffdone_key.lstrip().rstrip() # strip leading and trailing whitespace
+           # get header
+            try:
+               fh_raw = pyfits.open( filename )
+            except:
+               opusutil.PrintMsg("F","ERROR "+ str('Unable to open input file') + str(filename))   
 
-        if ( obsmode <> 'MULTIACCUM'):
-            opusutil.PrintMsg("F","ERROR "+ str('Image must be in MULTIACCUM mode'))
+            raw_header = fh_raw[0].header
 
-        if ( zoffdone == 'PERFORMED'):
-            opusutil.PrintMsg("F","ERROR "+ str('ZOFFCORR has already been performed on this image. No temp information left'))
+            obsmode_key = raw_header[ 'OBSMODE' ]
+            obsmode = obsmode_key.lstrip().rstrip() # strip leading and trailing whitespace
 
-        # get nonlinearity file name from NLINFILE in header of input file and open it
-        if nref_par is not None:  
-           nref = os.path.expandvars( nref_par)
-        else:
-           nref = os.path.expandvars( "$nref")
+            nsamp_key = raw_header[ 'NSAMP' ]
+            nsamp = nsamp_key
 
-        nonlinfile_key = raw_header[ 'NLINFILE' ] 
-        nl_file = nonlinfile_key.split('nref$')[1]
-        nonlin_file = os.path.join( nref, nl_file)
+            camera_key = raw_header[ 'CAMERA' ]
+            camera = camera_key
 
-        try:
-           fh_nl = pyfits.open( nonlin_file )
-           self.nonlin_file = nonlin_file            
-        except:
-           opusutil.PrintMsg("F","ERROR "+ str('Unable to open nonlinearity file') + str(nonlin_file))
+            zoffdone_key = raw_header[ 'ZOFFDONE' ]
+            zoffdone = zoffdone_key.lstrip().rstrip() # strip leading and trailing whitespace
 
-        # read data from nonlinearity file
-        c1 = fh_nl[ 1 ].data; c2 = fh_nl[ 2 ].data; c3 = fh_nl[ 3 ].data
+            if ( obsmode <> 'MULTIACCUM'):
+                opusutil.PrintMsg("F","ERROR "+ str('Image must be in MULTIACCUM mode'))
 
-        # do some bad pixel clipping
-        u = N.where((c2 > c2_min)  | (c2 < c2_max))
-        uu = N.where((c2 < c2_min) & (c2 > c2_max))
+            if ( zoffdone == 'PERFORMED'):
+                opusutil.PrintMsg("F","ERROR "+ str('ZOFFCORR has already been performed on this image. No temp information left'))
 
-        if len(u[0]) > 0 :
-           c2[u] = N.median(c2[uu])
+            # get nonlinearity file name from NLINFILE in header of input file and open it
+            if nref_par is not None:  
+               nref = os.path.expandvars( nref_par)
+            else:
+               nref = os.path.expandvars( "$nref")
 
-        u = N.where((c3 > c3_min) | (c3 < c3_max))  
-        uu = N.where((c3 < c3_min) & (c3 > c3_max))
+            nonlinfile_key = raw_header[ 'NLINFILE' ] 
+            nl_file = nonlinfile_key.split('nref$')[1]
+            nonlin_file = os.path.join( nref, nl_file)
 
-        if len(u[0]) > 0:
-           c3[u] = N.median(c3[uu])
-
-        if ( nsamp <= 1 ):
-           opusutil.PrintMsg("F","ERROR "+ str(' : nsamp <=1, so will not process'))
-           return None, None, None
-
-        if ( nsamp >= 3 ):       
-            im0 = fh_raw[ ((nsamp-1)*5)+1 ].data  
-            im1 = fh_raw[ ((nsamp-2)*5)+1 ].data
-            im2 = fh_raw[ ((nsamp-3)*5)+1 ].data
-            dtime0 = 0.203    # this is by definition - headers have 0.0 so can't use that
-            ext_hdr1 = fh_raw[((nsamp-2)*5)+1].header
-            dtime1 = ext_hdr1[ 'DELTATIM' ]
-            ext_hdr2 = fh_raw[((nsamp-3)*5)+1].header
-            dtime2 = ext_hdr2[ 'DELTATIM' ]
-
-            signal_raw = (im2-im1)+(((im2-im1)/dtime2)*(dtime0+dtime1)) # total counts accumulated (1st estimate)
- 
-            signal0 = (signal_raw *(signal_raw*c2 + signal_raw**2*c3+1.0))/(dtime0+dtime1+dtime2) # refined 0 ADU countrate
-            
-            for ii in range(9):
-              signal_raw = signal0*(dtime0+dtime1) # pure 1st read signal if no nonlinearity
-              signal1 = (signal_raw / (signal_raw*c2 + signal_raw**2*c3 +1.0)) / (dtime0+dtime1) #1st read signal with nl
-              signal_raw = (im2-im1) + (signal1*(dtime0+dtime1)) # total counts accumulated (second estimate)
-              signal0 = (signal_raw * (signal_raw*c2 + signal_raw**2*c3 +1.0))/(dtime0+dtime1+dtime2) # doubly-refined 0 ADU countrate
-
-            signal_raw = signal0 * dtime0 # pure 0th read signal if no nonlinearity 
-            signal = signal_raw / (signal_raw*c2 + signal_raw**2*c3 +1.0) # 0th read total counts with nonlinearity - this is what should be subtracted from the 0th read
-
-            clean = im0 - signal 
-            if  (self.noclean == 'True'):
-               clean = im0
-
-# If there are only 2 reads, can do a partial clean. Subtraction of the signal
-#   measured in this way will have a  negative 0.302s shading imprint in it. The amplitude
-#   of this will be temp-dependent. Best way to deal is to decide if there is enough
-#   signal to warrant a subtraction. if not, just use the 0th read without any correction.
-
-        if ( nsamp == 2 ):       
-            im0 = fh_raw[ ((nsamp-1)*5)+1 ].data
-            im1 = fh_raw[ ((nsamp-2)*5)+1 ].data
-            clean = im0
-            signal= ((im1-im0)/0.302328 )
-
-            if not threshold:
-               threshold = 10.0  # in DN/s. Every 5 DN/s here is 5*0.203 = 1 DN in the quad median.
-
-            if (N.median(signal*0.203) > threshold ):
-               clean = im0-(signal * 0.203)
+            try:
+               fh_nl = pyfits.open( nonlin_file )
                
-            if  (self.noclean == 'True'):
-               clean = im0
+               self.nonlin_file = nonlin_file            
+            except:
+               opusutil.PrintMsg("F","ERROR "+ str('Unable to open nonlinearity file') + str(nonlin_file))
 
-# Following Eddie's suggestion: I'll catch these rare cases and abort by searching for:
-#   nsamp=2 and filter is NOT blank, instead of original code which compares the median
-#   of the signal and the threshold
+            # read data from nonlinearity file
+            c1 = fh_nl[ 1 ].data; c2 = fh_nl[ 2 ].data; c3 = fh_nl[ 3 ].data
 
-            filter_key = raw_header[ 'FILTER' ] 
-            filter = filter_key.lstrip().rstrip()
-            filter = str('BLANK')
-            if (filter <> 'BLANK'):
-                opusutil.PrintMsg("F","ERROR "+ str('can not determine the temperature from the bias'))
-   
-# Calculate the quad medians to feed the temp algorithms; current state values are based on a border=5 mean.
-        rawquads = quadmed(clean, border=5)
+            # do some bad pixel clipping
+            u = N.where((c2 > c2_min)  | (c2 < c2_max))
+            uu = N.where((c2 < c2_min) & (c2 > c2_max))
 
-        if (self.verbosity >1):
-            print ' The results of the quadmed call:'
-            print rawquads
+            if len(u[0]) > 0 :
+               c2[u] = N.median(c2[uu])
 
-# This is the start of cascade to select the most optimal temp algorithm 
+            u = N.where((c3 > c3_min) | (c3 < c3_max))  
+            uu = N.where((c3 < c3_min) & (c3 > c3_max))
 
-#  ALGORITHM 2. Blind correction. 
-        quads = rawquads
+            if len(u[0]) > 0:
+               c3[u] = N.median(c3[uu])
 
-        if (( camera == 1) | (camera ==2)):      
-           print ' Cameras 1 and 2 not currently supported.'
-           return None, None, None
-           
-        if ( camera == 3): 
-           w = [ p3_c2_0, p3_c2_1 ] 
+            if ( nsamp <= 1 ):
+               opusutil.PrintMsg("F","ERROR "+ str(' : nsamp <=1, so will not process'))
+               return None, None, None
 
-           quads[3] = (-(quads[3] - poly(quads[0],w)))
-           temp2 = (quads[3]/p3_c2_slope)+ p3_c2_offset 
+            if ( nsamp >= 3 ):       
+                im0 = fh_raw[ ((nsamp-1)*5)+1 ].data  
+                im1 = fh_raw[ ((nsamp-2)*5)+1 ].data
+                im2 = fh_raw[ ((nsamp-3)*5)+1 ].data
+                dtime0 = 0.203    # this is by definition - headers have 0.0 so can't use that
+                ext_hdr1 = fh_raw[((nsamp-2)*5)+1].header
+                dtime1 = ext_hdr1[ 'DELTATIM' ]
+                ext_hdr2 = fh_raw[((nsamp-3)*5)+1].header
+                dtime2 = ext_hdr2[ 'DELTATIM' ]
 
-           sigma2 = p3_c2_sigma   # this is an empirical quantity determined from EOL data   
-                                  # it is used for comparison at the bottom of the cascade
+                signal_raw = (im2-im1)+(((im2-im1)/dtime2)*(dtime0+dtime1)) # total counts accumulated (1st estimate)
 
-# ALGORITHM 3. Quietest-quad method. 
-#       (no attempt at state removal - just use the quad(s) with smallest LVPS amplitudes)
-        quads = rawquads
+                signal0 = (signal_raw *(signal_raw*c2 + signal_raw**2*c3+1.0))/(dtime0+dtime1+dtime2) # refined 0 ADU countrate
 
-        if ( camera == 3): 
-             #  For NIC3, avg of quads 2 and 3 is best. RMS after avg is 39 DN (0.14 K)
-           qtemps_3 = [poly(quads[1],[ pt3_2_0, pt3_2_1]),poly(quads[2],[ pt3_3_0, pt3_3_1])]
-           
-           temp3 = N.mean(qtemps_3)
-           sigma3 = p3_c3_sigma 
+                for ii in range(9):
+                  signal_raw = signal0*(dtime0+dtime1) # pure 1st read signal if no nonlinearity
+                  signal1 = (signal_raw / (signal_raw*c2 + signal_raw**2*c3 +1.0)) / (dtime0+dtime1) #1st read signal with nl
+                  signal_raw = (im2-im1) + (signal1*(dtime0+dtime1)) # total counts accumulated (second estimate)
+                  signal0 = (signal_raw * (signal_raw*c2 + signal_raw**2*c3 +1.0))/(dtime0+dtime1+dtime2) # doubly-refined 0 ADU countrate
 
-# Compare the error estimates of algorithms 2 and 3 and return the best one; the 
-#   lowest sigma is the winner.
-        winner = 2  
-        temp = temp2
-        sig = sigma2
-        
-        if (sigma3 < sigma2):  
-           temp = temp3
-           sig = sigma3
-           winner = 3
-# This is the end of cascade to select the most optimal temp algorithm 
+                signal_raw = signal0 * dtime0 # pure 0th read signal if no nonlinearity 
+                signal = signal_raw / (signal_raw*c2 + signal_raw**2*c3 +1.0) # 0th read total counts with nonlinearity - this is what should be subtracted from the 0th read
 
-#  verbose output, if requested
-        if (self.verbosity >1):
-            print '**************************************************************************************'
-            print ' '            
-            print '    Camera: ',camera 
-            print '                                               Q1         Q2         Q3         Q4'
-            print 'Temp from Algorithm 2 (blind-correction):  ',temp2
-            
-            if ( camera == 3):
-                print 'Temp(s) from Algorithm 3 (quietest-quad):             ',qtemps_3[0],'  ',qtemps_3[1]
-            print '**************************************************************************************'
-            print '   '
-            print '     Algorithm 2: ',temp2,' (K) +/- ',sigma2,' (sigma)'
-            print '     Algorithm 3: ',temp3,' (K) +/- ',sigma3,' (sigma)'
-            print '     ----------------------------------------------------------'
+                clean = im0 - signal 
+                if  (self.noclean == 'True'):
+                   clean = im0
 
-            if (force == None):
-                print '     The algorithm selected (not forced)  by this routine is ',winner,'.'
-            print '  '
-            print '**************************************************************************************'
+    # If there are only 2 reads, can do a partial clean. Subtraction of the signal
+    #   measured in this way will have a  negative 0.302s shading imprint in it. The amplitude
+    #   of this will be temp-dependent. Best way to deal is to decide if there is enough
+    #   signal to warrant a subtraction. if not, just use the 0th read without any correction.
 
-#  If the force keyword is set, force the output to return the value
-#    from that particular algorithm, even if it wasn't the best.
+            if ( nsamp == 2 ):       
+                im0 = fh_raw[ ((nsamp-1)*5)+1 ].data
+                im1 = fh_raw[ ((nsamp-2)*5)+1 ].data
+                clean = im0
+                signal= ((im1-im0)/0.302328 )
 
-        if (force <> None and force.upper()[0] == "S"):   
-            print ' This algorithm is not supported.'
-            return None, None, None
+                if not threshold:
+                   threshold = 10.0  # in DN/s. Every 5 DN/s here is 5*0.203 = 1 DN in the quad median.
 
-        if (force <> None and force.upper()[0] == "B"):
+                if (N.median(signal*0.203) > threshold ):
+                   clean = im0-(signal * 0.203)
+
+                if  (self.noclean == 'True'):
+                   clean = im0
+
+    # Following Eddie's suggestion: I'll catch these rare cases and abort by searching for:
+    #   nsamp=2 and filter is NOT blank, instead of original code which compares the median
+    #   of the signal and the threshold
+
+                filter_key = raw_header[ 'FILTER' ] 
+                filter = filter_key.lstrip().rstrip()
+                filter = str('BLANK')
+                if (filter <> 'BLANK'):
+                    opusutil.PrintMsg("F","ERROR "+ str('can not determine the temperature from the bias'))
+
+    # Calculate the quad medians to feed the temp algorithms; current state values are based on a border=5 mean.
+            rawquads = quadmed(clean, border=5)
+
             if (self.verbosity >1):
-               print 'Forcing Algorithm 2 (Blind correction) result to be returned, at your request...'
-            winner = 2
+                print ' The results of the quadmed call:'
+                print rawquads
+
+    # This is the start of cascade to select the most optimal temp algorithm 
+
+    #  ALGORITHM 2. Blind correction. 
+            quads = rawquads
+
+            if (( camera == 1) | (camera ==2)):      
+               print ' Cameras 1 and 2 not currently supported.'
+               return None, None, None
+
+            if ( camera == 3): 
+               w = [ p3_c2_0, p3_c2_1 ] 
+
+               quads[3] = (-(quads[3] - poly(quads[0],w)))
+               temp2 = (quads[3]/p3_c2_slope)+ p3_c2_offset 
+
+               sigma2 = p3_c2_sigma   # this is an empirical quantity determined from EOL data   
+                                      # it is used for comparison at the bottom of the cascade
+
+    # ALGORITHM 3. Quietest-quad method. 
+    #       (no attempt at state removal - just use the quad(s) with smallest LVPS amplitudes)
+            quads = rawquads
+
+            if ( camera == 3): 
+                 #  For NIC3, avg of quads 2 and 3 is best. RMS after avg is 39 DN (0.14 K)
+               qtemps_3 = [poly(quads[1],[ pt3_2_0, pt3_2_1]),poly(quads[2],[ pt3_3_0, pt3_3_1])]
+
+               temp3 = N.mean(qtemps_3)
+               sigma3 = p3_c3_sigma 
+
+    # Compare the error estimates of algorithms 2 and 3 and return the best one; the 
+    #   lowest sigma is the winner.
+            winner = 2  
             temp = temp2
             sig = sigma2
 
-        if (force <> None and force.upper()[0] == "Q"):
+            if (sigma3 < sigma2):  
+               temp = temp3
+               sig = sigma3
+               winner = 3
+    # This is the end of cascade to select the most optimal temp algorithm 
+
+    #  verbose output, if requested
             if (self.verbosity >1):
-               print 'Forcing Algorithm 3 (Quietest-quad) result to be returned, at your request...'
-            winner = 3
-            temp = temp3 
-            sig = sigma3
+                print '**************************************************************************************'
+                print ' '            
+                print '    Camera: ',camera 
+                print '                                               Q1         Q2         Q3         Q4'
+                print 'Temp from Algorithm 2 (blind-correction):  ',temp2
 
-        if (force <> None):
-            if (self.verbosity >1):
-               print '... which gives temp = ' , temp,' and sigma = ' , sig
+                if ( camera == 3):
+                    print 'Temp(s) from Algorithm 3 (quietest-quad):             ',qtemps_3[0],'  ',qtemps_3[1]
+                print '**************************************************************************************'
+                print '   '
+                print '     Algorithm 2: ',temp2,' (K) +/- ',sigma2,' (sigma)'
+                print '     Algorithm 3: ',temp3,' (K) +/- ',sigma3,' (sigma)'
+                print '     ----------------------------------------------------------'
 
-        # close any open file handles
-        if fh_raw:
-          fh_raw.close()
-        if fh_nl:
-          fh_nl.close()
+                if (force == None):
+                    print '     The algorithm selected (not forced)  by this routine is ',winner,'.'
+                print '  '
+                print '**************************************************************************************'
 
-        return temp, sig, winner
+    #  If the force keyword is set, force the output to return the value
+    #    from that particular algorithm, even if it wasn't the best.
+
+            if (force <> None and force.upper()[0] == "S"):   
+                print ' This algorithm is not supported.'
+                return None, None, None
+
+            if (force <> None and force.upper()[0] == "B"):
+                if (self.verbosity >1):
+                   print 'Forcing Algorithm 2 (Blind correction) result to be returned, at your request...'
+                winner = 2
+                temp = temp2
+                sig = sigma2
+
+            if (force <> None and force.upper()[0] == "Q"):
+                if (self.verbosity >1):
+                   print 'Forcing Algorithm 3 (Quietest-quad) result to be returned, at your request...'
+                winner = 3
+                temp = temp3 
+                sig = sigma3
+
+            if (force <> None):
+                if (self.verbosity >1):
+                   print '... which gives temp = ' , temp,' and sigma = ' , sig
+
+            self.temp_list.append( temp )
+            self.sigma_list.append( sig )
+            self.winner_list.append( winner ) 
+            self.nonlinfile_list.append( nonlin_file )
+
+            # close any open file handles
+            if fh_raw:
+              fh_raw.close()
+            if fh_nl:
+              fh_nl.close()
+
+        return self.temp_list, self.sigma_list, self.winner_list
 
 ## end of def calctemp()
 
+
     def update_header(self, temp, sig, winner, edit_type=None, hdr_key=None,
-                      err_key=None, verbosity=0):  
+                      err_key=None):  
+
+        
         """ Update header
         @param temp: calculated temperature
         @type temp: float
@@ -369,65 +400,72 @@ class CalTempFromBias:
         @type hdr_key: string
         @param err_key: name of keyword for error estimate
         @type err_key: string
-        @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
-        @type verbosity: string
         @return: status (not None for failure due to key not being specified)
         @rtype: int
         """
 
-        if (hdr_key == None):
-            if (self.hdr_key <> None):  # use value given in constructor
-                hdr_key = self.hdr_key
+        for ii in range(self.num_files):
+
+            this_file = self.outlist0[ii]        
+
+            if (hdr_key == None):
+                if (self.hdr_key <> None):  # use value given in constructor
+                    hdr_key = self.hdr_key
+                else:
+                    opusutil.PrintMsg("F","ERROR "+ str('No value has been specified for hdr_key'))               
+                    return ERROR_RETURN
             else:
-                opusutil.PrintMsg("F","ERROR "+ str('No value has been specified for hdr_key'))               
-                return ERROR_RETURN
-        else:
-            self.hdr_key = hdr_key # for later use by print_pars()
-            if ( verbosity > 0):
-                print ' Using value of hdr_key = ' , hdr_key,' that has been passed to update_header()'
+                self.hdr_key = hdr_key # for later use by print_pars()
+                if ( self.verbosity > 0):
+                    print ' Using value of hdr_key = ' , hdr_key,' that has been passed to update_header()'
 
-        if (err_key == None):
-            if (self.err_key <> None):  # use value given in constructor
-                err_key = self.err_key
+            if (err_key == None):
+                if (self.err_key <> None):  # use value given in constructor
+                    err_key = self.err_key
+                else:
+                    opusutil.PrintMsg("F","ERROR "+ str('No value has been specified for err_key'))               
+                    return ERROR_RETURN
             else:
-                opusutil.PrintMsg("F","ERROR "+ str('No value has been specified for err_key'))               
-                return ERROR_RETURN
-        else:
-            self.err_key = err_key # for later use by print_pars()
-            if ( verbosity > 0):
-                print ' Using value of err_key = ' , err_key,' that has been passed to update_header()'
+                self.err_key = err_key # for later use by print_pars()
+                if ( self.verbosity > 0):
+                    print ' Using value of err_key = ' , err_key,' that has been passed to update_header()'
 
-        if (edit_type == None):
-            if (self.edit_type <> None):  # use value given in constructor
-                edit_type = self.edit_type
+            if (edit_type == None):
+                if (self.edit_type <> None):  # use value given in constructor
+                    edit_type = self.edit_type
+                else:
+                    opusutil.PrintMsg("F","ERROR "+ str('No value has been specified for edit_type'))             
+                    return ERROR_RETURN
             else:
-                opusutil.PrintMsg("F","ERROR "+ str('No value has been specified for edit_type'))             
-                return ERROR_RETURN
-        else:
-            self.edit_type = edit_type # for later use by print_pars()
-            if ( verbosity > 0):
-                print ' Using value of edit_type = ' , edit_type,' that has been passed to update_header()'
+                self.edit_type = edit_type # for later use by print_pars()
+                if ( self.verbosity > 0):
+                    print ' Using value of edit_type = ' , edit_type,' that has been passed to update_header()'
 
-        if (winner == 2):# 'blind-correction'  
-           meth_used = "BLIND CORRECTION"
-        else: # (winner == 3):# 'quietest-quad'
-           meth_used = "QUIETEST-QUAD"
-                                    
-        comm = str('Temp from bias, sigma=')+str(sig)+str(' (K)')
-        filename =  self.input_file
+            if (winner == 2):# 'blind-correction'  
+               meth_used = "BLIND CORRECTION"
+            else: # (winner == 3):# 'quietest-quad'
+               meth_used = "QUIETEST-QUAD"
 
-        # update either the RAW or SPT file
-        if (edit_type[0] =="S"): # SPT
-           underbar = filename.find('_')
-           filename =  filename[:underbar] +'_spt.fits'
-        fh = pyfits.open( filename, mode='update' )      
-        hdr = fh[0].header 
-        hdr.update(hdr_key, temp, comment = comm)
-        hdr.update(err_key, sig, comment = "Error estimate on temperature")
-        hdr.update("METHUSED", meth_used, comment = "Algorithm type used")
-        hdr.update("TFB_RUN", self.tfb_run, comment = "Time that temp-from-bias was run")
-        hdr.update("TFB_VERS", self.tfb_version, comment = "Version of temp-from-bias that was run") 
-        fh.close()
+            comm = str('Temp from bias, sigma=')+str(sig)+str(' (K)')
+
+            filename =  this_file
+
+            # update either the RAW or SPT file
+            if (edit_type[0] =="S"): # SPT
+               underbar = filename.find('_')
+               filename =  filename[:underbar] +'_spt.fits'
+            fh = pyfits.open( filename, mode='update' )      
+            hdr = fh[0].header
+            
+            hdr.update(hdr_key, temp[ii], comment = comm)
+            hdr.update(err_key, sig[ii], comment = "Error estimate on temperature")
+            hdr.update("METHUSED", meth_used, comment = "Algorithm type used")
+            hdr.update("TFB_RUN", self.tfb_run, comment = "Time that temp-from-bias was run")
+            hdr.update("TFB_VERS", self.tfb_version, comment = "Version of temp-from-bias that was run") 
+            fh.close()
+
+        if ( self.verbosity > 0):
+           print ' The headers have been updated.'
 
         return None
         
@@ -435,7 +473,7 @@ class CalTempFromBias:
         """ Print parameters used.
         """
         print ' The parameters used are :'
-        print '  input_file:  ' , self.input_file
+        print '  input_file list:  ' , self.input_file
         print '  edit_type:  ' , self.edit_type
         print '  hdr_key: ' ,  self.hdr_key
         print '  err_key: ' ,  self.err_key
@@ -443,7 +481,13 @@ class CalTempFromBias:
         print '  force: ' ,  self.force
         print '  noclean: ' ,  self.noclean
         print '  verbosity: ' ,  self.verbosity
-        print '  nonlinearity file: ' ,  self.nonlin_file   
+        print ' For the files given by the input file list: '
+        for ii in range(self.num_files):
+            this_file = self.outlist0[ii]        
+            print '    input_file[',ii,']:  ' , this_file
+            this_nl_file = self.nonlinfile_list[ii]                    
+            print '    nonlinearity file[',ii,']: ' ,  this_nl_file
+        
 
 
 #******************************************************************
@@ -570,30 +614,18 @@ if __name__=="__main__":
     tfbutil.setForce(options.force )
     force = options.force 
 
-    num_files = 1 # if not a filelist
-    theList=[] # create empty list to populate with filenames
-    if ( filename[0] == '@' ):
-         filename = filename[1:]   # extract text file listing the files
+    try :
+         tfb = CalTempFromBias( filename, edit_type=edit_type, hdr_key=hdr_key, err_key=err_key,
+                                nref_par=nref_dir, force=force, noclean=noclean, verbosity=verbosity)
+         [temp, sigma, winner ]= tfb.calctemp()
+         stat = tfb.update_header( temp, sigma, winner)
+         if ( (stat == None )and (verbosity > 0)):
+            tfb.print_pars() 
+         
+    except Exception, errmess:
+         opusutil.PrintMsg("F","ERROR "+ str(errmess))
 
-         for line in open(filename, 'r').readlines():
-             theList.append(line[:-1])
-         num_files =  len(theList)
-    else:
-         theList.append(filename)  # the list is the single file specified 
 
-    for ii_file in range(num_files):   # loop over all files in the list        
-        try:
-           tfb = CalTempFromBias( theList[ ii_file ] , edit_type=edit_type, hdr_key=hdr_key, err_key=err_key, nref_par=nref_dir, force=force, noclean=noclean, verbosity=verbosity) 
-           [temp, sigma, winner ]= tfb.calctemp() 
-           stat = tfb.update_header( temp, sigma, winner, edit_type, hdr_key, err_key) 
-
-           if ( (stat == None )and (verbosity > 0)):
-                tfb.print_pars()
-
-           del tfb
-
-        except Exception, errmess:
-           opusutil.PrintMsg("F","ERROR "+ str(errmess))
 
 
 
