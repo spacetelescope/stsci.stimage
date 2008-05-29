@@ -64,7 +64,7 @@ p3_c2_slope = 37.0; p3_c2_offset = 75.15                                        
 pt3_2_0 = 153.25747; pt3_2_1 = 0.0037115404; pt3_3_0 = 151.03888; pt3_3_1 = 0.0036755942            # camera 3, algorithm 3
 p3_c3_sigma = 0.25                                                                                  # camera 3, algorithm 3
 
-__version__ = "1.4"   
+__version__ = "1.5"   
 
 ERROR_RETURN = 2 
 
