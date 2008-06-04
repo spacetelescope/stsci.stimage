@@ -154,7 +154,7 @@ def _func_Shadow_WF4x(x,y):
 # Function for creating the weighting image for WFPC2 drizzling
 # from the 'wmosaic' shadow mask polynomials.
 
-def buildShadowMaskImage(rootname,detnum,maskname,replace=yes,bitvalue=None,binned=1):
+def buildShadowMaskImage(rootname,detnum,extnum,maskname,replace=yes,bitvalue=None,binned=1):
     """ Builds mask image from WFPC2 shadow calibrations.
       detnum - string value for 'DETECTOR' detector
     """
@@ -177,8 +177,19 @@ def buildShadowMaskImage(rootname,detnum,maskname,replace=yes,bitvalue=None,binn
     if fileutil.findFile(maskname) and replace:
         fileutil.removeFile(maskname)
 
+    # Read in info from .c1h file to add flagged bad pixels to final mask
+    _indx = rootname.find('.c1h')
+    if _indx < 0: _indx = len(rootname)
+    if rootname.find('.fits') < 0:
+        _dqname = rootname[:_indx]+'.c1h'
+    else:
+        _dqname = rootname
+
+    _use_inmask = False
+    if fileutil.findFile(_dqname) != yes or bitvalue == None:
+        _use_inmask = True
     # Check to see if file exists...
-    if not fileutil.findFile(_mask):
+    if _use_inmask and not fileutil.findFile(_mask):
     # If not, create the file.
     # This takes a long time to run, so it should be done
     # only when absolutely necessary...
@@ -211,13 +222,6 @@ def buildShadowMaskImage(rootname,detnum,maskname,replace=yes,bitvalue=None,binn
             return None
 
 
-    # Read in info from .c1h file to add flagged bad pixels to final mask
-    _indx = rootname.find('.c1h')
-    if _indx < 0: _indx = len(rootname)
-    if rootname.find('.fits') < 0:
-        _dqname = rootname[:_indx]+'.c1h'
-    else:
-        _dqname = rootname
     # Check for existance of input .c1h file for use in making inmask file
     if fileutil.findFile(_dqname) != yes:
         print 'DQ file ',_dqname,' NOT found...'
@@ -235,7 +239,7 @@ def buildShadowMaskImage(rootname,detnum,maskname,replace=yes,bitvalue=None,binn
         #fsmask = pyfits.open(_mask,memmap=1,mode='readonly')
         try:
             # Read in DQ array from .c1h and from shadow mask files
-            dqarr = fdq[int(detnum)].data
+            dqarr = fdq[int(extnum)].data
             #maskarr = fsmask[0].data
 
             # Build mask array from DQ array

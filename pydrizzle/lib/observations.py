@@ -394,7 +394,7 @@ class WFPCObservation(Pattern):
             self.imtype.dq_extn = _dqextn
             
             # Build mask file for this member chip
-            _dqname = self.imtype.makeDQName(extver=_detnum)
+            _dqname = self.imtype.makeDQName(extver=i+1)
             _masklist = []
             _masknames = []
 
@@ -404,12 +404,12 @@ class WFPCObservation(Pattern):
                 _maskname = None
             _masknames.append(_maskname)
 
-            outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[0], binned=self.binned)
+            outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,i+1,_maskname, bitvalue=self.bitvalue[0], binned=self.binned)
             _masklist.append(outmask)
 
             _maskname = _maskname.replace('final_mask','single_mask')
             _masknames.append(_maskname)
-            outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,_maskname, bitvalue=self.bitvalue[1], binned=self.binned)
+            outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,i+1,_maskname, bitvalue=self.bitvalue[1], binned=self.binned)
             _masklist.append(outmask)
             _masklist.append(_masknames)
 
