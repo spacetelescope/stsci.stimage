@@ -77,7 +77,7 @@
 #                     routine now reads a c0h fits file (whose image data are reals), calculates corrections based on this
 #                     image data, and applies the corrections to this data, updating the file in-place. As a result, the keywords
 #                     that are output have been modified.
-#
+#          06/05/08 - reverting back to writing the corrected output to the file <dataset>_bjc_<chip>.fits, as in "u9ux010gm_c0h_bjc_4.fits"
 #
 # Outline:
 #
@@ -110,7 +110,7 @@
 #     - For each row, the mean is calculated for pixels deviating from the mode by less than 4 sigma 
 #     - For each row, the difference between the mean and the global mean is subtracted from the c0 data
 #
-# 5. The modified c0 data is overwrites the data in the input file
+# 5. The modified c0 data is written to the file <dataset>_bjc_<chip>.fits
 #      
 # Linux command line short options and defaults (set in wfpc2util.py):
 #     -g: group (default = 4)
@@ -144,12 +144,12 @@ import pyfits
 import numpy as N
 from convolve import boxcar 
 import pytools
-from pytools import numerixenv, readgeis
+from pytools import numerixenv      
 from optparse import OptionParser
 import ndimage
 import wfpc2util, opusutil, sys, string
 
-__version__ = "2.10 (2008 May 2)"
+__version__ = "2.11 (2008 June 5)"
 
 NUM_SIG = 2.5  # number of sigma to use in sigma clipping
 TOT_ITER = 4   # maximum number of iterations for sigma clipping
@@ -206,8 +206,7 @@ class Wfpc2destreak:
         file_prefix = input_file.split('.')[0] 
 
     # read data from input c0h fits file:
-
-        fh_c0 = pyfits.open(input_file, mode='update')
+        fh_c0 = pyfits.open(input_file) 
         c0_hdr = fh_c0[0].header 
 
         data_cube = fh_c0[0].data
@@ -235,34 +234,34 @@ class Wfpc2destreak:
         if ( group == 4 ):
            col_max = 20 ; ix_min = 40; iy_min = 50
 
-        BlackLevel = c0_data[:,col_min:col_max]
+        SubarrayLevel = c0_data[:,col_min:col_max]
 
-        mask = cr_reject(BlackLevel)    
-        mask_2d = N.resize( mask, [BlackLevel.shape[0], BlackLevel.shape[1]])    
-        masked_BlackLevel = BlackLevel * (1-mask_2d)  # gives 0 where there are Cosmic rsys
+        mask = cr_reject(SubarrayLevel)    
+        mask_2d = N.resize( mask, [SubarrayLevel.shape[0], SubarrayLevel.shape[1]])    
+        masked_SubarrayLevel = SubarrayLevel * (1-mask_2d)  # gives 0 where there are Cosmic rsys
 
     # calculate stats for all pixels in c0 pyramid region
-        self.porgpix = BlackLevel.shape[0]* BlackLevel.shape[1]
-        self.porgmean =  BlackLevel.mean(); self.porgstd = BlackLevel.std()
-        self.porgmin = BlackLevel.min(); self.porgmax = BlackLevel.max()
+        self.porgpix = SubarrayLevel.shape[0]* SubarrayLevel.shape[1]
+        self.porgmean =  SubarrayLevel.mean(); self.porgstd = SubarrayLevel.std()
+        self.porgmin = SubarrayLevel.min(); self.porgmax = SubarrayLevel.max()
 
     # write mask file for c0 pyramid region
         mask_file = file_prefix + str('_bjc_Pmask_')+str(group)+str('.fits')   
     
-        write_mask( masked_BlackLevel, mask_file, verbosity )
+        write_mask( masked_SubarrayLevel, mask_file, verbosity )
         if (verbosity >=1 ): print 'Wrote mask for c0 pyramid region to: ',mask_file
         
     # calculate global mean from all unmasked pyramid region pixels in c0 file
-        c0_data_pix = N.where( masked_BlackLevel > 0.0)
-        all_good_data = masked_BlackLevel[ c0_data_pix ]
+        c0_data_pix = N.where( masked_SubarrayLevel > 0.0)
+        all_good_data = masked_SubarrayLevel[ c0_data_pix ]
         
         glob_pyr_mean = all_good_data.mean() 
         pyr_mean = all_good_data.mean()  # clipped pyramid mean of c0 data
         pyr_sigma = all_good_data.std()  # clipped pyramid sigma of c0 data
 
     # calculate stats for unmasked pixels in c0 pyramid region
-        BL_nz = N.where(masked_BlackLevel <> 0)
-        self.pmskpix = masked_BlackLevel[BL_nz].shape[0]
+        BL_nz = N.where(masked_SubarrayLevel <> 0)
+        self.pmskpix = masked_SubarrayLevel[BL_nz].shape[0]
         self.pmskmean = all_good_data.mean()
         self.pmskstd =  all_good_data.std()
         self.pmskmin =  all_good_data.min() 
@@ -270,7 +269,7 @@ class Wfpc2destreak:
         
     # loop over all rows and calculate mean of unmasked pixels for each row
         for i_row in range( 0, ysize-1 ):
-           row_data_a = masked_BlackLevel[i_row,:].astype( N.float64) 
+           row_data_a = masked_SubarrayLevel[i_row,:].astype( N.float64) 
 
            if (row_data_a.std() <> 0.0) or (row_data_a.mean() <> 0.0 ):# for cases in which all values are 0.0
              row_data_pix = N.where( row_data_a > 0.0)
@@ -511,7 +510,7 @@ class Wfpc2destreak:
               c0_data[i_row,col_max+1:] -=  to_subtract_2[ i_row ] 
 
         # calculate and display statistics for corrected c0 image data
-        corr_c0_data = c0_data[0: xsize-1,col_max+1:].astype(N.float32) 
+        corr_c0_data = c0_data[0: xsize-1,col_max+1:].astype(N.float32)   
 
         self.dcormin = corr_c0_data.min()
         self.dcormax = corr_c0_data.max()
@@ -564,8 +563,14 @@ class Wfpc2destreak:
 
             print 'The correction type applied is CORR_ALG = ', alg_type
 
+        outfile = file_prefix + str('_bjc_')+str(group)+str('.fits')
 
-        update_c0_file(self, c0_hdr, forced_type, alg_type, alg_cmt, verbosity) 
+        update_header(self, c0_hdr, forced_type, alg_type, alg_cmt, verbosity) # add statistics keywords to header c0_hdr
+
+        write_to_file(corr_c0_data, outfile, c0_hdr, alg_type, alg_cmt, verbosity, pyr_mean, pyr_sigma, im_mean, im_sigma) 
+        if (verbosity >=1 ):
+            print ' The output file written to is ',outfile
+
             
         # close open file handles
         if (fh_c0):
@@ -707,31 +712,31 @@ def check_cl_pars(group, bias_thresh, row_thresh, force_alg_type):
        
 # end of class Wfpc2destreak
 
-def cr_reject(  BlackLevel):
+def cr_reject( SubArray ):
            
-        """Identify and replace cosmic rays in the black level.
+        """Identify and replace cosmic rays in the given subarray.
 
-        BlackLevel is the input to this function; that is, the
-            raw black level data are expected to be in this attribute.
-            This array will be 1-D or 2-D .
+        SubArray is the input to this function; that is, the
+            a subarray of the data is expected to be in this attribute.
+            This array will be 2-D .
         The results are assigned to attributes:
-        BlackLevelCleaned is the array with cosmic rays replaced by
-            a fitted line or plane.  This will be the same shape as _BlackLevel.
-        BlackCR is a tuple of indices of cosmic rays detected.
-        BlackLevelFit is a 1-D array containing the fit evaluated
+        SubArrayCleaned is the array with cosmic rays replaced by
+            a fitted line or plane.  This will be the same shape as _SubArray.
+        SubCR is a tuple of indices of cosmic rays detected.
+        SubArrayFit is a 1-D array containing the fit evaluated
             at each image line number.  For 1-D data this will be the
-            same length as the input _BlackLevel, but for 2-D data this
-            will be the length of shape[0] of _BlackLevel.
-        BlackSlope is the slope of the fit (BlackLevelFit).
-        BlackIntercept is the intercept of BlackLevelFit.
-        BlackVariance is the average of the squares of the deviations
-            of the black level from the fit.
-        BlackVarSlope is the variance of the slope, normalized by
-            BlackVariance.
-        BlackVarIntercept is the variance of the the intercept,
-            normalized by BlackVariance.
-        BlackCoVar is the covariance variance of the slope and the
-            intercept, normalized by BlackVariance.
+            same length as the input _SubArray, but for 2-D data this
+            will be the length of shape[0] of _SubArray.
+        SubSlope is the slope of the fit (SubArrayFit).
+        SubIntercept is the intercept of SubArrayFit.
+        SubVariance is the average of the squares of the deviations
+            of the subarray level from the fit.
+        SubVarSlope is the variance of the slope, normalized by
+            SubVariance.
+        SubVarIntercept is the variance of the the intercept,
+            normalized by SubVariance.
+        SubCoVar is the covariance variance of the slope and the
+            intercept, normalized by SubVariance.
        """
 
         n_mad=15.; n_rms=[4., 4., 3.5]; n_neighbor=[2.5, 2.5, 2.5] 
@@ -739,34 +744,34 @@ def cr_reject(  BlackLevel):
         # Number of iterations in the loop to reject outliers.
         niter = len( n_rms)
 
-        black_shape = BlackLevel.shape
-        ny = black_shape[0]; nx = black_shape[1]
+        sub_shape = SubArray.shape
+        ny = sub_shape[0]; nx = sub_shape[1]
 
         linenum = N.arange( ny, dtype=N.float64)         # image line numbers
         # Independent variable (image line numbers, repeated) for fitting.
         indep_var = linenum.repeat( nx)  # 2-D 
 
-        # Note that black0 is 1-D
-        black0 = BlackLevel.ravel().astype( N.float64)
+        # Note that sub0 is 1-D
+        sub0 = SubArray.ravel().astype( N.float64)
         # no_value flags points where no value has been assigned to the
-        # black level.
-        no_value = N.where( black0 <= 0., 1, 0)
-        n = len( black0)
+        # subarray level.
+        no_value = N.where( sub0 <= 0., 1, 0)
+        n = len( sub0)
 
         # First find extreme outliers, so they will not be included when
         # we do a least-squares fit to the data.
 
         line0 = float( ny//2 - 1) / 2.          # middle line, lower half
         line1 = float( ny//2 + ny - 1) / 2.     # middle line, upper half
-        y0 = median( black0[0:n//2], no_value[0:n//2])
-        y1 = median( black0[n//2:n], no_value[n//2:n])
+        y0 = median( sub0[0:n//2], no_value[0:n//2])
+        y1 = median( sub0[n//2:n], no_value[n//2:n])
 
         # fit is a straight line passing through (line0,y0) & (line1,y1).
         slope = (y1 - y0) / (line1 - line0)
         slope = 0.0 # forcing, as non-zero value is not expected, and for consistency between regions
 
         fit = slope * linenum + (y0 - slope * line0)
-        residual = black0 - fit.repeat( nx)
+        residual = sub0 - fit.repeat( nx)
 
         # MAD is the median of the absolute values of deviations; for a
         # normal distribution the MAD is about 2/3 of the standard deviation.
@@ -778,18 +783,18 @@ def cr_reject(  BlackLevel):
         # Replace points identified as cosmic rays by the value of the
         # fit at that point; this is not really necessary because we'll
         # ignore currently identified cosmic rays when doing the fit.
-        black = N.where( cr, fit.repeat( nx), black0)
+        sub_pts = N.where( cr, fit.repeat( nx), sub0)
 
         mask = N.logical_or( no_value, cr)
 
-        (slope, intercept) = fitline( indep_var, black, mask)
-        # Note that fit has length ny, so will be shorter than black for
+        (slope, intercept) = fitline( indep_var, sub_pts, mask)
+        # Note that fit has length ny, so will be shorter than sub_pts for
         # by the factor nx.
 
         fit = slope * linenum + intercept
 
         for iter in range( niter):
-            residual = black - fit.repeat( nx)
+            residual = sub_pts - fit.repeat( nx)
             labels = N.where( mask == 0, 1, 0)
             rms = ndimage.standard_deviation( residual, labels=labels)
             rms = max (rms, 1.)
@@ -799,40 +804,40 @@ def cr_reject(  BlackLevel):
             if ndimage.sum( new_cr) > 0:
 
                 new_cr = check_neighbors( new_cr,
-                             residual, n_neighbor[iter] * rms, black_shape)
+                             residual, n_neighbor[iter] * rms, sub_shape)
             cr = N.logical_or( cr, new_cr)
 
             mask = N.logical_or( no_value, cr)
 
-            (slope, intercept) = fitline( indep_var, black, mask)
+            (slope, intercept) = fitline( indep_var, sub_pts, mask)
 
             fit = slope * linenum + intercept
-            black = N.where( cr, fit.repeat( nx), black)
+            sub_pts = N.where( cr, fit.repeat( nx), sub_pts)
 
-        saveInfo( indep_var, black, fit, (ny, nx), slope, intercept, mask, cr, BlackLevel)
+        saveInfo( indep_var, sub_pts, fit, (ny, nx), slope, intercept, mask, cr, SubArray)
         return mask
      
 # end of cr_reject()
 
 
-def check_neighbors( new_cr, residual, cutoff, black_shape):
+def check_neighbors( new_cr, residual, cutoff, sub_shape):
         """Check for cosmic rays in neighboring pixels.
 
         @param new_cr:  1-D array of ones or zeros (1 indicates a cosmic ray)
         @type new_cr:  Int32
-        @param residual:  1-D array of residuals, black - fit
+        @param residual:  1-D array of residuals, subarray - fit
         @type residual:  Float64
         @param cutoff:  criterion for flagging an outlier as a cosmic ray
         @type cutoff:  float
-        @param black_shape:  numbers of lines and columns in black
-        @type black_shape:  tuple
+        @param sub_shape:  numbers of lines and columns in subarray
+        @type sub_shape:  tuple
         @return:  new_cr, possibly with additional cosmic rays flagged
         @rtype:  Int32
         """
 
-        (ny, nx) = black_shape
-        new_cr_2D = N.reshape( new_cr, black_shape)
-        residual_2D = N.reshape( residual, black_shape)
+        (ny, nx) = sub_shape
+        new_cr_2D = N.reshape( new_cr, sub_shape)
+        residual_2D = N.reshape( residual, sub_shape)
 
         (yindex, xindex) = N.where( new_cr_2D > 0)
 
@@ -920,7 +925,7 @@ def fitline( x, y, mask):
         num = ndimage.sum( temp1, labels=labels)
         denom = ndimage.sum( temp2, labels=labels)
         if denom == 0.:
-            raise ValueError, "Error fitting a line to black level array."
+            raise ValueError, "Error fitting a line to subarray."
         slope = num / denom
         slope = 0.0  # forcing, as non-zero value is not expected, and for consistency between regions 
 
@@ -934,37 +939,37 @@ def fitline( x, y, mask):
 #-------------------------------------------------------------------------------
 # Compute variances and save the information in attributes
 #
-def saveInfo( indep_var, black, fit, shape,
-                  slope, intercept, mask, cr, BlackLevel):
+def saveInfo( indep_var, subarray, fit, shape,
+                  slope, intercept, mask, cr, SubarrayLevel):
         """Compute variances; save info in attributes.
 
         This function computes:  (a) the variance, the mean of the squares
-        of the deviations of the black level from the fit to the black level;
+        of the deviations of the subarray level from the fit to the subarray level;
         (b) the covariance matrix (see computeVarCovar(), which is called
         to do this calculation).  Points flagged as bad by the mask (1 is
         bad) are not included in these calculations. There is a
         separate argument cr that flags only cosmic rays; this is used to
-        assign a list of coordinates of cosmic rays to _BlackCR.  The
+        assign a list of coordinates of cosmic rays to _SubCR.  The
         computed values will be saved in attributes; some of the arguments
         will be saved directly to attributes.
 
         @param indep_var:  independent variable that was used for fitting;
             this contains the image line numbers, but with repeated values
-            if the black level data is a 2-D array 
+            if the subarray level data is a 2-D array 
         @type indep_var:  array of Float64
 
-        @param black:  array of black level values (flattened, if 2-D);
+        @param subarray:  array of subarray level values (flattened, if 2-D);
             these are the (cosmic-ray cleaned) dependent variable values
             to which the line (or plane) was fit
-        @type black:  array of Float64
+        @type subarray:  array of Float64
 
-        @param fit:  the 1-D array containing the fit to the black level;
+        @param fit:  the 1-D array containing the fit to the subarray level;
             for 1-D data this will be the same size as indep_var or
-            black, but for 2-D data fit will be smaller, because fit has
+            subarray, but for 2-D data fit will be smaller, because fit has
             just one element per image line number
         @type fit:  array of Float64
 
-        @param shape:  numbers of lines and columns in the black level
+        @param shape:  numbers of lines and columns in the subarray level
             array; the number of columns will be 1 if not 2-D
         @type shape:  tuple of two elements
 
@@ -977,7 +982,7 @@ def saveInfo( indep_var, black, fit, shape,
 
         @param mask:  array of ones or zeros (1 is bad, either a cosmic
             ray or no data); this is a 1-D array of the same size as
-            indep_var and black, i.e. for 2-D data it was flattened
+            indep_var and subarray, i.e. for 2-D data it was flattened
         @type mask:  array of Int
 
         @param cr:  array of ones or zeros, 1 indicates a cosmic ray; this
@@ -991,16 +996,16 @@ def saveInfo( indep_var, black, fit, shape,
         else:
             nx = shape[1]
 
-        BlackLevelCleaned = N.reshape( black, shape)
-        BlackLevelFit = fit
+        SubarrayLevelCleaned = N.reshape( subarray, shape)
+        SubarrayLevelFit = fit
 
         if cr is None:
-            BlackCR = None
+            SubCR = None
         else:
             cr_2d = N.reshape( cr, shape)
             locations = N.where( cr_2d > 0)
             del cr_2d
-            black0 = BlackLevel.ravel().astype( N.float64)
+            sub0 = SubarrayLevel.ravel().astype( N.float64)
 
             norm = 1.
                 
@@ -1009,12 +1014,12 @@ def saveInfo( indep_var, black, fit, shape,
                 x = locations[1][k]
                 y = locations[0][k]
                 i = x + y * shape[1]
-                values.append( (black0[i] - fit[y]) * norm)
-            del black0
+                values.append( (sub0[i] - fit[y]) * norm)
+            del sub0
             # a tuple of three lists, containing row, column, value
-            BlackCR = (locations[0], locations[1], values)
+            SubCR = (locations[0], locations[1], values)
 
-        residual = black - fit.repeat( nx)
+        residual = subarray - fit.repeat( nx)
         labels = N.where( mask == 0, 1, 0)
         variance = ndimage.variance( residual, labels=labels)
 
@@ -1022,12 +1027,12 @@ def saveInfo( indep_var, black, fit, shape,
                 computeVarCovar( indep_var, labels)
 
 # Delete these later if not needed; if they are needed, pass back or make attributes 
-        BlackSlope = slope
-        BlackIntercept = intercept
-        BlackVariance = variance
-        BlackVarSlope = var_slope
-        BlackVarIntercept = var_intercept
-        BlackCoVar = covar
+        SubSlope = slope
+        SubIntercept = intercept
+        SubVariance = variance
+        SubVarSlope = var_slope
+        SubVarIntercept = var_intercept
+        SubCoVar = covar
 
 # end of  saveInfo()
 
@@ -1036,7 +1041,7 @@ def computeVarCovar( x, labels):
         """Compute the variances and covariance of the fit.
 
         These values are normalized, i.e. multiply by the variance
-        of the deviations of the black level from the fit to get the
+        of the deviations of the subarray level from the fit to get the
         actual variances of the slope and intercept and their covariance.
 
         Note that argument for the mask is inverted from other functions
@@ -1068,8 +1073,8 @@ def computeVarCovar( x, labels):
 # end of computeVarCovar()
 
 
-def update_c0_file(self, hdr, forced_type, alg_type, alg_cmt, verbosity):
-    """ update input c0 file with specified header, and updated data
+def update_header(self, hdr, forced_type, alg_type, alg_cmt, verbosity):   
+    """ update header from input c0 file with specified header, and updated data
 
     @param hdr: hdr
     @type hdr: Pyfits header object
@@ -1127,6 +1132,21 @@ def write_mask(data, filename, verbosity):
     fimghdu.data = data
     fimg.append(fimghdu)
     fimg.writeto(filename)
+
+
+def write_to_file(data, filename, hdr, alg_type, alg_cmt, verbosity, pyr_mean, pyr_sigma, im_mean, im_sigma):
+
+    fimg = pyfits.HDUList()
+    hdr.update(key='CORR_ALG', value=alg_type, comment=alg_cmt ) #  denoting which algorithm was used
+    hdr.update(key='PYRMEAN', value=pyr_mean, comment="clipped mean of pyramid region" )
+    hdr.update(key='PYRSIGMA', value=pyr_sigma, comment="clipped sigma of pyramid region" )
+    hdr.update(key='IMMEAN', value=im_mean, comment="clipped mean of image region" )
+    hdr.update(key='IMSIGMA', value=im_sigma, comment="clipped sigma of image region" )
+    fimghdu = pyfits.PrimaryHDU( header = hdr)
+    fimghdu.data = data
+    fimg.append(fimghdu)
+    fimg.writeto(filename)
+    if (verbosity >=1 ): print 'Wrote updated data to: ',filename
 
 
 if __name__ =="__main__":
