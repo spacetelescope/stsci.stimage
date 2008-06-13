@@ -78,6 +78,7 @@
 #                     image data, and applies the corrections to this data, updating the file in-place. As a result, the keywords
 #                     that are output have been modified.
 #          06/05/08 - reverting back to writing the corrected output to the file <dataset>_bjc_<chip>.fits, as in "u9ux010gm_c0h_bjc_4.fits"
+#          06/13/08 - exposed n_mad as a settable parameter.
 #
 # Outline:
 #
@@ -118,6 +119,7 @@
 #     -r: row_thresh (default = 0.)
 #     -v: verbosity (default = verbose)
 #     -f: force_alg_type (default = None)
+#     -n: n_mad (default = 15.)    
 #
 # Usage examples:
 #    A. For a dataset with multiple groups, to process group 4 using a bias threshold=280 and row threshold=0.1,
@@ -133,6 +135,8 @@
 #         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"
 #    E.  For a dataset with a single group, using defaults for the thresholds, forcing PASS1:
 #         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 0 -f PASS1
+#    F.  For a dataset with a single group, using defaults for the thresholds, setting CR rejection parameter to 20.
+#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 0 -n 20. 
 #
 # Example 'A' under pyraf:
 # --> wfp = wfpc2destreak.Wfpc2destreak( "u8zq0104m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.1, force_alg_type="PASS2")
@@ -149,7 +153,7 @@ from optparse import OptionParser
 import ndimage
 import wfpc2util, opusutil, sys, string
 
-__version__ = "2.11 (2008 June 5)"
+__version__ = "2.12 (2008 June 13)"
 
 NUM_SIG = 2.5  # number of sigma to use in sigma clipping
 TOT_ITER = 4   # maximum number of iterations for sigma clipping
@@ -160,11 +164,11 @@ class Wfpc2destreak:
 
     example: 
        wfpc2_d = wfpc2destreak.Wfpc2destreak( filename, group=group, verbosity=verbosity, bias_thresh=bias_thresh,
-                 row_thresh=row_thresh, force_alg_type=force_alg_type) 
-       wfpc2destreak.Wfpc2destreak.destreak(wfpc2_d)
+                 row_thresh=row_thresh, force_alg_type=force_alg_type, n_mad=n_mad) 
+       wfpc2destreak.Wfpc2destreak.destreak(wfpc2_d) 
     """
 
-    def __init__( self, input_file, group=None, verbosity=0, bias_thresh=None, row_thresh=None, force_alg_type=None):  
+    def __init__( self, input_file, group=None, verbosity=0, bias_thresh=None, row_thresh=None, force_alg_type=None, n_mad=None):   
         """constructor
 
         @param input_file: name of the c0h file to be processed
@@ -179,13 +183,15 @@ class Wfpc2destreak:
         @type row_thresh: float
         @param force_alg_type: algorithm type to force
         @type force_alg_type: string
+        @param n_mad: CR rejection parameter    
+        @type n_mad: float  
         """
 
         # do some parameter type checking
         if ( __name__ == 'wfpc2destreak'):  # for python interface, set defaults and check unspecified pars
-           [group, bias_thresh, row_thresh, force_alg_type] = check_py_pars(group, bias_thresh, row_thresh, force_alg_type)  
+           [group, bias_thresh, row_thresh, force_alg_type, n_mad] = check_py_pars(group, bias_thresh, row_thresh, force_alg_type, n_mad)  
         else:
-           [group, bias_thresh, row_thresh, force_alg_type] = check_cl_pars(group, bias_thresh, row_thresh, force_alg_type)  
+           [group, bias_thresh, row_thresh, force_alg_type, n_mad] = check_cl_pars(group, bias_thresh, row_thresh, force_alg_type, n_mad)  
 
         self.input_file = input_file
         self.group = int(group) 
@@ -193,6 +199,7 @@ class Wfpc2destreak:
         self.bias_thresh = float(bias_thresh)  
         self.row_thresh = float(row_thresh)
         self.force_alg_type = force_alg_type
+        self.n_mad = float(n_mad)  
         
     def destreak( self ):
 
@@ -202,6 +209,7 @@ class Wfpc2destreak:
         bias_thresh = self.bias_thresh 
         row_thresh = self.row_thresh
         force_alg_type = self.force_alg_type
+        n_mad = self.n_mad   
 
         file_prefix = input_file.split('.')[0] 
 
@@ -236,7 +244,7 @@ class Wfpc2destreak:
 
         SubarrayLevel = c0_data[:,col_min:col_max]
 
-        mask = cr_reject(SubarrayLevel)    
+        mask = cr_reject(SubarrayLevel, n_mad)    # in pyramid region           
         mask_2d = N.resize( mask, [SubarrayLevel.shape[0], SubarrayLevel.shape[1]])    
         masked_SubarrayLevel = SubarrayLevel * (1-mask_2d)  # gives 0 where there are Cosmic rsys
 
@@ -282,7 +290,7 @@ class Wfpc2destreak:
 
     # perform CR rejection on desired subarray of image section 
         image_data = c0_data[ ix_min:xsize-1, iy_min:ysize-1 ]
-        im_mask = cr_reject(image_data)
+        im_mask = cr_reject(image_data, n_mad)  
         im_mask_2d = N.resize( im_mask, [image_data.shape[0], image_data.shape[1]])    
         masked_image = image_data * (1-im_mask_2d)  # gives 0 where there are Cosmic rays
 
@@ -587,9 +595,10 @@ class Wfpc2destreak:
         print '  bias_thresh:  ' , self.bias_thresh 
         print '  row thresh:  ' , self.row_thresh 
         print '  force algorithm type:  ' , self.force_alg_type
+        print '  CR rejection factor:  ' , self.n_mad
 
 
-def check_py_pars(group, bias_thresh, row_thresh, force_alg_type):  
+def check_py_pars(group, bias_thresh, row_thresh, force_alg_type, n_mad):  
        """ When run under python, verify that each unspecified parameter should take the default value, and
            give the user the opportunity to change it.
 
@@ -601,8 +610,10 @@ def check_py_pars(group, bias_thresh, row_thresh, force_alg_type):
        @type row_thresh: float
        @param force_alg_type: algorithm type to force
        @type force_alg_type: string
-       @return: group, bias_thresh, row_thresh, force_alg_type
-       @rtype:  int, float, float, string
+       @param n_mad: CR rejection factor   
+       @type n_mad: float
+       @return: group, bias_thresh, row_thresh, force_alg_type, n_mad
+       @rtype:  int, float, float, string, float
        """
        if (group == None):
             group = wfpc2util.group
@@ -657,7 +668,20 @@ def check_py_pars(group, bias_thresh, row_thresh, force_alg_type):
                else:
                   force_alg_type = inp
 
-       return group, bias_thresh, row_thresh, force_alg_type
+       if (n_mad == None):
+            n_mad = wfpc2util.n_mad
+            print ' You have not specified a value for n_mad; the default is:',  wfpc2util.n_mad
+            print ' If you want to use the default, hit <enter>, otherwise type in the desired value'
+            inp = raw_input('? ')
+            if inp == '':
+               print ' The default value of ', n_mad,' will be used'
+            else:
+               try:
+                   n_mad = string.atof(inp)
+               except:
+                   print ' The value entered (',inp,') is invalid so the default will be used'
+
+       return group, bias_thresh, row_thresh, force_alg_type, n_mad
 
 
 def get_hist(a, bins):
@@ -666,7 +690,7 @@ def get_hist(a, bins):
       return  nn[1:]-nn[:-1]
   
 
-def check_cl_pars(group, bias_thresh, row_thresh, force_alg_type):  
+def check_cl_pars(group, bias_thresh, row_thresh, force_alg_type, n_mad):  
        """ When run from linux coammand line, verify that each parameter is valid.
 
        @param group: number of group to process
@@ -677,8 +701,10 @@ def check_cl_pars(group, bias_thresh, row_thresh, force_alg_type):
        @type row_thresh: float
        @param force_alg_type: algorithm type to force
        @type force_alg_type: string
-       @return: group, bias_thresh, row_thresh, force_alg_type
-       @rtype:  int, float, float, string
+       @param n_mad: CR rejection factor
+       @type n_mad: float
+       @return: group, bias_thresh, row_thresh, force_alg_type, n_mad
+       @rtype:  int, float, float, string. float
        """
 
        try:
@@ -707,12 +733,20 @@ def check_cl_pars(group, bias_thresh, row_thresh, force_alg_type):
                print ' The value entered (',force_alg_type,') is invalid. Try again.'
                sys.exit( ERROR_RETURN)
 
-       return group, bias_thresh, row_thresh, force_alg_type
+       try:  
+           n_mad = string.atof(n_mad)
+       except:
+           print ' The CR rejection parameter value entered (',n_mad,') is invalid. Try again.'
+           sys.exit( ERROR_RETURN)
+
+
+
+       return group, bias_thresh, row_thresh, force_alg_type, n_mad
 
        
 # end of class Wfpc2destreak
 
-def cr_reject( SubArray ):
+def cr_reject( SubArray, n_mad ):
            
         """Identify and replace cosmic rays in the given subarray.
 
@@ -739,7 +773,7 @@ def cr_reject( SubArray ):
             intercept, normalized by SubVariance.
        """
 
-        n_mad=15.; n_rms=[4., 4., 3.5]; n_neighbor=[2.5, 2.5, 2.5] 
+        n_rms=[4., 4., 3.5]; n_neighbor=[2.5, 2.5, 2.5] 
 
         # Number of iterations in the loop to reject outliers.
         niter = len( n_rms)
@@ -1181,6 +1215,8 @@ if __name__ =="__main__":
             help = "row threshold.")
     parser.add_option( "-f", "--force_alg_type", dest = "force_alg_type",default = wfpc2util.force_alg_type,
             help = "algorithm type to force.")         
+    parser.add_option( "-n", "--n_mad", dest = "n_mad",default = wfpc2util.n_mad, 
+            help = "CR rejection factor.")         
 
     (options, args) = parser.parse_args()
   
@@ -1198,9 +1234,13 @@ if __name__ =="__main__":
 
     wfpc2util.setForce_alg_type(options.force_alg_type )
     force_alg_type  = options.force_alg_type  
+
+    wfpc2util.setN_mad(options.n_mad )  
+    if options.n_mad!=None: n_mad = options.n_mad
+
        
     try:
-       wfpc2_d = Wfpc2destreak( filename, group=group, verbosity=verbosity, bias_thresh=bias_thresh, row_thresh=row_thresh, force_alg_type=force_alg_type)
+       wfpc2_d = Wfpc2destreak( filename, group=group, verbosity=verbosity, bias_thresh=bias_thresh, row_thresh=row_thresh, force_alg_type=force_alg_type, n_mad=n_mad)
    
        if (verbosity >=1 ):
             print 'The version of this routine is: ',__version__
