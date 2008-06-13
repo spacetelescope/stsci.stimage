@@ -3,7 +3,7 @@
 import sys
 import time
 
-# Utility functions and parameters for wfpc2destreak
+# Utility functions and parameters for Wfpc2destreak
 
 QUIET = 0 # verbosity levels
 VERBOSE = 1
@@ -16,12 +16,13 @@ force_alg_type = None
 group = 4 
 bias_thresh = HUGE_VAL
 row_thresh = 0.0
+n_mad = 15.0     
 
 def all_printMsg( message, level=VERBOSE):
 
     if verbosity >= level:     
-      print message
-      sys.stdout.flush()
+        print message
+        sys.stdout.flush()
 
 def printMsg( message, level=QUIET):
 
@@ -60,6 +61,16 @@ def setForce_alg_type( force_alg_type_value):
         """
         global force_alg_type
         force_alg_type = force_alg_type_value                   
+
+
+def setN_mad( n_mad_value): 
+        """ Copy n_mad to a variable that is global for this file.
+            @param n_mad_value: value of n_mad
+            @type n_mad_value: float
+        """
+        global n_mad
+        n_mad = n_mad_value
+
 
 def setVerbosity( verbosity_level):
     """Copy verbosity to a variable that is global for this file.                                                              
