@@ -16,7 +16,8 @@ force_alg_type = None
 group = 4 
 bias_thresh = HUGE_VAL
 row_thresh = 0.0
-n_mad = 15.0     
+n_mad = 15.0
+input_mask = None
 
 def all_printMsg( message, level=VERBOSE):
 
@@ -71,18 +72,25 @@ def setN_mad( n_mad_value):
         global n_mad
         n_mad = n_mad_value
 
+def setInput_mask( input_mask_value):
+        """Copy input_mask to a variable that is global for this file.
+           @param input_mask_value: value of input_mask
+           @type input_mask_value: string
+        """                                                                          
+        global input_mask
+        input_mask = input_mask_value
 
 def setVerbosity( verbosity_level):
-    """Copy verbosity to a variable that is global for this file.                                                              
-       argument: verbosity_level -  an integer value indicating the level of verbosity
-    """
+        """Copy verbosity to a variable that is global for this file.                                                              
+           argument: verbosity_level -  an integer value indicating the level of verbosity
+        """
                                                                                 
-    global verbosity
-    verbosity = verbosity_level
+        global verbosity
+        verbosity = verbosity_level
 
 def checkVerbosity( level):
-    """Return true if verbosity is at least as great as level."""
+         """Return true if verbosity is at least as great as level."""
 
-    return (verbosity >= level)
+         return (verbosity >= level)
 
 
