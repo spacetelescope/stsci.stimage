@@ -21,7 +21,7 @@ _default_pars = {'psize':None,'default_rot':None,'idckey':None}
 
 INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS","WFC3"]
 
-__version__ = "6.1.refac4 (4-June-2008)"
+__version__ = "6.1.refac5 (23-June-2008)"
 
 
 class _PyDrizzle:
@@ -306,7 +306,7 @@ More help on SkyField objects and their parameters can be obtained using:
                             0.0,0.0, 1.0,1.0, 0.0, 'output',
                             _pxg, _pyg,
                             'center',interp, plist['coeffs'], plist['exptime'],
-                            misval, sinscl, 1,plist['alpha'],plist['beta'])
+                            misval, sinscl, 1,0.0,0.0)
 
                 #
                 # End of F2C syntax
@@ -538,7 +538,7 @@ More help on SkyField objects and their parameters can be obtained using:
                             0.0,0.0, 1.0,1.0,0.0,'output',
                             _pxg,_pyg, 'center', plist['pixfrac'], plist['kernel'],
                             plist['coeffs'], _in_units, _expin,_wtscl,
-                            plist['fillval'], _inwcs, nmiss, nskip, 1,plist['alpha'],plist['beta'])
+                            plist['fillval'], _inwcs, nmiss, nskip, 1,0.0,0.0)
                 """
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
                             _outctx[_planeid], _uniqid, ystart, 1, 1, _dny,

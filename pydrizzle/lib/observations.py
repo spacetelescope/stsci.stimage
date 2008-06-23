@@ -1,5 +1,6 @@
 from pattern import *
 from pytools import fileutil
+from distortion import mutil
 import numpy as N
 
 class ACSObservation(Pattern):
@@ -32,7 +33,27 @@ class ACSObservation(Pattern):
 
         # Set up the input members and create the product meta-chip
         self.buildProduct(filename, output)
-
+        
+        # If time-dependent coefficients are defined, apply them to the distortion
+        # coefficients
+        if self.members[0].geometry.alpha != 0 and self.members[0].geometry.beta != 0:
+            self.apply_tdd_coeffs()
+            self.buildProduct(filename,output)
+        
+    def apply_tdd_coeffs(self):
+        ''' Apply any time-dependent corrections to the coefficients.
+        '''
+        for member in self.members:
+            model = member.geometry.model
+            tcx,tcy,xd,yd = mutil.apply_wfc_tdd_coeffs(model.cx, model.cy,
+                                                model.refpix['XDELTA'],model.refpix['YDELTA'],
+                                                member.geometry.alpha,member.geometry.beta)
+            member.geometry.model.cx = tcx
+            member.geometry.model.cy = tcy
+            # These lines demonstrate how to apply the shifts directly to 
+            # the WCS CRPIX values.
+            #member.geometry.wcs.crpix1 -= xd
+            #member.geometry.wcs.crpix2 -= yd
 
 class GenericObservation(Pattern):
     """

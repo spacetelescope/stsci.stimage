@@ -130,7 +130,7 @@ class ObsGeometry:
                 self.model = models.TraugerModel(self.idcfile,float(_lam)/10.)
 
             elif ikey == 'wcs':
-                if self.header.has_key('SICSPS'):
+                if self.header.has_key('IDCSCALE'):
                     self.model = models.WCSModel(self.header, rootname)
                 else:
                     print 'WARNING: Not all SIP-related keywords found!'
@@ -160,7 +160,7 @@ class ObsGeometry:
 
             # default date of 2004.5 = 2004-7-1
             if self.header.has_key('WFCTDD') and self.header['WFCTDD'] == 'T':
-                print " *** Applying ACS Time Dependent Distortion Solution *** "
+                print " *** Computing ACS Time Dependent Distortion Coefficients *** "
                 self.alpha,self.beta = mutil.compute_wfc_tdd_coeffs(self.header['date-obs'])
             else:
                 self.alpha = 0
@@ -347,6 +347,7 @@ class ObsGeometry:
         _delta_x,_delta_y = self.apply(pixpos)
         if verbose:
             print 'Raw corrected position: ',_delta_x,_delta_y
+
         _delta_x += self.model.refpix['XDELTA']
         _delta_y += self.model.refpix['YDELTA']
         if verbose:

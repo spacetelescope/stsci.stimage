@@ -350,10 +350,10 @@ def readWCSCoeffs(header):
     refpix['YREF'] = header['crpix2']
     refpix['XSIZE'] = header['naxis1']
     refpix['YSIZE'] = header['naxis2']
-    refpix['PSCALE'] = header['SICSPS']
-    refpix['V2REF'] = header['SICS1POS']
-    refpix['V3REF'] = header['SICS2POS']
-    refpix['THETA'] = header['SICSROT']
+    refpix['PSCALE'] = header['IDCSCALE']
+    refpix['V2REF'] = header['IDCV2REF']
+    refpix['V3REF'] = header['IDCV3REF']
+    refpix['THETA'] = header['IDCTHETA']
     refpix['XDELTA'] = 0.0
     refpix['YDELTA'] = 0.0
     refpix['DEFAULT_SCALE'] = yes
@@ -603,8 +603,62 @@ def compute_wfc_tdd_coeffs(dateobs):
     datedefault = datetime.datetime(2004,7,1)
     year,month,day = dateobs.split('-')
     rdate = datetime.datetime(int(year),int(month),int(day))
-    alpha = 0.095+0.090*((rdate-datedefault).days/365.25)/2.5
-    beta = -0.029-0.030*((rdate-datedefault).days/365.25)/2.5
-
+    
+    # The zero-point terms account for the skew accumulated between
+    # 2002.0 and 2004.5, when the latest IDCTAB was delivered.
+    alpha = 0.095 + 0.090*((rdate-datedefault).days/365.25)/2.5
+    beta = -0.029 - 0.030*((rdate-datedefault).days/365.25)/2.5
     
     return alpha,beta
+
+def apply_wfc_tdd_coeffs(cx,cy,xdelta,ydelta,alpha,beta):
+    ''' Apply the WFC TDD coefficients directly to the distortion
+        coefficients. 
+    '''
+    # Initialize variables to be used
+    theta_v2v3 = 2.234529
+    scale_idc = 0.05
+    scale_jay = 0.04973324715
+    idctheta = N.arctan2(cx[1,0],cy[1,0])
+    # rotate and scale the coeffs to put them in native frame where Y-axis
+    # remains un-rotated and no additional rescaling takes place 
+    # (Jay Anderson's frame)
+    rcx,rcy = rotate_coeffs(cx,cy,idctheta)
+
+    # Apply tdd coeffs to the rotated coeffs
+    tdd_mat = N.array([[1+beta/2048., alpha/2048.],[alpha/2048.,1-beta/2048.]],N.float64)
+    tcxy = N.dot(tdd_mat,[rcx.ravel(),rcy.ravel()])
+    tcx = tcxy[0]
+    tcy = tcxy[1]
+    tcx.shape = rcx.shape
+    tcy.shape = rcy.shape
+
+    # Include offsets induced by TDD terms
+    xd = xdelta + 2048.
+    yd = ydelta + 1024.
+    tcx00 = (-beta-alpha+xd*(beta/2048.)+yd*(alpha/2048.))*scale_jay
+    tcy00 =  (beta-alpha-yd*(beta/2048.)+xd*(alpha/2048.))*scale_jay
+    tcx[0,0] += tcx00
+    tcy[0,0] += tcy00
+
+    # Rotate back into V2V3 frame
+    icx,icy = rotate_coeffs(tcx,tcy,-idctheta)
+    icx00 = icx[0,0]/scale_idc
+    icy00 = icy[0,0]/scale_idc
+    #icx[0,0] = 0.0
+    #icy[0,0] = 0.0
+        
+    return icx,icy,icx00,icy00
+    
+    
+def rotate_coeffs(cx,cy,rot,scale=1.0):
+    ''' Rotate poly coeffs by 'rot' degrees.
+    '''
+    mrot = fileutil.buildRotMatrix(rot)*scale
+    rcxy = N.dot(mrot,[cx.ravel(),cy.ravel()])
+    rcx = rcxy[0]
+    rcy = rcxy[1]
+    rcx.shape = cx.shape
+    rcy.shape = cy.shape
+    
+    return rcx,rcy
