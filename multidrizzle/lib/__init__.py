@@ -47,7 +47,7 @@ from pytools.parseinput import parseinput
 
 
 # Begin Version Information -------------------------------------------
-__version__ = '3.2.0dev (SM4 Release -- Development)'
+__version__ = '3.2.1dev (SM4 Release -- Development)'
 # End Version Information ---------------------------------------------
 # Revision based version info
 try:
@@ -266,7 +266,17 @@ help file.
             self.__dict__[kw] = self.pars.master_pars[kw]
         # runfile could have been converted to an integer by the above,
         # so we have to make sure it's a string
-        self.runfile = str(self.runfile)
+        # Also, make sure it is unique by pre-pending the rootname of the 
+        # output file to the runfile filename to prevent problems with 
+        # one process deleting this file while it is being used by another
+        # process. 
+        out_drz = self.output.find('_drz')
+        out_fits = self.output.find('.fits')
+        if out_drz < 0: out_drz = len(self.output)
+        if out_fits < 0: out_fits = len(self.output)
+        out_indx = min([out_drz,out_fits])
+        out_root = self.output[:out_indx]
+        self.runfile = out_root+'_'+str(self.runfile)
 
                 
         # Create object that controls step execution and mark
