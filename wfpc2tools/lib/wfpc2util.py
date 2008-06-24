@@ -18,6 +18,7 @@ bias_thresh = HUGE_VAL
 row_thresh = 0.0
 n_mad = 15.0
 input_mask = None
+niter = 5
 
 def all_printMsg( message, level=VERBOSE):
 
@@ -79,6 +80,14 @@ def setInput_mask( input_mask_value):
         """                                                                          
         global input_mask
         input_mask = input_mask_value
+
+def setNiter( niter_value): 
+        """ Copy niter to a variable that is global for this file.
+            @param niter_value: value of niter
+            @type niter_value: int
+        """
+        global niter
+        niter = niter_value
 
 def setVerbosity( verbosity_level):
         """Copy verbosity to a variable that is global for this file.                                                              
