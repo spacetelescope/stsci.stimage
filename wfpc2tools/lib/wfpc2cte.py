@@ -2,11 +2,11 @@
 
 This module updates the header of the input WFPC2 image with standardized
 computations of the effect of CTE based on the algorithm published by Dolphin
-(2004, http://purcell.as.arizona.edu/wfpc2_calib).  
+(2004, http://purcell.as.arizona.edu/wfpc2_calib/2004_12_20.html).  
 
 ASSUMPTIONS for the COMPUTATION: 
     1. The CTE gets computed for a source at the chip center.
-    2. The background gets defined by the clipped mode of the 
+    2. The background (in electrons) gets defined by the clipped mode of the 
         central 200x200 pixels from the image.
     3. The source is assumed to have 100 electrons, 1000 electrons and 
         10000 electrons in the aperture.
@@ -66,7 +66,7 @@ chip_bg_factor = 10
 chip_lbg_factor = 1
 chip_lct_factor = 7
 
-def compute_chip_values(extn,nclip=3):
+def compute_chip_values(extn,gain,nclip=3):
     chip_values = {}
     
     # Determine the center of the chip as (Y,X)
@@ -85,7 +85,7 @@ def compute_chip_values(extn,nclip=3):
     else:
         chip_background = 1.0
     #chip_background = chip_stats.mode
-    chip_values['bg_raw'] = chip_background
+    chip_values['bg_raw'] = chip_background * gain
     chip_values['lbg'] = np.log(chip_background) - chip_lbg_factor
     chip_values['bg'] = chip_background - chip_bg_factor    
 
@@ -164,7 +164,7 @@ def compute_CTE(filename,quiet=True,nclip=3):
 
     for extn in fimg[1:]:
         if extn.header['extname'] == 'SCI':
-            chip_values = compute_chip_values(extn,nclip=nclip)
+            chip_values = compute_chip_values(extn,obs_gain,nclip=nclip)
                 
             # Compute XCTE and YCTE for all sources
             xcte = compute_XCTE(chip_values['center'][1],chip_values['bg'])
@@ -172,9 +172,9 @@ def compute_CTE(filename,quiet=True,nclip=3):
             if not quiet:
                 print 'Background computed to be: ',chip_values['bg_raw']
             
-            # According to Eqn. 4 from Dolphin (2000, PASP, 112, 1397).
-            total_cte = xcte*chip_values['center'][1] + ycte*chip_values['center'][0]
-            
+            # Based on Workshop 2002 paper, after equation 8...
+            total_cte = xcte + ycte
+
             update_CTE_keywords(extn.header, total_cte,quiet=quiet)
 
     if not quiet:
