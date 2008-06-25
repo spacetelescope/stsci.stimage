@@ -57,7 +57,7 @@ import pyfits
 import pytools
 from pytools import readgeis,fileutil
 import imagestats
-__version__ = '1.2.2 (24-June-2008)'
+__version__ = '1.2.3 (25-June-2008)'
 
 # This contains the default values in electrons for the CTE sources
 DEFAULT_COUNTS = np.array([100,1000,10000],np.float32)
@@ -84,8 +84,8 @@ def compute_chip_values(extn,gain,nclip=3):
         chip_background = np.sqrt(np.power(chip_stats.mode,2) + 1)
     else:
         chip_background = 1.0
-    #chip_background = chip_stats.mode
-    chip_values['bg_raw'] = chip_background * gain
+    chip_background *= gain
+    chip_values['bg_raw'] = chip_background
     chip_values['lbg'] = np.log(chip_background) - chip_lbg_factor
     chip_values['bg'] = chip_background - chip_bg_factor    
 
