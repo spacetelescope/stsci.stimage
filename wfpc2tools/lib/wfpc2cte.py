@@ -57,7 +57,7 @@ import pyfits
 import pytools
 from pytools import readgeis,fileutil
 import imagestats
-__version__ = '1.2.3 (25-June-2008)'
+__version__ = '1.2.4 (2-July-2008)'
 
 # This contains the default values in electrons for the CTE sources
 DEFAULT_COUNTS = np.array([100,1000,10000],np.float32)
@@ -119,15 +119,15 @@ def update_CTE_keywords(hdr, cte,quiet=False):
     # Start by checking to see if the keywords to be updated already exist
     # If not, print a warning and insure quiet=False so the results get
     # reported to STDOUT at the very least.
-    if hdr.has_key('CTE_1E2'):
-        hdr.update('CTE_1E2',cte[0])
-        hdr.update('CTE_1E3',cte[1],after='CTE_1E2')
-        hdr.update('CTE_1E4',cte[2],after='CTE_1E3')
-    else:    
-        print 'WARNING: CTE keywords not found in header.'
-        print '         Please add the keywords to '
-        print '         the group parameter block or the extension header.'
+    if not hdr.has_key('CTE_1E2'):
+        print "WARNING: CTE keywords not found in %s,%d header."%(hdr['extname'],hdr['extver'])
+        print "         Adding the keywords exclusively to "
+        print "         the FITS file's extension header."
         quiet = False
+
+    hdr.update('CTE_1E2',cte[0])
+    hdr.update('CTE_1E3',cte[1],after='CTE_1E2')
+    hdr.update('CTE_1E4',cte[2],after='CTE_1E3')
 
     if not quiet:
         print 'CTE_1E2   = ',cte[0]
