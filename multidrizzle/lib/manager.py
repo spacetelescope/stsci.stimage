@@ -1031,10 +1031,9 @@ class ImageManager(object):
         print("drizzle.kernel = '"+self.assoc.parlist[0]['kernel']+"'")
         print("\n")
 
-        if runfile != '':
-            runlog = open(runfile,'w')
-        else:
-            runlog = open(self.output[:self.output.find('_drz.fits')]+'.run','w')
+        if runfile == '':
+            runfile = self.output[:self.output.find('_drz.fits')]+'.run'
+        runlog = open(runfile,'w')
 
         runlog.write("drizzle.outnx = "+str(self.assoc.parlist[0]['outnx'])+"\n")
         runlog.write("drizzle.outny = "+str(self.assoc.parlist[0]['outny'])+"\n")

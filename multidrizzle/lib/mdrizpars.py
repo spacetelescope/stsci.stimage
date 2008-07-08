@@ -519,6 +519,7 @@ class MDrizPars (HasTraits):
                 # Based on format type, apply proper conversion/cleaning
                 if (_fmt == 'a') or (_fmt == 'A'):
                     _val = cleanBlank(_value)
+                    if _val == None: _val = ''
                 elif (_format == 'i1') or (_format=='1L'):
                     _val = toBoolean(_value)
                 elif (_format == 'i4') or (_format == '1J'):

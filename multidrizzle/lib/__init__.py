@@ -47,7 +47,7 @@ from pytools.parseinput import parseinput
 
 
 # Begin Version Information -------------------------------------------
-__version__ = '3.2.0dev (SM4 Release -- Development)'
+__version__ = '3.2.1dev (SM4 Release -- Development)'
 # End Version Information ---------------------------------------------
 # Revision based version info
 try:
