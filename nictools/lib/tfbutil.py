@@ -10,14 +10,12 @@ VERY_VERBOSE = 2
                                                                                 
 # default values
 verbosity = VERBOSE
-hdr_key = "TFBT"
-err_key = "TFBE"
+hdr_key = "TFBTEMP"
+err_key = "TFBERR"
 edit_type = "RAW" 
 nref_par = "/grp/hst/cdbs/nref/"
 noclean = False
 force = None
-
-__version__ = "1.3"
 
 def all_printMsg( message, level=VERBOSE):
 
