@@ -18,7 +18,7 @@
 #              --> stat = tfb.update_header( temp, sigma, winner)
 #              The same example under linux:
 #              hal> ./CalTempFromBias.py "n8tf30jnq_raw.fits" -e "SPT" -f "Q" -k "MYHKEY" -s "MYEKEY" -v
-#            - only the filename parameter is required. The paramters spt_key and raw_key
+#            - only the filename parameter is required. The parameters spt_key and raw_key
 #              are no longer used. Currently the other parameters are:
 #                hdr_key: string for keyword name for temperature; default = "TFBT"
 #                err_key: string for keyword name for associated error; default = "TFBE"
@@ -43,6 +43,16 @@
 #   04/25/08 - code version 1.4: deleted unused code for algorithm 1 and cameras 1 and 2;
 #              the input file can now be a list (a text file having a single file listed on each line.)
 #   05/29/08 - code version 1.5: added epar interface, and ability to process filelists
+#   07/08/08 - code version 1.6: changing keyword names and types, so they are now:
+#                TFBTEMP : float, comment='Temperature (K) derived from bias', default =  0.00E+00
+#                TFBERR : float, comment='Associated error (K) for temperature derived from bias', default =  0.00E+00
+#                TFBVER : string, comment = 'Version of CalTempFromBias trun, default = 'N/A'
+#                TFBDATE: string, comment = 'Date that CalTempFromBias that was run, default = 'N/A'
+#                TFBMETH: string, comment = ' CalTempFromBias algorithm type used', default = 'N/A'
+#                TFBCALC: string, comment = 'Do CalTempFromBias calculation: PERFORM, OMIT, COMPLETE,
+#                         SKIPPED', default = 'N/A'
+#
+#              The routine will successfully calculate the temperature only if TFBCALC='PERFORM' and camera=3
 #
 import os.path
 import sys, time
@@ -64,7 +74,7 @@ p3_c2_slope = 37.0; p3_c2_offset = 75.15                                        
 pt3_2_0 = 153.25747; pt3_2_1 = 0.0037115404; pt3_3_0 = 151.03888; pt3_3_1 = 0.0036755942            # camera 3, algorithm 3
 p3_c3_sigma = 0.25                                                                                  # camera 3, algorithm 3
 
-__version__ = "1.5"   
+__version__ = "1.6"   
 
 ERROR_RETURN = 2 
 
@@ -155,11 +165,18 @@ class CalTempFromBias:
 
            # get header
             try:
-               fh_raw = pyfits.open( filename )
+               fh_raw = pyfits.open( filename, mode='update')
             except:
                opusutil.PrintMsg("F","ERROR "+ str('Unable to open input file') + str(filename))   
 
             raw_header = fh_raw[0].header
+            tfbcalc_key = raw_header['TFBCALC'] 
+            tfbcalc = tfbcalc_key.lstrip().rstrip() # strip leading and trailing whitespace 
+
+            if ( tfbcalc <> 'PERFORM'):
+               print ' The keyword TFBCALC is not set to PERFORM, so will not calculate the temperature '
+               fh_raw.close() 
+               continue 
 
             obsmode_key = raw_header[ 'OBSMODE' ]
             obsmode = obsmode_key.lstrip().rstrip() # strip leading and trailing whitespace
@@ -191,10 +208,13 @@ class CalTempFromBias:
 
             try:
                fh_nl = pyfits.open( nonlin_file )
-               
                self.nonlin_file = nonlin_file            
             except:
                opusutil.PrintMsg("F","ERROR "+ str('Unable to open nonlinearity file') + str(nonlin_file))
+               raw_header.update("TFBCALC", "SKIPPED")
+               self.nonlin_file = None
+               raise IOError,'Unable to open nonlinearity file' 
+               return None, None, None 
 
             # read data from nonlinearity file
             c1 = fh_nl[ 1 ].data; c2 = fh_nl[ 2 ].data; c3 = fh_nl[ 3 ].data
@@ -214,6 +234,8 @@ class CalTempFromBias:
 
             if ( nsamp <= 1 ):
                opusutil.PrintMsg("F","ERROR "+ str(' : nsamp <=1, so will not process'))
+               raw_header.update('TFBCALC', 'SKIPPED') 
+               fh_raw.close()  
                return None, None, None
 
             if ( nsamp >= 3 ):       
@@ -287,6 +309,8 @@ class CalTempFromBias:
 
             if (( camera == 1) | (camera ==2)):      
                print ' Cameras 1 and 2 not currently supported.'
+               raw_header.update('TFBCALC', 'SKIPPED')
+               fh_raw.close()     
                return None, None, None
 
             if ( camera == 3): 
@@ -347,6 +371,8 @@ class CalTempFromBias:
 
             if (force <> None and force.upper()[0] == "S"):   
                 print ' This algorithm is not supported.'
+                raw_header.update('TFBCALC', 'SKIPPED') 
+                fh_raw.close()  
                 return None, None, None
 
             if (force <> None and force.upper()[0] == "B"):
@@ -378,6 +404,7 @@ class CalTempFromBias:
             if fh_nl:
               fh_nl.close()
 
+
         return self.temp_list, self.sigma_list, self.winner_list
 
 ## end of def calctemp()
@@ -405,7 +432,6 @@ class CalTempFromBias:
         """
 
         for ii in range(self.num_files):
-
             this_file = self.outlist0[ii]        
 
             if (hdr_key == None):
@@ -455,15 +481,21 @@ class CalTempFromBias:
                underbar = filename.find('_')
                filename =  filename[:underbar] +'_spt.fits'
             fh = pyfits.open( filename, mode='update' )      
-            hdr = fh[0].header
-            
-            hdr.update(hdr_key, temp[ii], comment = comm)
-            hdr.update(err_key, sig[ii], comment = "Error estimate on temperature")
-            hdr.update("METHUSED", meth_used, comment = "Algorithm type used")
-            hdr.update("TFB_RUN", self.tfb_run, comment = "Time that temp-from-bias was run")
-            hdr.update("TFB_VERS", self.tfb_version, comment = "Version of temp-from-bias that was run") 
-            fh.close()
+            hdr = fh[0].header # NOTE - this the PRIMARY extension
 
+            try :
+                hdr.update(hdr_key, temp[ii])
+                hdr.update(err_key, sig[ii])
+                hdr.update("TFBMETH", meth_used)
+                hdr.update("TFBDATE", self.tfb_run)
+                hdr.update("TFBVER", self.tfb_version)
+                hdr.update("TFBCALC", "COMPLETE")
+                fh.close()
+            except :
+                hdr.update("TFBCALC", "SKIPPED")
+                fh.close()
+                pass
+        
         if ( self.verbosity > 0):
            print ' The headers have been updated.'
 
@@ -483,11 +515,13 @@ class CalTempFromBias:
         print '  verbosity: ' ,  self.verbosity
         print ' For the files given by the input file list: '
         for ii in range(self.num_files):
-            this_file = self.outlist0[ii]        
-            print '    input_file[',ii,']:  ' , this_file
-            this_nl_file = self.nonlinfile_list[ii]                    
-            print '    nonlinearity file[',ii,']: ' ,  this_nl_file
-        
+           try :
+                this_file = self.outlist0[ii]        
+                print '    input_file[',ii,']:  ' , this_file
+                this_nl_file = self.nonlinfile_list[ii]                    
+                print '    nonlinearity file[',ii,']: ' ,  this_nl_file
+           except :
+                pass 
 
 
 #******************************************************************
@@ -618,10 +652,12 @@ if __name__=="__main__":
          tfb = CalTempFromBias( filename, edit_type=edit_type, hdr_key=hdr_key, err_key=err_key,
                                 nref_par=nref_dir, force=force, noclean=noclean, verbosity=verbosity)
          [temp, sigma, winner ]= tfb.calctemp()
-         stat = tfb.update_header( temp, sigma, winner)
-         if ( (stat == None )and (verbosity > 0)):
-            tfb.print_pars() 
-         
+
+         if ([temp, sigma, winner ] != [None, None, None]):             
+             stat = tfb.update_header( temp, sigma, winner)
+             if ( (stat == None )and (verbosity > 0)):
+               tfb.print_pars() 
+
     except Exception, errmess:
          opusutil.PrintMsg("F","ERROR "+ str(errmess))
 
