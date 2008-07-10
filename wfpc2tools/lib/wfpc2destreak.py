@@ -84,6 +84,7 @@
 #                     cosmic ray rejection routine.
 #                   - change PASS2 so that for each row, the mean of all unmasked pixels is used; the mode will no longer be used
 #          06/24/08 - added option for user to supply the number of iterations for the CR rejection
+#          07/10/08 - changed output image size to match that of the input image for PASS2
 #
 # Outline:
 #
@@ -164,7 +165,7 @@ from optparse import OptionParser
 import ndimage
 import wfpc2util, opusutil, sys, string
 
-__version__ = "2.14 (2008 June 24)"
+__version__ = "2.15 (2008 July 10)"
 
 NUM_SIG = 2.5  # number of sigma to use in sigma clipping
 TOT_ITER = 4   # maximum number of iterations for sigma clipping
@@ -262,17 +263,22 @@ class Wfpc2destreak:
         col_min = 2
 
         if ( group == 0 ): # for single group case only 
-           col_max = 25; ix_min = 50; iy_min = 60  
+           col_max = 25
         if ( group == 1 ): # set group-dependent value for col_max
-           col_max = 25; ix_min = 50; iy_min = 60 
+           col_max = 25
         if ( group == 2 ):
-           col_max = 25; ix_min = 40; iy_min = 50 
+           col_max = 25
         if ( group == 3 ):
-           col_max = 15; ix_min = 40; iy_min = 50 
+           col_max = 15
         if ( group == 4 ):
-           col_max = 20 ; ix_min = 40; iy_min = 50
+           col_max = 20
 
-        SubarrayLevel = c0_data[:,col_min:col_max] 
+        if force_alg_type == 'PASS2': # to ensure that output image is the same size as input
+           col_min = 0 
+           col_max = 0 
+           SubarrayLevel = c0_data[:,:]  
+        else: 
+           SubarrayLevel = c0_data[:,col_min:col_max]  
 
         mask = cr_reject(SubarrayLevel, n_mad, niter)    # in pyramid region           
         mask_2d = N.resize( mask, [SubarrayLevel.shape[0], SubarrayLevel.shape[1]])    
@@ -419,7 +425,6 @@ class Wfpc2destreak:
             
         # calculate statistics for original c0 image data
         orig_c0_data = c0_data[0: xsize-1,col_max+1:].copy().astype(N.float32) 
-        orig_c0_data = c0_data[0: xsize-1,col_max+1:].copy().astype(N.float32) 
 
         self.dorgmin = orig_c0_data.min()
         self.dorgmax = orig_c0_data.max()
@@ -502,7 +507,10 @@ class Wfpc2destreak:
               c0_data[i_row,col_max+1:] -=  to_subtract_2[ i_row ] 
 
         # calculate and display statistics for corrected c0 image data
-        corr_c0_data = c0_data[0: xsize-1,col_max+1:].astype(N.float32)   
+        if force_alg_type == 'PASS2': # to ensure that output image is the same size as input image
+            corr_c0_data = c0_data[: ,:].astype(N.float32)   
+        else:
+            corr_c0_data = c0_data[0: xsize-1,col_max+1:].astype(N.float32)    
 
         self.dcormin = corr_c0_data.min()
         self.dcormax = corr_c0_data.max()
@@ -754,7 +762,6 @@ def check_cl_pars(input_file, group, bias_thresh, row_thresh, force_alg_type, n_
 
        if (force_alg_type <> None ):
           force_alg_type = force_alg_type.upper()  
-
           if ((force_alg_type <> "PASS1") and (force_alg_type <> "PASS2") and (force_alg_type <> "PASS12") and (force_alg_type <> "OMIT"))  :
                print ' The value entered (',force_alg_type,') is invalid. Try again.'
                sys.exit( ERROR_RETURN)
@@ -775,8 +782,7 @@ def check_cl_pars(input_file, group, bias_thresh, row_thresh, force_alg_type, n_
        try:  
            niter = string.atoi(niter)
        except:
-           print ' The number of CR rejection iterations entered (',niter,') is invalid. Try again.'
-           sys.exit( ERROR_RETURN)
+           pass          
 
        if ((niter < 0 ) or (niter > 10 )):
            print ' The number of CR rejection iterations entered (',niter,') is invalid. Try again.'
