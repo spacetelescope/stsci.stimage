@@ -109,13 +109,14 @@ import numpy as n
 import math, string
 import displaydev
 import zscale as _zscale
+import overlay
 
 try:
     import geotrans
 except ImportError:
     geotrans = None
 
-__version__ = "1.4 (13-FEB-2008)"
+__version__ = "1.5 (11-July-2008)"
 #
 # Version 0.1-alpha: Initial release
 #       WJH 7-Oct-2003
@@ -169,6 +170,7 @@ class NumDisplay(object):
 
         self.name = None
         self.view = displaydev._display
+        self.handle = self.view.getHandle()
 
     def open(self,imtdev=None):
         """ Open a display device. """
@@ -362,9 +364,10 @@ class NumDisplay(object):
                 transform=transform, scale=scale, offset=offset)
 
         # Initialize the display device
-        if not self.view._display:
+        if not self.view._display or self.view.checkDisplay() is False:
             self.open()
         _d = self.view._display
+        self.handle = _d.getHandle()
 
         # If no user specified values are provided, interrogate the array itself
         # for the full range of pixel values
@@ -431,6 +434,12 @@ class NumDisplay(object):
     def readcursor(self,sample=0):
         """ Return the cursor position from the image display. """
         return self.view.readCursor(sample=sample)
+    
+    def getHandle(self):
+        return self.handle
+    
+    def checkDisplay(self):
+        return self.view.checkDisplay()
 
 # Help facility
 def help():
@@ -441,6 +450,7 @@ def help():
 
 view = NumDisplay()
 
+
 # create aliases for PyDisplay methods
 open = view.open
 close = view.close
@@ -448,3 +458,5 @@ close = view.close
 set = view.set
 display = view.display
 readcursor = view.readcursor
+getHandle = view.getHandle
+checkDisplay = view.checkDisplay

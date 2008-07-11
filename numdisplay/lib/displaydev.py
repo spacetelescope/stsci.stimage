@@ -51,14 +51,7 @@ except ImportError, error:
     # set a default that will be compatible with Win platform
     os.O_NDELAY = 0
 
-try:
-    import pyraf
-    if pyraf:
-        from pyraf import iraffunctions  # needed for parsing STDIMAGE variable
-    else:
-        iraffunctions = None
-except:
-    iraffunctions = None
+from pytools import fileutil
 
 try:
     SOCKTYPE = socket.AF_UNIX
@@ -255,14 +248,14 @@ class ImageDisplay(object):
         
         self.frame = 1        
         
+        self.fbname = None
         try:
             # Try to use the IRAF 'stdimage' value as the default
             # fbconfig number, if it exists 
-            if iraffunctions:
-                _fbname = pyraf.iraffunctions.envget('stdimage')
-
+            self.fbname = fileutil.envget('stdimage')
+            if self.fbname is not None:
                 # Search through all IMTOOLRC entries to find a match 
-                _fbconfig = self.getConfigno(_fbname)
+                _fbconfig = self.getConfigno(self.fbname)
             else:
                 _fbconfig = _default_fbconfig
         except:    
@@ -315,7 +308,8 @@ class ImageDisplay(object):
         newfb = None
         _tmin = 100000
 
-        if iraffunctions:
+        #if iraffunctions:
+        if self.fbname is not None:
             # Use the STDIMAGE variable defined in the IRAF session...
             newfb = self.fbconfig
         else:
@@ -545,6 +539,9 @@ class ImageDisplay(object):
         except (OSError, AttributeError):
             pass
 
+    def getHandle(self):
+        return self
+    
     def _read(self, n):
         """Read n bytes from image display and return as string
 
@@ -654,8 +651,7 @@ class ImageDisplayProxy(ImageDisplay):
     def open(self, imtdev=None):
 
         """Open image display connection, closing any active connection"""
-
-        self.close()
+        self.close()        
         self._display = _open(imtdev)
 
     def close(self):
@@ -675,9 +671,9 @@ class ImageDisplayProxy(ImageDisplay):
         if sample is false (default).  Returns a string with
         x, y, frame, and key.  Opens image display if necessary.
         """
-
+        
         if not self._display:
-            self.open()
+            self.open()            
         try:
             value = self._display.readCursor(sample)
             # Null value indicates display was probably closed
@@ -697,7 +693,17 @@ class ImageDisplayProxy(ImageDisplay):
             self.open()
             
         self._display.setCursor(x,y,wcs)
- 
+    
+    def checkDisplay(self): 
+        """ Returns True if 
+        """
+        try:
+            wcs = self._display.readInfo()
+        except:
+            return False
+        return True
+            
+     
 
 # Print help information
 def help():
@@ -712,3 +718,4 @@ readCursor = _display.readCursor
 open = _display.open
 close = _display.close
 setCursor = _display.setCursor
+checkDisplay = _display.checkDisplay

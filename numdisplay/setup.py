@@ -34,7 +34,7 @@ if __name__ == '__main__' :
 
     setup(
         name="Numdisplay",
-        version="1.3",
+        version="1.5",
         description="Package for displaying numpy arrays in DS9",
         author="Warren Hack",
         maintainer_email="help@stsci.edu",
@@ -42,7 +42,7 @@ if __name__ == '__main__' :
         license = "http://www.stsci.edu/resources/software_hardware/pyraf/LICENSE",
         platforms = ["any"],
         packages = ['numdisplay'],
-        package_dir={'numdisplay':''},
+        package_dir={'numdisplay':'lib'},
         cmdclass = {'install_data':smart_install_data},
-        data_files = [('numdisplay',['imtoolrc', 'LICENSE.txt'])]
+        data_files = [('numdisplay',['lib/imtoolrc', 'lib/LICENSE.txt','lib/ichar.dat'])]
         )
