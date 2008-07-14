@@ -42,14 +42,13 @@ uninstall_packages = [ ]
 #The normal directory structure is {packagename:packagename/lib.}
 #
 # PACKAGE_DIRS[x] is the relative directory where we can find the source code 
-# for # package x
+# for package x
 #
 PACKAGE_DIRS = {}
 for p in PACKAGES:
     PACKAGE_DIRS[p]="%s/lib"%p
 
 #Exceptions are allowed; put them here.
-PACKAGE_DIRS['numdisplay']='numdisplay'
 PACKAGE_DIRS['pydrizzle.traits102']='pydrizzle/traits102'
 PACKAGE_DIRS['pydrizzle.distortion']='pydrizzle/lib/distortion'
 PACKAGE_DIRS['ndimage']='ndimage'
@@ -88,7 +87,7 @@ MULTIDRIZZLE_DATA_DIR = os.path.join('multidrizzle')
 MULTIDRIZZLE_DATA_FILES = ['multidrizzle/lib/LICENSE.txt']
 
 NUMDISPLAY_DATA_DIR = os.path.join('numdisplay')
-NUMDISPLAY_DATA_FILES = ['numdisplay/imtoolrc', 'numdisplay/LICENSE.txt']
+NUMDISPLAY_DATA_FILES = ['numdisplay/lib/imtoolrc', 'numdisplay/lib/LICENSE.txt']
 
 PYDRIZZLE_DATA_DIR = os.path.join('pydrizzle')
 PYDRIZZLE_DATA_FILES = ['pydrizzle/lib/LICENSE.txt']
