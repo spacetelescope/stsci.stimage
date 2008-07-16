@@ -87,7 +87,7 @@ MULTIDRIZZLE_DATA_DIR = os.path.join('multidrizzle')
 MULTIDRIZZLE_DATA_FILES = ['multidrizzle/lib/LICENSE.txt']
 
 NUMDISPLAY_DATA_DIR = os.path.join('numdisplay')
-NUMDISPLAY_DATA_FILES = ['numdisplay/lib/imtoolrc', 'numdisplay/lib/LICENSE.txt']
+NUMDISPLAY_DATA_FILES = ['numdisplay/lib/imtoolrc', 'numdisplay/lib/LICENSE.txt','numdisplay/lib/ichar.dat']
 
 PYDRIZZLE_DATA_DIR = os.path.join('pydrizzle')
 PYDRIZZLE_DATA_FILES = ['pydrizzle/lib/LICENSE.txt']
