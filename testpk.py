@@ -1,22 +1,32 @@
 #!/usr/bin/env python
 
+# $Id: $
+
 import sys, os
 import string
 
 
+#
+# required versions shows the exact version number of some
+# package that we expect to find after installing stsci_python
+#
+# Do not list pysynphot - it cannot be imported without a
+# valid CDBS tree, so we can't check the version number
+
 required_versions = {
         'calcos':               '2.1',
         'convolve':             '2.0',
-        'imagestats':           '1.2',
         'image':                '2.0',
         'imagestats':           '1.2',
         'multidrizzle':         '3.1.0',
-        'numpy':                '1.0.4',
+        'ndimage':              '2.0',
+        'nictools.puftcorr':    '0.17',
+        'nictools.rnlincor':    '0.8',
+        'nictools.saaclean':    '1.2',
         'numdisplay':           '1.5',
+        'numpy':                '1.1.0',
         'pydrizzle':            '6.1',
         'pyfits':               '1.4',
-        'nictools.rnlincor':    '0.8',
-        'nictools.puftcorr':    '0.17',
         'pytools.fileutil':     '1.3.1',
         'pytools.fitsdiff':     '1.4',
         'pytools.gfit':         '1.0',
@@ -31,33 +41,67 @@ required_versions = {
         'pytools.parseinput':   '0.1.5',
         'pytools.readgeis':     '2.0',
         'pytools.versioninfo':  '0.2.0',
-        'pytools.xyinterp':     '0.1',
         'pytools.wcsutil':      '1.1.0',
-        'nictools.saaclean':    '1.2',
+        'pytools.xyinterp':     '0.1',
         'stistools.mktrace':    '1.1',
         'stistools.sshift':     '1.4',
         'stistools.stisnoise':  '5.4',
         'stistools.wx2d':       '1.1',
         }
 
-def testpk():
+# optional_versions shows the exact version number that must
+# be present if the module is found, but we do not complain
+# if the module is missing
+
+optional_versions = {
+        'pyraf' :               '1.7',
+}
+
+report_list = [
+        # do not list "Pmw" - it does not have __version__
+        # do not list "PIL" - it does not have __version__
+        "pyraf",
+        "Sybase",
+        "IPython",
+        "matplotlib",
+        "nose",
+        "setuptools",
+        "urwid",
+         ]
+
+def pkg_info(p) :
+        """
+        """
+        try:
+                exec "import " + p
+                try :
+                    loc = eval( p + ".__path__" )
+                    loc = loc[0]
+                except AttributeError :
+                    try :
+                        loc = eval( p + ".__file__" )
+                    except AttributeError :
+                        loc = "???"
+                try :
+                        ver = eval( p + ".__version__" )
+                        return [ ver.split(' ')[0], loc ]
+                except :
+                        return [ "???", loc ]
+        except ImportError:
+            return [ "not found", "???" ]
+        # not reached
+
+
+def testpk( ):
     print ""
     print "Checking installed versions"
     print ""
 
-    packages=[ ]
-    for x in required_versions :
-        packages.append(x)
-
-    packages.sort()
-
-
     pyraf_message = ""
     
-    install_messages = []
-    installed_packages = {}
+
     if string.split(sys.version)[0] < '2.3':
-        install_messages.append("Python version 2.3 is required to run multidrizzle.\n")
+        print "Python version 2.3 is required to run multidrizzle."
 
     try:
         import pyraf
@@ -81,41 +125,54 @@ def testpk():
         import IPython
     except ImportError:
         print "Package ipython was not found. It is not required but if available can be used with pyraf (pyraf --ipython).\n"
-    for p in packages:
-        try:
-                print p
-                exec "import " + p
-                try :
-                    loc = eval( p + ".__path__" )
-                    loc = loc[0]
-                except AttributeError :
-                    try :
-                        loc = eval( p + ".__file__" )
-                    except AttributeError :
-                        loc = "???"
-                try :
-                        ver = eval( p + ".__version__" )
-                        installed_packages[p] = [ ver.split(' ')[0], loc ]
-                except :
-                        installed_packages[p] = [ "???", loc ]
-        except ImportError:
-            installed_packages[p] = [ "not found", "???" ]
 
-    for p in packages:
-        if required_versions[p] !=  installed_packages[p][0] :
-            message = "%-20s %-15s %-15s %s" % (p, required_versions[p], installed_packages[p][0], 
-                installed_packages[p][1])
-            install_messages.append(message)
 
-    if len(install_messages) != 0:
+    messages = []
+
+    required_packages= list(set(required_versions))
+
+    for p in required_packages:
+        result = pkg_info(p)
+        if required_versions[p] !=  result[0] :
+            message = "%-20s %-15s %-15s %s" % (p, required_versions[p], result[0], result[1])
+            messages.append(message)
+
+    optional_packages = list(set(optional_versions))
+
+    for p in optional_packages:
+        result = pkg_info(p)
+        if optional_versions[p] !=  result[0] and result[0] != 'not found' :
+            message = "%-20s %-15s %-15s %s" % (p, optional_versions[p], result[0], result[1])
+            messages.append(message)
+
+    if len(messages) != 0:
         print "%-20s %-15s %-15s %s"%("package","expected","found","location")
-        for m in install_messages:
+        messages.sort()
+        for m in messages:
             print m
         print pyraf_message
     else:
         print pyraf_message
         print "All packages were successfully installed.\n"
     
+
+def report_pk() :
+    # make a unique list of all the modules we want a report on
+    a = list ( set(required_versions) | set(optional_versions) | set(report_list) )
+    a.sort()
+    # print the package info
+    for x in a :
+        i = pkg_info(x)
+        print "%-20s %-15s %s"%(x,i[0],i[1])
     
 if __name__ == '__main__':
-        testpk()
+        if len(sys.argv) > 1 :
+            if sys.argv[1] == '-r' :
+                report_pk()
+            if sys.argv[1] == '-t' :
+                testpk()
+            if sys.argv[1] == '-d' :
+                testpk(debug=1)
+        else :
+            testpk()
+
