@@ -54,9 +54,6 @@ PACKAGE_DIRS['pydrizzle.distortion']='pydrizzle/lib/distortion'
 PACKAGE_DIRS['ndimage']='ndimage'
 args = sys.argv[2:]
 
-# set this to check version numbers of imported modules after an install
-check_versions = 1
-
 for a in args :
     print a
     if a.startswith('--local='):
@@ -233,9 +230,3 @@ setup(name="STScI Python Software",
       scripts = SCRIPTS,
       ext_modules = EXTENSIONS,
       )
-
-if check_versions :
-    # if installing everything, we can also check the module version numbers now
-    import testpk
-    testpk.testpk()
-
