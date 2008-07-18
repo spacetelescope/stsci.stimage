@@ -5,16 +5,16 @@ import string
 
 
 required_versions = {
-        'calcos':               '1.2',
+        'calcos':               '2.1',
         'convolve':             '2.0',
         'imagestats':           '1.2',
         'image':                '2.0',
         'imagestats':           '1.2',
         'multidrizzle':         '3.1.0',
         'numpy':                '1.0.4',
-        'numdisplay':           '1.3',
+        'numdisplay':           '1.5',
         'pydrizzle':            '6.1',
-        'pyfits':               '1.3',
+        'pyfits':               '1.4',
         'nictools.rnlincor':    '0.8',
         'nictools.puftcorr':    '0.17',
         'pytools.fileutil':     '1.3.1',
@@ -41,6 +41,9 @@ required_versions = {
         }
 
 def testpk():
+    print ""
+    print "Checking installed versions"
+    print ""
 
     packages=[ ]
     for x in required_versions :
@@ -80,23 +83,32 @@ def testpk():
         print "Package ipython was not found. It is not required but if available can be used with pyraf (pyraf --ipython).\n"
     for p in packages:
         try:
+                print p
                 exec "import " + p
                 try :
+                    loc = eval( p + ".__path__" )
+                    loc = loc[0]
+                except AttributeError :
+                    try :
+                        loc = eval( p + ".__file__" )
+                    except AttributeError :
+                        loc = "???"
+                try :
                         ver = eval( p + ".__version__" )
-                        installed_packages[p] = ver.split(' ')[0]
+                        installed_packages[p] = [ ver.split(' ')[0], loc ]
                 except :
-                        installed_packages[0] = 0
-                        install_messages.append("problem with package %s" % p )
+                        installed_packages[p] = [ "???", loc ]
         except ImportError:
-            installed_packages[p] = 0
-            install_messages.append("Package %s is required, but is not installed." % p)
-                                                             
+            installed_packages[p] = [ "not found", "???" ]
+
     for p in packages:
-        if required_versions[p] !=  installed_packages[p] and installed_packages[p] != 0:
-            message = "%s v %s was expected, v %s was found" % (p, required_versions[p], installed_packages[p])            
+        if required_versions[p] !=  installed_packages[p][0] :
+            message = "%-20s %-15s %-15s %s" % (p, required_versions[p], installed_packages[p][0], 
+                installed_packages[p][1])
             install_messages.append(message)
-        
+
     if len(install_messages) != 0:
+        print "%-20s %-15s %-15s %s"%("package","expected","found","location")
         for m in install_messages:
             print m
         print pyraf_message
