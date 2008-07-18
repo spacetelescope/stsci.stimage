@@ -47,6 +47,8 @@ required_versions = {
         'stistools.sshift':     '1.4',
         'stistools.stisnoise':  '5.4',
         'stistools.wx2d':       '1.1',
+        'wfpc2tools.wfpc2cte':  '1.2.4',
+        'wfpc2tools.wfpc2destreak': '2.15',
         }
 
 # optional_versions shows the exact version number that must
@@ -134,7 +136,7 @@ def testpk( ):
     for p in required_packages:
         result = pkg_info(p)
         if required_versions[p] !=  result[0] :
-            message = "%-20s %-15s %-15s %s" % (p, required_versions[p], result[0], result[1])
+            message = "%-25s %-20s %-20s %s" % (p, required_versions[p], result[0], result[1])
             messages.append(message)
 
     optional_packages = list(set(optional_versions))
@@ -142,11 +144,11 @@ def testpk( ):
     for p in optional_packages:
         result = pkg_info(p)
         if optional_versions[p] !=  result[0] and result[0] != 'not found' :
-            message = "%-20s %-15s %-15s %s" % (p, optional_versions[p], result[0], result[1])
+            message = "%-25s %-20s %-20s %s" % (p, optional_versions[p], result[0], result[1])
             messages.append(message)
 
     if len(messages) != 0:
-        print "%-20s %-15s %-15s %s"%("package","expected","found","location")
+        print "%-25s %-20s %-20s %s"%("package","expected","found","location")
         messages.sort()
         for m in messages:
             print m
@@ -156,14 +158,33 @@ def testpk( ):
         print "All packages were successfully installed.\n"
     
 
+
 def report_pk() :
+    # cannot create a proper report from the current directory where the
+    # stsci_python distribution is; go somewhere else
+    try :os.chdir("/")
+    except : pass
+
+    colfmt = "%-25s %-15s %-15s %s"
+
+    print colfmt%("package","version","expected","location")
+    print ""
+
+
     # make a unique list of all the modules we want a report on
     a = list ( set(required_versions) | set(optional_versions) | set(report_list) )
     a.sort()
     # print the package info
-    for x in a :
-        i = pkg_info(x)
-        print "%-20s %-15s %s"%(x,i[0],i[1])
+    for p in a :
+        i = pkg_info(p)
+        expect="-"
+        if p in optional_versions :
+            if i[0] != optional_versions[p] :
+                expect = optional_versions[p]
+        if p in required_versions :
+            if i[0] != required_versions[p] :
+                expect = required_versions[p]
+        print colfmt%(p,i[0],expect,i[1])
     
 if __name__ == '__main__':
         if len(sys.argv) > 1 :
