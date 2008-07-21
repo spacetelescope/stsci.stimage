@@ -21,7 +21,7 @@ _default_pars = {'psize':None,'default_rot':None,'idckey':None}
 
 INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS","WFC3"]
 
-__version__ = "6.1.refac5 (23-June-2008)"
+__version__ = "6.1.5 (23-June-2008)"
 
 
 class _PyDrizzle:
