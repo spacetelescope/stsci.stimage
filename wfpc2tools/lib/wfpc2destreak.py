@@ -283,10 +283,9 @@ class Wfpc2destreak:
         if (verbosity >=1 ): print 'Wrote mask for c0 image region to: ',mask_file
         write_mask( masked_image, mask_file, verbosity )
 
-
             
     # calculate statistics for original c0 image data
-        orig_c0_data = c0_data[0: xsize-1,:].copy().astype(N.float32) 
+        orig_c0_data = c0_data[:,:].copy().astype(N.float32) 
 
         self.dorgmin = orig_c0_data.min()
         self.dorgmax = orig_c0_data.max()
