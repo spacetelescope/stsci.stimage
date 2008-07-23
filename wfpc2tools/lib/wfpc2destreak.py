@@ -107,7 +107,7 @@
 # Linux command line short options and defaults (set in wfpc2util.py):
 #     -g: group (default = 4)
 #     -b: bias_thresh (default = 99999.)
-#     -r: row_thresh (default = 0.)
+#     -r: row_thresh (default = 0.1)
 #     -v: verbosity (default = verbose)
 #     -m: input_mask (default = None)    
 #     -i: niter (default = 5)    
