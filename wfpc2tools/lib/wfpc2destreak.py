@@ -89,7 +89,10 @@
 #                     is the only correction type now supported, as specifying a correction type is
 #                     no longer allowed.  All pyramid region-related calculations and keywords
 #                     have been removed. The bias threshold and n_mad parameters have been removed
-#          07/2/08 - fixed bug in cr rejection 
+#          07/22/08 - fixed bug in cr rejection, in which the slope of the fit plane was forced to be 0 (left over
+#                     from earlier tests of NSIGMA)
+#          07/23/08 - put bias_thresh back in as a settable parameter; set default row_thresh = 0.1
+#
 # Outline:
 #
 # 1. In the 'interior' image region (starting to the right of the pyramid region), eliminate the CRs, and
@@ -103,16 +106,17 @@
 #      
 # Linux command line short options and defaults (set in wfpc2util.py):
 #     -g: group (default = 4)
+#     -b: bias_thresh (default = 99999.)
 #     -r: row_thresh (default = 0.)
 #     -v: verbosity (default = verbose)
 #     -m: input_mask (default = None)    
 #     -i: niter (default = 5)    
 #
 # Usage examples:
-#    A. For a dataset with multiple groups, to process group 4 using row threshold=0.1:
-#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 4  -r 0.1  -v
+#    A. For a dataset with multiple groups, to process group 4 using a bias threshold=280 and row threshold=0.2:
+#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 4 -b 280. -r 0.2  -v
 #       This can also be specified using the 'long options':
-#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits" --group=4 --row_thresh=0.1
+#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits" --group=4 --bias_thresh=280. --row_thresh=0.2
 #    B. To allow the routine to run with all of the defaults:
 #         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"
 #    C. For a dataset with a single group, using defaults for the thresholds:
@@ -125,7 +129,7 @@
 #         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 0 -n 20. -i 3  
 #
 # Example 'A' under pyraf:
-# --> wfp = wfpc2destreak.Wfpc2destreak( "u8zq0104m_c0h.fits", group=4, row_thresh=0.1)
+# --> wfp = wfpc2destreak.Wfpc2destreak( "u8zq0104m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.2)
 # --> wfp.destreak()
 #
 ###########################################################################
@@ -148,13 +152,13 @@ ERROR_RETURN = 2
 class Wfpc2destreak:
     """ Calculate magnitude of and remove streaks from specified group of wfpc2 data.
 
-    example: 
+    example:
        wfpc2_d = wfpc2destreak.Wfpc2destreak( filename, input_mask=input_mask, group=group, verbosity=verbosity,
-               row_thresh=row_thresh,  niter=niter) 
+               bias_thresh=bias_thresh, row_thresh=row_thresh,  niter=niter)
        wfpc2destreak.Wfpc2destreak.destreak(wfpc2_d) 
     """
 
-    def __init__( self, input_file, input_mask=None, group=None, verbosity=0, row_thresh=None, \
+    def __init__( self, input_file, input_mask=None, group=None, verbosity=0, bias_thresh=None, row_thresh=None, \
                   niter=None):   
         """constructor
 
@@ -166,6 +170,8 @@ class Wfpc2destreak:
         @type group: int
         @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
         @type verbosity: string
+        @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by im_mean)
+        @type bias_thresh: float
         @param row_thresh: row threshold (no correction will be performed if this exceeds the calculated row correction)
         @type row_thresh: float
         @param niter: number of iterations for CR rejection
@@ -174,15 +180,16 @@ class Wfpc2destreak:
 
         # do some parameter type checking
         if ( __name__ == 'wfpc2destreak'):  # for python interface, set defaults and check unspecified pars
-           [group, row_thresh, niter] = check_py_pars(input_file, group, row_thresh, \
-                                                                                    input_mask, niter)  
+           [group, bias_thresh, row_thresh, niter] = check_py_pars(input_file, group, bias_thresh, row_thresh, \
+                                                                                    input_mask, niter)
         else:
-           [group, row_thresh, niter] = check_cl_pars(input_file, group, row_thresh, \
-                                                                                   input_mask, niter)  
+           [group, bias_thresh, row_thresh, niter] = check_cl_pars(input_file, group, bias_thresh, row_thresh, \
+                                                                                    input_mask, niter)
 
         self.input_file = input_file
         self.group = int(group) 
         self.verbosity = verbosity
+        self.bias_thresh = float(bias_thresh)
         self.row_thresh = float(row_thresh)
         self.input_mask = input_mask
         self.niter = niter
@@ -192,6 +199,7 @@ class Wfpc2destreak:
         input_file = self.input_file
         group = self.group
         verbosity = self.verbosity
+        bias_thresh = self.bias_thresh
         row_thresh = self.row_thresh
         input_mask = self.input_mask
         niter = self.niter 
@@ -252,12 +260,6 @@ class Wfpc2destreak:
         self.dmskmax = masked_image[IR_nz].max()
         self.dmskpix = masked_image[IR_nz].shape[0]        
 
-    # write mask file for c0 image region
-        mask_file = file_prefix + str('_bjc_Imask_')+str(group)+str('.fits')
-
-        if (verbosity >=1 ): print 'Wrote mask for c0 image region to: ',mask_file
-        write_mask( masked_image, mask_file, verbosity )
-
     # calculate image mean from all unmasked pixels in image data
         good_image_pix = N.where( masked_image > 0.0)
         good_image_data = masked_image[ good_image_pix ]
@@ -268,8 +270,22 @@ class Wfpc2destreak:
 
         im_mean = good_image_data.mean()
         im_sigma =good_image_data.std()
+
+        if (bias_thresh < im_mean): # so apply no correction
+             alg_type = "Skipped"
+             alg_cmt = "No correction applied"
+             if (verbosity >1 ): print ' The specified correction will be skipped because bias_thresh < im_mean'
+             sys.exit( ERROR_RETURN )
+
+    # write mask file for c0 image region
+        mask_file = file_prefix + str('_bjc_Imask_')+str(group)+str('.fits')
+
+        if (verbosity >=1 ): print 'Wrote mask for c0 image region to: ',mask_file
+        write_mask( masked_image, mask_file, verbosity )
+
+
             
-        # calculate statistics for original c0 image data
+    # calculate statistics for original c0 image data
         orig_c0_data = c0_data[0: xsize-1,:].copy().astype(N.float32) 
 
         self.dorgmin = orig_c0_data.min()
@@ -304,12 +320,10 @@ class Wfpc2destreak:
 
            clip_row_mean[ i_row] = good_val.mean()
 
-        # for each row, subtract difference between clipped mean and global clipped mean 
         glob_im_clip_mean = clip_row_mean[1:ysize-2].mean() # calculate global clipped mean
-        for i_row in range (1, ysize-2 ):
+        for i_row in range (1, ysize-2 ):      # for each row, subtract difference between clipped mean and global clipped mean 
 
            to_subtract_2[ i_row ] = clip_row_mean[ i_row ]- glob_im_clip_mean
-        #  print '   to_subtract_2[ i_row ] = ' ,   to_subtract_2[ i_row ]
 
            if (abs(to_subtract_2[ i_row ]) < row_thresh ): # make no correction
              to_subtract_2[ i_row ] = 0.0  
@@ -374,11 +388,12 @@ class Wfpc2destreak:
         print '  input c0 file:  ' , self.input_file
         print '  input mask file:  ' , self.input_mask
         print '  group:  ' , self.group
+        print '  bias_thresh:  ' , self.bias_thresh
         print '  row thresh:  ' , self.row_thresh 
         print '  number of CR rejection iterations:  ' , self.niter
 
 
-def check_py_pars(input_file, group, row_thresh, input_mask, niter):  
+def check_py_pars(input_file, group, bias_thresh, row_thresh, input_mask, niter):  
        """ When run under python, verify that each unspecified parameter should take the default value, and
            give the user the opportunity to change it.
 
@@ -386,13 +401,16 @@ def check_py_pars(input_file, group, row_thresh, input_mask, niter):
        @type input_file: string
        @param group: number of group to process
        @type group: int
+       @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by im_mean)
+       @type bias_thresh: float
        @param row_thresh: row threshold (no correction will be performed if this exceeds the calculated row correction)
        @type row_thresh: float
        @param input_mask: name of input mask
        @type input_mask: string
        @param niter: number of CR rejection iterations   
        @type niter: int
-       @return: group, row_thresh, 
+       @return: group, row_thresh,
+       @return: group, bias_thresh, row_thresh
        @rtype:  int, float, float
        """
        
@@ -415,6 +433,18 @@ def check_py_pars(input_file, group, row_thresh, input_mask, niter):
                except:
                    print ' The value entered (',inp,') is invalid so the default will be used'
 
+       if (bias_thresh == None):
+            bias_thresh = wfpc2util.bias_thresh
+            print ' You have not specified a value for bias_thresh; the default is:',  wfpc2util.bias_thresh
+            print ' If you want to use the default, hit <enter>, otherwise type in the desired value'
+            inp = raw_input('? ')
+            if inp == '':
+               print ' The default value of ', bias_thresh,' will be used'
+            else:
+               try:
+                   bias_thresh = string.atof(inp)
+               except:
+                   print ' The value entered (',inp,') is invalid so the default will be used'
                
        if (row_thresh == None):
             row_thresh = wfpc2util.row_thresh
@@ -451,17 +481,19 @@ def check_py_pars(input_file, group, row_thresh, input_mask, niter):
                    print ' The value entered (',inp,') is invalid so the default will be used'
 
 
-       return group, row_thresh, niter
+       return group, bias_thresh, row_thresh, niter
 
   
 
-def check_cl_pars(input_file, group, row_thresh, input_mask, niter):  
+def check_cl_pars(input_file, group,  bias_thresh, row_thresh, input_mask, niter):  
        """ When run from linux coammand line, verify that each parameter is valid.
 
        @param input_file: name of input file
        @type input_file: string
        @param group: number of group to process
        @type group: int
+       @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by im_mean)
+       @type bias_thresh: float
        @param row_thresh: row threshold (no correction will be performed if this exceeds the calculated row correction)
        @type row_thresh: float
        @param input_mask: name of input mask file
@@ -487,6 +519,12 @@ def check_cl_pars(input_file, group, row_thresh, input_mask, niter):
            sys.exit( ERROR_RETURN)
 
        try:
+           bias_thresh = string.atof(bias_thresh)
+       except:
+           print ' The bias threshold value entered (',bias_thresh,') is invalid.'
+           sys.exit( ERROR_RETURN)
+
+       try:
            row_thresh = string.atof(row_thresh)
        except:
            print ' The row threshold value entered (',row_thresh,') is invalid. Try again.'
@@ -509,7 +547,7 @@ def check_cl_pars(input_file, group, row_thresh, input_mask, niter):
            sys.exit( ERROR_RETURN)
 
   
-       return group, row_thresh, niter
+       return group, bias_thresh, row_thresh, niter
 
 
 def cr_reject( SubArray, niter ):
@@ -726,7 +764,7 @@ def update_header(self, hdr, verbosity):
     @type verbosity: string
 
     """
-
+    hdr.update(key='BIASTHRE', value=self.bias_thresh, comment="bias threshold" )
     hdr.update(key='ROWTHRES', value=self.row_thresh, comment="row threshold" ) 
 
     hdr.update(key='DCORPIX', value=self.dcorpix, comment="number of pixels in corrected c0 image region" ) 
@@ -798,6 +836,8 @@ if __name__ =="__main__":
             help="very verbose, print lots of information")
     parser.add_option( "-g", "--group", dest = "group",default = wfpc2util.group,
             help = "number of group to process.")
+    parser.add_option( "-b", "--bias_thresh", dest = "bias_thresh",default = wfpc2util.bias_thresh,
+            help = "bias threshold.")
     parser.add_option( "-r", "--row_thresh", dest = "row_thresh",default = wfpc2util.row_thresh,
             help = "row threshold.")
     parser.add_option( "-m", "--input_mask", dest = "input_mask",default = wfpc2util.input_mask, 
@@ -813,6 +853,9 @@ if __name__ =="__main__":
     wfpc2util.setGroup(options.group )
     if options.group!=None: group = options.group
 
+    wfpc2util.setBias_thresh(options.bias_thresh )
+    if options.bias_thresh!=None: bias_thresh = options.bias_thresh
+
     wfpc2util.setRow_thresh(options.row_thresh )
     if options.row_thresh!=None: row_thresh = options.row_thresh
 
@@ -823,7 +866,7 @@ if __name__ =="__main__":
     if options.niter!=None: niter = options.niter
      
     try:
-       wfpc2_d = Wfpc2destreak( filename, input_mask=input_mask, group=group, verbosity=verbosity, \
+       wfpc2_d = Wfpc2destreak( filename, input_mask=input_mask, group=group, verbosity=verbosity, bias_thresh=bias_thresh,\
                                 row_thresh=row_thresh, niter=niter)
    
        if (verbosity >=1 ):
@@ -835,5 +878,5 @@ if __name__ =="__main__":
 
     except Exception, errmess:
        opusutil.PrintMsg("F","FATAL ERROR "+ str(errmess))
-       sys.exit( ERROR_RETURN)
+       sys.exit( ERROR_RETURN)  
 
