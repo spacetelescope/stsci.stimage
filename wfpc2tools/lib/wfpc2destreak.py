@@ -85,73 +85,47 @@
 #                   - change PASS2 so that for each row, the mean of all unmasked pixels is used; the mode will no longer be used
 #          06/24/08 - added option for user to supply the number of iterations for the CR rejection
 #          07/10/08 - changed output image size to match that of the input image for PASS2
-#
+#          07/17/08 - because calculations involving the pyramid region are no longer relevant, PASS2
+#                     is the only correction type now supported, as specifying a correction type is
+#                     no longer allowed.  All pyramid region-related calculations and keywords
+#                     have been removed. The bias threshold and n_mad parameters have been removed
+#          07/2/08 - fixed bug in cr rejection 
 # Outline:
 #
-# 1. In the pyramid region of the c0 data, eliminate the CRs, then calculate the mean (pyr_mean) and sigma (pyr_sigma)
-# 2. In the 'interior' image region (starting to the right of the pyramid region), eliminate the CRs, and
+# 1. In the 'interior' image region (starting to the right of the pyramid region), eliminate the CRs, and
 #      calculate the mean (im_mean) and sigma (im_sigma)
-# 3. Calculate how high above the pyr values the image values are by:
-#        im_mean = pyr_mean + NSIGMA*pyr_sigma
-# 4. If the algorithm type is not forced by the user, the routine determines which correction algorithm
-#    to use and applies it:
-#   A.  If NSIGMA < = 1.0 apply no correction
-#   B.  If NSIGMA >1.0 and NSIGMA < =11.0 and im_sigma <= 2.0 apply Pass1 & 2
-#   C.  If NSIGMA >1.0 and NSIGMA < =11.0 and im_sigma > 2.0 apply no correction
-#   D.  ELSE apply Pass1 only
-#
-# ... where Pass1 is done as follows:
-#     - In the leading columns (2->group-specific value ), cosmic rays are identified and
-#         masked in the c0 data
-#     - For each row within these columns, the mean is calculated of the unmasked
-#         pixels; for all rows the 'global pyramid mean' is calculated
-#     - For each row, the smoothed mean is calculated over 3 rows
-#     - For each row in the image, the difference between the smoothed mean and the 'global pyramid mean'
-#         is subtracted from the c0 data
-#
-# ... and Pass2 is done as follows:
 #     - Over the entire c0 image, cosmic rays are identified and masked in the c0 data
 #     - For the entire image, the global mean and the (clipped) sigma is calculated for all unmasked pixels
 #     - For each row, the mean is calculated for all unmasked pixels 
 #     - For each row, the difference between the mean and the global mean is subtracted from the c0 data
 #
-# 5. The modified c0 data is written to the file <dataset>_bjc_<chip>.fits
+# 2. The modified c0 data is written to the file <dataset>_bjc_<chip>.fits
 #      
 # Linux command line short options and defaults (set in wfpc2util.py):
 #     -g: group (default = 4)
-#     -b: bias_thresh (default = 99999.)
 #     -r: row_thresh (default = 0.)
 #     -v: verbosity (default = verbose)
-#     -f: force_alg_type (default = None)
-#     -n: n_mad (default = 15.)    
 #     -m: input_mask (default = None)    
 #     -i: niter (default = 5)    
 #
 # Usage examples:
-#    A. For a dataset with multiple groups, to process group 4 using a bias threshold=280 and row threshold=0.1,
-#       letting the routine decide which correction type to apply:
-#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 4 -b 280. -r 0.1  -v
-#    B. To force a specific correction type (say PASS2):
-#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 4 -b 280. -r 0.1 -f PASS2 
+#    A. For a dataset with multiple groups, to process group 4 using row threshold=0.1:
+#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 4  -r 0.1  -v
 #       This can also be specified using the 'long options':
-#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits" --group=4 --bias_thresh=280. --row_thresh=0.1
-#                --force_alg_type=PASS2 
-#    C. To force the routine to run without applying a correction:
-#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 4 -b 280. -r 0.1 -f OMIT -v
-#    D. To allow the routine to run with all of the defaults:
+#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits" --group=4 --row_thresh=0.1
+#    B. To allow the routine to run with all of the defaults:
 #         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"
-#    E. For a dataset with a single group, using defaults for the thresholds, forcing PASS1:
-#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 0 -f PASS1
-#    F. For a dataset with a single group, using defaults for the thresholds, setting CR rejection parameter to 20:
+#    C. For a dataset with a single group, using defaults for the thresholds:
+#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 0 
+#    D. For a dataset with a single group, using defaults for the thresholds, setting CR rejection parameter to 20:
 #         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 0 -n 20. 
-#    G. Same as example F, but specifing an input mask to use:
+#    E. Same as example F, but specifing an input mask to use:
 #         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 0 -n 20. -m "mask_u8zq0104.fits"
-#    H. Same as example F, but specifing 3 iterations for the CR rejection :
+#    F. Same as example F, but specifing 3 iterations for the CR rejection :
 #         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 0 -n 20. -i 3  
 #
 # Example 'A' under pyraf:
-# --> wfp = wfpc2destreak.Wfpc2destreak( "u8zq0104m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.1,
-#                                          force_alg_type="PASS2")
+# --> wfp = wfpc2destreak.Wfpc2destreak( "u8zq0104m_c0h.fits", group=4, row_thresh=0.1)
 # --> wfp.destreak()
 #
 ###########################################################################
@@ -165,7 +139,7 @@ from optparse import OptionParser
 import ndimage
 import wfpc2util, opusutil, sys, string
 
-__version__ = "2.15 (2008 July 10)"
+__version__ = "2.17 (2008 July 22)"
 
 NUM_SIG = 2.5  # number of sigma to use in sigma clipping
 TOT_ITER = 4   # maximum number of iterations for sigma clipping
@@ -176,12 +150,12 @@ class Wfpc2destreak:
 
     example: 
        wfpc2_d = wfpc2destreak.Wfpc2destreak( filename, input_mask=input_mask, group=group, verbosity=verbosity,
-               bias_thresh=bias_thresh, row_thresh=row_thresh, force_alg_type=force_alg_type, n_mad=n_mad, niter=niter) 
+               row_thresh=row_thresh,  niter=niter) 
        wfpc2destreak.Wfpc2destreak.destreak(wfpc2_d) 
     """
 
-    def __init__( self, input_file, input_mask=None, group=None, verbosity=0, bias_thresh=None, row_thresh=None, \
-                  force_alg_type=None, n_mad=None, niter=None):   
+    def __init__( self, input_file, input_mask=None, group=None, verbosity=0, row_thresh=None, \
+                  niter=None):   
         """constructor
 
         @param input_file: name of the c0h file to be processed
@@ -192,33 +166,24 @@ class Wfpc2destreak:
         @type group: int
         @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
         @type verbosity: string
-        @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by im_mean)
-        @type bias_thresh: float
         @param row_thresh: row threshold (no correction will be performed if this exceeds the calculated row correction)
         @type row_thresh: float
-        @param force_alg_type: algorithm type to force
-        @type force_alg_type: string
-        @param n_mad: CR rejection parameter    
-        @type n_mad: float  
         @param niter: number of iterations for CR rejection
         @type niter: int 
         """
 
         # do some parameter type checking
         if ( __name__ == 'wfpc2destreak'):  # for python interface, set defaults and check unspecified pars
-           [group, bias_thresh, row_thresh, force_alg_type, n_mad, niter] = check_py_pars(input_file, group, bias_thresh, row_thresh, \
-                                                                                   force_alg_type, n_mad, input_mask, niter)  
+           [group, row_thresh, niter] = check_py_pars(input_file, group, row_thresh, \
+                                                                                    input_mask, niter)  
         else:
-           [group, bias_thresh, row_thresh, force_alg_type, n_mad, niter] = check_cl_pars(input_file, group, bias_thresh, row_thresh, \
-                                                                                   force_alg_type, n_mad, input_mask, niter)  
+           [group, row_thresh, niter] = check_cl_pars(input_file, group, row_thresh, \
+                                                                                   input_mask, niter)  
 
         self.input_file = input_file
         self.group = int(group) 
         self.verbosity = verbosity
-        self.bias_thresh = float(bias_thresh)  
         self.row_thresh = float(row_thresh)
-        self.force_alg_type = force_alg_type
-        self.n_mad = float(n_mad)  
         self.input_mask = input_mask
         self.niter = niter
         
@@ -227,10 +192,7 @@ class Wfpc2destreak:
         input_file = self.input_file
         group = self.group
         verbosity = self.verbosity
-        bias_thresh = self.bias_thresh 
         row_thresh = self.row_thresh
-        force_alg_type = self.force_alg_type
-        n_mad = self.n_mad   
         input_mask = self.input_mask
         niter = self.niter 
 
@@ -259,70 +221,7 @@ class Wfpc2destreak:
                 opusutil.PrintMsg("F","ERROR - input mask has incorrect shape.")
                 sys.exit( ERROR_RETURN)
 
-    # read c0 leading columns (between col_min and col_max) and reject Cosmic Rays
-        col_min = 2
-
-        if ( group == 0 ): # for single group case only 
-           col_max = 25
-        if ( group == 1 ): # set group-dependent value for col_max
-           col_max = 25
-        if ( group == 2 ):
-           col_max = 25
-        if ( group == 3 ):
-           col_max = 15
-        if ( group == 4 ):
-           col_max = 20
-
-        if force_alg_type == 'PASS2': # to ensure that output image is the same size as input
-           col_min = 0 
-           col_max = 0 
-           SubarrayLevel = c0_data[:,:]  
-        else: 
-           SubarrayLevel = c0_data[:,col_min:col_max]  
-
-        mask = cr_reject(SubarrayLevel, n_mad, niter)    # in pyramid region           
-        mask_2d = N.resize( mask, [SubarrayLevel.shape[0], SubarrayLevel.shape[1]])    
-        masked_SubarrayLevel = SubarrayLevel * (1-mask_2d)  # gives 0 where there are Cosmic rays in the pyramid region
-
-    # calculate stats for all pixels in c0 pyramid region
-        self.porgpix = SubarrayLevel.shape[0]* SubarrayLevel.shape[1]
-        self.porgmean =  SubarrayLevel.mean(); self.porgstd = SubarrayLevel.std()
-        self.porgmin = SubarrayLevel.min(); self.porgmax = SubarrayLevel.max()
-
-    # write mask file for c0 pyramid region
-        mask_file = file_prefix + str('_bjc_Pmask_')+str(group)+str('.fits')   
-    
-        write_mask( masked_SubarrayLevel, mask_file, verbosity )
-        if (verbosity >=1 ): print 'Wrote mask for c0 pyramid region to: ',mask_file
-        
-    # calculate global mean from all unmasked pyramid region pixels in c0 file
-        c0_data_pix = N.where( masked_SubarrayLevel > 0.0)
-        all_good_data = masked_SubarrayLevel[ c0_data_pix ]
-        
-        glob_pyr_mean = all_good_data.mean() 
-        pyr_mean = all_good_data.mean()  # clipped pyramid mean of c0 data
-        pyr_sigma = all_good_data.std()  # clipped pyramid sigma of c0 data
-
-    # calculate stats for unmasked pixels in c0 pyramid region
-        BL_nz = N.where(masked_SubarrayLevel <> 0)
-        self.pmskpix = masked_SubarrayLevel[BL_nz].shape[0]
-        self.pmskmean = all_good_data.mean()
-        self.pmskstd =  all_good_data.std()
-        self.pmskmin =  all_good_data.min() 
-        self.pmskmax = all_good_data.max()  
-        
-    # loop over all rows and calculate mean of unmasked pixels for each row for the pyramid region
-        for i_row in range( 0, ysize-1 ):
-           row_data_a = masked_SubarrayLevel[i_row,:].astype( N.float64) 
-
-           if (row_data_a.std() <> 0.0) or (row_data_a.mean() <> 0.0 ):# for cases in which all values are 0.0
-               row_data_pix = N.where( row_data_a > 0.0)
-               good_row_data = row_data_a[ row_data_pix ]
-               good_row_mean[ i_row ] = good_row_data.mean()
-           else:
-               good_row_mean[ i_row ] = 0.0 
-
-        smoothed_row_mean = boxcar( good_row_mean,(3,))  # smooth row mean over 3 rows
+        SubarrayLevel = c0_data[:,:]  
 
     # perform CR rejection on desired subarray of image section 
         image_data = c0_data[ :, :]  # NOTE - this is now the entire image section
@@ -332,10 +231,11 @@ class Wfpc2destreak:
            masked_image = fh_mask[0].data
            if (verbosity >=1 ): print 'Using masked image from input mask file:', input_mask
         else:    
-           im_mask = cr_reject(image_data, n_mad, niter)  
+           im_mask = cr_reject(image_data, niter)  
            im_mask_2d = N.resize( im_mask, [image_data.shape[0], image_data.shape[1]])    
            masked_image = image_data * (1-im_mask_2d)  # gives 0 where there are Cosmic Rays in image section
            self.input_mask = "None"  # for writing to header
+
 
     # calculate stats for all pixels in c0 image region
         self.dorgmean = image_data.mean()
@@ -368,63 +268,9 @@ class Wfpc2destreak:
 
         im_mean = good_image_data.mean()
         im_sigma =good_image_data.std()
-
-    # Calculate the number of pyramid sigma above the clipped pyramid mean for the clipped image mean 
-        nsigma = (im_mean - pyr_mean)/pyr_sigma
-
-        if (verbosity >1 ):print 'Determining which algorithm to use ...'
-   
-        if (force_alg_type == None):#  apply the correction selected by the routine
-           forced_type = 'No'
-           if (bias_thresh >= im_mean):#  determine the type of correction to apply
-              if ( nsigma < 1.0 ): # Case A            
-                 if (verbosity >=1 ): print '  nsigma = ' , nsigma, ' < 1.0, so will apply no correction'
-                 alg_type = "None"
-                 alg_cmt = "No correction applied"
-              elif (nsigma >= 1.0 and nsigma <= 11.0 and im_sigma <= 2.0): # Case B
-                 if (verbosity >1 ):
-                    print '  nsigma = ', nsigma , '( between 1.0 and 11.), and im_sigma = ', im_sigma ,' <=2.0 so will apply both PASS 1 & 2'
-                    print '  Will use columns 2 through ', col_max,' in pyramid region to calculate Pass 1 corrections.'
-                 alg_type = "PASS12"
-                 alg_cmt = "Pass 1 and 2 corrections applied"
-              elif (nsigma >= 1.0 and nsigma <= 11.0 and im_sigma > 2.0): # Case C
-                 if (verbosity >1 ): print '  nsigma = ', nsigma , '( between 1.0 and 11.), and im_sigma = ', im_sigma , ' >2.0 so will apply no correction'
-                 alg_type = "None"
-                 alg_cmt = "No correction applied"
-              else: # Case D
-                 if (verbosity >1 ):             
-                    print '  nsigma = ', nsigma ,' and im_sigma = ', im_sigma
-                    print '  Neither   nsigma < 1.0 or  (nsigma >= 1.0 and nsigma <= 11.0 and im_sigma <= 2.0) so '
-                    print '  will apply Pass 1 only'
-                    print 'Will use columns 2 through ', col_max,' in pyramid region to calculate Pass 1 corrections.'
-                 alg_type = "PASS1"
-                 alg_cmt = "Pass 1 correction applied"
-           else : # bias_thresh < im_mean) so apply no correction 
-              alg_type = "Skipped"
-              alg_cmt = "No correction applied"
-              if (verbosity >1 ): print ' The specified correction will be skipped because bias_thresh < im_mean'
-        else: # (force_alg_type <> None): correction type has been specified by user
-           forced_type = 'Yes'
-           if (bias_thresh >= im_mean):#  determine type of correction specified
-              alg_type = force_alg_type
-              if ( force_alg_type == 'PASS1'):
-                 alg_cmt = "Pass 1 correction applied"
-              elif ( force_alg_type == 'PASS2'):
-                 alg_cmt = "Pass 2 correction applied"
-              elif ( force_alg_type == 'PASS12'):
-                 alg_cmt = "Pass 1 and 2 corrections applied"
-              else:
-                 alg_type = "None"
-                 alg_cmt = "No correction applied"
-              if (verbosity >1 ):
-                 print ' The user has forced algorithm type: ' ,alg_type
-           else:  # let the program decide which algorithm type
-              alg_type = "Skipped"
-              alg_cmt = "No correction applied"
-              if (verbosity >1 ): print ' The specified correction will be skipped because bias_thresh < im_mean'
             
         # calculate statistics for original c0 image data
-        orig_c0_data = c0_data[0: xsize-1,col_max+1:].copy().astype(N.float32) 
+        orig_c0_data = c0_data[0: xsize-1,:].copy().astype(N.float32) 
 
         self.dorgmin = orig_c0_data.min()
         self.dorgmax = orig_c0_data.max()
@@ -432,86 +278,53 @@ class Wfpc2destreak:
         self.dorgstd = orig_c0_data.std()
         self.dorgpix = orig_c0_data.shape[0]*orig_c0_data.shape[1]
                 
-        low_row_p1 = 0 #  number of rows below row_threshold in PASS1 
-        high_row_p1 = 0 #  number of rows above row_threshold in PASS1
-        low_row_p2 = 0 #  number of rows below row_threshold in PASS2 
+        to_sub_1_max = -wfpc2util.HUGE_VAL ; to_sub_1_min = wfpc2util.HUGE_VAL
+        to_sub_2_max = -wfpc2util.HUGE_VAL ; to_sub_2_min = wfpc2util.HUGE_VAL          
+
+        low_row_p2 = 0 #  number of rows below row_threshold in PASS2
         high_row_p2 = 0 #  number of rows above row_threshold in PASS2
 
-        to_sub_1_max = -wfpc2util.HUGE_VAL ; to_sub_1_min = wfpc2util.HUGE_VAL
-        to_sub_2_max = -wfpc2util.HUGE_VAL ; to_sub_2_min = wfpc2util.HUGE_VAL        
-  
-        if (( alg_type == "PASS1")or ( alg_type == "PASS12")) : # do Pass 1  
-          # PASS 1: for first correction, subtract difference between smoothed row mean from leading
-          #         columns and global mean in the data from the data
-           to_subtract_1 = N.zeros((ysize),dtype = N.float32)     
-           for i_row in range( 0, xsize-1 ):
-              to_subtract_1[ i_row ] = smoothed_row_mean[ i_row ]- glob_pyr_mean
+        row_data_b_mean = N.zeros(ysize)
+        to_subtract_2 = N.zeros((ysize),dtype = N.float32)
 
-              if (abs(to_subtract_1[ i_row ]) < row_thresh ): # make no correction 
-                 to_subtract_1[ i_row ] = 0.0 
-                 low_row_p1 +=1  
-              else:
-                 high_row_p1 +=1 
-                 to_sub_1_max = max(to_sub_1_max, to_subtract_1[ i_row ])  
-                 to_sub_1_min = min(to_sub_1_min, to_subtract_1[ i_row ])  
+        for i_row in range (0, ysize-1 ): 
+           row_data_b = masked_image[ i_row, :]  
 
-              c0_data[i_row,col_max+1:] -= to_subtract_1[ i_row ]    #  modify in place
-      
+           good_pix = N.where( row_data_b > 0.0 )
+           good_val =  row_data_b[ good_pix ]
+           clip_row_mean[ i_row] = good_val.mean()
 
-        if (( alg_type == "PASS2")or ( alg_type == "PASS12")) : # do Pass 2 
-          # PASS 2: for second correction, calculate row mean of unmasked pixels in the row, and 
-          #         subtract difference between this row mean and the global mean   
-          
-           row_data_b_mean = N.zeros(ysize)
-           to_subtract_2 = N.zeros((ysize),dtype = N.float32)
-                  
-          # calculation of the row-specific correction using PASS2 will ignore pixels that deviate from
-          #   the mode of the row by more than 4 sigma. The mode will be calculated by binning all pixels in row
-          #   in bins of width 1, and determining which bins has the highest frequency. 
-           min_val = int(c0_data[0, col_max+1:].min()) # lower value of histogram   
-           max_val = int(c0_data[0, col_max+1:].max()) # upper value of histogram 
-           
-           xbin = N.arange(min_val, max_val )  
+           bad_pix = N.where( row_data_b <= 0.0 )
+           bad_val =  row_data_b[ bad_pix ]
 
-           for i_row in range (0, ysize-1 ): 
-              row_data_b = masked_image[ i_row, col_max+1:]
-              good_pix = N.where( row_data_b > 0.0 )
-              good_val =  row_data_b[ good_pix ]
-              clip_row_mean[ i_row] = good_val.mean()
+           if (verbosity >1 ):  # print stats of good and rejected pixels for this row
+              print '' ; print ' row = ' , i_row 
+              if   good_val.size > 0 :
+                 print ' good pixels: number, min, mean, max, std = ' ,  good_val.size,good_val.min(),good_val.mean(),good_val.max(),good_val.std()
 
-              bad_pix = N.where( row_data_b <= 0.0 )
-              bad_val =  row_data_b[ bad_pix ]
+           clip_row_mean[ i_row] = good_val.mean()
 
-              if (verbosity >1 ):  # print stats of good and rejected pixels for this row
-                 print '' ; print ' row = ' , i_row 
-                 if   good_val.size > 0 :
-                    print ' good pixels: number, min, mean, max, std = ' ,  good_val.size,good_val.min(),good_val.mean(),good_val.max(),good_val.std()
+        # for each row, subtract difference between clipped mean and global clipped mean 
+        glob_im_clip_mean = clip_row_mean[1:ysize-2].mean() # calculate global clipped mean
+        for i_row in range (1, ysize-2 ):
 
-              clip_row_mean[ i_row] = good_val.mean()
+           to_subtract_2[ i_row ] = clip_row_mean[ i_row ]- glob_im_clip_mean
+        #  print '   to_subtract_2[ i_row ] = ' ,   to_subtract_2[ i_row ]
 
-           # for each row, subtract difference between clipped mean and global clipped mean 
-           glob_im_clip_mean = clip_row_mean[1:ysize-2].mean() # calculate global clipped mean
-           for i_row in range (1, ysize-2 ):
+           if (abs(to_subtract_2[ i_row ]) < row_thresh ): # make no correction
+             to_subtract_2[ i_row ] = 0.0  
+             low_row_p2 +=1  
+           else:
+             high_row_p2 +=1 
+             to_sub_2_max = max(to_sub_2_max, to_subtract_2[ i_row ])  
+             to_sub_2_min = min(to_sub_2_min, to_subtract_2[ i_row ])  
 
-              to_subtract_2[ i_row ] = clip_row_mean[ i_row ]- glob_im_clip_mean
-            #  print '   to_subtract_2[ i_row ] = ' ,   to_subtract_2[ i_row ]
+           c0_data[i_row,:] -=  to_subtract_2[ i_row ] 
 
-              if (abs(to_subtract_2[ i_row ]) < row_thresh ): # make no correction
-                 to_subtract_2[ i_row ] = 0.0  
-                 low_row_p2 +=1  
-              else:
-                 high_row_p2 +=1 
-                 to_sub_2_max = max(to_sub_2_max, to_subtract_2[ i_row ])  
-                 to_sub_2_min = min(to_sub_2_min, to_subtract_2[ i_row ])  
 
-              c0_data[i_row,col_max+1:] -=  to_subtract_2[ i_row ] 
+        corr_c0_data = c0_data[: ,:].astype(N.float32)   
 
         # calculate and display statistics for corrected c0 image data
-        if force_alg_type == 'PASS2': # to ensure that output image is the same size as input image
-            corr_c0_data = c0_data[: ,:].astype(N.float32)   
-        else:
-            corr_c0_data = c0_data[0: xsize-1,col_max+1:].astype(N.float32)    
-
         self.dcormin = corr_c0_data.min()
         self.dcormax = corr_c0_data.max()
         self.dcormean = corr_c0_data.mean()
@@ -520,32 +333,13 @@ class Wfpc2destreak:
 
         if (verbosity >=1 ):
             print 'The following means and sigmas pertain to all (uncorrected and corrected) rows:'
-            if ( alg_type == "PASS1" or  alg_type == "PASS12"):
-               print '  For PASS1: the total number of uncorrected, corrected rows: ', low_row_p1,',', high_row_p1  
-               if (high_row_p1 > 0 ):
-                  print '  For PASS1: fraction of rows corrected: ', (high_row_p1+0.0)/( high_row_p1+ low_row_p1+0.0)
-               print '  For PASS1: min, max of corrections are:', to_sub_1_min,',',to_sub_1_max  
-               print '  For PASS1: mean, std of corrections are: ',to_subtract_1.mean(),',',to_subtract_1.std()  
-            if ( alg_type == "PASS2" or  alg_type == "PASS12"):
-               print '  For PASS2: the total number of uncorrected, corrected rows: ', low_row_p2,',', high_row_p2  
-               if (high_row_p2 > 0 ):
-                  print '  For PASS2: fraction of rows corrected: ', (high_row_p2+0.0)/( high_row_p2+ low_row_p2+0.0)
-               print '  For PASS2: min, max of corrections are: ', to_sub_2_min,',',to_sub_2_max  
-               print '  For PASS2: mean, std of corrections are: ',to_subtract_2.mean(),',',to_subtract_2.std()  
-
-            print 'The number of sigma that the clipped image mean exceeds the clipped pyramid region mean is NSIGMA=' , nsigma  
+            print '  the total number of uncorrected, corrected rows: ', low_row_p2,',', high_row_p2  
+            if (high_row_p2 > 0 ):
+               print '  the fraction of rows corrected: ', (high_row_p2+0.0)/( high_row_p2+ low_row_p2+0.0)
+            print '  min, max of corrections are: ', to_sub_2_min,',',to_sub_2_max  
+            print '  mean, std of corrections are: ',to_subtract_2.mean(),',',to_subtract_2.std()  
 
             print 'The following statistics keywords are written to the corrected data output:'
-            print '  - For all pixels in the pyramid region of the c0 data, the keywords and values for the '
-            print '    mean, std, min, max, and number of pixels are :'
-            print '    PORGMEAN,    PORGSTD,    PORGMIN,    PORGMAX,    PORGPIX  '
-            print '   ', self.porgmean,'   ', self.porgstd,'   ', self.porgmin,'   ', self.porgmax,'   ', self.porgpix
-
-            print '  - For the unmasked pixels in the pyramid region of the input data, the keywords and values for the '
-            print '    mean, std, min, max, and number of pixels are :'
-            print '    PMSKMEAN,    PMSKSTD,    PMSKMIN,    PMSKMAX,    PMSKPIX  '
-            print '   ', self.pmskmean,'   ', self.pmskstd,'   ', self.pmskmin,'   ', self.pmskmax,'   ', self.pmskpix 
-
             print '  - For the unmasked pixels in the image region of the input data, the keywords and values for the '
             print '    mean, std, min, max, and number of pixels are :'
             print '    DMSKMEAN,    DMSKSTD,    DMSKMIN,    DMSKMAX,    DMSKPIX  '
@@ -561,13 +355,11 @@ class Wfpc2destreak:
             print '    DCORMEAN,    DCORSTD,    DCORMIN,    DCORMAX,    DCORPIX  '
             print '   ', self.dcormean,'   ', self.dcorstd,'   ', self.dcormin,'   ', self.dcormax,'   ', self.dcorpix
 
-            print 'The correction type applied is CORR_ALG = ', alg_type
-
         outfile = file_prefix + str('_bjc_')+str(group)+str('.fits')
 
-        update_header(self, c0_hdr, forced_type, alg_type, alg_cmt, verbosity) # add statistics keywords to header c0_hdr
+        update_header(self, c0_hdr, verbosity) # add statistics keywords to header c0_hdr
 
-        write_to_file(corr_c0_data, outfile, c0_hdr, alg_type, alg_cmt, verbosity, pyr_mean, pyr_sigma, im_mean, im_sigma) 
+        write_to_file(corr_c0_data, outfile, c0_hdr, verbosity, im_mean, im_sigma) 
             
         # close open file handles
         if (fh_c0):
@@ -582,14 +374,11 @@ class Wfpc2destreak:
         print '  input c0 file:  ' , self.input_file
         print '  input mask file:  ' , self.input_mask
         print '  group:  ' , self.group
-        print '  bias_thresh:  ' , self.bias_thresh 
         print '  row thresh:  ' , self.row_thresh 
-        print '  force algorithm type:  ' , self.force_alg_type
-        print '  CR rejection factor:  ' , self.n_mad
         print '  number of CR rejection iterations:  ' , self.niter
 
 
-def check_py_pars(input_file, group, bias_thresh, row_thresh, force_alg_type, n_mad, input_mask, niter):  
+def check_py_pars(input_file, group, row_thresh, input_mask, niter):  
        """ When run under python, verify that each unspecified parameter should take the default value, and
            give the user the opportunity to change it.
 
@@ -597,20 +386,14 @@ def check_py_pars(input_file, group, bias_thresh, row_thresh, force_alg_type, n_
        @type input_file: string
        @param group: number of group to process
        @type group: int
-       @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by im_mean)
-       @type bias_thresh: float
        @param row_thresh: row threshold (no correction will be performed if this exceeds the calculated row correction)
        @type row_thresh: float
-       @param force_alg_type: algorithm type to force
-       @type force_alg_type: string
-       @param n_mad: CR rejection factor   
-       @type n_mad: float
        @param input_mask: name of input mask
        @type input_mask: string
        @param niter: number of CR rejection iterations   
        @type niter: int
-       @return: group, bias_thresh, row_thresh, force_alg_type, n_mad
-       @rtype:  int, float, float, string, float
+       @return: group, row_thresh, 
+       @rtype:  int, float, float
        """
        
        try:
@@ -632,18 +415,6 @@ def check_py_pars(input_file, group, bias_thresh, row_thresh, force_alg_type, n_
                except:
                    print ' The value entered (',inp,') is invalid so the default will be used'
 
-       if (bias_thresh == None):
-            bias_thresh = wfpc2util.bias_thresh
-            print ' You have not specified a value for bias_thresh; the default is:',  wfpc2util.bias_thresh
-            print ' If you want to use the default, hit <enter>, otherwise type in the desired value'
-            inp = raw_input('? ')
-            if inp == '':
-               print ' The default value of ', bias_thresh,' will be used'
-            else:
-               try:
-                   bias_thresh = string.atof(inp)
-               except:
-                   print ' The value entered (',inp,') is invalid so the default will be used'
                
        if (row_thresh == None):
             row_thresh = wfpc2util.row_thresh
@@ -657,34 +428,7 @@ def check_py_pars(input_file, group, bias_thresh, row_thresh, force_alg_type, n_
                    row_thresh = string.atof(inp)
                except:
                    print ' The value entered (',inp,') is invalid so the default will be used'
-               
-       if (force_alg_type == None):
-            force_alg_type = wfpc2util.force_alg_type
-            print ' You have not specified a value for force_alg_type; the default is:',  wfpc2util.force_alg_type
-            print ' If you want to use the default, hit <enter>, otherwise type in the desired value'
-            inp = raw_input('? ')
-            if inp == '':
-               print ' The default value of ', force_alg_type,' will be used'
-            else:
-               inp = inp.upper() 
-               if ((inp <> "PASS1") and (inp <> "PASS2") and (inp <> "PASS12") and (inp <> "OMIT"))  :
-                  print ' The value entered (',inp,') is invalid so the default will be used'
-               else:
-                  force_alg_type = inp
-
-       if (n_mad == None):
-            n_mad = wfpc2util.n_mad
-            print ' You have not specified a value for n_mad; the default is:',  wfpc2util.n_mad
-            print ' If you want to use the default, hit <enter>, otherwise type in the desired value'
-            inp = raw_input('? ')
-            if inp == '':
-               print ' The default value of ', n_mad,' will be used'
-            else:
-               try:
-                   n_mad = string.atof(inp)
-               except:
-                   print ' The value entered (',inp,') is invalid so the default will be used'
-
+                   
 
        if (input_mask <> None):
             try:
@@ -707,32 +451,26 @@ def check_py_pars(input_file, group, bias_thresh, row_thresh, force_alg_type, n_
                    print ' The value entered (',inp,') is invalid so the default will be used'
 
 
-       return group, bias_thresh, row_thresh, force_alg_type, n_mad, niter
+       return group, row_thresh, niter
 
   
 
-def check_cl_pars(input_file, group, bias_thresh, row_thresh, force_alg_type, n_mad, input_mask, niter):  
+def check_cl_pars(input_file, group, row_thresh, input_mask, niter):  
        """ When run from linux coammand line, verify that each parameter is valid.
 
        @param input_file: name of input file
        @type input_file: string
        @param group: number of group to process
        @type group: int
-       @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by im_mean)
-       @type bias_thresh: float
        @param row_thresh: row threshold (no correction will be performed if this exceeds the calculated row correction)
        @type row_thresh: float
-       @param force_alg_type: algorithm type to force
-       @type force_alg_type: string
-       @param n_mad: CR rejection factor
-       @type n_mad: float       
        @param input_mask: name of input mask file
        @type input_mask: string
        @param niter: number of CR rejection iterations
        @type niter: int       
 
-       @return: group, bias_thresh, row_thresh, force_alg_type, n_mad, niter
-       @rtype:  int, float, float, string. float, int
+       @return: group, row_thresh, niter
+       @rtype:  int, float, float, int
        """
        
        try:
@@ -749,27 +487,9 @@ def check_cl_pars(input_file, group, bias_thresh, row_thresh, force_alg_type, n_
            sys.exit( ERROR_RETURN)
 
        try:
-           bias_thresh = string.atof(bias_thresh)
-       except:
-           print ' The bias threshold value entered (',bias_thresh,') is invalid.'
-           sys.exit( ERROR_RETURN)
-
-       try:
            row_thresh = string.atof(row_thresh)
        except:
            print ' The row threshold value entered (',row_thresh,') is invalid. Try again.'
-           sys.exit( ERROR_RETURN)
-
-       if (force_alg_type <> None ):
-          force_alg_type = force_alg_type.upper()  
-          if ((force_alg_type <> "PASS1") and (force_alg_type <> "PASS2") and (force_alg_type <> "PASS12") and (force_alg_type <> "OMIT"))  :
-               print ' The value entered (',force_alg_type,') is invalid. Try again.'
-               sys.exit( ERROR_RETURN)
-
-       try:  
-           n_mad = string.atof(n_mad)
-       except:
-           print ' The CR rejection parameter value entered (',n_mad,') is invalid. Try again.'
            sys.exit( ERROR_RETURN)
 
        if (input_mask <> None):
@@ -789,45 +509,22 @@ def check_cl_pars(input_file, group, bias_thresh, row_thresh, force_alg_type, n_
            sys.exit( ERROR_RETURN)
 
   
-       return group, bias_thresh, row_thresh, force_alg_type, n_mad, niter
+       return group, row_thresh, niter
 
 
-def get_hist(a, bins):
-      nn =  N.searchsorted( N.sort(a), bins)
-      nn = N.concatenate([nn, [len(a)]])
-      return  nn[1:]-nn[:-1]
-
-
-def cr_reject( SubArray, n_mad, niter ):
+def cr_reject( SubArray, niter ):
            
         """Identify and replace cosmic rays in the given subarray.
 
-        SubArray is the input to this function; that is, the
-            a subarray of the data is expected to be in this attribute.
-            This array will be 2-D .
-        n_mad is the initial factor for rejecting cosmic rays    
-        niter is the number of iterations used when rejecting cosmic rays    
-        The results are assigned to attributes:
-        SubArrayCleaned is the array with cosmic rays replaced by
-            a fitted line or plane.  This will be the same shape as _SubArray.
-        SubCR is a tuple of indices of cosmic rays detected.
-        SubArrayFit is a 1-D array containing the fit evaluated
-            at each image line number.  For 1-D data this will be the
-            same length as the input _SubArray, but for 2-D data this
-            will be the length of shape[0] of _SubArray.
-        SubSlope is the slope of the fit (SubArrayFit).
-        SubIntercept is the intercept of SubArrayFit.
-        SubVariance is the average of the squares of the deviations
-            of the subarray level from the fit.
-        SubVarSlope is the variance of the slope, normalized by
-            SubVariance.
-        SubVarIntercept is the variance of the the intercept,
-            normalized by SubVariance.
-        SubCoVar is the covariance variance of the slope and the
-            intercept, normalized by SubVariance.
-       """
+        @param SubArray: subarray of the data
+        @type SubArray: ndarray
+        @param niter: the number of iterations used when rejecting cosmic rays
+        @type niter: int
+        """
 
-        n_rms=[4., 4., 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5]; n_neighbor=[2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5] 
+        n_rms=[4., 4., 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5]
+        n_neighbor=[2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5] 
+        n_mad = 15.
         
         sub_shape = SubArray.shape
         ny = sub_shape[0]; nx = sub_shape[1]
@@ -838,6 +535,7 @@ def cr_reject( SubArray, n_mad, niter ):
 
         # Note that sub0 is 1-D
         sub0 = SubArray.ravel().astype( N.float64)
+
         # no_value flags points where no value has been assigned to the
         # subarray level.
         no_value = N.where( sub0 <= 0., 1, 0)
@@ -853,10 +551,10 @@ def cr_reject( SubArray, n_mad, niter ):
 
         # fit is a straight line passing through (line0,y0) & (line1,y1).
         slope = (y1 - y0) / (line1 - line0)
-        slope = 0.0 # forcing, as non-zero value is not expected, and for consistency between regions
-
         fit = slope * linenum + (y0 - slope * line0)
+
         residual = sub0 - fit.repeat( nx)
+
 
         # MAD is the median of the absolute values of deviations; for a
         # normal distribution the MAD is about 2/3 of the standard deviation.
@@ -899,7 +597,6 @@ def cr_reject( SubArray, n_mad, niter ):
             fit = slope * linenum + intercept
             sub_pts = N.where( cr, fit.repeat( nx), sub_pts)            
 
-        saveInfo( indep_var, sub_pts, fit, (ny, nx), slope, intercept, mask, cr, SubArray)
         return mask
      
 # end of cr_reject()
@@ -1021,175 +718,17 @@ def fitline( x, y, mask):
 # end of fitline()
 
 
-#-------------------------------------------------------------------------------
-# Compute variances and save the information in attributes
-#
-def saveInfo( indep_var, subarray, fit, shape,
-                  slope, intercept, mask, cr, SubarrayLevel):
-        """Compute variances; save info in attributes.
-
-        This function computes:  (a) the variance, the mean of the squares
-        of the deviations of the subarray level from the fit to the subarray level;
-        (b) the covariance matrix (see computeVarCovar(), which is called
-        to do this calculation).  Points flagged as bad by the mask (1 is
-        bad) are not included in these calculations. There is a
-        separate argument cr that flags only cosmic rays; this is used to
-        assign a list of coordinates of cosmic rays to _SubCR.  The
-        computed values will be saved in attributes; some of the arguments
-        will be saved directly to attributes.
-
-        @param indep_var:  independent variable that was used for fitting;
-            this contains the image line numbers, but with repeated values
-            if the subarray level data is a 2-D array 
-        @type indep_var:  array of Float64
-
-        @param subarray:  array of subarray level values (flattened, if 2-D);
-            these are the (cosmic-ray cleaned) dependent variable values
-            to which the line (or plane) was fit
-        @type subarray:  array of Float64
-
-        @param fit:  the 1-D array containing the fit to the subarray level;
-            for 1-D data this will be the same size as indep_var or
-            subarray, but for 2-D data fit will be smaller, because fit has
-            just one element per image line number
-        @type fit:  array of Float64
-
-        @param shape:  numbers of lines and columns in the subarray level
-            array; the number of columns will be 1 if not 2-D
-        @type shape:  tuple of two elements
-
-        @param slope:  slope of the fitted line (or plane), counts per pixel
-        @type slope:  float
-
-        @param intercept:  intercept (line number) of the fitted line
-            (or plane)
-        @type intercept:  float
-
-        @param mask:  array of ones or zeros (1 is bad, either a cosmic
-            ray or no data); this is a 1-D array of the same size as
-            indep_var and subarray, i.e. for 2-D data it was flattened
-        @type mask:  array of Int
-
-        @param cr:  array of ones or zeros, 1 indicates a cosmic ray; this
-            is a 1-D array of the same size as mask, i.e. flattened if 2-D;
-            cr is None means no cosmic-ray rejection was done
-        @type cr:  array of Int, or None
-        """
-
-        if len (shape) < 2:
-            nx = 1
-        else:
-            nx = shape[1]
-
-        SubarrayLevelCleaned = N.reshape( subarray, shape)
-        SubarrayLevelFit = fit
-
-        if cr is None:
-            SubCR = None
-        else:
-            cr_2d = N.reshape( cr, shape)
-            locations = N.where( cr_2d > 0)
-            del cr_2d
-            sub0 = SubarrayLevel.ravel().astype( N.float64)
-
-            norm = 1.
-                
-            values = []
-            for k in N.arange( len( locations[0])):
-                x = locations[1][k]
-                y = locations[0][k]
-                i = x + y * shape[1]
-                values.append( (sub0[i] - fit[y]) * norm)
-            del sub0
-            # a tuple of three lists, containing row, column, value
-            SubCR = (locations[0], locations[1], values)
-
-        residual = subarray - fit.repeat( nx)
-        labels = N.where( mask == 0, 1, 0)
-        variance = ndimage.variance( residual, labels=labels)
-
-        (var_slope, var_intercept, covar) = \
-                computeVarCovar( indep_var, labels)
-
-# Delete these later if not needed; if they are needed, pass back or make attributes 
-        SubSlope = slope
-        SubIntercept = intercept
-        SubVariance = variance
-        SubVarSlope = var_slope
-        SubVarIntercept = var_intercept
-        SubCoVar = covar
-
-# end of  saveInfo()
-
-
-def computeVarCovar( x, labels):
-        """Compute the variances and covariance of the fit.
-
-        These values are normalized, i.e. multiply by the variance
-        of the deviations of the subarray level from the fit to get the
-        actual variances of the slope and intercept and their covariance.
-
-        Note that argument for the mask is inverted from other functions
-        in this file, i.e. labels instead of mask.
-
-        @param x:  array of independent-variable values
-        @type x:  Float64
-        @param labels:  array of ones or zeros (1 indicates a good value)
-        @type labels:  Int32
-        @return:  elements from the normalized covariance matrix, i.e. the
-            variance of the slope, the variance of the intercept, and the
-            covariance of the slope and intercept
-        @rtype:  tuple of floats
-        """
-
-        n = labels.astype(N.float64).sum()
-        mean_x = ndimage.mean( x, labels=labels)
-        dx = x - mean_x
-        temp = dx**2
-        # sum of (x[i] - mean_x)**2
-        sum_dx2 = ndimage.sum( temp, labels=labels)
-
-        var_slope = 1. / sum_dx2
-        var_intercept = 1. / n + mean_x**2 / sum_dx2
-        covar = -mean_x / sum_dx2
-
-        return (var_slope, var_intercept, covar)
-
-# end of computeVarCovar()
-
-
-def update_header(self, hdr, forced_type, alg_type, alg_cmt, verbosity):   
+def update_header(self, hdr, verbosity):   
     """ update header from input c0 file with specified header, and updated data
 
     @param hdr: hdr
     @type hdr: Pyfits header object
-    @param forced_type: specifies if an algorithm type is forced (yes/no)
-    @type forced_type: string
-    @param alg_type: specifies which algorithm type was used
-    @type alg_type: string
-    @param alg_cmt: description of algorithm type used
-    @type alg_cmt: string
     @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
     @type verbosity: string
 
     """
 
-    hdr.update(key='CORR_ALG', value=alg_type, comment=alg_cmt ) #  denoting which algorithm was used
-    hdr.update(key='BIASTHRE', value=self.bias_thresh, comment="bias threshold" ) 
     hdr.update(key='ROWTHRES', value=self.row_thresh, comment="row threshold" ) 
-    hdr.update(key='FORCETYP', value=forced_type, comment="correction type applied was forced (yes/no)" ) 
-
-    hdr.update(key='PORGPIX', value=self.porgpix, comment="total number of pixels in pyramid region" ) 
-    hdr.update(key='PORGMEAN', value=self.porgmean, comment="mean of all pixels in pyramid region" ) 
-    hdr.update(key='PORGSTD', value=self.porgstd, comment="sigma of all pixels in pyramid region" ) 
-    hdr.update(key='PORGMIN', value=self.porgmin, comment="min of all pixels in pyramid region" ) 
-    hdr.update(key='PORGMAX', value=self.porgmax, comment="max of all pixels in pyramid region" )
-
-    hdr.update(key='PMSKPIX', value=self.pmskpix, comment="number of unmasked pixels in pyramid region" ) 
-    hdr.update(key='PMSKMEAN', value=self.pmskmean, comment="mean of unmasked pixels in pyramid region" ) 
-    hdr.update(key='PMSKSTD', value=self.pmskstd, comment="sigma of unmasked pixels in pyramid region" ) 
-    hdr.update(key='PMSKMIN', value=self.pmskmin, comment="min of unmasked pixels in pyramid region" ) 
-    hdr.update(key='PMSKMAX', value=self.pmskmax, comment="max of unmasked pixels in pyramid region" ) 
 
     hdr.update(key='DCORPIX', value=self.dcorpix, comment="number of pixels in corrected c0 image region" ) 
     hdr.update(key='DCORMEAN', value=self.dcormean, comment="mean in corrected c0 image region" ) 
@@ -1210,7 +749,6 @@ def update_header(self, hdr, forced_type, alg_type, alg_cmt, verbosity):
     hdr.update(key='DMSKMAX', value=self.dmskmax, comment="maximum of unmasked c0 image region" )
 
     hdr.update(key='USERMASK', value=self.input_mask, comment="name of input mask file" )
-    hdr.update(key='CRNMAD', value=self.n_mad, comment="CR rejection factor" )
     hdr.update(key='CRITER', value=self.niter, comment="number of CR rejection iterations" )
 
 # write  mask
@@ -1223,12 +761,9 @@ def write_mask(data, filename, verbosity):
     fimg.writeto(filename)
 
 
-def write_to_file(data, filename, hdr, alg_type, alg_cmt, verbosity, pyr_mean, pyr_sigma, im_mean, im_sigma):
+def write_to_file(data, filename, hdr, verbosity, im_mean, im_sigma):
 
     fimg = pyfits.HDUList()
-    hdr.update(key='CORR_ALG', value=alg_type, comment=alg_cmt ) #  denoting which algorithm was used
-    hdr.update(key='PYRMEAN', value=pyr_mean, comment="clipped mean of pyramid region" )
-    hdr.update(key='PYRSIGMA', value=pyr_sigma, comment="clipped sigma of pyramid region" )
     hdr.update(key='IMMEAN', value=im_mean, comment="clipped mean of image region" )
     hdr.update(key='IMSIGMA', value=im_sigma, comment="clipped sigma of image region" )
     fimghdu = pyfits.PrimaryHDU( header = hdr)
@@ -1264,14 +799,8 @@ if __name__ =="__main__":
             help="very verbose, print lots of information")
     parser.add_option( "-g", "--group", dest = "group",default = wfpc2util.group,
             help = "number of group to process.")
-    parser.add_option( "-b", "--bias_thresh", dest = "bias_thresh",default = wfpc2util.bias_thresh,
-            help = "bias threshold.")
     parser.add_option( "-r", "--row_thresh", dest = "row_thresh",default = wfpc2util.row_thresh,
             help = "row threshold.")
-    parser.add_option( "-f", "--force_alg_type", dest = "force_alg_type",default = wfpc2util.force_alg_type,
-            help = "algorithm type to force.")         
-    parser.add_option( "-n", "--n_mad", dest = "n_mad",default = wfpc2util.n_mad, 
-            help = "CR rejection factor.")         
     parser.add_option( "-m", "--input_mask", dest = "input_mask",default = wfpc2util.input_mask, 
             help = "input mask file name.")         
     parser.add_option( "-i", "--niter", dest = "niter",default = wfpc2util.niter, 
@@ -1285,17 +814,8 @@ if __name__ =="__main__":
     wfpc2util.setGroup(options.group )
     if options.group!=None: group = options.group
 
-    wfpc2util.setBias_thresh(options.bias_thresh )
-    if options.bias_thresh!=None: bias_thresh = options.bias_thresh
-
     wfpc2util.setRow_thresh(options.row_thresh )
     if options.row_thresh!=None: row_thresh = options.row_thresh
-
-    wfpc2util.setForce_alg_type(options.force_alg_type )
-    force_alg_type  = options.force_alg_type  
-
-    wfpc2util.setN_mad(options.n_mad )  
-    if options.n_mad!=None: n_mad = options.n_mad
 
     wfpc2util.setInput_mask(options.input_mask )  
     input_mask = options.input_mask
@@ -1304,8 +824,8 @@ if __name__ =="__main__":
     if options.niter!=None: niter = options.niter
      
     try:
-       wfpc2_d = Wfpc2destreak( filename, input_mask=input_mask, group=group, verbosity=verbosity, bias_thresh=bias_thresh, \
-                                row_thresh=row_thresh, force_alg_type=force_alg_type, n_mad=n_mad, niter=niter)
+       wfpc2_d = Wfpc2destreak( filename, input_mask=input_mask, group=group, verbosity=verbosity, \
+                                row_thresh=row_thresh, niter=niter)
    
        if (verbosity >=1 ):
             print 'The version of this routine is: ',__version__
