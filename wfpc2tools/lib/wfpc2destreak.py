@@ -709,7 +709,6 @@ def fitline( x, y, mask):
         if denom == 0.:
             raise ValueError, "Error fitting a line to subarray."
         slope = num / denom
-        slope = 0.0  # forcing, as non-zero value is not expected, and for consistency between regions 
 
         intercept = mean_y - slope * mean_x
 
