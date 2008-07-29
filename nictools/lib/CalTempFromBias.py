@@ -51,6 +51,7 @@
 #                TFBMETH: string, comment = ' CalTempFromBias algorithm type used', default = 'N/A'
 #                TFBCALC: string, comment = 'Do CalTempFromBias calculation: PERFORM, OMIT, COMPLETE,
 #                         SKIPPED', default = 'N/A'
+#   07/29/08 - fixed bug so that now nonlinearity file is searched for in $nref if nref_par not specified.
 #
 #              The routine will successfully calculate the temperature only if TFBCALC='PERFORM' and camera=3
 #
@@ -114,7 +115,6 @@ class CalTempFromBias:
         if (edit_type == None):  edit_type = tfbutil.edit_type
         if (hdr_key == None):  hdr_key = tfbutil.hdr_key 
         if (err_key == None):  err_key = tfbutil.err_key
-        if (nref_par == None):  nref_par = tfbutil.nref_par
         if (force == None):  force = tfbutil.force
             
         self.input_file = input_file
