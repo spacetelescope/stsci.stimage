@@ -13,7 +13,6 @@ verbosity = VERBOSE
 hdr_key = "TFBTEMP"
 err_key = "TFBERR"
 edit_type = "RAW" 
-nref_par = "/grp/hst/cdbs/nref/"
 noclean = False
 force = None
 
