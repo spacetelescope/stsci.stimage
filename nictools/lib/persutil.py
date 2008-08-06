@@ -9,8 +9,11 @@ QUIET = 0 # verbosity levels
 VERBOSE = 1
 VERY_VERBOSE = 2   
                                                                                 
-# default value
+# default values
 verbosity = VERBOSE
+persist_lo = 0.5   # only used for pyraf version
+used_lo = 0.5   # only used for pyraf version
+
 
 def all_printMsg( message, level=VERBOSE):
 
@@ -36,5 +39,3 @@ def checkVerbosity( level):
     """Return true if verbosity is at least as great as level."""
 
     return (verbosity >= level)
-
-
