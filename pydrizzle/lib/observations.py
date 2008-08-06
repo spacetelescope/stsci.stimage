@@ -33,23 +33,7 @@ class ACSObservation(Pattern):
 
         # Set up the input members and create the product meta-chip
         self.buildProduct(filename, output)
-        
-        # If time-dependent coefficients are defined, apply them to the distortion
-        # coefficients
-        if self.members[0].geometry.alpha != 0 and self.members[0].geometry.beta != 0:
-            self.apply_tdd_coeffs()
-            self.buildProduct(filename,output)
-        
-    def apply_tdd_coeffs(self):
-        ''' Apply any time-dependent corrections to the coefficients.
-        '''
-        for member in self.members:
-            model = member.geometry.model
-            tcx,tcy = mutil.apply_wfc_tdd_coeffs(model.cx, model.cy,
-                                                member.geometry.alpha,member.geometry.beta)
-            member.geometry.model.cx = tcx
-            member.geometry.model.cy = tcy
-
+                
 class GenericObservation(Pattern):
     """
         This class defines an observation stored in a Simple FITS format;

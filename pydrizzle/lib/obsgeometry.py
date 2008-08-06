@@ -163,6 +163,8 @@ class ObsGeometry:
                 (self.header.has_key('TDDCORR') and self.header['TDDCORR'] == 'T'):
                 print " *** Computing ACS Time Dependent Distortion Coefficients *** "
                 self.alpha,self.beta = mutil.compute_wfc_tdd_coeffs(self.header['date-obs'])
+                self.model.cx,self.model.cy = mutil.apply_wfc_tdd_coeffs(self.model.cx, 
+                                                        self.model.cy, self.alpha,self.beta)
             else:
                 self.alpha = 0
                 self.beta  = 0
