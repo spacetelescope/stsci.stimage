@@ -22,7 +22,7 @@ def PyDrizzle(input, output=None, field=None, units=None, section=None,
         kernel=None,pixfrac=None,bits_final=0,bits_single=0,
         wt_scl='exptime', fillval=0.,idckey='', in_units='counts',
         idcdir=DEFAULT_IDCDIR,memmap=0,dqsuffix=None,prodonly=False,
-        shiftfile=None,updatewcs=True,shiftwcs=True):
+        shiftfile=None,updatewcs=True):
 
     import process_input
     asndict, ivmlist, output = process_input.process_input(input, output=output, prodonly=prodonly, 
@@ -38,7 +38,7 @@ def PyDrizzle(input, output=None, field=None, units=None, section=None,
                              wt_scl=wt_scl, fillval=fillval,
                              in_units=in_units,
                              idcdir=idcdir, memmap=memmap,
-                             dqsuffix=dqsuffix,shiftwcs=shiftwcs)
+                             dqsuffix=dqsuffix)
 
     
     return p

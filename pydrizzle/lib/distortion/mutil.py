@@ -611,7 +611,7 @@ def compute_wfc_tdd_coeffs(dateobs):
     
     return alpha,beta
 
-def apply_wfc_tdd_coeffs(cx,cy,xdelta,ydelta,alpha,beta):
+def apply_wfc_tdd_coeffs(cx,cy,alpha,beta):
     ''' Apply the WFC TDD coefficients directly to the distortion
         coefficients. 
     '''
@@ -619,36 +619,30 @@ def apply_wfc_tdd_coeffs(cx,cy,xdelta,ydelta,alpha,beta):
     theta_v2v3 = 2.234529
     scale_idc = 0.05
     scale_jay = 0.04973324715
-    idctheta = N.arctan2(cx[1,0],cy[1,0])
+    idctheta = theta_v2v3
+    #idctheta = fileutil.RADTODEG(N.arctan2(cx[1,0],cy[1,0]))
+    # Pre-compute the entire correction prior to applying it to the coeffs
+    mrotp = fileutil.buildRotMatrix(idctheta)
+    mrotn = fileutil.buildRotMatrix(-idctheta)
+    tdd_mat = N.array([[1+(beta/2048.), alpha/2048.],[alpha/2048.,1-(beta/2048.)]],N.float64)
+
+        
     # rotate and scale the coeffs to put them in native frame where Y-axis
     # remains un-rotated and no additional rescaling takes place 
     # (Jay Anderson's frame)
     rcx,rcy = rotate_coeffs(cx,cy,idctheta)
 
     # Apply tdd coeffs to the rotated coeffs
-    tdd_mat = N.array([[1+beta/2048., alpha/2048.],[alpha/2048.,1-beta/2048.]],N.float64)
     tcxy = N.dot(tdd_mat,[rcx.ravel(),rcy.ravel()])
     tcx = tcxy[0]
     tcy = tcxy[1]
     tcx.shape = rcx.shape
     tcy.shape = rcy.shape
 
-    # Include offsets induced by TDD terms
-    xd = xdelta + 2048.
-    yd = ydelta + 1024.
-    tcx00 = (-beta-alpha+xd*(beta/2048.)+yd*(alpha/2048.))*scale_jay
-    tcy00 =  (beta-alpha-yd*(beta/2048.)+xd*(alpha/2048.))*scale_jay
-    tcx[0,0] += tcx00
-    tcy[0,0] += tcy00
-
     # Rotate back into V2V3 frame
     icx,icy = rotate_coeffs(tcx,tcy,-idctheta)
-    icx00 = icx[0,0]/scale_idc
-    icy00 = icy[0,0]/scale_idc
-    #icx[0,0] = 0.0
-    #icy[0,0] = 0.0
-        
-    return icx,icy,icx00,icy00
+    
+    return icx,icy
     
     
 def rotate_coeffs(cx,cy,rot,scale=1.0):

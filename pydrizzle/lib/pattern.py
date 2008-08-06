@@ -86,7 +86,6 @@ class Pattern(object):
         self.pars = pars
         self.output = output
         self.name = filename
-        self.shiftwcs = pars['shiftwcs']
 
         # Set default value, to be reset as needed by sub-class
         self.nmembers = 1
@@ -114,7 +113,6 @@ class Pattern(object):
         # These attributes are used for keeping track of the reference
         # image used for computing the shifts, and the shifts computed
         # for each observation, respectively.
-        self.refimage = None
         self.offsets = None
         self.v2com = None
         self.v3com = None
@@ -143,12 +141,6 @@ class Pattern(object):
         else:
             self.detector = 'detector'
 
-        """
-        if self.header and self.header.has_key('WFCTDD'):
-            self.acsTDD = self.header['WFCTDD']
-        else:
-            self.acsTDD = None
-        """
 
     def getHeaderHandle(self):
         """ Sets up the PyFITS image handle and Primary header
@@ -238,265 +230,6 @@ class Pattern(object):
                     mask=_masklist, pa_key=self.pa_key, parity=self.PARITY[detector],
                     idcdir=self.pars['idcdir'], group_indx = i+1,
                     handle=self.image_handle,extver=i+1,exptime=self.exptime[0], mt_wcs=self.pars['mt_wcs']))
-
-    def applyAsnShifts(self):
-        """ Apply ASN Shifts to each member and the observations product. """
-        _prod_geo = self.product.geometry
-        _geo = self.product.geometry.wcslin
-        _geo0 = self.product.geometry.wcslin.copy()
-
-        _crval0 = (_geo.crval1,_geo.crval2)
-        _rot0 = _geo.orient
-        self._applyShifts(_geo)
-
-        _dcrval = (_crval0[0] - _geo.crval1,_crval0[1] - _geo.crval2)
-
-        _delta_rot = _rot0 - _geo.orient
-        _crpixlin = _geo.rd2xy(_crval0)
-        _delta_crpix = (_geo.crpix1 - _crpixlin[0],_geo.crpix2 - _crpixlin[1])
-
-        #
-        # Do NOT apply AsnShifts to product.geometry.wcs as it serves
-        # as the default WCS for computing the output frame, allowing
-        # the images to be shifted relative to original WCS.  This will
-        # result in output image where inputs may both be shifted off-center
-        # but presumably those shifts correct errors in WCS. WJH 28-Apr-03
-        #self._applyShifts(self.product.geometry.wcs)
-        #
-        # Update each members WCS with the new shifts, to allow for
-        # accurate RA/Dec measurements using internal methods.
-        for member in self.members:
-            # Compute chip specific shifts now...
-            _mem_geo = member.geometry
-            _mem_wcs = member.geometry.wcs
-            _wcs_copy = _mem_wcs.copy()
-            _mem_orient = member.geometry.wcs.orient
-
-            # Remember secondary shifts from ASN table
-            member.geometry.gpar_xsh = _delta_crpix[0]
-            member.geometry.gpar_ysh = _delta_crpix[1]
-            member.geometry.gpar_rot = _delta_rot
-
-            # Implement 'WBACKWCS' to update input WCS with shift computed
-            # in the output/reference WCS frame.
-            #
-            # Compute the pixel position of the input reference image in
-            # reference WCS
-            _oxy1 = _mem_geo.wtraxy((_mem_wcs.crpix1, _mem_wcs.crpix2 ),_geo0)
-
-            # Compute new CRPIX values for original WCS model to use for
-            # removing change in orientation from this shift. WJH
-            _oxy1o = _mem_geo.wtraxy((_mem_wcs.crpix1, _mem_wcs.crpix2),_geo)
-
-            # Use 'xy2rd' to convert these pixel positions to RA/Dec
-            ra1,dec1 = _geo.xy2rd((_oxy1[0], _oxy1[1]))
-
-            # Convert these numbers into a new WCS
-            _mem_wcs.crval1 = ra1
-            _mem_wcs.crval2 = dec1
-
-            """
-            Now update CD matrix itself
-            We will have a lever-arm effect in place given the shift in
-            reference position.
-
-            """
-            #
-            # Compute change in orientation due to change in CRPIX.
-            # This delta gets introduced due to the use of the updated
-            # undistorted WCS with the distorted WCS's reference positions.
-            # It must be taken out in order to get proper alignment for
-            # observations with large delta shifts. WJH 5-May-2004
-            #
-            _ref_wcs = _mem_wcs.copy()
-            _orig_orient = _ref_wcs.get_orient()
-            _ref_wcs.crpix1 += _oxy1o[0] - _oxy1[0]
-            _ref_wcs.crpix2 += _oxy1o[1] - _oxy1[1]
-            _ref_wcs.recenter()
-
-            _new_orient = _ref_wcs.get_orient()
-            _delta_orient = _new_orient - _orig_orient
-            _final_orient = _new_orient - _delta_rot
-
-            _mem_wcs.rotateCD(_final_orient)
-            _mem_wcs.orient = _mem_orient - _delta_orient
-
-            """
-            Finish updating CD matrix
-            """
-
-            # Make sure updates get translated back to undistorted WCS's
-            _mem_geo.undistortWCS()
-
-            # Update Member corner positions
-            member.corners['corrected'] += _delta_crpix
-
-        # Now update product corners
-        self.getProductCorners()
-
-    def _applyShifts(self,in_wcs):
-        """ This method updates each member's WCS to reflect any
-            offsets/corrections specified in the ASN table.
-
-            This method converts shifts given in output pixels
-            into the input frame by using a reference image's
-            WCS.  This reference image must exist and have an
-            header with a valid WCS; specifically, one which can
-            be read using WCSObject.
-
-        """
-        # Check to see if there are any offsets given for this member...
-        # pars['shift'] will be yes if absolute shifts are given, or
-        # if rotations and/or scale changes are provided with/without shifts
-        #
-
-        # First, are there any shifts at all..
-        if not self.pars.has_key('xshift'):
-            return
-
-        # Next, are they non-zero...
-        if not self.pars['abshift'] and not self.pars['dshift']:
-            return
-        #
-        # We have shifts, so apply them...
-        #
-        # Directly apply the shifts provided by the user in the ASN
-        # table to the original CRVAL values.
-        #
-        # Start by converting pixel shifts to units of arcseconds
-        # in RA and Dec.
-        #
-        #in_wcs = self.product.geometry.wcs
-        _crval = (in_wcs.crval1,in_wcs.crval2)
-        _crpix = (in_wcs.crpix1,in_wcs.crpix2)
-        #
-        # Setup tuples for containing the final delta's in input units
-        #converted from the given shifts regardless of the frame or type.
-        #
-        _dcrval = (0.,0.)
-        _dcrpix = (0.,0.)
-
-        _refimage = False
-        # If we are working with shifts provided in output frame...
-        if self.pars['refimage'] != '' and self.pars['refimage'] != None:
-            # Extract the reference image's WCS for use in converting
-            # the shifts into input pixels
-            # Only necessary for 'pixel' shifts...
-            #
-            _out_wcs = wcsutil.WCSObject(self.pars['refimage'])
-            _out_wcs.recenter()
-            _refimage = True
-
-        """
-         Each product now has 'refimage' and 'offsets' attributes
-         refimage = {'pix_shift':(),'ra_shift':(),'name':'','val':0.}
-         offsets = {'pixels':(),'arcseconds':()}
-
-         PyDrizzle measures ALL shifts relative to the center of the final
-         output frame.  The user's shifts will be measured relative to a
-         reference image's reference point.  The difference between the
-         two frames must be accounted for when comparing shifts measured
-         in the two frames.
-
-         This offset needs to be subtracted from the shift provided by
-         the user in order to apply it to the PyDrizzle shifts.
-        """
-        _ra_offset = (self.offsets['arcseconds'][0] - self.refimage['ra_shift'][0],
-                    self.offsets['arcseconds'][1] - self.refimage['ra_shift'][1])
-
-        _rotmat = fileutil.buildRotMatrix(self.pars['rot'])
-
-        if self.pars['abshift']:
-            # Run 'computeOffsets()' to determine default shifts
-            # Extract shifts into numpy object and shift to input pixels
-            # Compute delta between abshift and 'offsets' as _delta_x,_delta_y
-            _delta_x = self.pars['xshift']
-            _delta_y = self.pars['yshift']
-
-            # Insure that 'pixel' shifts are in 'input' units
-            if self.pars['shift_units'] == 'pixels':
-                if _refimage:
-                    # Compute delta RA,Dec for output frame ref point
-                    # using given pixel shifts
-                    _dcrpix = N.dot((-_delta_x, -_delta_y),_rotmat)
-
-                    # CRVAL of output reference frame user shifts were measured from
-                    _refcrval = _out_wcs.xy2rd((_dcrpix[0]+_out_wcs.crpix1,_dcrpix[1]+_out_wcs.crpix2))
-                    # Total arcsecond shift for this image
-                    _ra_shift = ( (_refcrval[0] - _out_wcs.crval1),
-                                  (_refcrval[1] - _out_wcs.crval2))
-
-                else:
-                    # Tested against WFPC2 CADC ASNs...
-                    _dcrpix = (_crpix[0] - _delta_x,_crpix[1] - _delta_y)
-
-                    _refcrval = in_wcs.xy2rd(_dcrpix)
-                    # Total arcsecond shift for this image
-                    _ra_shift = ((_refcrval[0] - in_wcs.crval1),(_refcrval[1] - in_wcs.crval2))
-            else:
-                #
-                # Arcsecond shifts
-                #
-                # Directly apply shift in arcseconds of RA/Dec to CRVALs
-                _ra_shift = (_delta_x/3600.,_delta_y/3600.)
-
-            # Delta RA/Dec based on output pixel shift for this image
-            _dcrval = (_ra_shift[0] -_ra_offset[0], _ra_shift[1] -_ra_offset[1])
-
-        else:
-            #
-            # Delta Shifts
-            # Work with deltas from ASN table directly here
-            _delta_x = self.pars['xshift']
-            _delta_y = self.pars['yshift']
-
-            if self.pars['shift_units'] == 'pixels':
-                if _refimage:
-                    # Compute delta RA,Dec for output frame ref point
-                    # using given pixel shifts
-                    #_dcrpix = N.dot((_out_wcs.crpix1-_delta_x, _out_wcs.crpix2-_delta_y),_rotmat)
-                    _dcrpix = N.dot((-_delta_x, -_delta_y),_rotmat)
-
-                    _refcrval = _out_wcs.xy2rd((_dcrpix[0]+_out_wcs.crpix1,_dcrpix[1]+_out_wcs.crpix2))
-                    _dcrval = ((_out_wcs.crval1 - _refcrval[0] ),
-                               (_out_wcs.crval2 - _refcrval[1] ))
-                else:
-                    _dcrpix = (_crpix[0] - _delta_x,_crpix[1] - _delta_y)
-                    _refcrval = in_wcs.xy2rd(_dcrpix)
-                    _dcrval = (_crval[0] - _refcrval[0],_crval[1] - _refcrval[1])
-            else:
-                #
-                # Arcsecond Shifts
-                #
-                _dcrval = (_delta_x/3600.,_delta_y/3600.)
-
-        # Now, apply computed delta shift, _dcrval, to input WCS
-        # and recenter WCS...
-        # Update current CRVAL with delta we have computed
-        in_wcs.crval1 -= _dcrval[0]
-        in_wcs.crval2 -= _dcrval[1]
-
-        # Also, update orientation and plate scale
-        _orient = None
-        if self.pars['rot'] != 0.:
-            _orient = in_wcs.orient + self.pars['rot']
-
-        _scale = None
-        if self.pars['scale'] != 0.:
-            _scale = in_wcs.pscale * self.pars['scale']
-        in_wcs.recenter()
-        '''
-        # Compute new CRVAL for current CRPIX position
-        in_wcs.crval1,in_wcs.crval2 = in_wcs.xy2rd(_crpix)
-        in_wcs.crpix1 = _crpix[0]
-        in_wcs.crpix2 = _crpix[1]
-        '''
-        #if not _refimage:
-        # Update product WCS with the new values
-
-        if _orient != None or _scale != None:
-
-            in_wcs.updateWCS(orient=_orient,pixel_scale=_scale)
         
     def getProductCorners(self):
         """ Compute the product's corner positions based on input exposure's
@@ -853,8 +586,7 @@ class Pattern(object):
         ref_wcs.recenter()
 
         # Convert shifts into delta RA/Dec values
-        if not self.shiftwcs:
-            self.translateShifts()
+        self.translateShifts()
         
         for member in self.members:
             in_wcs = member.geometry.wcslin
@@ -864,11 +596,7 @@ class Pattern(object):
             #_scale = ref_wcs.pscale / in_wcs.pscale
 
             # Compute offset based on shiftfile values
-            if not self.shiftwcs:
-                xsh,ysh,drot,dscale = self.getShifts(member,ref_wcs)
-            else:
-                xsh,ysh,drot = 0.0,0.0,0.0
-                dscale = 1.0
+            xsh,ysh,drot,dscale = self.getShifts(member,ref_wcs)
 
             # Rigorously compute the orientation changes from WCS
             # information using algorithm provided by R. Hook from WDRIZZLE.
@@ -878,12 +606,9 @@ class Pattern(object):
             _delta_roty = _delta_rot = RADTODEG(N.arctan2(abxt[1],cdyt[0]))
             _delta_rotx = RADTODEG(N.arctan2(abxt[0],cdyt[1]))
             # Compute scale from fit to allow WFPC2 (and similar) data to be handled correctly
-            #_scale = 1./((N.sqrt(abxt[0]**2 + abxt[1]**2)+N.sqrt(cdyt[0]**2+cdyt[1]**2))/2.)
             _scale = 1./N.sqrt(abxt[0]**2 + abxt[1]**2)
 
             # Correct for additional shifts from shiftfile now
-            #_delta_x = abxt[2] + member.geometry.gpar_xsh
-            # _delta_y = cdyt[2] + member.geometry.gpar_ysh
             _delta_x = abxt[2]
             _delta_y = cdyt[2]
 

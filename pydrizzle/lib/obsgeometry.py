@@ -33,7 +33,7 @@ class ObsGeometry:
         """
         self.header = header
         self.wcs = mt_wcs
-
+        
         _offtab = None
         _filt1 = None
         _filt2 = None
@@ -159,7 +159,8 @@ class ObsGeometry:
             # Compute the time dependent distrotion skew terms
 
             # default date of 2004.5 = 2004-7-1
-            if self.header.has_key('WFCTDD') and self.header['WFCTDD'] == 'T':
+            if (self.header.has_key('WFCTDD') and self.header['WFCTDD'] == 'T') or \
+                (self.header.has_key('TDDCORR') and self.header['TDDCORR'] == 'T'):
                 print " *** Computing ACS Time Dependent Distortion Coefficients *** "
                 self.alpha,self.beta = mutil.compute_wfc_tdd_coeffs(self.header['date-obs'])
             else:

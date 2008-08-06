@@ -21,7 +21,7 @@ _default_pars = {'psize':None,'default_rot':None,'idckey':None}
 
 INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS","WFC3"]
 
-__version__ = "6.1.5 (23-June-2008)"
+__version__ = "6.2.0 (6-Aug-2008)"
 
 
 class _PyDrizzle:
@@ -94,7 +94,7 @@ More help on SkyField objects and their parameters can be obtained using:
     def __init__(self, input, output=None, field=None, units=None, section=None,
         kernel=None,pixfrac=None,bits_final=0,bits_single=0,
         wt_scl='exptime', fillval=0.,idckey='', in_units='counts',
-        idcdir=DEFAULT_IDCDIR,memmap=0,dqsuffix=None,shiftwcs=True):
+        idcdir=DEFAULT_IDCDIR,memmap=0,dqsuffix=None):
 
         if idcdir == None: idcdir = DEFAULT_IDCDIR
         
@@ -134,7 +134,7 @@ More help on SkyField objects and their parameters can be obtained using:
             'pixfrac':pixfrac,'idckey':idckey,'wt_scl':wt_scl,
             'fillval':fillval,'section':section, 'idcdir':idcdir+os.sep,
             'memmap':memmap,'dqsuffix':dqsuffix, 'in_units':in_units,
-            'bits':[bits_final,bits_single], 'mt_wcs': None,'asndict':asndict,'shiftwcs':shiftwcs}
+            'bits':[bits_final,bits_single], 'mt_wcs': None,'asndict':asndict}
         
         # Watch out for any errors.
         # If they arise, all open files need to be closed...
@@ -975,11 +975,6 @@ class DitherProduct(Pattern):
         # This will be used when applying relative shifts from ASN table
         # or shiftfile.
         self.computeOffsets()
-
-        if self.shiftwcs:
-            # Apply any additional shifts from ASN table/shiftfile
-            self.applyAsnShifts(output)
-
         # Preserve default DitherProduct Metachip WCS as wcslin
         self.product.exptime = self.exptime
         # Update the corners arrays for the product now...
@@ -989,36 +984,6 @@ class DitherProduct(Pattern):
         for prod in self.members:
             _prodcorners +=  prod.product.corners['corrected'].tolist()
         self.product.corners['corrected'] = N.array(_prodcorners,dtype=N.float64)
-
-    def applyAsnShifts(self,output):
-        """
-        Apply any shifts read in from the ASN table /shiftfile to
-        the WCS of each input's product.
-
-        In the case there are no shifts to apply, copy the product
-        WCS into WCSLIN as the default case.
-
-        This method should (eventually?) support updating the shifts
-        without starting from the beginning with these datasets, similar
-        to the 'resetPars' functionality.
-
-        """
-        # If there were any shifts to be applied, update input
-        # image's WCS with the shifts, then re-build the final
-        # product Metachip using corrected product WCS values.
-        mem0 = self.pars.keys()[0]
-        #if self.pars['abshift'] or self.pars['dshift']:
-        if self.pars[mem0]['abshift'] or self.pars[mem0]['dshift']:
-            for prod in self.members:
-                prod.applyAsnShifts()
-
-            #If we have shifts of any sort,
-            # recompute the DitherProduct's meta-chip with corrected values
-            output_wcs = self.buildMetachip()
-            self.size = (output_wcs.naxis1,output_wcs.naxis2)
-            self.product = Exposure(output,wcs=output_wcs,new=yes)
-
-        self.product.geometry.wcslin = self.product.geometry.wcs.copy()
 
     def computeOffsets(self):
         """
@@ -1045,6 +1010,7 @@ class DitherProduct(Pattern):
             # Determine which image has the smallest offset
             _tot = N.sqrt(N.power(xoff,2)+N.power(yoff,2))
 
+            """
             # Use first image as reference
             if _member_num == 0:
                 _tot_ref['val'] = _tot
@@ -1053,15 +1019,16 @@ class DitherProduct(Pattern):
                 _tot_ref['ra_shift'] = raoff
                 # This will be used primarily for manual verification
                 _tot_ref['wcs'] = in_wcs
+            """
 
             _member_num += 1
 
             # Keep track of the results for later use/comparison
             member.offsets = {'pixels':(xoff,yoff),'arcseconds':raoff}
-
+        """
         for member in self.members:
             member.refimage = _tot_ref
-
+        """
 
     def getExptime(self):
         """

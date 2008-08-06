@@ -45,15 +45,10 @@ class ACSObservation(Pattern):
         '''
         for member in self.members:
             model = member.geometry.model
-            tcx,tcy,xd,yd = mutil.apply_wfc_tdd_coeffs(model.cx, model.cy,
-                                                model.refpix['XDELTA'],model.refpix['YDELTA'],
+            tcx,tcy = mutil.apply_wfc_tdd_coeffs(model.cx, model.cy,
                                                 member.geometry.alpha,member.geometry.beta)
             member.geometry.model.cx = tcx
             member.geometry.model.cy = tcy
-            # These lines demonstrate how to apply the shifts directly to 
-            # the WCS CRPIX values.
-            #member.geometry.wcs.crpix1 -= xd
-            #member.geometry.wcs.crpix2 -= yd
 
 class GenericObservation(Pattern):
     """
