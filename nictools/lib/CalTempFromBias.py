@@ -276,8 +276,7 @@ class CalTempFromBias:
                 clean = im0
                 signal= ((im1-im0)/0.302328 )
 
-                if not threshold:
-                   threshold = 10.0  # in DN/s. Every 5 DN/s here is 5*0.203 = 1 DN in the quad median.
+                threshold = 10.0  # in DN/s. Every 5 DN/s here is 5*0.203 = 1 DN in the quad median.
 
                 if (N.median(signal*0.203) > threshold ):
                    clean = im0-(signal * 0.203)
