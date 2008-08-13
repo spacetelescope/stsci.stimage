@@ -19,7 +19,7 @@ no = False
 #
 
 def readIDCtab (tabname, chip=1, date=None, direction='forward',
-                filter1=None,filter2=None, offtab=None):
+                filter1=None,filter2=None, offtab=None,tddcorr=False):
 
     """
         Read IDCTAB, and optional OFFTAB if sepcified, and generate
@@ -224,6 +224,11 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
         fx *= refpix['PSCALE']
         fy *= refpix['PSCALE']
 
+    if tddcorr:
+        print " *** Computing ACS Time Dependent Distortion Coefficients *** "
+        fx,fy,alpha,beta = apply_wfc_tdd_coeffs(fx, fy, date)
+        refpix['TDDALPHA'] = alpha
+        refpix['TDDBETA'] = beta
     # Return arrays and polynomial order read in from table.
     # NOTE: XREF and YREF are stored in Fx,Fy arrays respectively.
     return fx,fy,refpix,order
@@ -600,49 +605,51 @@ def compute_wfc_tdd_coeffs(dateobs):
         ACS ISR 07-08 by J. Anderson.
     '''
     # default date of 2004.5 = 2004-7-1
-    datedefault = datetime.datetime(2004,7,1)
+    #datedefault = datetime.datetime(2004,7,1)
+    dday = 2004.5
     year,month,day = dateobs.split('-')
     rdate = datetime.datetime(int(year),int(month),int(day))
+    rday = float(rdate.strftime("%j"))/365.25 + rdate.year
+    # Jay's code only computes the alpha/beta values based on a decimal year
+    # with only 3 digits, so this line reproduces that when needed for comparison
+    # with his results.
+    #rday = float(('%0.3f')%rday)
     
     # The zero-point terms account for the skew accumulated between
     # 2002.0 and 2004.5, when the latest IDCTAB was delivered.
-    alpha = 0.095 + 0.090*((rdate-datedefault).days/365.25)/2.5
-    beta = -0.029 - 0.030*((rdate-datedefault).days/365.25)/2.5
+    alpha = 0.095 + 0.090*(rday-dday)/2.5
+    beta = -0.029 - 0.030*(rday-dday)/2.5
     
     return alpha,beta
 
-def apply_wfc_tdd_coeffs(cx,cy,alpha,beta):
+def apply_wfc_tdd_coeffs(cx,cy,dateobs):
     ''' Apply the WFC TDD coefficients directly to the distortion
         coefficients. 
     '''
+    alpha,beta = compute_wfc_tdd_coeffs(dateobs)
+    
     # Initialize variables to be used
     theta_v2v3 = 2.234529
     scale_idc = 0.05
     scale_jay = 0.04973324715
     idctheta = theta_v2v3
+    idcrad = fileutil.DEGTORAD(idctheta)
     #idctheta = fileutil.RADTODEG(N.arctan2(cx[1,0],cy[1,0]))
     # Pre-compute the entire correction prior to applying it to the coeffs
     mrotp = fileutil.buildRotMatrix(idctheta)
     mrotn = fileutil.buildRotMatrix(-idctheta)
+    abmat = N.array([[beta,alpha],[alpha,beta]])
     tdd_mat = N.array([[1+(beta/2048.), alpha/2048.],[alpha/2048.,1-(beta/2048.)]],N.float64)
-
-        
-    # rotate and scale the coeffs to put them in native frame where Y-axis
-    # remains un-rotated and no additional rescaling takes place 
-    # (Jay Anderson's frame)
-    rcx,rcy = rotate_coeffs(cx,cy,idctheta)
-
-    # Apply tdd coeffs to the rotated coeffs
-    tcxy = N.dot(tdd_mat,[rcx.ravel(),rcy.ravel()])
-    tcx = tcxy[0]
-    tcy = tcxy[1]
-    tcx.shape = rcx.shape
-    tcy.shape = rcy.shape
-
-    # Rotate back into V2V3 frame
-    icx,icy = rotate_coeffs(tcx,tcy,-idctheta)
+  
+    abmat1 = N.dot(tdd_mat, mrotn)
+    abmat2 = N.dot(mrotp,abmat1)
+    icxy = N.dot(abmat2,[cx.ravel(),cy.ravel()])
+    icx = icxy[0]
+    icy = icxy[1]
+    icx.shape = cx.shape
+    icy.shape = cy.shape
     
-    return icx,icy
+    return icx,icy,alpha,beta
     
     
 def rotate_coeffs(cx,cy,rot,scale=1.0):
