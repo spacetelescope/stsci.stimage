@@ -20,18 +20,19 @@
 #             -- the calculated value of the persistence is written to the keyword BEPSCALE
 #             -- the calculated value of the fraction of pixels used is written to the keyword BEPFRAC
 #           - routines added to check validity of input parameters
+#  08/13/08 - for pipeline use, added attribute for output to trailer file
+#           - moved setting of parameters into constructor and separate functions in persutil
 #
 
 import pyfits
 import numpy as N
-import sys
+import sys, time
 import opusutil
-from optparse import OptionParser
 import persutil
 import string 
 import ndimage    # for median_filter
 
-__version__ = "1.1 (2008 Aug 6)"
+__version__ = "1.2 (2008 Aug 13)"
 
 
 ERROR_RETURN = -2
@@ -44,14 +45,13 @@ class NicRemPersist:
     --> nrp = nic_rem_persist.NicRemPersist('n9r7b2bjq_ped.fits', persist_model = 'persistring.fits', persist_mask = 'persist_mask.fits',
                   used_lo = .3, persist_lo = 0.8)
     --> nrp.persist()
-    --> nrp.print_pars()
 
     linux command line example:
        hal> ./nic_rem_persist.py 'n9r7b2bjq_ped.fits' -d 'same_as_persistring.fits' -m 'same_as_persist_mask.fit' -u 0.4 -p 1.3 -v
 
     """
 
-    def __init__( self, input_file, verbosity=1 ,persist_lo=None, used_lo=None, persist_model=None, persist_mask=None): 
+    def __init__( self, input_file, verbosity=1 ,persist_lo=None, used_lo=None, persist_model=None, persist_mask=None, run_stdout=None): 
         """constructor
 
         @param input_file: name of ineput file
@@ -64,14 +64,44 @@ class NicRemPersist:
         @type persist_model:  string
         @param persist_mask: filename containing pixel mask 
         @type persist_mask:  string
-    
+        @param run_stdout: open trailer file (pipeline use only) 
+        @type run_stdout: file handle 
+
         """
 
-        # do some parameter type checking
-        if ( __name__ == 'nic_rem_persist'):  # for python interface, set defaults and check unspecified pars
+        if (run_stdout != None): # set standard output to trailer file
+            self.orig_stdout = sys.stdout # save original stdout
+            sys.stdout = run_stdout  # set stdout to open trailer file
+
+        if (verbosity > 0 ):
+            current_time = time.asctime()
+            print '=== BEP', __version__,' starting at ', current_time  
+
+        [ options, args, parser ] = persutil.getOptions()
+
+        persutil.setVerbosity( options.verbosity)  
+        verbosity = options.verbosity 
+
+        # get parameter values if not specified on command line
+        if (persist_lo == None ):
+            persist_lo = persutil.getPersist_lo( input_file, options) 
+
+        if (used_lo == None ):
+            used_lo = persutil.getUsed_lo( input_file, options)
+
+        if (persist_model == None ):
+            persist_model = persutil.getPersist_model( input_file, options)
+
+        if (persist_mask == None ):
+            persist_mask = persutil.getPersist_mask( input_file, options)
+
+        # do some parameter type checking        
+        if ( __name__ == 'nic_rem_persist'):  
               [ persist_lo, used_lo, persist_model, persist_mask ] = check_py_pars(input_file, persist_lo, used_lo, persist_model, persist_mask)
         else:
               [ persist_lo, used_lo] = check_cl_pars(input_file, persist_lo, used_lo)
+
+        [ persist_lo, used_lo] = check_cl_pars(input_file, persist_lo, used_lo)
         
         self.input_file = input_file
         self.persist_lo = persist_lo
@@ -79,8 +109,9 @@ class NicRemPersist:
         self.persist_model = persist_model
         self.persist_mask = persist_mask
         self.verbosity = verbosity
+        self.run_stdout = run_stdout   
 
-
+ 
     def persist( self ):
         """ remove persistence due to the full bright Earth.    
 
@@ -175,7 +206,7 @@ class NicRemPersist:
 
               if (verbosity > 0):
                   print ' The fraction of pixels for this file is ', used,', which is below the minimum allowed value of the fraction (', used_lo,').  Therefore no corrected image will be written.'
-              fh_infile[0].header.update( key = 'BEPCORR', value = 'SKIPPED') 
+              fh_infile[0].header.update( key = 'BEPCORR', value = 'SKIPPED')
         else:
               fh_infile[1].data = correct
               fh_infile[0].header.update( key = 'BEPSCALE', value = persist) 
@@ -185,16 +216,23 @@ class NicRemPersist:
               fh_infile[0].header.update( key = 'BEPCORR', value = 'COMPLETE') 
 
         if fh_infile:
-          fh_infile.close()
-     
-        if (verbosity > 0):
-          print 'Done!'
+           fh_infile.close()
+
+        if (verbosity > 0 ):  
+           self.print_pars()
+           current_time = time.asctime()
+           print '=== BEP finished at ', current_time  
+
+        if (self.run_stdout  != None):  #reset stdout if needed
+           sys.stdout = self.orig_stdout 
+          
     # end of def persist
 
     def print_pars(self ):
         """ Print input parameters and calculated values.
         """
         print 'The input parameters used are :'
+        print '  The ped input file:  ' , self.input_file
         print '  Lower limit on persistence (persist_lo):  ' , self.persist_lo
         print '  Lower limit on fraction of pixels used (used_lo):  ' , self.used_lo
         print '  The (medianed) persistence model from the file (persist_model):  ' , self.persist_model
@@ -412,78 +450,11 @@ if __name__=="__main__":
             @type cmdline: list of strings
          """
 
-         usage = "usage:  %prog [options] inputfile"
-         parser = OptionParser( usage)
-
-         persist_lo = None
-         used_lo = None  
-         persist_model = None
-         persist_mask = None 
-         persist = None  
-         used = None  
-
-         if ( sys.argv[1] ): input_file = sys.argv[1]
-
-         parser.set_defaults( verbosity = persutil.VERBOSE)
-         parser.add_option( "-q", "--quiet", action = "store_const",
-                            const = persutil.QUIET, dest = "verbosity",
-                            help = "quiet, print nothing")
-         parser.add_option( "-v", "--verbose", action="store_const",
-                            const = persutil.VERY_VERBOSE, dest="verbosity",
-                            help="very verbose, print lots of information")
-         parser.add_option( "-p", "--persist_lo", dest = "persist_lo",
-                            help = "minimum allowed value of the persistence")
-         parser.add_option( "-u", "--used_lo", dest = "used_lo",
-                            help = "minimum allowed value of the fraction of pixels used")
-         parser.add_option( "-d", "--persist_model", dest = "persist_model",
-                            help = "filename containing persistence model")
-         parser.add_option( "-m", "--persist_mask", dest = "persist_mask",
-                            help = "filename containing pixel mask")
-
-
-         (options, args) = parser.parse_args()
-
-         persutil.setVerbosity( options.verbosity)
-         verbosity = options.verbosity
-
-         # if parameters not specified on command line, get their values from headers
-         if (options.persist_lo == None ):    # get pmodfile from header of input_file, and get bepvallo from pmodfile           
-             fh_infile = pyfits.open( input_file)
-             pmodfile =  fh_infile[0].header.get( "PMODFILE" )
-             fh_pmod = pyfits.open( pmodfile)         
-             persist_lo =  fh_pmod[0].header.get( "BEPVALLO" )
-             fh_infile.close(); fh_pmod.close()
-         else:
-             persist_lo = options.persist_lo 
-
-         if (options.used_lo == None ):    # get pmodfile from header of input_file, and get bepuselo from pmodfile           
-             fh_infile = pyfits.open( input_file)
-             pmodfile =  fh_infile[0].header.get( "PMODFILE" )
-             fh_pmod = pyfits.open( pmodfile)         
-             used_lo =  fh_pmod[0].header.get( "BEPUSELO" )
-             fh_infile.close(); fh_pmod.close()
-         else:
-             used_lo = options.used_lo 
-
-         if (options.persist_model == None ):    # get pmodfile from header of input_file
-             fh_infile = pyfits.open( input_file)
-             persist_model = fh_infile[0].header.get( "PMODFILE" )
-             fh_infile.close(); 
-         else:
-             persist_model = options.persist_model
-
-         if (options.persist_mask == None ):    # get pmskfile from header of input_file
-             fh_infile = pyfits.open( input_file)
-             persist_mask = fh_infile[0].header.get( "PMSKFILE" )
-             fh_infile.close(); 
-         else:
-             persist_mask = options.persist_mask
-
+         if ( sys.argv[1] ): input_file = sys.argv[1] 
+       
          try:
-            nrp = NicRemPersist( input_file, persist_lo=persist_lo, used_lo=used_lo, persist_model=persist_model, persist_mask=persist_mask, verbosity=verbosity  )
+            nrp = NicRemPersist( input_file, persist_lo=None, used_lo=None, persist_model=None, persist_mask=None, verbosity=None )                      
             nrp.persist()
-            if (verbosity >=1 ):
-                nrp.print_pars()
 
             del nrp
          except Exception, errmess:
