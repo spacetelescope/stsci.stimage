@@ -27,3 +27,10 @@ else:
         for test in tests:
             runner.run(test)
         return runner.summarize()
+
+try:
+    from svn_version import __svn_version__, __full_svn_info__
+except:
+    __svn_version__ = 'Unable to determine SVN revision'
+    __full_svn_info__ = __svn_version__
+

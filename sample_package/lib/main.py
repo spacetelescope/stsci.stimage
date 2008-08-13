@@ -1,3 +1,4 @@
+import sample_package
 import os
 
 def show_file(dir, name) :
@@ -27,3 +28,6 @@ def run() :
     import sample_package.sscanf
     print sample_package.sscanf.sscanf("001 002 003", "%d %s %d")
     print ""
+    print "I am version",sample_package.__version__
+    print "I am from svn:",sample_package.__svn_version__
+    print "I am from:",sample_package.__full_svn_info__
