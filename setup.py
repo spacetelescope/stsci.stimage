@@ -51,7 +51,6 @@ for p in PACKAGES:
 #Exceptions are allowed; put them here.
 PACKAGE_DIRS['pydrizzle.traits102']='pydrizzle/traits102'
 PACKAGE_DIRS['pydrizzle.distortion']='pydrizzle/lib/distortion'
-PACKAGE_DIRS['ndimage']='ndimage'
 args = sys.argv[2:]
 
 for a in args :
