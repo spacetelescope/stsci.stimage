@@ -257,7 +257,8 @@ class IDCModel(GeometryModel):
     We also need to read in SCALE, XCOM,YCOM, XREF,YREF as well.
     """
     def __init__(self, idcfile, date=None, chip=1, direction='forward',
-                filter1='CLEAR1',filter2='CLEAR2',offtab=None,  binned=1):
+                filter1='CLEAR1',filter2='CLEAR2',offtab=None,  binned=1,
+                tddcorr=False):
         GeometryModel.__init__(self)
         #
         # Norder must be derived from the coeffs file itself,
@@ -269,7 +270,7 @@ class IDCModel(GeometryModel):
         self.name = idcfile
         self.cx,self.cy,self.refpix,self.norder = mutil.readIDCtab(idcfile,
                         chip=chip,direction=direction,filter1=filter1,filter2=filter2,
-                date=date, offtab=offtab)
+                date=date, offtab=offtab,tddcorr=tddcorr)
 
         if self.refpix.has_key('empty_model') and self.refpix['empty_model']:
             pass
