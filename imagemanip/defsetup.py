@@ -1,4 +1,5 @@
 import distutils.core
+import distutils.sysconfig
 import distutils
 import sys, os.path
 

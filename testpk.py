@@ -27,6 +27,7 @@ required_versions = {
         'numpy':                '1.1.0',
         'pydrizzle':            '6.1',
         'pyfits':               '1.4',
+        'pytools' :             '3.0',
         'pytools.fileutil':     '1.3.1',
         'pytools.fitsdiff':     '1.4',
         'pytools.gfit':         '1.0',
