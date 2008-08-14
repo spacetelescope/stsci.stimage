@@ -70,6 +70,7 @@ class ObsGeometry:
         self.filter2 = _filt2
         self.ikey = None
         self.date = date
+        self.tddcorr = False
 
         # Default values for VAFACTOR correction
         #self.vafactor = 1.0
@@ -93,6 +94,17 @@ class ObsGeometry:
 
             self.wcs.recenter()
             self.wcslin = self.wcs.copy()
+            # Implement time-dependent skew for those cases where it is needed
+            # Compute the time dependent distrotion skew terms
+
+            # default date of 2004.5 = 2004-7-1
+            if (self.header.has_key('WFCTDD') and self.header['WFCTDD'] == 'T') or \
+                (self.header.has_key('TDDCORR') and self.header['TDDCORR'] == 'T'):
+                self.alpha,self.beta = mutil.compute_wfc_tdd_coeffs(self.header['date-obs'])
+                self.tddcorr = True
+            else:
+                self.alpha = 0
+                self.beta  = 0
 
             # Based on the filetype, open the correct geometry model
             if idckey != None:
@@ -105,7 +117,8 @@ class ObsGeometry:
             if ikey == 'idctab':
                 self.model =  models.IDCModel(self.idcfile,
                     chip=chip, direction=self.direction, date=self.date,
-                    filter1=_filt1, filter2=_filt2, offtab=_offtab, binned=binned)
+                    filter1=_filt1, filter2=_filt2, offtab=_offtab, binned=binned,
+                    tddcorr=self.tddcorr)
             elif ikey == 'cubic':
                 scale = self.wcs.pscale / ref_pscale
                 self.model = models.DrizzleModel(self.idcfile, scale=scale)
@@ -155,19 +168,6 @@ class ObsGeometry:
                 self.model.refpix['XREF'] = self.wcs.naxis1/2.
                 self.model.refpix['YREF'] = self.wcs.naxis2/2.
                 
-            # Implement time-dependent skew for those cases where it is needed
-            # Compute the time dependent distrotion skew terms
-
-            # default date of 2004.5 = 2004-7-1
-            if (self.header.has_key('WFCTDD') and self.header['WFCTDD'] == 'T') or \
-                (self.header.has_key('TDDCORR') and self.header['TDDCORR'] == 'T'):
-                print " *** Computing ACS Time Dependent Distortion Coefficients *** "
-                self.alpha,self.beta = mutil.compute_wfc_tdd_coeffs(self.header['date-obs'])
-                self.model.cx,self.model.cy = mutil.apply_wfc_tdd_coeffs(self.model.cx, 
-                                                        self.model.cy, self.alpha,self.beta)
-            else:
-                self.alpha = 0
-                self.beta  = 0
             
             # Determine whether there is any offset for the image
             # as in the case of subarrays (based on LTV keywords)
