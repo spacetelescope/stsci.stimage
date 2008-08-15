@@ -385,7 +385,7 @@ class ObsGeometry:
             return _delta
         #return (_x_out,_y_out)
 
-    def invert(self,pixpos,error=None,maxiter=None):
+    def invert(self,pixpos,outwcs,error=None,maxiter=None):
         """
         This method is the reverse of "apply" - it finds a position
         which, when distorted, maps to "pixpos". The method is iterative
@@ -418,7 +418,7 @@ class ObsGeometry:
 
         # Setup an initial guess - just the first pixel
         pos[0]=[self.wcs.crpix1,self.wcs.crpix2]
-
+        
         # Loop around until we get close enough (determined by the optional error value)
         for i in range(maxiter):
 
@@ -426,29 +426,17 @@ class ObsGeometry:
             pos[1]=pos[0]+[1.0,0.0]
             pos[2]=pos[0]+[0.0,1.0]
 
-            # Apply the forward transform
-            tout=self.apply(pos)
-
+            # Apply the forward transform for this chip
+            tout=self.wtraxy(pos,outwcs)
             # Convert back to Numpy
             out=N.array(tout,dtype=N.float64)
-            out.transpose()
 
             # Work out the shifts matrix
             shift[0]=out[1]-out[0]
             shift[1]=out[2]-out[0]
 
             # Invert the matrix (this probably should be a separate method)
-            a=shift[0,0]
-            b=shift[0,1]
-            c=shift[1,0]
-            d=shift[1,1]
-            det=a*d-b*c
-            if det==0.0: raise "Singular matrix!"
-            oshift=shift
-            shift[0,0]=d/det
-            shift[0,1]=-b/det
-            shift[1,0]=-c/det
-            shift[1,1]=a/det
+            shift = N.linalg.inv(shift)
 
             # Determine the X and Y errors
             errors=pp-out[0]
