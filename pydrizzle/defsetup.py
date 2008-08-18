@@ -1,6 +1,6 @@
-from distutils.core import setup, Extension
+from distutils.core import Extension
 import sys, os.path
-import distutils 
+import distutils.sysconfig
 
 try:
     import numpy
