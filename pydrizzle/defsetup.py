@@ -88,18 +88,15 @@ f2c_files += [ 'abort_.c', 'backspac.c', 'c_abs.c', 'c_cos.c',
     'z_exp.c', 'z_log.c', 'z_sin.c', 'z_sqrt.c' ]
 
 f2c_files = [ ( "libf2c/%s" % x ) for x in f2c_files ]
-print f2c_files
 
 
-id = [ pythoninc, numpyinc, f2c_inc ] + numpynumarrayinc 
-print id
 def getExtensions():
     ext = [Extension("pydrizzle.arrdriz",['src/arrdrizmodule.c',
                                 'src/tdriz.c','src/tblot.c','src/twdriz.c',
                                 'src/drutil.c','src/doblot.c','src/drcall.c',
                                 'src/inter2d.c','src/bieval.c' ] + f2c_files ,
                    define_macros=[('NUMPY', '1')] + f2c_macros ,
-                   include_dirs=id,
+                   include_dirs= [ pythoninc, numpyinc, f2c_inc ] + numpynumarrayinc ,
                    extra_link_args=EXTRA_LINK_ARGS,
                    libraries=pydrizzle_libraries)]
 
