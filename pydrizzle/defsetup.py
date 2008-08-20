@@ -55,6 +55,11 @@ else :
     f2c_macros = [ ('Skip_f2c_Undefs',1) ]
     f2c_files = [ 'ftell_.c' ]
 
+# Because of f2c.h, we get about 2000 warnings during the build.  This hack
+# disables the definitions that are causing those warnings.  Apparently,
+# we don't use any of them because everything still compiles.
+f2c_macros.append( ('NO_UNKNOWN_PROCEDURE', 1) )
+
 
 #
 # Here are all the files in the f2c library that are common to both 32 and
