@@ -99,7 +99,7 @@ class ObsGeometry:
 
             # default date of 2004.5 = 2004-7-1
             if (self.header.has_key('WFCTDD') and self.header['WFCTDD'] == 'T') or \
-                (self.header.has_key('TDDCORR') and self.header['TDDCORR'] == 'T'):
+                (self.header.has_key('TDDCORR') and self.header['TDDCORR'] == 'PERFORM'):
                 self.alpha,self.beta = mutil.compute_wfc_tdd_coeffs(self.header['date-obs'])
                 self.tddcorr = True
             else:
