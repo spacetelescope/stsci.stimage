@@ -33,6 +33,26 @@ for x in [ "pysynphot", "pyraf", "pyfits" ] :
 ## If you are just adding a new package, you don't need to edit anything
 ## after this line.
 
+####
+#
+# Fix distutils to work the way we want it to.
+#
+# we can't just import this because it isn't installed python
+# won't find the module.  So, we just read the file and exec it.
+#
+# When we exec this file, it modifies distutils.  It also defines
+# some functions we will want to use later, so we save them.
+
+e_dict = { }
+f = open("pytools/lib/stsci_distutils_hack.py","r")
+exec f in e_dict
+f.close()
+
+set_svn_version = e_dict['__set_svn_version__']
+set_setup_date = e_dict['__set_setup_date__']
+
+
+# pretty printer for debugging
 import pprint
 pp = pprint.PrettyPrinter(indent=8)
 pp = pp.pprint
@@ -112,6 +132,9 @@ for lpkg in all_packages_input :
                 all_packages.append(x)
             all_package_dir[x] = "%s/%s" % (pkg[0], package_dir[x])
 
+    set_svn_version(pkg[0])
+    set_setup_date(pkg[0])
+
     # If there are scripts, we have to correct the file names where
     # the installer can find them.  Each is under the pkg directory.
 
@@ -140,19 +163,6 @@ for lpkg in all_packages_input :
                 t.append( pkg[0] + "/" + y )
             all_data_files.append( ( instdir, t ) )
 
-
-####
-#
-# Fix distutils to work the way we want it to.
-#
-# we can't just import this because it isn't installed python
-# won't find the module.  So, we just read the file and exec it.
-#
-# This exec exists soley for the modifications it makes to distutils.
-
-f=open("pytools/lib/stsci_distutils_hack.py","r")
-exec f in { }
-f.close()
 
 ####
 
