@@ -141,7 +141,6 @@ class Pattern(object):
         else:
             self.detector = 'detector'
 
-
     def getHeaderHandle(self):
         """ Sets up the PyFITS image handle and Primary header
             as self.image_handle and self.header.
@@ -230,7 +229,16 @@ class Pattern(object):
                     mask=_masklist, pa_key=self.pa_key, parity=self.PARITY[detector],
                     idcdir=self.pars['idcdir'], group_indx = i+1,
                     handle=self.image_handle,extver=i+1,exptime=self.exptime[0], mt_wcs=self.pars['mt_wcs']))
-        
+ 
+    def setBunit(self,value=None):
+        """Set the bunit attribute for each member.
+            Default value defined in Exposure class is 'ELECTRONS'
+            If a new value is given as input, it will override the default.
+        """
+        if value is not None:
+            for member in self.members:
+                member.set_bunit(value)
+
     def getProductCorners(self):
         """ Compute the product's corner positions based on input exposure's
             corner positions.
@@ -725,6 +733,7 @@ class Pattern(object):
             parameters['version'] = 'PyDrizzle Version '+__version__
             parameters['driz_version'] = ''
             parameters['nimages'] = self.nimages
+            parameters['bunit'] = member.bunit
 
             parlist.append(parameters)
 

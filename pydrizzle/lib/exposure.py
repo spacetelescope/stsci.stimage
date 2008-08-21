@@ -126,6 +126,14 @@ class Exposure:
                     self.dateobs = None
             else:
                 self.dateobs = None
+
+            # Initialize the value of BUNIT based on the header information, if
+            # the header has the keyword
+            if _header.has_key('BUNIT') and _header['BUNIT'].find('ergs') < 0:
+                self.bunit = _header['BUNIT']
+            else:
+                self.bunit = 'ELECTRONS'
+                
         else:
             _chip = 1
             _header = None
@@ -227,6 +235,12 @@ class Exposure:
         if _open:
             handle.close()
             del handle
+
+    def set_bunit(self,value=None):
+        """Sets the value of bunit to user specified value, if one is provided.
+        """
+        if value is not None and self.bunit is not None:
+            self.bunit = value
 
     def setCorners(self):
         """ Initializes corners for the raw image. """

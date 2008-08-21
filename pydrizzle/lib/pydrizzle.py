@@ -21,7 +21,7 @@ _default_pars = {'psize':None,'default_rot':None,'idckey':None}
 
 INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS","WFC3"]
 
-__version__ = "6.2.1 (13-Aug-2008)"
+__version__ = "6.2.2 (21-Aug-2008)"
 
 
 class _PyDrizzle:
@@ -397,12 +397,8 @@ More help on SkyField objects and their parameters can be obtained using:
 
                 # Determine output value of BUNITS
                 # and make sure it is not specified as 'ergs/cm...'
-                _bunit = None
-                if _sciext.header.has_key('BUNIT') and _sciext.header['BUNIT'].find('ergs') < 0:
-                    _bunit = _sciext.header['BUNIT']
-                else: 
-                    _bunit = 'ELECTRONS/S'
-
+                _bunit = plist['bunit']
+                
                 _bindx = _bunit.find('/')
                 if plist['units'] == 'cps':
                     # If BUNIT value does not specify count rate already...

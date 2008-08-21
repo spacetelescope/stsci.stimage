@@ -213,7 +213,7 @@ class NICMOSObservation(Pattern):
         """ Build rootname for each SCI extension, and
             create the mask image from the DQ extension.
             It would then append a new Exposure object to 'members'
-            list for each extension.n8rfeym1q_raw1_cal1
+            list for each extension.
         """
 
         self.detector = detector = str(self.header[self.DETECTOR_NAME])
@@ -351,6 +351,7 @@ class WFPCObservation(Pattern):
 
         # Now, build list of members and initialize them
         self.addMembers(filename)
+        self.setBunit('DN')
 
         if self.members[0].geometry.ikey != 'idctab':
             # Correct distortion coefficients to match output pixel scale
@@ -368,7 +369,6 @@ class WFPCObservation(Pattern):
         # in order to account for 'align=center' convention.
         #self.product.geometry.wcs.crpix1 -= 1.0
         #self.product.geometry.wcs.crpix2 -= 1.0
-
 
     def addMembers(self,filename):
 
@@ -419,7 +419,7 @@ class WFPCObservation(Pattern):
                 idcdir=self.pars['idcdir'], group_indx = i+1,
                 rot=_chip1_rot, handle=self.image_handle, extver=_detnum,
                 exptime=self.exptime[0], ref_pscale=self.REFDATA['1']['psize'], binned=self.binned))
-
+            
             if self.idckey != 'idctab':
                 _chip1_rot = self.members[0].geometry.def_rot
 
