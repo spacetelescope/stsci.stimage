@@ -164,6 +164,12 @@ for lpkg in all_packages_input :
             all_data_files.append( ( instdir, t ) )
 
 
+
+####
+
+if "version" in sys.argv :
+    sys.exit(0)
+
 ####
 
 distutils.core.setup(
