@@ -52,8 +52,9 @@
 #                TFBCALC: string, comment = 'Do CalTempFromBias calculation: PERFORM, OMIT, COMPLETE,
 #                         SKIPPED', default = 'N/A'
 #   07/29/08 - fixed bug so that now nonlinearity file is searched for in $nref if nref_par not specified.
-#
 #              The routine will successfully calculate the temperature only if TFBCALC='PERFORM' and camera=3
+#   08/12/08 - fixed uninitialized variable threshold
+#   08/22/08 - fixed bug in which argument of median() call in nsamp=2 branch was (incorrectly) not a vector
 #
 import os.path
 import sys, time
@@ -89,8 +90,10 @@ class CalTempFromBias:
        tfb.print_pars()
        stat = tfb.update_header( temp, sigma, winner)         
     """
+
     def __init__( self, input_file, edit_type=None, hdr_key=None, err_key=None, nref_par=None,
                   force=None, noclean=False, verbosity=0):
+
         """constructor
 
         @param input_file: name of the file or filelist to be processed 
@@ -264,7 +267,7 @@ class CalTempFromBias:
                 clean = im0 - signal 
                 if  (self.noclean == 'True'):
                    clean = im0
-
+ 
     # If there are only 2 reads, can do a partial clean. Subtraction of the signal
     #   measured in this way will have a  negative 0.302s shading imprint in it. The amplitude
     #   of this will be temp-dependent. Best way to deal is to decide if there is enough
@@ -278,7 +281,7 @@ class CalTempFromBias:
 
                 threshold = 10.0  # in DN/s. Every 5 DN/s here is 5*0.203 = 1 DN in the quad median.
 
-                if (N.median(signal*0.203) > threshold ):
+                if (N.median(N.ravel(signal)*0.203) > threshold ):
                    clean = im0-(signal * 0.203)
 
                 if  (self.noclean == 'True'):
@@ -617,8 +620,8 @@ if __name__=="__main__":
             help = "Name of header keyword to populate")
     parser.add_option( "-s", "--err_key", dest = "err_key",default = tfbutil.err_key,
             help = "Name of keyword for estimate of error")
-    parser.add_option( "-n", "--nref_dir", dest = "nref_dir",default = tfbutil.nref_par,
-            help = "Name of directory containing the non linearity file")    
+    parser.add_option( "-n", "--nref_dir", dest = "nref_dir",default = tfbutil.nref_par,  
+            help = "Name of directory containing the non linearity file")      
     parser.add_option( "-f", "--force", dest = "force",default = tfbutil.force,
             help = "Name of algorithm whose value is to be returned,regardless of which algorithm had the lowest estimated sigma. Valid values are None,Blind,Quietest")
     parser.add_option( "-c", "--noclean", dest = "noclean",default = tfbutil.noclean,
@@ -641,8 +644,8 @@ if __name__=="__main__":
     tfbutil.setNoclean(options.noclean )
     if options.noclean!=None: noclean = options.noclean 
 
-    tfbutil.setNref(options.nref_dir )
-    if options.nref_dir!=None: nref_dir = options.nref_dir
+    tfbutil.setNref(options.nref_dir )   
+    if options.nref_dir!=None: nref_dir = options.nref_dir   
 
     tfbutil.setForce(options.force )
     force = options.force 
