@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-import sys
+import sys, os
 
 # Utility functions and parameters for temp_from_bias
 
@@ -15,6 +15,7 @@ err_key = "TFBERR"
 edit_type = "RAW" 
 noclean = False
 force = None
+nref_par = os.path.expandvars('$nref')
 
 def all_printMsg( message, level=VERBOSE):
 
