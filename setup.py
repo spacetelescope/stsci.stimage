@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 
-# BUG : how do we put the svnversion tags in everything ?
-
+import sys
+import distutils
 import os.path
 
 # list of packages to be installed - we have to populate this 
-# to know what to look for
-all_packages_input = [ 
-    "pytools",
-    "pydrizzle",
+# to know what to look for.
+#
+# Start with a list of the packages that we install everywhere.
+# Note that you only need to list top-level packages.  (e.g.
+# you don't need to list pydrizzle.traits102 because you have
+# already listed pydrizzle.)
+
+all_packages_input = [
     "convolve",
     "image",
     "imagemanip",
@@ -17,27 +21,35 @@ all_packages_input = [
     "ndimage",
     "nictools",
     "numdisplay",
+    "pydrizzle",
+    "pytools",
     "sample_package",
     "stistools",
     "wfpc2tools",
 ]
 
-for x in [ "pysynphot", "pyraf", "pyfits" ] :
+for x in [ "pyfits", "pysynphot" ] :
     if os.path.isdir(x) :
         all_packages_input.append(x) 
     else :
-        print ""
-        print "Optional package",x,"not present"
-        print ""
+        printf "WARNING:",x," not present"
+
+if ( sys.platform != 'win32' ) :
+    if os.path.isdir("pyraf") :
+        all_packages_input.append("pyraf")
+    else :
+        printf "WARNING: pyraf not present"
+
 
 ## If you are just adding a new package, you don't need to edit anything
 ## after this line.
+
 
 ####
 #
 # Fix distutils to work the way we want it to.
 #
-# we can't just import this because it isn't installed python
+# we can't just import this because it isn't installed.  python
 # won't find the module.  So, we just read the file and exec it.
 #
 # When we exec this file, it modifies distutils.  It also defines
@@ -57,22 +69,33 @@ import pprint
 pp = pprint.PrettyPrinter(indent=8)
 pp = pp.pprint
 
-import sys
-import distutils
+####
+#
+# We collect information from defsetup.py in each of the packages,
+# then modify it to account for the directory we are in (i.e. one
+# level up from the actual package).  We combine the information from
+# all of the different packages into a single call to setup().
+#
+# Because we have the single call to setup(), we can use 
+# bdist_wininst to make a single Windows distribution.
+#
 
-# where are the python files in that package
+
+# python files in each package
 all_package_dir = { }
 
-# native code modules
+# native C code modules
 all_ext_modules = [ ]
 
 # scripts to go in a bin/ directory somewhere
 all_scripts = [ ]
 
-#
+# data files to be installed
 all_data_files = [ ]
 
-#
+# the list of all packages found.  all_packages_input only lists
+# things at the top level, but if one of them has nested packages,
+# all_packages will be the complete list.
 all_packages = [ ]
 
 
@@ -88,7 +111,6 @@ for lpkg in all_packages_input :
     # forget anything about previous packages that we processed
     pkg = None
     setupargs = None
-
 
     # "import" the defsetup file.  We can't use import because
     # none of these are in modules, but we can read/exec.
@@ -113,13 +135,14 @@ for lpkg in all_packages_input :
     if isinstance(pkg,str) :
         pkg = [ pkg ]
 
-    # if the package doesn't say that it's package name is what
-    # we thought it was, we have a problem
+    # if the package doesn't report the same name that we asked
+    # for, there is a major problem.
 
     if lpkg != pkg[0] :
-        raise "yow! package name doesn't match"
+        raise Exception("yow! package name doesn't match")
 
     # pick out the "lib" directory, where the pure python comes from
+
     if not 'package_dir' in setupargs :
         # not specified, use the default
         all_package_dir[pkg[0]] = "%s/%s" % ( pkg[0], 'lib' )
@@ -132,11 +155,14 @@ for lpkg in all_packages_input :
                 all_packages.append(x)
             all_package_dir[x] = "%s/%s" % (pkg[0], package_dir[x])
 
+    # insert our subversion information and setup date into the
+    # packages lib/ directory.
+
     set_svn_version(pkg[0])
     set_setup_date(pkg[0])
 
     # If there are scripts, we have to correct the file names where
-    # the installer can find them.  Each is under the pkg directory.
+    # the installer can find them.  Each is under the package directory.
 
     if 'scripts' in setupargs :
         for x in setupargs['scripts'] :
@@ -164,13 +190,25 @@ for lpkg in all_packages_input :
             all_data_files.append( ( instdir, t ) )
 
 
-
 ####
+#
+# now we have read in the in the information from every package,
+# and we have also created $pkg/lib/svn_version.py
+#
+# If the user is asking _only_ to create the version information,
+# we can stop now.  (This can happen when we are creating a
+# release, or when working with a copy checked out directly
+# from subversion.  The "version" command is not useful to
+# an end-user.)
 
 if "version" in sys.argv :
     sys.exit(0)
 
 ####
+#
+# We have accumulated all the information - now all we need is
+# to run the setup.
+#
 
 distutils.core.setup(
 
@@ -181,7 +219,7 @@ distutils.core.setup(
     # It will also appear in some file names.
     version="2.7dev",
 
-    # Description is not used.
+    # Apparently, description is not used anywhere.
     description="",
 
     packages = all_packages,
@@ -189,5 +227,4 @@ distutils.core.setup(
     ext_modules = all_ext_modules,
     scripts = all_scripts,
     data_files = all_data_files,
-    
 )

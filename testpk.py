@@ -18,14 +18,14 @@ required_versions = {
         'convolve':             '2.0',
         'image':                '2.0',
         'imagestats':           '1.2',
-        'multidrizzle':         '3.1.0',
+        'multidrizzle':         '3.2.1',
         'ndimage':              '2.0',
         'nictools.puftcorr':    '0.17',
         'nictools.rnlincor':    '0.8',
         'nictools.saaclean':    '1.2',
         'numdisplay':           '1.5',
         'numpy':                '1.1.0',
-        'pydrizzle':            '6.1',
+        'pydrizzle':            '6.2.2',
         'pyfits':               '1.4',
         'pytools' :             '3.0',
         'pytools.fileutil':     '1.3.1',
@@ -35,12 +35,12 @@ required_versions = {
         'pytools.irafglob':     '1.0',
         'pytools.iterfile':     '0.2',
         'pytools.linefit':      '1.0',
-        'pytools.makewcs':      '0.8.1',
+        'pytools.makewcs':      '0.8.5',
         'pytools.nimageiter':   '0.6',
         'pytools.nmpfit':       '0.2',
         'pytools.numcombine':   '0.4.0',
         'pytools.parseinput':   '0.1.5',
-        'pytools.readgeis':     '2.0',
+        'pytools.readgeis':     '2.1',
         'pytools.versioninfo':  '0.2.0',
         'pytools.wcsutil':      '1.1.0',
         'pytools.xyinterp':     '0.1',
@@ -49,7 +49,7 @@ required_versions = {
         'stistools.stisnoise':  '5.4',
         'stistools.wx2d':       '1.1',
         'wfpc2tools.wfpc2cte':  '1.2.4',
-        'wfpc2tools.wfpc2destreak': '2.15',
+        'wfpc2tools.wfpc2destreak': '2.17',
         }
 
 # optional_versions shows the exact version number that must
@@ -186,15 +186,29 @@ def report_pk() :
             if i[0] != required_versions[p] :
                 expect = required_versions[p]
         print colfmt%(p,i[0],expect,i[1])
+
+interactive_help = """
+python testpk.py
+python testpk.py -t
+    test that installed versions are as expected
+
+python testpk -r
+    report versions of everything
+
+python testpk.py -h
+    this help
+
+"""
     
 if __name__ == '__main__':
         if len(sys.argv) > 1 :
+            if sys.argv[1] == '-h' :
+                print interactive_help
+                sys.exit(0)
             if sys.argv[1] == '-r' :
                 report_pk()
             if sys.argv[1] == '-t' :
                 testpk()
-            if sys.argv[1] == '-d' :
-                testpk(debug=1)
         else :
             testpk()
 
