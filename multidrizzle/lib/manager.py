@@ -874,15 +874,22 @@ class ImageManager(object):
     def doBlot(self,blotpars):
         """ Blot back combined image into input image pixels. """
 
+        origexptime = {}
+
         for p in self.assoc.parlist:
             fileutil.removeFile(p['outblot'])
             p['orig_single'] = p['outsingle']
             p['outsingle'] = self.medianfile
 
+
+            if isinstance(p['image'],IRInputImage):
+                origexptime[p['rootname']] = p['exptime']
+                p['exptime']=1
+
             print("\nblot data='"+p['outsingle']+"' outdata='"+p['outblot']+"' scale="+str(p['scale'])+
                 " coeffs='"+p['coeffs']+"' xsh="+str(p['xsh'])+" ysh="+str(p['ysh'])+
                 " rot="+str(p['rot'])+" outnx="+str(p['blotnx'])+" outny="+str(p['blotny'])+
-                " align='center' shft_un='input' shft_fr='input' in_un='"+p['units']+"' out_un='counts'"+
+                " align='center' shft_un='input' shft_fr='input' in_un='"+p['in_units']+"' out_un='"+p['units']+
                 " interpol='"+blotpars['interp']+" sinscl='"+str(blotpars['sinscl'])+
                 "' expout="+str(p['exptime'])+" expkey='"+"EXPTIME"+"' fillval=0.0\n")
 
@@ -893,6 +900,8 @@ class ImageManager(object):
         # so that PyDrizzle can remove them as necessary
         for p in self.assoc.parlist:
             p['outsingle'] = p['orig_single']
+            if isinstance(p['image'],IRInputImage):
+                p['exptime']=origexptime[p['rootname']]
 
 
     def doDrizCR(self, drizcrpars, skypars):
