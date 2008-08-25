@@ -166,6 +166,7 @@ More help on SkyField objects and their parameters can be obtained using:
         # It relies on the buildPars() methods for each exposure to
         # generate a complete set of parameters for all inputs
         #
+        self.translateShifts(asndict)
         self.parlist = self.observation.buildPars(ref=field)
 
         # Something went wrong, so we need to make sure all file
@@ -177,7 +178,51 @@ More help on SkyField objects and their parameters can be obtained using:
         # Let the user know parameters have been successfully calculated
         print 'Drizzle parameters have been calculated. Ready to .run()...'
         print 'Finished calculating parameters at ',_ptime()
+    
+    def translateShifts(self, asndict):
+        """
+        Translate the shifts specified in the ASNDICT (as read in from the 
+        shiftfile) into offsets in the sky, so they can be translated back
+        into the WCS of the PyDrizzle output product.
+        
+        NOTE:  Only works with 'delta' shifts now, and 
+                    requires that a 'refimage' be specified.
+        """
+    
+        asndict = self.pars['asndict']
+                
+        # for each set of shifts, translate them into delta(ra,dec) based on refwcs
+        for img in asndict['order']:
 
+            xsh = asndict['members'][img]['xshift']
+            ysh = asndict['members'][img]['yshift']
+
+            if xsh == 0.0 and ysh == 0.0:
+                delta_ra = 0.0
+                delta_dec = 0.0
+            else:
+                #check the units for the shifts...
+                if asndict['members'][img]['shift_units'] == 'pixels':
+                    # Initialize the reference WCS for use in translation
+                    # NOTE: This assumes that a 'refimage' has been specified for
+                    #       every set of shifts.
+                    refwcs = wcsutil.WCSObject(asndict['members'][img]['refimage'])
+                    cp1 = refwcs.crpix1
+                    cp2 = refwcs.crpix2
+
+                    nra,ndec = refwcs.xy2rd((cp1+xsh,cp2+ysh))
+                    
+                    delta_ra = refwcs.crval1-nra
+                    delta_dec = refwcs.crval2-ndec
+                else:
+                    # Shifts already in units of RA/Dec (decimal degrees)
+                    # No conversion necessary
+                    delta_ra = xsh
+                    delta_dec = ysh
+            
+            asndict['members'][img]['delta_ra'] = delta_ra
+            asndict['members'][img]['delta_dec'] = delta_dec
+            
     def clean(self,coeffs=no,final=no):
         """ Removes intermediate products from disk. """
         for img in self.parlist:
@@ -953,12 +998,14 @@ class DitherProduct(Pattern):
         self.exptime = self.getExptime()
 
         self.buildProduct(output)
-
+    
     def closeHandle(self):
         """ Close image handle for each member."""
         for member in self.members:
             member.closeHandle()
-
+            
+    
+        
     def buildProduct(self,output):
         # Build default Metachip based on unmodified header WCS values
         output_wcs = self.buildMetachip()
@@ -1120,7 +1167,6 @@ class DitherProduct(Pattern):
 
         # Copy the new reference WCS into the product WCS
         self.product.geometry.wcs = _field.wcs.copy()
-
         parlist = []
         for member in self.members:
             parlist = parlist + member.buildPars(ref=_field)
