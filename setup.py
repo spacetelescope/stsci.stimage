@@ -32,13 +32,13 @@ for x in [ "pyfits", "pysynphot" ] :
     if os.path.isdir(x) :
         all_packages_input.append(x) 
     else :
-        printf "WARNING:",x," not present"
+        print "WARNING:",x," not present"
 
 if ( sys.platform != 'win32' ) :
     if os.path.isdir("pyraf") :
         all_packages_input.append("pyraf")
     else :
-        printf "WARNING: pyraf not present"
+        print "WARNING: pyraf not present"
 
 
 ## If you are just adding a new package, you don't need to edit anything

@@ -16,10 +16,8 @@ numpynumarrayinc = nn.get_numarray_include_dirs()
 pythoninc = distutils.sysconfig.get_python_inc()
 
 if sys.platform != 'win32':
-    pydrizzle_libraries = ['m']
     EXTRA_LINK_ARGS = []
 else:
-    pydrizzle_libraries = ['vcf2c']
     EXTRA_LINK_ARGS = ['/NODEFAULTLIB:MSVCRT']
 
 
@@ -60,6 +58,15 @@ else :
 # we don't use any of them because everything still compiles.
 f2c_macros.append( ('NO_UNKNOWN_PROCEDURE', 1) )
 
+if sys.platform == 'win32' :
+    print ""
+    print "WINDOWS"
+    print ""
+    f2c_macros += [ ("USE_CLOCK",1),
+        ("MSDOS",1),
+        ("NO_ONEXIT",1) ]
+ 
+
 
 #
 # Here are all the files in the f2c library that are common to both 32 and
@@ -71,8 +78,11 @@ f2c_files += [ 'abort_.c', 'backspac.c', 'c_abs.c', 'c_cos.c',
     'd_cnjg.c', 'd_cos.c', 'd_cosh.c', 'd_dim.c', 'd_exp.c', 'd_imag.c',
     'd_int.c', 'd_lg10.c', 'd_log.c', 'd_mod.c', 'd_nint.c', 'd_prod.c',
     'd_sign.c', 'd_sin.c', 'd_sinh.c', 'd_sqrt.c', 'd_tan.c', 'd_tanh.c',
-    'derf_.c', 'derfc_.c', 'dfe.c', 'dolio.c', 'dtime_.c', 'due.c',
-    'ef1asc_.c', 'ef1cmc_.c', 'endfile.c', 'erf_.c', 'erfc_.c', 'err.c',
+    # 'derf_.c', 'derfc_.c', 
+    'dfe.c', 'dolio.c', 'dtime_.c', 'due.c',
+    'ef1asc_.c', 'ef1cmc_.c', 'endfile.c', 
+    # 'erf_.c', 'erfc_.c', 
+    'err.c',
     'etime_.c', 'exit_.c', 'f77_aloc.c', 'f77vers.c', 'fmt.c', 'fmtlib.c',
     'getarg_.c', 'getenv_.c', 'h_abs.c', 'h_dim.c', 'h_dnnt.c', 'h_indx.c',
     'h_len.c', 'h_mod.c', 'h_nint.c', 'h_sign.c', 'hl_ge.c', 'hl_gt.c',
@@ -102,8 +112,8 @@ def getExtensions():
                                 'src/inter2d.c','src/bieval.c' ] + f2c_files ,
                    define_macros=[('NUMPY', '1')] + f2c_macros ,
                    include_dirs= [ pythoninc, numpyinc, f2c_inc ] + numpynumarrayinc ,
-                   extra_link_args=EXTRA_LINK_ARGS,
-                   libraries=pydrizzle_libraries)]
+                   # extra_link_args=EXTRA_LINK_ARGS
+                )]
 
     return ext
 
