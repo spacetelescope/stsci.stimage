@@ -134,7 +134,7 @@ More help on SkyField objects and their parameters can be obtained using:
             'pixfrac':pixfrac,'idckey':idckey,'wt_scl':wt_scl,
             'fillval':fillval,'section':section, 'idcdir':idcdir+os.sep,
             'memmap':memmap,'dqsuffix':dqsuffix, 'in_units':in_units,
-            'bits':[bits_final,bits_single], 'mt_wcs': None,'asndict':asndict}
+            'bits':[bits_final,bits_single], 'mt_wcs': None}
         
         # Watch out for any errors.
         # If they arise, all open files need to be closed...
@@ -188,8 +188,6 @@ More help on SkyField objects and their parameters can be obtained using:
         NOTE:  Only works with 'delta' shifts now, and 
                     requires that a 'refimage' be specified.
         """
-    
-        asndict = self.pars['asndict']
                 
         # for each set of shifts, translate them into delta(ra,dec) based on refwcs
         for img in asndict['order']:
