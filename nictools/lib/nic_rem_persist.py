@@ -22,6 +22,9 @@
 #           - routines added to check validity of input parameters
 #  08/13/08 - for pipeline use, added attribute for output to trailer file
 #           - moved setting of parameters into constructor and separate functions in persutil
+#  08/25/08 - for consistency with other NICMOS tasks in the pipeline, changing BEPCORR
+#             to BEPCORR plus BEPDONE. BEPCORR will not be updated; BEPDONE will be updated to
+#             PERFORMED, SKIPPED, or OMITTED
 #
 
 import pyfits
@@ -32,7 +35,7 @@ import persutil
 import string 
 import ndimage    # for median_filter
 
-__version__ = "1.2 (2008 Aug 13)"
+__version__ = "1.3 (2008 Aug 26)"
 
 
 ERROR_RETURN = -2
@@ -46,8 +49,8 @@ class NicRemPersist:
                   used_lo = .3, persist_lo = 0.8)
     --> nrp.persist()
 
-    linux command line example:
-       hal> ./nic_rem_persist.py 'n9r7b2bjq_ped.fits' -d 'same_as_persistring.fits' -m 'same_as_persist_mask.fit' -u 0.4 -p 1.3 -v
+    linux command line example: 
+       hal> ./nic_rem_persist.py 'n9r7b2bjq_ped.fits' -d 'same_as_persistring.fits' -m 'same_as_persist_mask.fits' -u 0.4 -p 1.3 -v
 
     """
 
@@ -206,14 +209,14 @@ class NicRemPersist:
 
               if (verbosity > 0):
                   print ' The fraction of pixels for this file is ', used,', which is below the minimum allowed value of the fraction (', used_lo,').  Therefore no corrected image will be written.'
-              fh_infile[0].header.update( key = 'BEPCORR', value = 'SKIPPED')
+              fh_infile[0].header.update( key = 'BEPDONE', value = 'SKIPPED') 
         else:
               fh_infile[1].data = correct
               fh_infile[0].header.update( key = 'BEPSCALE', value = persist) 
               fh_infile[0].header.update( key = 'BEPFRAC', value = used) 
               fh_infile[0].header.update( key = 'BEPVALLO', value = self.persist_lo) 
               fh_infile[0].header.update( key = 'BEPUSELO', value = self.used_lo)
-              fh_infile[0].header.update( key = 'BEPCORR', value = 'COMPLETE') 
+              fh_infile[0].header.update( key = 'BEPDONE', value = 'PERFORMED')  
 
         if fh_infile:
            fh_infile.close()
