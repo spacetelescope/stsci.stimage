@@ -562,11 +562,12 @@ def buildEmptyDRZ(input, output):
             
     # Open the first image of the excludedFileList to use as a template to build
     # the DRZ file.
-    inputfile = parseinput.parseinput(input)[0][0]
-    #try :
-        #img = pyfits.open(self.excludedFileList[0]) 
-    img = pyfits.open(inputfile)        
-
+    inputfile = parseinput.parseinput(input)[0]
+    try :
+        img = pyfits.open(inputfile[0])        
+    except:
+        raise IOError, 'Unable to open file %s \n' %inputfile
+    
     # Create the fitsobject
     fitsobj = pyfits.HDUList()
     # Copy the primary header
