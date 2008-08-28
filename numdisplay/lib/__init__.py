@@ -418,7 +418,6 @@ class NumDisplay(object):
 
         _wcsinfo = displaydev.ImageWCS(bpix,z1=self.z1,z2=self.z2,name=name)
         print 'Image displayed with Z1: ',self.z1,' Z2:',self.z2
-        print _wcsinfo
 
         bpix = self._fbclipImage(bpix,_d.fbwidth,_d.fbheight)
 
