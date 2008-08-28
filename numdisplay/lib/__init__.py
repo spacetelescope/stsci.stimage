@@ -116,7 +116,7 @@ try:
 except ImportError:
     geotrans = None
 
-__version__ = "1.5 (11-July-2008)"
+__version__ = "1.5.1 (28-Aug-2008)"
 #
 # Version 0.1-alpha: Initial release
 #       WJH 7-Oct-2003
@@ -418,6 +418,7 @@ class NumDisplay(object):
 
         _wcsinfo = displaydev.ImageWCS(bpix,z1=self.z1,z2=self.z2,name=name)
         print 'Image displayed with Z1: ',self.z1,' Z2:',self.z2
+        print _wcsinfo
 
         bpix = self._fbclipImage(bpix,_d.fbwidth,_d.fbheight)
 

@@ -76,8 +76,8 @@ class ImageWCS(object):
         self.d = -1.0
         _shape = pix.shape
         # Start assuming full image can fit in frame buffer
-        self.tx = _shape[1] / 2.
-        self.ty = _shape[0] / 2.
+        self.tx = int(_shape[1] / 2. + 0.5)
+        self.ty = int(_shape[0] / 2. + 0.5)
         self.dtx = _shape[1] / 2.
         self.dty = _shape[0] / 2.
                
@@ -454,16 +454,16 @@ class ImageDisplay(object):
         """ Update WCS to match frame buffer being used. """
         
         # Update WCS information with offsets into frame buffer for image        
-        wcsinfo.tx = (wcsinfo.full_nx / 2.) - (self.fbwidth / 2.)
-        wcsinfo.ty = self.fbheight + ((wcsinfo.full_ny / 2.) - (self.fbheight / 2.)) - 1
+        wcsinfo.tx = int((wcsinfo.full_nx / 2.) - ((self.fbwidth) / 2.) + 0.5)
+        wcsinfo.ty = int((self.fbheight+1) + ((wcsinfo.full_ny / 2.) - (self.fbheight / 2.)) + 0.5)
 
         wcsinfo.nx = min(wcsinfo.full_nx, self.fbwidth)
         wcsinfo.ny = min(wcsinfo.full_ny, self.fbheight)
         
         # Keep track of the origin of the displayed, trimmed image
         # which fits in the buffer.
-        wcsinfo.dtx = (wcsinfo.nx / 2.) - (self.fbwidth / 2.)
-        wcsinfo.dty = self.fbheight + ((wcsinfo.ny / 2.) - (self.fbheight / 2.)) + 1
+        wcsinfo.dtx = int((wcsinfo.nx / 2.) - ((self.fbwidth) / 2.))
+        wcsinfo.dty = int((self.fbheight) + ((wcsinfo.ny / 2.) - (self.fbheight / 2.)))
 
     def writeImage(self,pix,wcsinfo):
 
@@ -695,7 +695,8 @@ class ImageDisplayProxy(ImageDisplay):
         self._display.setCursor(x,y,wcs)
     
     def checkDisplay(self): 
-        """ Returns True if 
+        """ Returns True if a valid connection to a display device is found,
+        False if no connection could be found.
         """
         try:
             wcs = self._display.readInfo()
