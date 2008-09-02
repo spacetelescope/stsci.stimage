@@ -13,6 +13,7 @@ import os.path
 # already listed pydrizzle.)
 
 all_packages_input = [
+    "calcos",
     "convolve",
     "image",
     "imagemanip",
