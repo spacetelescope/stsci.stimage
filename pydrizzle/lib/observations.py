@@ -351,7 +351,7 @@ class WFPCObservation(Pattern):
 
         # Now, build list of members and initialize them
         self.addMembers(filename)
-        self.setBunit('DN')
+        self.setBunit('COUNTS')
 
         if self.members[0].geometry.ikey != 'idctab':
             # Correct distortion coefficients to match output pixel scale
