@@ -235,6 +235,20 @@ class OutputImage:
                 scihdr.update('CRPIX1',self.wcs.crpix1)
                 scihdr.update('CRPIX2',self.wcs.crpix2)
                 scihdr.update('VAFACTOR',1.0)
+                # Remove any reference to TDD correction
+                if scihdr.has_key('TDDALPHA'):
+                    del scihdr['TDDALPHA']
+                    del scihdr['TDDBETA']
+                # Remove '-SIP' from CTYPE for output product
+                if scihdr['ctype1'].find('SIP') > -1:
+                    scihdr.update('ctype1', scihdr['ctype1'][:-4])
+                    scihdr.update('ctype2',scihdr['ctype2'][:-4])
+                    # Remove SIP coefficients from DRZ product
+                    for k in scihdr.items():
+                        if (k[0][:2] in ['A_','B_']) or (k[0][:3] in ['IDC','SCD'] and k[0] != 'IDCTAB') or \
+                        (k[0][:6] in ['SCTYPE','SCRVAL','SNAXIS','SCRPIX']): 
+                            del scihdr[k[0]]
+                        
 
         ##########
         # Now, build the output file
@@ -393,7 +407,7 @@ class OutputImage:
                     hdu.header.update('CRVAL2',self.wcs.crval2)
                     hdu.header.update('CRPIX1',self.wcs.crpix1)
                     hdu.header.update('CRPIX2',self.wcs.crpix2)
-                    hdu.header.update('VAFACTOR',1.0)
+                    hdu.header.update('VAFACTOR',1.0)                        
 
                 fctx.append(hdu)
                 fctx.writeto(self.outcontext)

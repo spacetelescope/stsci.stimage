@@ -89,6 +89,11 @@ class ObsGeometry:
         if not new:
             if self.wcs == None:
                 self.wcs = wcsutil.WCSObject(rootname,header=self.header)
+                # Look for SIP WCS.  If found, use an archived, unmodified version
+                # of CD matrix instead of regular CD matrix to avoid applying 
+                # SIP corrections/TDD corrections twice
+                if self.wcs.ctype1.find('SIP') > -1:
+                    pass
             else:
                 self.wcs = self.wcs[str(chip)]
 
@@ -101,6 +106,10 @@ class ObsGeometry:
             if (self.header.has_key('WFCTDD') and self.header['WFCTDD'] == 'T') or \
                 (self.header.has_key('TDDCORR') and self.header['TDDCORR'] == 'PERFORM'):
                 self.alpha,self.beta = mutil.compute_wfc_tdd_coeffs(self.header['date-obs'])
+                self.tddcorr = True
+            elif (self.header.has_key('TDDCORR') and self.header['TDDCORR'] == 'COMPLETE'):
+                self.alpha = self.header['TDDALPHA']
+                self.beta = self.header['TDDBETA']
                 self.tddcorr = True
             else:
                 self.alpha = 0
@@ -119,6 +128,12 @@ class ObsGeometry:
                     chip=chip, direction=self.direction, date=self.date,
                     filter1=_filt1, filter2=_filt2, offtab=_offtab, binned=binned,
                     tddcorr=self.tddcorr)
+                if self.tddcorr:
+                    self.wcs.cd11 = self.header['SCD1_1']
+                    self.wcs.cd12 = self.header['SCD1_2']
+                    self.wcs.cd21 = self.header['SCD2_1']
+                    self.wcs.cd22 = self.header['SCD2_2']
+
             elif ikey == 'cubic':
                 scale = self.wcs.pscale / ref_pscale
                 self.model = models.DrizzleModel(self.idcfile, scale=scale)
@@ -151,7 +166,14 @@ class ObsGeometry:
                     
                     self.model =  models.IDCModel(self.idcfile,
                         chip=chip, direction=self.direction, date=self.date,
-                        filter1=_filt1, filter2=_filt2, offtab=_offtab, binned=binned)
+                        filter1=_filt1, filter2=_filt2, offtab=_offtab, binned=binned,
+                        tddcorr=self.tddcorr)
+                if self.tddcorr:
+                    self.wcs.cd11 = self.header['SCD1_1']
+                    self.wcs.cd12 = self.header['SCD1_2']
+                    self.wcs.cd21 = self.header['SCD2_1']
+                    self.wcs.cd22 = self.header['SCD2_2']
+                    
 
             else:
                 raise ValueError, "Unknown type of coefficients table %s"%idcfile

@@ -294,7 +294,6 @@ class WCSModel(GeometryModel):
     def __init__(self,header,rootname):
         GeometryModel.__init__(self)
 
-
         if header.has_key('rootname'):
             self.name = header['rootname']
         else:
@@ -302,7 +301,7 @@ class WCSModel(GeometryModel):
         self.name += '_sip'
         if header.has_key('wfctdd') and header['wfctdd'] == 'T':
             self.name += '_tdd'
-
+            
         # Initialize all necessary distortion arrays with
         # default model...
         #self.cx,self.cy,self.refpix,self.order = mutil.defaultModel()
