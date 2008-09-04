@@ -447,6 +447,49 @@ class Pattern(object):
         _out_wcs.crpix2 = _cen[1]
         """
         
+    def translateShifts(self):
+        """
+        Translate the shifts specified in the ASNDICT (as read in from the 
+        shiftfile) into offsets in the sky, so they can be translated back
+        into the WCS of the PyDrizzle output product.
+        
+        NOTE:  Only works with 'delta' shifts now, and 
+                    requires that a 'refimage' be specified.
+        """
+        asndict = self.pars['asndict']
+                
+        # for each set of shifts, translate them into delta(ra,dec) based on refwcs
+        for img in asndict['order']:
+
+            xsh = asndict['members'][img]['xshift']
+            ysh = asndict['members'][img]['yshift']
+
+            if xsh == 0.0 and ysh == 0.0:
+                delta_ra = 0.0
+                delta_dec = 0.0
+            else:
+                #check the units for the shifts...
+                if asndict['members'][img]['shift_units'] == 'pixels':
+                    # Initialize the reference WCS for use in translation
+                    # NOTE: This assumes that a 'refimage' has been specified for
+                    #       every set of shifts.
+                    refwcs = wcsutil.WCSObject(asndict['members'][img]['refimage'])
+                    cp1 = refwcs.crpix1
+                    cp2 = refwcs.crpix2
+
+                    nra,ndec = refwcs.xy2rd((cp1+xsh,cp2+ysh))
+                    
+                    delta_ra = refwcs.crval1-nra
+                    delta_dec = refwcs.crval2-ndec
+                else:
+                    # Shifts already in units of RA/Dec (decimal degrees)
+                    # No conversion necessary
+                    delta_ra = xsh
+                    delta_dec = ysh
+            
+            asndict['members'][img]['delta_ra'] = delta_ra
+            asndict['members'][img]['delta_dec'] = delta_dec
+        
     def getShifts(self,member,wcs):
         """
         Translate the delta's in RA/Dec for each image's shift into a 
@@ -461,22 +504,30 @@ class Pattern(object):
                   Returns the full set of shift information as a list
  
         """
+        asndict=self.pars['asndict']
         
-        if self.pars['delta_ra'] == 0.0 and self.pars['delta_dec'] == 0.0:
+        mname = None
+        for img in asndict['order']: 
+            if member.name.find(img) > -1: 
+                mname = img
+                break
+        
+        row = asndict['members'][img]
+        if row['delta_ra'] == 0.0 and row['delta_dec'] == 0.0:
             xsh = 0.0
             ysh = 0.0
             drot = 0.0
             dscale = 1.0
         else:     
             # translate delta's into shifts
-            ncrpix1,ncrpix2 = wcs.rd2xy((wcs.crval1+self.pars['delta_ra'],
-                                         wcs.crval2+self.pars['delta_dec']))
+            ncrpix1,ncrpix2 = wcs.rd2xy((wcs.crval1+row['delta_ra'],
+                                         wcs.crval2+row['delta_dec']))
 
             xsh = ncrpix1 - wcs.crpix1
             ysh = ncrpix2 - wcs.crpix2
-            drot= -self.pars['rot']
-            dscale = self.pars['scale']
-            
+            drot= -row['rot']
+            dscale = row['scale']
+
         return [xsh,ysh,drot,dscale]
         
     # This method would use information from the product class and exposure class
@@ -543,7 +594,7 @@ class Pattern(object):
         ref_wcs.recenter()
 
         # Convert shifts into delta RA/Dec values
-        
+        self.translateShifts()
         
         for member in self.members:
             in_wcs = member.geometry.wcslin
