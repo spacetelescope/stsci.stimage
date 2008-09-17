@@ -127,7 +127,7 @@ def _checkColor (color=None):
         color = N.array ((color,), dtype=N.uint8)
     return color
 
-def _update_save (fd, x, y, list_of_points, last_overlay):
+def _update_save (fd, x, y, list_of_points, last_overlay, undo=True):
     """Save info in local lists list_of_points and last_overlay.
 
     @param fd: for reading from image display
@@ -145,12 +145,12 @@ def _update_save (fd, x, y, list_of_points, last_overlay):
     """
 
     global global_byte_buf
-
-    if (x, y) not in list_of_points:
-        value = fd.readData (x, y, global_byte_buf)
-        value = struct.unpack ('B', value)
-        list_of_points.append ((x, y))
-        last_overlay.append ((x, y, value[0]))
+    if undo:
+        if (x, y) not in list_of_points:
+            value = fd.readData (x, y, global_byte_buf)
+            value = struct.unpack ('B', value)
+            list_of_points.append ((x, y))
+            last_overlay.append ((x, y, value[0]))
 
 def point (**kwargs):
     """Draw a point.
@@ -163,6 +163,8 @@ def point (**kwargs):
     @type center: tuple
     @param color: color code to use; if not specified, use default
     @type color: int
+    @param undo: if specified [default=True], keep track of overlays for undo()
+    @type undo: bool
 
     syntax:
         overlay.point (x=x0, y=y0)
@@ -176,8 +178,8 @@ def point (**kwargs):
     last_overlay = []
     list_of_points = []
 
-    allowed_arguments = ["x", "y", "center", "color", "frame"]
-    x = None; y = None; center = None; color = None; frame = None
+    allowed_arguments = ["x", "y", "center", "color", "frame", "undo"]
+    x = None; y = None; center = None; color = None; frame = None; undo = True
     keys = kwargs.keys()
     if "center" in keys and ("x" in keys or "y" in keys):
         raise ValueError, \
@@ -194,9 +196,11 @@ def point (**kwargs):
                 color = kwargs["color"]
             elif key == "frame":
                 frame = kwargs["frame"]
+            elif key == "undo":
+                undo = kwargs["undo"]
         else:
             raise ValueError, \
-            "Invalid argument to 'point'; use 'x', 'y', 'center', 'color' or 'frame'."
+            "Invalid argument to 'point'; use 'x', 'y', 'center', 'color', 'frame' or 'undo'."
     if x is None or y is None:
         raise ValueError, "You must specify either 'x' and 'y' or 'center'."
 
@@ -207,7 +211,7 @@ def point (**kwargs):
     (x, y) = _transformPoint (x, y, tx, ty)
     if x >= 0 and y >= 0 and x < fbwidth and y < fbheight:
         # save the value that is currently at (x,y)
-        _update_save (fd, x, y, list_of_points, last_overlay)
+        _update_save (fd, x, y, list_of_points, last_overlay,undo=undo)
         # write a new value at (x,y)
         fd.writeData (x, y, color)
 
@@ -229,6 +233,8 @@ def marker (**kwargs):
     @type size: int
     @param color: color code to use; if not specified, use default
     @type color: int
+    @param undo: if specified [default=True], keep track of overlays for undo()
+    @type undo: bool
 
     syntax:
         overlay.marker (x=x0, y=y0, mark='+')
@@ -242,8 +248,8 @@ def marker (**kwargs):
     last_overlay = []
     list_of_points = []
 
-    allowed_arguments = ["x", "y", "mark", "color", "frame", "size"]
-    x = None; y = None; center = None; color = None; frame = None
+    allowed_arguments = ["x", "y", "mark", "color", "frame", "size", "undo"]
+    x = None; y = None; center = None; color = None; frame = None; undo=True
     keys = kwargs.keys()
 
     for key in keys:
@@ -260,9 +266,11 @@ def marker (**kwargs):
                 txsize = kwargs["size"]
             elif key == "frame":
                 frame = kwargs["frame"]
+            elif key == "undo":
+                undo = kwargs["undo"]
         else:
             raise ValueError, \
-            "Invalid argument to 'point'; use 'x', 'y', 'mark', 'size', 'color' or 'frame'."
+            "Invalid argument to 'point'; use 'x', 'y', 'mark', 'size', 'color', 'frame' or 'undo'."
     if x is None or y is None:
         raise ValueError, "You must specify 'x' and 'y'."
 
@@ -287,7 +295,7 @@ def marker (**kwargs):
 
         if ix >= 0 and iy >= 0 and ix < fbwidth and iy < fbheight:
             # save the value that is currently at (x,y)
-            _update_save (fd, ix, iy, list_of_points, last_overlay)
+            _update_save (fd, ix, iy, list_of_points, last_overlay,undo=undo)
             # write a new value at (x,y)
             fd.writeData (ix, iy, color)
 
@@ -315,6 +323,8 @@ def rectangle (**kwargs):
     @type height: int
     @param color: color code to use; if not specified, use default
     @type color: int
+    @param undo: if specified [default=True], keep track of overlays for undo()
+    @type undo: bool
 
     syntax:
         overlay.rectangle (left=x1, right=x2, lower=y1, upper=y2)
@@ -334,16 +344,16 @@ def rectangle (**kwargs):
     list_of_points = []
 
     allowed_arguments = ["left", "right", "lower", "upper",
-                         "center", "width", "height", "color"]
+                         "center", "width", "height", "color", "undo"]
     x1 = None; x2 = None; y1 = None; y2 = None
-    center = None; width = None; height = None; color = None
+    center = None; width = None; height = None; color = None; undo = True
 
     error_message = "Invalid argument(s) to 'rectangle'; use one of:\n" \
 "  left=x1, right=x2, lower=y1, upper=y2, or\n" \
 "  center=(x0,y0), width=w, height=h, or\n" \
 "  left=x1, lower=y1, width=w, height=h, or\n" \
 "  right=x2, upper=y2, width=w, height=h\n" \
-"  color may also be specified."
+"  color and undo may also be specified."
 
     keys = kwargs.keys()
     if "center" in keys:
@@ -383,6 +393,8 @@ def rectangle (**kwargs):
                 height = kwargs["height"]
             elif key == "color":
                 color = kwargs["color"]
+            elif key == "undo":
+                undo = kwargs["undo"]
         else:
             raise ValueError, error_message
 
@@ -426,22 +438,22 @@ def rectangle (**kwargs):
     imax = min (x2+1, fbwidth)
     if y1 >= 0 and y1 < fbheight:
         for i in range (imin, imax):
-            _update_save (fd, i, y1, list_of_points, last_overlay)
+            _update_save (fd, i, y1, list_of_points, last_overlay, undo=undo)
             fd.writeData (i, y1, color)
     if y2 >= 0 and y2 < fbheight:
         for i in range (imin, imax):
-            _update_save (fd, i, y2, list_of_points, last_overlay)
+            _update_save (fd, i, y2, list_of_points, last_overlay, undo=undo)
             fd.writeData (i, y2, color)
 
     jmin = max (0, y1)
     jmax = min (y2+1, fbheight)
     if x1 >= 0 and x1 < fbwidth:
         for j in range (jmin, jmax):
-            _update_save (fd, x1, j, list_of_points, last_overlay)
+            _update_save (fd, x1, j, list_of_points, last_overlay, undo=undo)
             fd.writeData (x1, j, color)
     if x2 >= 0 and x2 < fbwidth:
         for j in range (jmin, jmax):
-            _update_save (fd, x2, j, list_of_points, last_overlay)
+            _update_save (fd, x2, j, list_of_points, last_overlay, undo=undo)
             fd.writeData (x2, j, color)
 
     global_save.append (last_overlay)
@@ -462,6 +474,8 @@ def circle (**kwargs):
     @type radius: int
     @param color: color code to use; if not specified, use default
     @type color: int
+    @param undo: if specified [default=True], keep track of overlays for undo()
+    @type undo: bool
 
     syntax:
         overlay.circle (x=x0, y=y0, radius=r)
@@ -475,14 +489,14 @@ def circle (**kwargs):
     last_overlay = []
     list_of_points = []
 
-    allowed_arguments = ["x", "y", "center", "radius", "color", "frame"]
+    allowed_arguments = ["x", "y", "center", "radius", "color", "frame", "undo"]
     x0 = None; y0 = None; center = None;
-    radius = global_radius; color = None; frame = None
+    radius = global_radius; color = None; frame = None; undo = True
 
     error_message = "Invalid argument(s) to 'circle'; use either:\n" \
 "  x=x0, y=x0, radius=r, or\n" \
 "  center=(x0,y0), radius=r\n" \
-"  color and frame may also be specified."
+"  color, frame and undo may also be specified."
 
     keys = kwargs.keys()
     if "center" in keys and ("x" in keys or "y" in keys):
@@ -504,6 +518,8 @@ def circle (**kwargs):
                 color = kwargs["color"]
             elif key == "frame":
                 frame = kwargs["frame"]
+            elif key == "undo":
+                undo = kwargs["undo"]
         else:
             raise ValueError, error_message
     if x0 is None or y0 is None or radius is None:
@@ -522,11 +538,11 @@ def circle (**kwargs):
         j = int (round (dy + y0))
         i = int (round (x0 - dx))           # left arc
         if i >= 0 and j >= 0 and i < fbwidth and j < fbheight:
-            _update_save (fd, i, j, list_of_points, last_overlay)
+            _update_save (fd, i, j, list_of_points, last_overlay, undo = undo)
             fd.writeData (i, j, color)
         i = int (round (x0 + dx))           # right arc
         if i >= 0 and j >= 0 and i < fbwidth and j < fbheight:
-            _update_save (fd, i, j, list_of_points, last_overlay)
+            _update_save (fd, i, j, list_of_points, last_overlay, undo = undo)
             fd.writeData (i, j, color)
 
     for dx in range (-quarter, quarter+1):
@@ -534,11 +550,11 @@ def circle (**kwargs):
         i = int (round (dx + x0))
         j = int (round (y0 - dy))           # bottom arc
         if i >= 0 and j >= 0 and i < fbwidth and j < fbheight:
-            _update_save (fd, i, j, list_of_points, last_overlay)
+            _update_save (fd, i, j, list_of_points, last_overlay, undo=undo)
             fd.writeData (i, j, color)
         j = int (round (y0 + dy))           # top arc
         if i >= 0 and j >= 0 and i < fbwidth and j < fbheight:
-            _update_save (fd, i, j, list_of_points, last_overlay)
+            _update_save (fd, i, j, list_of_points, last_overlay, undo=undo)
             fd.writeData (i, j, color)
 
     global_save.append (last_overlay)
@@ -555,6 +571,8 @@ def polyline (**kwargs):
     @type vertices: list of tuples
     @param color: color code to use; if not specified, use default
     @type color: int
+    @param undo: if specified [default=True], keep track of overlays for undo()
+    @type undo: bool
 
     syntax:
         overlay.polyline (points=[(x1,y1), (x2,y2), (x3,y3)])
@@ -569,13 +587,13 @@ def polyline (**kwargs):
     last_overlay = []
     list_of_points = []
 
-    allowed_arguments = ["points", "vertices", "color", "frame"]
-    points = None; vertices = None; color = None; frame = None
+    allowed_arguments = ["points", "vertices", "color", "frame", "undo"]
+    points = None; vertices = None; color = None; frame = None; undo=True
 
     error_message = "Invalid argument(s) to 'polyline'; use either:\n" \
 "  points=[(x1,y1), (x2,y2), (x3,y3), <...>] or\n" \
 "  vertices=[(x1,y1), (x2,y2), (x3,y3), <...>]\n" \
-"  color or frame may also be specified."
+"  color, frame, or undo may also be specified."
 
     keys = kwargs.keys()
     if "points" not in keys and "vertices" not in keys:
@@ -594,6 +612,8 @@ def polyline (**kwargs):
                 color = kwargs["color"]
             elif key == "frame":
                 frame = kwargs["frame"]
+            elif key == "undo":
+                undo = kwargs["undo"]
         else:
             raise ValueError, error_message
 
@@ -644,7 +664,7 @@ def polyline (**kwargs):
                 j = slope * (i - x1) + y1
                 j = int (round (j))
                 if j >= 0 and j < fbheight:
-                    _update_save (fd, i, j, list_of_points, last_overlay)
+                    _update_save (fd, i, j, list_of_points, last_overlay, undo=undo)
                     fd.writeData (i, j, color)
         else:
             if y >= ylast:
@@ -662,7 +682,7 @@ def polyline (**kwargs):
                 i = slope * (j - y1) + x1
                 i = int (round (i))
                 if i >= 0 and i < fbwidth:
-                    _update_save (fd, i, j, list_of_points, last_overlay)
+                    _update_save (fd, i, j, list_of_points, last_overlay, undo=undo)
                     fd.writeData (i, j, color)
         xlast = x
         ylast = y
