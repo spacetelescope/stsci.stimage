@@ -2,7 +2,7 @@
 #
 # Authors: Dave Grumm (based on work by Eddie Bergeron)
 # Program: CalTempFromBias.py
-# Purpose: class to process data for a given filename
+# Purpose: class to process data for a given filename  
 # History:
 #   10/31/07 - first version [DGrumm]
 #   11/08/07 - added nonlinearity application
@@ -25,7 +25,7 @@
 #                edit_type: string for file type in which keywords will be updated; default = "RAW"
 #                force: character for name of algorithm whose value is to be returned, regardless
 #                     of which algorithm had the lowest estimated sigma.  Valid values are None,
-#                     S(tate),B(lind),Q(uietest); default = None
+#                     S(tate)B(lind),Q(uietest); default = None
 #                nref_par: string for name of the directory containing the nonlinearity file;
 #                        default = "/grp/hst/cdbs/nref/"
 #                verbosity: integer level for diagnostic print statements
@@ -55,6 +55,22 @@
 #              The routine will successfully calculate the temperature only if TFBCALC='PERFORM' and camera=3
 #   08/12/08 - fixed uninitialized variable threshold
 #   08/22/08 - fixed bug in which argument of median() call in nsamp=2 branch was (incorrectly) not a vector
+#   09/18/08 - code version 2.0: modifying logic so that a selection (by the program) of which algorithm
+#              to apply is no longer the default but can now be forced by setting force to 'Auto'; the default of
+#              'force' is now the Blind correction, and 'Quietest quad' will only be used if explicitly forced. The
+#              'State' algorithm is no longer supported.
+#            - flow of routine also modified to allow a user to process files not having the 'TFBCALC' keyword, and
+#              files for which he/she does not have write access.
+#            - support added for cameras 1 and 2.
+#            - implementing the following hard-coded values for sigma in degrees K for the 3 cameras:
+#                  blindcorr   quietest-quad
+#              -------------------------------------------
+#              C1    0.02        0.25
+#              C2    0.05        0.15
+#              C3    0.05        0.25
+#
+#            - adding option '-d' ('dry_run') to force the program to *not* write to the header, but output to
+#              to the screen only if verbosity set. Default is to write the keys to the header
 #
 import os.path
 import sys, time
@@ -67,37 +83,31 @@ import pytools
 from pytools import parseinput 
 
 
-# Coefficients that are in the file 'temp_from_bias.define' as of 10/12/07; these need to instead
-# be in a (fits) reference file.
 # Define some constants
-c2_min = 3.6218723e-06; c2_max = -3.6678544e-07; c3_min = 9.0923490e-11; c3_max = -4.1401650e-11    # used in bad pixel clipping
-p3_c2_0 = 4037.6680; p3_c2_1 = 1.1533126; p3_c2_sigma = 0.1                                         # camera 3, algorithm 2
-p3_c2_slope = 37.0; p3_c2_offset = 75.15                                                            # camera 3, algorithm 2
-pt3_2_0 = 153.25747; pt3_2_1 = 0.0037115404; pt3_3_0 = 151.03888; pt3_3_1 = 0.0036755942            # camera 3, algorithm 3
-p3_c3_sigma = 0.25                                                                                  # camera 3, algorithm 3
+c2_min = 3.6218723e-06; c2_max = -3.6678544e-07; c3_min = 9.0923490e-11; c3_max = -4.1401650e-11  # used in bad pixel clipping
 
-__version__ = "1.6"   
+__version__ = "2.0"   
 
-ERROR_RETURN = 2 
+ERROR_RETURN = 2  
 
 class CalTempFromBias:
     """Calculate the temperature from the bias for a given filename.
 
     example:
        tfb = CalTempFromBias( filename, edit_type=edit_type, hdr_key=hdr_key, err_key=err_key,
-             nref_par=nref_par, force=force, noclean=noclean, verbosity=verbosity)
-       [temp, sigma, winner ]= tfb.calctemp()
+             nref_par=nref_par, force=force, noclean=noclean, dry_run=dry_run, verbosity=verbosity)
+       [temp, sigma, winner, in_flag, dry_run ]= tfb.calctemp()
        tfb.print_pars()
        stat = tfb.update_header( temp, sigma, winner)         
     """
 
     def __init__( self, input_file, edit_type=None, hdr_key=None, err_key=None, nref_par=None,
-                  force=None, noclean=False, verbosity=0):
+                  force=None, noclean=False, dry_run=1, verbosity=0):
 
         """constructor
 
         @param input_file: name of the file or filelist to be processed 
-        @type input_file: string
+        @type input_file: string 
         @type edit_type: string
         @param edit_type: type of file to update
         @param hdr_key: name of keyword to update in file
@@ -106,11 +116,12 @@ class CalTempFromBias:
         @type err_key: string
         @param nref_par: name of the directory containing the nonlinearity file
         @type nref_par: string
-        @param force: name of algorithm whose value is to be returned,
-                      regardless of which algorithm had the lowest estimated sigma.
+        @param force: name of algorithm whose value is to be returned
         @type force: string
         @param noclean: flag to force use of UNCLEANed 0th read.
         @type noclean: string that is either True or False
+        @param dry_run: flag to force not writing to header
+        @type dry_run: int that is either 0 (do not write keys) or 1 (do write them, default)
         @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
         @type verbosity: string
         """
@@ -118,7 +129,7 @@ class CalTempFromBias:
         if (edit_type == None):  edit_type = tfbutil.edit_type
         if (hdr_key == None):  hdr_key = tfbutil.hdr_key 
         if (err_key == None):  err_key = tfbutil.err_key
-        if (force == None):  force = tfbutil.force
+        if (force == None):  force = tfbutil.force 
             
         self.input_file = input_file
         self.edit_type = edit_type
@@ -127,13 +138,17 @@ class CalTempFromBias:
         self.nref_par = nref_par        
         self.force = force
         self.noclean = noclean
+        self.dry_run = dry_run
         self.verbosity = verbosity
         self.tfb_version = __version__
         self.tfb_run = time.asctime()
 
-        outlist = parseinput.parseinput(input_file) ### extract the files in the list
+        outlist = parseinput.parseinput(input_file) 
         self.num_files =  parseinput.countinputs(input_file)[0]
         self.outlist0 = outlist[0]
+
+        if (( dry_run == 0) & (self.verbosity >0)):
+            print ' The dry_run option has been selected so keys will not be written.'
 
         if (self.verbosity >1):
            print ' Temp_from_bias run on ',self.tfb_run, ', version: ', self.tfb_version 
@@ -141,14 +156,16 @@ class CalTempFromBias:
 
     def calctemp(self): 
         """ Calculate the temperature from the bias for the given input file
-        @return: temp, sig, winner
-        @rtype: float, float, int
+        @return: temp, sig, winner, in_flag
+        @rtype: float, float, int, str
         """
 
         self.temp_list = []
         self.sigma_list = []
         self.winner_list = []
         self.nonlinfile_list = []
+        self.in_flag_list = []  
+        self.dry_run_list = []  # 0918
 
         for ii in range(self.num_files):
 
@@ -158,6 +175,7 @@ class CalTempFromBias:
             err_key = self.err_key
             nref_par = self.nref_par
             noclean = self.noclean
+            dry_run = self.dry_run
             filename = self.outlist0[ii]        
             force = self.force
             verbosity = self.verbosity
@@ -166,20 +184,27 @@ class CalTempFromBias:
               print '   ' ; print '   '
               print 'Calculating temp for file ',ii,' : ', filename
 
-           # get header
-            try:
+
+            try:  # ... opening input in update mode
                fh_raw = pyfits.open( filename, mode='update')
+               in_flag = 'u'  # update mode
             except:
-               opusutil.PrintMsg("F","ERROR "+ str('Unable to open input file') + str(filename))   
-
-            raw_header = fh_raw[0].header
-            tfbcalc_key = raw_header['TFBCALC'] 
-            tfbcalc = tfbcalc_key.lstrip().rstrip() # strip leading and trailing whitespace 
-
-            if ( tfbcalc <> 'PERFORM'):
-               print ' The keyword TFBCALC is not set to PERFORM, so will not calculate the temperature '
-               fh_raw.close() 
-               continue 
+               try:  # ... opening input in read only mode since the user does not have write access
+                  fh_raw = pyfits.open( filename)
+                  in_flag = 'r'    # readonly
+                  print  '  WARNING : the input file', filename,' could not be opened in update mode, so no keywords will be written.'
+               except:
+                  in_flag = 'f'    # fail to open
+                  opusutil.PrintMsg("F","ERROR "+ str('Unable to open input file') + str(filename))   
+                  return None, None, None, None, None
+              
+            # get header and value for TFBCALC
+            try:   # get header and value for TFBCALC (pipeline)
+               raw_header = fh_raw[0].header  
+               tfbcalc_key = raw_header['TFBCALC'] 
+               tfbcalc = tfbcalc_key.lstrip().rstrip() # strip leading and trailing whitespace 
+            except: # set blank value for TFBCALC (user, with 'old-style' file having no TFBCALC keyword)
+               tfbcalc = '' 
 
             obsmode_key = raw_header[ 'OBSMODE' ]
             obsmode = obsmode_key.lstrip().rstrip() # strip leading and trailing whitespace
@@ -214,10 +239,15 @@ class CalTempFromBias:
                self.nonlin_file = nonlin_file            
             except:
                opusutil.PrintMsg("F","ERROR "+ str('Unable to open nonlinearity file') + str(nonlin_file))
-               raw_header.update("TFBCALC", "SKIPPED")
+
+               if ((in_flag[0] != 'f') & ( dry_run != 0)) : 
+                   raw_header.update("TFBDONE", "SKIPPED") 
+                   raw_header.update("TFBVER", self.tfb_version)
+                   raw_header.update("TFBDATE", self.tfb_run)
+               
                self.nonlin_file = None
                raise IOError,'Unable to open nonlinearity file' 
-               return None, None, None 
+               return None, None, None ,None, None
 
             # read data from nonlinearity file
             c1 = fh_nl[ 1 ].data; c2 = fh_nl[ 2 ].data; c3 = fh_nl[ 3 ].data
@@ -237,9 +267,15 @@ class CalTempFromBias:
 
             if ( nsamp <= 1 ):
                opusutil.PrintMsg("F","ERROR "+ str(' : nsamp <=1, so will not process'))
-               raw_header.update('TFBCALC', 'SKIPPED') 
-               fh_raw.close()  
-               return None, None, None
+
+               if ((in_flag[0] != 'f') & ( dry_run != 0)) : 
+                   raw_header.update("TFBDONE", "SKIPPED")
+                   raw_header.update("TFBVER", self.tfb_version)
+                   raw_header.update("TFBDATE", self.tfb_run)
+              
+               fh_raw.close()
+
+               return None, None, None, None, None
 
             if ( nsamp >= 3 ):       
                 im0 = fh_raw[ ((nsamp-1)*5)+1 ].data  
@@ -290,7 +326,7 @@ class CalTempFromBias:
     # Following Eddie's suggestion: I'll catch these rare cases and abort by searching for:
     #   nsamp=2 and filter is NOT blank, instead of original code which compares the median
     #   of the signal and the threshold
-
+ 
                 filter_key = raw_header[ 'FILTER' ] 
                 filter = filter_key.lstrip().rstrip()
                 filter = str('BLANK')
@@ -298,107 +334,157 @@ class CalTempFromBias:
                     opusutil.PrintMsg("F","ERROR "+ str('can not determine the temperature from the bias'))
 
     # Calculate the quad medians to feed the temp algorithms; current state values are based on a border=5 mean.
-            rawquads = quadmed(clean, border=5)
+            quads = quadmean(clean, border=5)
 
             if (self.verbosity >1):
-                print ' The results of the quadmed call:'
-                print rawquads
-
-    # This is the start of cascade to select the most optimal temp algorithm 
-
-    #  ALGORITHM 2. Blind correction. 
-            quads = rawquads
-
-            if (( camera == 1) | (camera ==2)):      
-               print ' Cameras 1 and 2 not currently supported.'
-               raw_header.update('TFBCALC', 'SKIPPED')
-               fh_raw.close()     
-               return None, None, None
-
-            if ( camera == 3): 
-               w = [ p3_c2_0, p3_c2_1 ] 
-
-               quads[3] = (-(quads[3] - poly(quads[0],w)))
-               temp2 = (quads[3]/p3_c2_slope)+ p3_c2_offset 
-
-               sigma2 = p3_c2_sigma   # this is an empirical quantity determined from EOL data   
-                                      # it is used for comparison at the bottom of the cascade
-
-    # ALGORITHM 3. Quietest-quad method. 
-    #       (no attempt at state removal - just use the quad(s) with smallest LVPS amplitudes)
-            quads = rawquads
-
-            if ( camera == 3): 
-                 #  For NIC3, avg of quads 2 and 3 is best. RMS after avg is 39 DN (0.14 K)
-               qtemps_3 = [poly(quads[1],[ pt3_2_0, pt3_2_1]),poly(quads[2],[ pt3_3_0, pt3_3_1])]
-
-               temp3 = N.mean(qtemps_3)
-               sigma3 = p3_c3_sigma 
-
-    # Compare the error estimates of algorithms 2 and 3 and return the best one; the 
-    #   lowest sigma is the winner.
-            winner = 2  
-            temp = temp2
-            sig = sigma2
-
-            if (sigma3 < sigma2):  
-               temp = temp3
-               sig = sigma3
-               winner = 3
-    # This is the end of cascade to select the most optimal temp algorithm 
-
-    #  verbose output, if requested
-            if (self.verbosity >1):
-                print '**************************************************************************************'
                 print ' '            
-                print '    Camera: ',camera 
-                print '                                               Q1         Q2         Q3         Q4'
-                print 'Temp from Algorithm 2 (blind-correction):  ',temp2
+                print 'Camera: ',camera 
+                print 'The results of the quadmean call:'
+                print quads
 
-                if ( camera == 3):
-                    print 'Temp(s) from Algorithm 3 (quietest-quad):             ',qtemps_3[0],'  ',qtemps_3[1]
-                print '**************************************************************************************'
-                print '   '
-                print '     Algorithm 2: ',temp2,' (K) +/- ',sigma2,' (sigma)'
-                print '     Algorithm 3: ',temp3,' (K) +/- ',sigma3,' (sigma)'
-                print '     ----------------------------------------------------------'
+            # do requested caluculation based on TFBCALC and force settings
+            if (tfbcalc == 'PERFORM'): 
+                if ((force == '') | (force == None) ) : #   [ reg test 1a, 1b ] 
+                    force = str("B")                      
+                    [temp, sig ] = do_blind( camera, quads, verbosity )  
+                    winner = 2
 
-                if (force == None):
-                    print '     The algorithm selected (not forced)  by this routine is ',winner,'.'
-                print '  '
-                print '**************************************************************************************'
+                    if ((in_flag[0] != 'f') & ( dry_run != 0)) : 
+                       raw_header.update("TFBDONE", "PERFORMED")
+                    if ((self.verbosity >1) & (dry_run == 0)) :
+                       print ' The calculated temperature = ' , temp,' and sigma = ', sig
+                elif (force.upper()[0] == "B") : #   [ reg test  1c ] 
+                    force = str("B")
+                    [temp, sig ] = do_blind( camera, quads, verbosity )
+                    winner = 2
+                  
+                    if ((in_flag[0] != 'f') & ( dry_run != 0)) : 
+                       raw_header.update("TFBDONE", "PERFORMED")
+                    if ((self.verbosity >1) & (dry_run == 0)) :
+                       print ' The calculated temperature = ' , temp,' and sigma = ', sig
+                elif (force.upper()[0] == "Q") : #   [ reg test 2 ] 
+                    [temp, sig ] = do_quietest( camera, quads, verbosity )
+                    winner = 3
+                    
+                    if ((in_flag[0] != 'f') & ( dry_run != 0)) : 
+                       raw_header.update("TFBDONE", "PERFORMED")
+                    if ((self.verbosity >1) & (dry_run == 0)) :
+                       print ' The calculated temperature = ' , temp,' and sigma = ', sig
+                elif (force.upper()[0] == "A") : # auto   #  [   reg test 3 ] 
+                    [temp2, sig2 ] = do_blind( camera, quads, verbosity )
+                    [temp3, sig3 ] = do_quietest( camera, quads, verbosity )
 
-    #  If the force keyword is set, force the output to return the value
-    #    from that particular algorithm, even if it wasn't the best.
+                    if ( verbosity > 0):
+                        print ' Blind correction: temp = ' ,temp2,'  sigma = ' , sig2 
+                        print ' Quietest quad correction: temp = ' ,temp3,'  sigma = ' , sig3
 
-            if (force <> None and force.upper()[0] == "S"):   
-                print ' This algorithm is not supported.'
-                raw_header.update('TFBCALC', 'SKIPPED') 
-                fh_raw.close()  
-                return None, None, None
+                    # Compare the error estimates of algorithms 2 and 3 and return the best one; the
+                    #   lowest sigma is the winner.
+                    winner = 2
+                    temp = temp2
+                    sig = sig2
 
-            if (force <> None and force.upper()[0] == "B"):
-                if (self.verbosity >1):
-                   print 'Forcing Algorithm 2 (Blind correction) result to be returned, at your request...'
-                winner = 2
-                temp = temp2
-                sig = sigma2
+                    if (sig3 < sig2):  # quietest quad has least sigme
+                       temp = temp3
+                       sig = sig3
+                       winner = 3
+                       if ( verbosity > 0):
+                          print ' The algorithm with the least sigma is quietest quad. '
+                    else:   # blind correction has least sigme
+                       if ( verbosity > 0):
+                          print ' The algorithm with the least sigma is blind correction. '
+                       
+                    if ((in_flag[0] != 'f') & ( dry_run != 0)) : 
+                       raw_header.update("TFBDONE", "PERFORMED")
+                    if ((self.verbosity >1) & (dry_run == 0)) :
+                       print 'The calculated temperature = ' , temp,' and sigma = ', sig
+                else : # invalid selection   #  [  reg test 4 ] 
+                    opusutil.PrintMsg("F","ERROR "+ str('Invalid force selected : ') + str(force)) 
+                    if ((in_flag[0] != 'f') & ( dry_run != 0)) : 
+                       raw_header.update("TFBDONE", "SKIPPED") 
+                       raw_header.update("TFBVER", self.tfb_version)
+                       raw_header.update("TFBDATE", self.tfb_run)
+                    fh_raw.close()
+                    return None, None, None, None, None
+            elif (tfbcalc == 'OMIT'):     #  [  reg test 5 ]
+                opusutil.PrintMsg("F","ERROR "+ str('TFBCALC set to omit, so aborting.')) 
+                if ((in_flag[0] != 'f') & ( dry_run != 0)) :
+                    raw_header.update("TFBDONE", "OMITTED") 
+                    raw_header.update("TFBVER", self.tfb_version)
+                    raw_header.update("TFBDATE", self.tfb_run)
+                fh_raw.close()
+                return None, None, None, None, None
+            else: # tfbcalc not set (user running on old file)
+                if ( verbosity > 0):
+                    print ' WARNING : TFBCALC is not set in the input file.'
+                if ((force == '') | (force == None)) :   #  [  reg test 6 ] 
+                    opusutil.PrintMsg("F","ERROR "+ str('Force not set, so aborting.')) 
+                    if ((in_flag[0] != 'f') & ( dry_run != 0)) : 
+                       raw_header.update("TFBDONE", "SKIPPED")
+                       raw_header.update("TFBVER", self.tfb_version)
+                       raw_header.update("TFBDATE", self.tfb_run)
+                    fh_raw.close()
+                    return None, None, None, None, None  
+                elif (force.upper()[0] == "B") :     #  [  reg test 7 ] 
+                    [temp, sig ] = do_blind( camera, quads, verbosity )
+                    winner = 2
+                    if ((in_flag[0] != 'f') & ( dry_run != 0)) :  
+                       raw_header.update("TFBDONE", "PERFORMED")
+                    if ((self.verbosity >1) & (dry_run == 0)) :
+                       print ' The calculated temperature = ' , temp,' and sigma = ', sig
+                elif (force.upper()[0] == "Q") :    #  [  reg test 8 ] 
+                    [temp, sig ] = do_quietest( camera, quads, verbosity )
+                    winner = 3
+                    if ((in_flag[0] != 'f') & ( dry_run != 0)) : 
+                       raw_header.update("TFBDONE", "PERFORMED")
+                    if ((self.verbosity >1) & (dry_run == 0)) :
+                       print ' The calculated temperature = ' , temp,' and sigma = ', sig
+                elif (force.upper()[0] == "A") : # auto   #  [  reg test 9 ] 
+                    [temp2, sig2 ] = do_blind( camera, quads, verbosity )
+                    [temp3, sig3 ] = do_quietest( camera, quads, verbosity )
 
-            if (force <> None and force.upper()[0] == "Q"):
-                if (self.verbosity >1):
-                   print 'Forcing Algorithm 3 (Quietest-quad) result to be returned, at your request...'
-                winner = 3
-                temp = temp3 
-                sig = sigma3
+                    if ( verbosity > 0):
+                        print ' Blind correction: temp = ' ,temp2,'  sigma = ' , sig2 
+                        print ' Quietest quad correction: temp = ' ,temp3,'  sigma = ' , sig3
 
-            if (force <> None):
-                if (self.verbosity >1):
-                   print '... which gives temp = ' , temp,' and sigma = ' , sig
+                    # Compare the error estimates of algorithms 2 and 3 and return the best one; the
+                    #   lowest sigma is the winner.
+                    winner = 2
+                    temp = temp2
+                    sig = sig2
+
+                    if (sig3 < sig2):
+                       temp = temp3
+                       sig = sig3
+                       winner = 3
+
+                       if ( verbosity > 0):
+                          print ' The algorithm with the least sigma is quietest quad.'
+                    else:
+                       if ( verbosity > 0):
+                          print ' The algorithm with the least sigma is blind correction.'
+
+                    if ( verbosity > 0):    
+                       print ' The least sigma is ', sig, ' with corresponding temp = ',temp
+                    if ((in_flag[0] != 'f') & ( dry_run != 0)) : 
+                       raw_header.update("TFBDONE", "PERFORMED") 
+                    if ((self.verbosity >1) & (dry_run == 0)) :
+                       print ' The calculated temperature = ' , temp,' and sigma = ', sig
+                else : # invalid selection    #  [  reg test 10 ] 
+                    opusutil.PrintMsg("F","ERROR "+ str(' Invalid selection of force, so aborting.')) 
+                    if ((in_flag[0] != 'f') & ( dry_run != 0)) :                         
+                       raw_header.update("TFBDONE", "SKIPPED") 
+                       raw_header.update("TFBVER", self.tfb_version)
+                       raw_header.update("TFBDATE", self.tfb_run)
+                    fh_raw.close()
+                    return None, None, None, None, None              
 
             self.temp_list.append( temp )
             self.sigma_list.append( sig )
             self.winner_list.append( winner ) 
             self.nonlinfile_list.append( nonlin_file )
+            self.in_flag_list.append( in_flag )
+            self.dry_run_list.append( dry_run )  
 
             # close any open file handles
             if fh_raw:
@@ -407,21 +493,20 @@ class CalTempFromBias:
               fh_nl.close()
 
 
-        return self.temp_list, self.sigma_list, self.winner_list
+        return self.temp_list, self.sigma_list, self.winner_list, self.in_flag_list, self.dry_run_list  
+
 
 ## end of def calctemp()
 
 
     def update_header(self, temp, sig, winner, edit_type=None, hdr_key=None,
                       err_key=None):  
-
-        
         """ Update header
         @param temp: calculated temperature
         @type temp: float
         @param sig: standard deviation of calculated temperature
         @type sig: float
-        @param winner: algorithm selected by script
+        @param winner: algorithm used
         @type winner: int
         @param edit_type: type of file to be updated
         @type edit_type: string
@@ -432,7 +517,7 @@ class CalTempFromBias:
         @return: status (not None for failure due to key not being specified)
         @rtype: int
         """
-
+ 
         for ii in range(self.num_files):
             this_file = self.outlist0[ii]        
 
@@ -469,10 +554,13 @@ class CalTempFromBias:
                 if ( self.verbosity > 0):
                     print ' Using value of edit_type = ' , edit_type,' that has been passed to update_header()'
 
-            if (winner == 2):# 'blind-correction'  
-               meth_used = "BLIND CORRECTION"
+            if (winner[0] == 2):# 'blind-correction'  
+                meth_used = "BLIND CORRECTION"
             else: # (winner == 3):# 'quietest-quad'
-               meth_used = "QUIETEST-QUAD"
+                meth_used = "QUIETEST-QUAD"
+
+            if ( self.verbosity > 0):
+                 print ' The algorithm used is ' , meth_used
 
             comm = str('Temp from bias, sigma=')+str(sig)+str(' (K)')
 
@@ -480,8 +568,8 @@ class CalTempFromBias:
 
             # update either the RAW or SPT file
             if (edit_type[0] =="S"): # SPT
-               underbar = filename.find('_')
-               filename =  filename[:underbar] +'_spt.fits'
+                underbar = filename.find('_')
+                filename =  filename[:underbar] +'_spt.fits'
             fh = pyfits.open( filename, mode='update' )      
             hdr = fh[0].header # NOTE - this the PRIMARY extension
 
@@ -491,10 +579,12 @@ class CalTempFromBias:
                 hdr.update("TFBMETH", meth_used)
                 hdr.update("TFBDATE", self.tfb_run)
                 hdr.update("TFBVER", self.tfb_version)
-                hdr.update("TFBCALC", "COMPLETE")
+                hdr.update("TFBDONE", "PERFORMED") 
+
                 fh.close()
             except :
-                hdr.update("TFBCALC", "SKIPPED")
+                hdr.update("TFBDONE", "SKIPPED") 
+
                 fh.close()
                 pass
         
@@ -514,29 +604,165 @@ class CalTempFromBias:
         print '  nref_par:  ' , self.nref_par
         print '  force: ' ,  self.force
         print '  noclean: ' ,  self.noclean
+        print '  dry_run: ' ,  self.dry_run
         print '  verbosity: ' ,  self.verbosity
         print ' For the files given by the input file list: '
         for ii in range(self.num_files):
            try :
                 this_file = self.outlist0[ii]        
-                print '    input_file[',ii,']:  ' , this_file
+                print '  input_file[',ii,']:  ' , this_file
                 this_nl_file = self.nonlinfile_list[ii]                    
-                print '    nonlinearity file[',ii,']: ' ,  this_nl_file
+                print '  nonlinearity file[',ii,']: ' ,  this_nl_file
            except :
                 pass 
 
 
+def do_blind( camera, quads, verbosity): 
+        """ Calculate temperature using the blind correction
+        @param camera: number of camera
+        @type camera: int
+        @param quads: value of quad from quadmean
+        @type quads: float
+        @param verbosity: level of veborsity
+        @type verbosity: int
+        @return: temp, sig
+        @rtype: float, float
+        """
+        if ( camera == 1):  # NIC1 (average of four phase-difference temps)
+           p0 = [3675.0754,1.0586028]
+           p1 = [0.0,1.0]
+           p2 = [701.78575,1.0094869]
+           p3 = [-548.65582,0.99385020]
+           pp = [146.94269,0.0035428258]
+
+           ccc = ( (quads[1]-quads[2]) + (quads[1]-quads[3]) ) * 0.85
+           temp0 = quads[0]-((quads[0]-quads[2])*1.45)
+           temp1 = quads[1]-ccc
+           temp2 = quads[2]-((quads[1]-quads[3])*0.65)
+           temp3 = quads[3]-((quads[1]-quads[2])*0.67)
+
+           bc1_0 = (poly(temp0,p0)*pp[1])+pp[0]
+           bc1_1 = (poly(temp1,p1)*pp[1])+pp[0]
+           bc1_2 = (poly(temp2,p2)*pp[1])+pp[0]
+           bc1_3 = (poly(temp3,p3)*pp[1])+pp[0]
+
+           temp2 = (bc1_0+bc1_1+bc1_2+bc1_3)/4.
+#           sigma2 = N.sqrt( ((bc1_0 - temp2)**2. + (bc1_1 - temp2)**2. + (bc1_2 - temp2)**2. + (bc1_3 - temp2)**2.)/4.)
+           sigma2 = 0.02   # 091508
+
+           temps2 = ["%5.2f" % (bc1_0),"%5.2f" % (bc1_1),"%5.2f" % (bc1_2),"%5.2f" % (bc1_3)]
+        elif ( camera == 2):   # NIC2 (average of two phase-difference temps)
+           p0 = [0.0,1.0]
+           p1 = [-166.09229,0.99812304]
+           pp = [154.06588,0.0036602771]
+
+           temp0 = quads[1]-((quads[2]-quads[3])*1.53)                     
+           temp1 = quads[0]-((quads[2]-quads[3])*0.62)
+
+           bc2_0 = (poly(temp0,p0)*pp[1])+pp[0]
+           bc2_1 = (poly(temp1,p1)*pp[1])+pp[0]
+           
+           temp2 = (bc2_0+bc2_1)/2.
+           
+#           sigma2 = N.sqrt( ((bc2_0 - temp2)**2. + (bc2_1 - temp2)**2.)/2.)
+           sigma2 = 0.05 # 091508
+
+
+           temps2 = ["%5.2f" % (bc2_0),"%5.2f" % (bc2_1),"NA","NA"]            
+        elif ( camera == 3):   # NIC3 (a single phase-difference temp)
+           p0 = [0.0,1.0]
+           pp = [180.58356,0.0040206280]
+           bc3 = quads[3]+((quads[0]-quads[3])*7.5)                                          
+           bc3_1 = (poly(bc3,p0)*pp[1])+pp[0]
+           temp2 = bc3_1
+
+#           sigma2 = 0.25          # this is an empirical quantity determined from EOL data
+                                  # it is used for comparison at the bottom of the cascade
+           sigma2 = 0.05 # 091508
+
+           temps2 = ["NA","NA","NA","%5.2f" % (temp2)]
+        else:
+           print ' Camera ', camera,' not supported'
+           return None, None
+
+        if (verbosity >1):
+            print ' Temp(s) from Algorithm 2 (blind correction):             ',temps2
+            print ' Algorithm 2: ',temp2,' (K) +/- ',sigma2,' (sigma)'
+
+        return temp2, sigma2 
+
+
+def do_quietest( camera, quads, verbosity ):  
+        """ Calculate temperature using the quietest quad correction
+        @param camera: number of camera
+        @type camera: int
+        @param quads: value of quad from quadmean
+        @type quads: float
+        @param verbosity: level of veborsity
+        @type verbosity: int
+        @return: temp, sig
+        @rtype: float, float
+        """
+        if ( camera == 1):           # NIC1 (average of two equally quiet quads)
+           pp2 = [156.57265,0.0036923387]
+           pp3 = [143.59284,0.0035363450]
+
+           t2 = (quads[2]*pp2[1])+pp2[0]
+           t3 = (quads[3]*pp3[1])+pp3[0]
+
+           temp3 = (t2+t3)/2.
+           
+#           sigma3 = N.sqrt( ((t2 - temp3)**2. + (t3 - temp3)**2.)/2.)
+           sigma3 = 0.25
+
+           temps3 = ["NA","NA","%5.2f" % (t2),"%5.2f" % (t3)]                                                                            
+        elif ( camera == 2):          # NIC2 (just one quiet quad)
+           pp3 = [142.49164,0.0035247897]
+
+           t3 = (quads[3]*pp3[1])+pp3[0]
+           
+           temp3 = t3
+
+#           sigma3 = .5              # This is a temporary value and should be changed
+           sigma3 = 0.15
+
+           temps3 = ["NA","NA","NA","%5.2f" % (t3)]
+        elif  ( camera == 3):          # NIC3 (average of two equally quiet quads)
+           pp1=[153.74029,0.0037303356]
+           pp2=[151.51609,0.0036943955]
+
+           t1=(quads[1]*pp1[1])+pp1[0]
+           t2=(quads[2]*pp2[1])+pp2[0]
+
+           temp3=(t1+t2)/2.
+
+     #      sigma3 = N.sqrt( ((t1 - temp3)**2. + (t2 - temp3)**2.)/2.)
+           sigma3 = 0.25
+
+           temps3 = ["NA","%5.2f" % (t1),"%5.2f" % (t2),"NA"]
+        else:
+           print ' Camera ', camera,' not supported'
+           return None, None
+
+        if (verbosity >1):
+            print 'Temp(s) from Algorithm 3 (quietest-quad):             ',temps3
+            print ' Algorithm 3: ',temp3,' (K) +/- ',sigma3,' (sigma)'
+
+        return temp3, sigma3   
+
+
 #******************************************************************
-# This quadmed does not have the following parameters that are in the idl version: section,
-#    avg, mask, and calculates mean only ( not median ).
-def quadmed( im, border):
+# This quadmean does not have the following parameters that are in the idl version: section,
+#    avg, mask, and calculates the mean only ( not median ).
+def quadmean( im, border):
     """  This function computes the mean in the 4 quadrants of an input NxM array
 
     @param im: input rectangular array
     @type im: numpy array
     @param border: border size (in pixels) aroud the perimeter of each quad to be excluded from the mean
     @type border: int
-    
+    @return: quads
+    @rtype: float 
     """ 
 #
 # Following Eddie's convention, the quads are numbered as follows:
@@ -604,8 +830,6 @@ if __name__=="__main__":
     usage = "usage:  %prog [options] inputfile"
     parser = OptionParser( usage)
 
-    if ( sys.argv[1] ): filename = sys.argv[1]
-
     # add options and set defaults for parameters
     parser.set_defaults( verbosity = tfbutil.QUIET)
     parser.add_option( "-q", "--quiet", action = "store_const",
@@ -627,7 +851,19 @@ if __name__=="__main__":
     parser.add_option( "-c", "--noclean", dest = "noclean",default = tfbutil.noclean,
             help = "Flag to force use of UNCLEANed 0th read.")
 
+    parser.set_defaults( dry_run = tfbutil.DO_WRITE_KEYS)  
+    parser.add_option( "-d", "--do_not_write_keys", action = "store_const",
+            const = tfbutil.DO_NOT_WRITE_KEYS, dest = "dry_run",default=None,
+            help = "Do not write keys to header")
+
     (options, args) = parser.parse_args()
+
+    if len(args)==1:  # ensure that exactly 1 argument is given (for the filename)
+        filename = args[0]
+    else:
+        parser.print_help()
+        opusutil.PrintMsg("F","ERROR "+ "Invalid Arguments")
+        sys.exit(1)
 
     tfbutil.setVerbosity( options.verbosity)
     verbosity = options.verbosity
@@ -644,6 +880,9 @@ if __name__=="__main__":
     tfbutil.setNoclean(options.noclean )
     if options.noclean!=None: noclean = options.noclean 
 
+    tfbutil.setDry_run(options.dry_run )   
+    dry_run = options.dry_run   
+
     tfbutil.setNref(options.nref_dir )   
     if options.nref_dir!=None: nref_dir = options.nref_dir   
 
@@ -652,12 +891,20 @@ if __name__=="__main__":
 
     try :
          tfb = CalTempFromBias( filename, edit_type=edit_type, hdr_key=hdr_key, err_key=err_key,
-                                nref_par=nref_dir, force=force, noclean=noclean, verbosity=verbosity)
-         [temp, sigma, winner ]= tfb.calctemp()
+                                nref_par=nref_dir, force=force, noclean=noclean, dry_run=dry_run, verbosity=verbosity)
 
-         if ([temp, sigma, winner ] != [None, None, None]):             
-             stat = tfb.update_header( temp, sigma, winner)
-             if ( (stat == None )and (verbosity > 0)):
+         [temp, sigma, winner, in_flag, dry_run ]= tfb.calctemp()
+
+         if ([temp, sigma, winner ] != [None, None, None]):  
+
+             stat = None 
+             if (( in_flag[0] == 'u' ) & ( dry_run != 0)): 
+                stat = tfb.update_header( temp, sigma, winner)
+
+             if ( in_flag[0] == 'r' ): # display since file was not writablee
+                print ' The calculated temperature and sigma are: ', temp[0],' ', sigma[0]
+               
+             if ( (stat == None )and (verbosity > 0) | ( in_flag[0] == 'r' )):
                tfb.print_pars() 
 
     except Exception, errmess:
