@@ -6,7 +6,10 @@ import sys, os
 
 QUIET = 0 # verbosity levels
 VERBOSE = 1
-VERY_VERBOSE = 2   
+VERY_VERBOSE = 2
+
+DO_NOT_WRITE_KEYS = 0 # dry_run levels 
+DO_WRITE_KEYS = 1
                                                                                 
 # default values
 verbosity = VERBOSE
@@ -14,7 +17,9 @@ hdr_key = "TFBTEMP"
 err_key = "TFBERR"
 edit_type = "RAW" 
 noclean = False
-force = None
+force = None  
+dry_run = DO_WRITE_KEYS
+
 nref_par = os.path.expandvars('$nref')
 
 def all_printMsg( message, level=VERBOSE):
@@ -84,9 +89,16 @@ def setNref( nref_value):
 
 def setForce( force_value ):
     """Copy force to a variable that is global for this file.        
-       argument: force - string that is either None, Q, B, or S
+       argument: force - string that is either None, Q, B, or A
     """
                                                                                 
     global force
     force = force_value
 
+def setDry_run( dry_run_value): 
+    """Copy dry_run to a variable that is global for this file.        
+       argument: dry_run - string that is either True or False
+    """
+                                                                                
+    global dry_run
+    dry_run = dry_run_value
