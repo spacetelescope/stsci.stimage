@@ -28,7 +28,7 @@ class WFC3UVISInputImage(InputImage):
         self.full_shape = (4096,2048)
         self.platescale = platescale
 
-        # get cte direction, which depends on which chip but is independent of amp 
+        # get direction, which depends on which chip but is independent of amp 
         if ( self.extn == 'sci,1') : 
             self.cte_dir = -1    
         if ( self.extn == 'sci,2') : 
@@ -155,8 +155,7 @@ class WFC3IRInputImage(IRInputImage):
         # effective gain is 1.
         self._effGain = 1
  
-        # no cte correction for NICMOS so set cte_dir=0.
-        print('\nWARNING: No cte correction will be made for this NICMOS data.\n')
+        # no cte correction for WFC3/IR so set cte_dir=0.
         self.cte_dir = 0   
 
         self.instrument = 'WFC3/IR'
