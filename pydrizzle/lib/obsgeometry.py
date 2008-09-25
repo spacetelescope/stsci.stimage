@@ -133,7 +133,12 @@ class ObsGeometry:
                     self.wcs.cd12 = self.header['SCD1_2']
                     self.wcs.cd21 = self.header['SCD2_1']
                     self.wcs.cd22 = self.header['SCD2_2']
-
+                    self.wcs.crpix1 = self.header['SCRPIX1']
+                    self.wcs.crpix2 = self.header['SCRPIX2']
+                    self.wcs.crval1 = self.header['SCRVAL1']
+                    self.wcs.crval2 = self.header['SCRVAL2']
+                    self.wcs.orient = fileutil.RADTODEG(N.arctan2(self.wcs.cd12,self.wcs.cd22))
+                    self.wcs.pscale = N.sqrt(N.power(self.wcs.cd11,2)+N.power(self.wcs.cd21,2)) * 3600.
             elif ikey == 'cubic':
                 scale = self.wcs.pscale / ref_pscale
                 self.model = models.DrizzleModel(self.idcfile, scale=scale)
@@ -173,7 +178,10 @@ class ObsGeometry:
                     self.wcs.cd12 = self.header['SCD1_2']
                     self.wcs.cd21 = self.header['SCD2_1']
                     self.wcs.cd22 = self.header['SCD2_2']
-                    
+                    self.wcs.crpix1 = self.header['SCRPIX1']
+                    self.wcs.crpix2 = self.header['SCRPIX2']
+                    self.wcs.crval1 = self.header['SCRVAL1']
+                    self.wcs.crval2 = self.header['SCRVAL2']
 
             else:
                 raise ValueError, "Unknown type of coefficients table %s"%idcfile
