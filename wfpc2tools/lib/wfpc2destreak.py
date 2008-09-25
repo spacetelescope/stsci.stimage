@@ -1,6 +1,6 @@
 #! /usr/bin/env python 
 #
-# Authors: Dave Grumm
+# Authors: Dave Grumm 
 # Program: wfpc2destreak.py
 # Purpose: routine to remove streaks due to bias from specified chip of wfpc2 data
 # History: 07/10/07 - first version
@@ -92,6 +92,7 @@
 #          07/22/08 - fixed bug in cr rejection, in which the slope of the fit plane was forced to be 0 (left over
 #                     from earlier tests of NSIGMA)
 #          07/23/08 - put bias_thresh back in as a settable parameter; set default row_thresh = 0.1
+#          09/25/08 - added check for __name__ = wdestreak (iraf task name)
 #
 # Outline:
 #
@@ -114,22 +115,22 @@
 #
 # Usage examples:
 #    A. For a dataset with multiple groups, to process group 4 using a bias threshold=280 and row threshold=0.2:
-#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 4 -b 280. -r 0.2  -v
+#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 4 -b 280. -r 0.2  -v
 #       This can also be specified using the 'long options':
-#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits" --group=4 --bias_thresh=280. --row_thresh=0.2
+#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits" --group=4 --bias_thresh=280. --row_thresh=0.2
 #    B. To allow the routine to run with all of the defaults:
-#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"
+#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"
 #    C. For a dataset with a single group, using defaults for the thresholds:
-#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 0 
+#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0 
 #    D. For a dataset with a single group, using defaults for the thresholds, setting CR rejection parameter to 20:
-#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 0 -n 20. 
+#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0 -n 20. 
 #    E. Same as example F, but specifing an input mask to use:
-#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 0 -n 20. -m "mask_u8zq0104.fits"
+#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0 -n 20. -m "mask_u8zq0104.fits"
 #    F. Same as example F, but specifing 3 iterations for the CR rejection :
-#         hal> ./wfpc2destreak.py "u8zq0104m_c0h.fits"  -g 0 -n 20. -i 3  
+#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0 -n 20. -i 3  
 #
 # Example 'A' under pyraf:
-# --> wfp = wfpc2destreak.Wfpc2destreak( "u8zq0104m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.2)
+# --> wfp = wfpc2destreak.Wfpc2destreak( "u96r0603m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.2)
 # --> wfp.destreak()
 #
 ###########################################################################
@@ -179,7 +180,7 @@ class Wfpc2destreak:
         """
 
         # do some parameter type checking
-        if ( __name__ == 'wfpc2destreak'):  # for python interface, set defaults and check unspecified pars
+        if (( __name__ == 'wfpc2destreak') | ( __name__ == 'wfpc2destreak')):  # for python interface, set defaults and check unspecified pars
            [group, bias_thresh, row_thresh, niter] = check_py_pars(input_file, group, bias_thresh, row_thresh, \
                                                                                     input_mask, niter)
         else:
@@ -412,7 +413,6 @@ def check_py_pars(input_file, group, bias_thresh, row_thresh, input_mask, niter)
        @return: group, bias_thresh, row_thresh
        @rtype:  int, float, float
        """
-       
        try:
             fh_c0 = pyfits.open(input_file)
        except:
