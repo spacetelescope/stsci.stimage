@@ -180,7 +180,7 @@ class Wfpc2destreak:
         """
 
         # do some parameter type checking
-        if (( __name__ == 'wfpc2destreak') | ( __name__ == 'wfpc2destreak')):  # for python interface, set defaults and check unspecified pars
+        if (( __name__ == 'wfpc2destreak') | ( __name__ == 'wdestreak')):  # for python interface, set defaults and check unspecified pars
            [group, bias_thresh, row_thresh, niter] = check_py_pars(input_file, group, bias_thresh, row_thresh, \
                                                                                     input_mask, niter)
         else:
