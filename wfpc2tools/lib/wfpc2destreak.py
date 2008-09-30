@@ -180,6 +180,7 @@ class Wfpc2destreak:
         """
 
         # do some parameter type checking
+        print ' start of init __name__ = ',__name__   # 093009
         if (( __name__ == 'wfpc2destreak') | ( __name__ == 'wdestreak')):  # for python interface, set defaults and check unspecified pars
            [group, bias_thresh, row_thresh, niter] = check_py_pars(input_file, group, bias_thresh, row_thresh, \
                                                                                     input_mask, niter)
@@ -413,6 +414,8 @@ def check_py_pars(input_file, group, bias_thresh, row_thresh, input_mask, niter)
        @return: group, bias_thresh, row_thresh
        @rtype:  int, float, float
        """
+       print ' start of check_py_pars_ :input_file, group, bias_thresh, row_thresh, input_mask, niter =  ', input_file, group, bias_thresh, row_thresh, input_mask, niter =  ',   # 093009
+
        try:
             fh_c0 = pyfits.open(input_file)
        except:
@@ -503,12 +506,23 @@ def check_cl_pars(input_file, group,  bias_thresh, row_thresh, input_mask, niter
        @return: group, row_thresh, niter
        @rtype:  int, float, float, int
        """
+
+
+
+
+
+             
+       print ' start of check_cl_pars_ :input_file, group, bias_thresh, row_thresh, input_mask, niter =  ', input_file, group, bias_thresh, row_thresh, input_mask, niter =  ',   # 093009
+
+
+
        
        try:
             fh_c0 = pyfits.open(input_file)
        except:
             opusutil.PrintMsg("F","ERROR - unable to open the input file  "+ str(input_file))
             sys.exit( ERROR_RETURN)
+
 
        try:
            if (type( group ) == str):
