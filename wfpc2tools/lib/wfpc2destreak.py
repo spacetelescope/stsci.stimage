@@ -414,7 +414,9 @@ def check_py_pars(input_file, group, bias_thresh, row_thresh, input_mask, niter)
        @return: group, bias_thresh, row_thresh
        @rtype:  int, float, float
        """
-       print ' start of check_py_pars_ :input_file, group, bias_thresh, row_thresh, input_mask, niter =  ', input_file, group, bias_thresh, row_thresh, input_mask, niter =  ',   # 093009
+       
+       print ' start of check_py_pars_ :input_file, group, bias_thresh, row_thresh, input_mask, niter =  ', input_file, group, bias_thresh, row_thresh, input_mask, niter  # 093009
+
 
        try:
             fh_c0 = pyfits.open(input_file)
@@ -508,13 +510,7 @@ def check_cl_pars(input_file, group,  bias_thresh, row_thresh, input_mask, niter
        """
 
 
-
-
-
-             
-       print ' start of check_cl_pars_ :input_file, group, bias_thresh, row_thresh, input_mask, niter =  ', input_file, group, bias_thresh, row_thresh, input_mask, niter =  ',   # 093009
-
-
+       print ' start of check_cl_pars_ :input_file, group, bias_thresh, row_thresh, input_mask, niter =  ', input_file, group, bias_thresh, row_thresh, input_mask, niter    # 093009
 
        
        try:
