@@ -1,0 +1,11 @@
+Developer instructions for assembling stscidocs for a distribution
+(not for end users)
+
+
+- install the about-to-be-released stsci_python
+- instruct the nightly epydoc build to generate from the about-to-be-released code
+- extract the distribution tarball
+- copy package_list and docs/ into stsci_python_*/stscidocs/
+- save the installation instructions into stsci_python_*/Install.html
+- re-assemble the tarball
+
