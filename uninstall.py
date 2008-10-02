@@ -4,10 +4,13 @@ import os.path
 import sys
 
 
-# force is an undocumented feature that is not intended for users.
+# force and never are undocumented features that are not intended for users.
 force = False
 if "-f" in sys.argv :
     force = True
+never = False
+if "-n" in sys.argv :
+    never = True
 
 # a function to ask yes/no
 def print_and_ask(n) :
@@ -19,6 +22,8 @@ def print_and_ask(n) :
     if force :
         sys.stdout.write("\n")
         return True
+    if never :
+        return False
 
     sys.stdout.write("\n    (y/n)?")
     sys.stdout.flush()
@@ -40,7 +45,7 @@ print """
 
 Python does not have a facility to uninstall packages.  This program
 will attempt to locate and (optionally) remove Python packages or
-modules that look like part of STSCI_PYTHON 2.4, 2.5, or 2.6.
+modules that look like part of STSCI_PYTHON 2.3, 2.4, 2.5, or 2.6.
 
 It will search sys.path (initialized by Python from internal values
 and your environment variable PYTHONPATH).  If it finds a thing
@@ -86,7 +91,7 @@ to contact the distributors of Scisoft if you have problems.
         sys.exit(0)
     
 #
-# list of packages/modules in older versions of stsci_python
+# list of packages
 #
 
 all_package = [
@@ -117,8 +122,21 @@ all_package = [
 
 ]
 
+#
+# list of scripts
+#
 
+all_script = [
+    "pyraf",
+    "calcos",
+    "convertwaiveredfits",
+    "sample_package",
+    "fitsdiff",
+]
+
+#
 # only older versions had modules (i.e. single .py files)
+#
 
 all_module = [ 
 
@@ -157,17 +175,8 @@ all_module = [
 ]
 
 
-all_script = [
-    "pyraf",
-    "calcos",
-    "convertwaiveredfits",
-    "sample_package",
-    "fitsdiff",
-]
-
-
 # function to delete an entire directory tree - basically, "rm -r"
-# taken from the python library reference section on the "os" module
+# copied from the python library reference section on the "os" module
 
 def deltree(top) :
     for root, dirs, files in os.walk(top, topdown=False):
@@ -202,7 +211,8 @@ def module_file(dir,module) :
             return True
     return False
 
-# function to delete a module file
+# function to delete a module file - error only if no
+# files that might be the module are deleted
 def rm_module_file(dir,module) :
     np = os.path.join(dir,module)
     errcount = 0
@@ -217,6 +227,7 @@ def rm_module_file(dir,module) :
     if errcount == len(list) :
         print errpath, e
 
+# found_any will be set if we found anything that we consider deleting
 found_any = 0
 
 # get the current directory so we can recognize it if we see it in sys.path
@@ -260,7 +271,10 @@ for x in sys.path :
         # not a file _or_ a directory?  whatever...
 
 #
-# search the system path 
+# search the system path for scripts.  This is only going to
+# work on unix-like systems, but the only non-unix system we
+# support at all is Windows, and people are probably using the
+# windows-installer there.
 #
 
 p = os.getenv("PATH")
@@ -309,7 +323,7 @@ for x in all_package :
     except ImportError :
         pass
     except :
-        # it raise an exception while importing, so it must be there
+        # it raised an exception while importing, so it must be there
         still_found=1
         print "package",x,"- maybe not completely uninstalled"
 
@@ -321,7 +335,7 @@ for x in all_module :
     except ImportError :
         pass
     except :
-        # it raise an exception while importing, so it must be there
+        # it raised an exception while importing, so it must be there
         still_found=1
         print "module",x,"- maybe not completely uninstalled"
 
