@@ -90,7 +90,7 @@ to contact the distributors of Scisoft if you have problems.
 #
 
 all_package = [
-# current packages
+# packages in 2.7
     "calcos",
     "convolve",
     "image",
@@ -154,6 +154,15 @@ all_module = [
 # old from stsci_python 2.4
     "pyfits",
 
+]
+
+
+all_script = [
+    "pyraf",
+    "calcos",
+    "convertwaiveredfits",
+    "sample_package",
+    "fitsdiff",
 ]
 
 
@@ -249,6 +258,30 @@ for x in sys.path :
     else :
         pass
         # not a file _or_ a directory?  whatever...
+
+#
+# search the system path 
+#
+
+p = os.getenv("PATH")
+if p :
+    p = p.split(':')
+    for x in p :
+        x = os.path.abspath(x)
+        if x == cwd :
+            continue
+        if not os.path.isdir(x) :
+            continue
+        for p in all_script :
+            p = os.path.join(x,p)
+            if os.access(p,os.X_OK) :
+                found_any = 1
+                if print_and_ask("delete script "+p) :
+                    try :
+                        os.remove(p)
+                    except Exception, e:
+                        print p, e
+
 
 #
 # print something informative if we did not find anything
