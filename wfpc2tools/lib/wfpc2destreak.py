@@ -133,6 +133,13 @@
 # --> wfp = wfpc2destreak.Wfpc2destreak( "u96r0603m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.2)
 # --> wfp.destreak()
 #
+# Example 'A' under stsdas ( after loading hst_calib and wfpc )
+# --> from wfpc2tools import wfpc2destreak
+# --> wfp = wfpc2destreak.Wfpc2destreak( "u96r0603m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.2)
+#  or :
+# --> import wfpc2tools
+# --> wfp = wfpc2tools.wfpc2destreak.Wfpc2destreak( "u96r0603m_c0h.fits")
+#
 ###########################################################################
 
 import pyfits
