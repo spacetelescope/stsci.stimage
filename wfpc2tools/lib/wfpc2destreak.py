@@ -92,7 +92,7 @@
 #          07/22/08 - fixed bug in cr rejection, in which the slope of the fit plane was forced to be 0 (left over
 #                     from earlier tests of NSIGMA)
 #          07/23/08 - put bias_thresh back in as a settable parameter; set default row_thresh = 0.1
-#          09/25/08 - added check for __name__ = wdestreak (iraf task name)
+#          09/25/08 - added check for __name__ 
 #
 # Outline:
 #
@@ -179,9 +179,8 @@ class Wfpc2destreak:
         @type niter: int 
         """
 
-        # do some parameter type checking
-        print ' start of init __name__ = ',__name__   # 093009
-        if (( __name__ == 'wfpc2destreak') | ( __name__ == 'wdestreak') | ( __name__ == 'wfpc2tools.wfpc2destreak')):  # for python interface, set defaults and check unspecified pars
+        # do some parameter type checking, and for python interface, set defaults and check unspecified pars
+        if (( __name__ == 'wfpc2destreak') | ( __name__ == 'wdestreak') | ( __name__ == 'wfpc2tools.wfpc2destreak')): 
            [group, bias_thresh, row_thresh, niter] = check_py_pars(input_file, group, bias_thresh, row_thresh, \
                                                                                     input_mask, niter)
         else:
@@ -414,9 +413,6 @@ def check_py_pars(input_file, group, bias_thresh, row_thresh, input_mask, niter)
        @return: group, bias_thresh, row_thresh
        @rtype:  int, float, float
        """
-       
-       print ' start of check_py_pars_ :input_file, group, bias_thresh, row_thresh, input_mask, niter =  ', input_file, group, bias_thresh, row_thresh, input_mask, niter  # 093009
-
 
        try:
             fh_c0 = pyfits.open(input_file)
@@ -508,10 +504,6 @@ def check_cl_pars(input_file, group,  bias_thresh, row_thresh, input_mask, niter
        @return: group, row_thresh, niter
        @rtype:  int, float, float, int
        """
-
-
-       print ' start of check_cl_pars_ :input_file, group, bias_thresh, row_thresh, input_mask, niter =  ', input_file, group, bias_thresh, row_thresh, input_mask, niter    # 093009
-
        
        try:
             fh_c0 = pyfits.open(input_file)
