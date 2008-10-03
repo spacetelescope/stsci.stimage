@@ -1,0 +1,6 @@
+#! python
+
+print "opening stscidocs in your browser"
+
+import stscidocs
+# it automatically opens the browser
