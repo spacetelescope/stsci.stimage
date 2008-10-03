@@ -63,7 +63,7 @@ reported and the rest of that package will not be deleted.
 
 """
 
-if not print_and_ask("continue") :
+if never or not print_and_ask("continue") :
     sys.exit(0)
 
 #
@@ -87,7 +87,7 @@ software that is in the Scisoft distribution.  It may be helpful
 to contact the distributors of Scisoft if you have problems.
 
 """
-    if not print_and_ask("continue") :
+    if never or not print_and_ask("continue") :
         sys.exit(0)
     
 #
@@ -132,6 +132,7 @@ all_script = [
     "convertwaiveredfits",
     "sample_package",
     "fitsdiff",
+    "stscidocs",
 ]
 
 #
