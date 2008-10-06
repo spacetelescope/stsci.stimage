@@ -353,12 +353,19 @@ class WFPCObservation(Pattern):
         self.addMembers(filename)
         self.setBunit('COUNTS')
 
+        chips = [int(member.chip) for member in self.members]
+        try:
+            chip_ind = chips.index(self.__refchip)
+        except ValueError:
+            chip_ind = 0
+        self.refchip = chips[chip_ind]
+        
         if self.members[0].geometry.ikey != 'idctab':
             # Correct distortion coefficients to match output pixel scale
             self.computeCubicCoeffs()
         else:
-            self.computeOffsets(refchip=self.__refchip)
-
+            #self.computeOffsets(refchip=self.__refchip)
+            self.computeOffsets(refchip=self.refchip)
         # Determine desired orientation of product
         self.setOrient()
 
@@ -425,6 +432,8 @@ class WFPCObservation(Pattern):
 
     def _findDQFile(self):
         """ Find the DQ file which corresponds to the input WFPC2 image. """
+        dqfile=""
+        dqextn = ""
         if self.name.find('.fits') < 0:
             # Working with a GEIS image...
             dqfile = self.name[:-2]+'1h'

@@ -375,7 +375,7 @@ def rotatePos(pos, theta,offset=None,scale=None):
 def getRange(members,ref_wcs,verbose=None):
     xma,yma = [],[]
     xmi,ymi = [],[]
-
+    #nref_x, nref_y = [], []
     # Compute corrected positions of each chip's common point
     crpix = (ref_wcs.crpix1,ref_wcs.crpix2)
     ref_rot = ref_wcs.orient
@@ -416,7 +416,13 @@ def getRange(members,ref_wcs,verbose=None):
         yma.append(_oymax)
         xmi.append(_oxmin)
         ymi.append(_oymin)
-
+        #nrefx = (_oxmin+_oxmax) * ref_wcs.pscale/ _wcslin.pscale
+        #nrefy = (_oymin+_oymax) * ref_wcs.pscale/ _wcslin.pscale
+        #nref_x.append(nrefx)
+        #nref_y.append(nrefy)
+        #if _rot != 0.:
+        #    mrot = buildRotMatrix(_rot)
+        #    nref = N.dot(N.array([nrefx,nrefy]),_mrot)
     # Determine the full size of the metachip
     xmax = N.maximum.reduce(xma)
     ymax = N.maximum.reduce(yma)
@@ -428,13 +434,25 @@ def getRange(members,ref_wcs,verbose=None):
     # the reference position...
     # Scale by ratio of plate-scales so that DELTAs are always in input frame
     #
-    _ratio = ref_wcs.pscale / _wcslin.pscale
-
-    nref = ( (xmin + xmax)*_ratio, (ymin + ymax)*_ratio )
+    
+    """
+    Keep the computation of nref in reference chip space. 
+    Using the ratio below is almost correct for ACS and wrong for WFPC2 subarrays
+    
+    """
+    ##_ratio = ref_wcs.pscale / _wcslin.pscale
+    ##nref = ( (xmin + xmax)*_ratio, (ymin + ymax)*_ratio )
+    
+    nref = ( (xmin + xmax), (ymin + ymax))
+    #print 'nref_x, nref_y', nref_x, nref_y
+    #nref = (N.maximum.reduce(nref_x), N.maximum.reduce(nref_y)) 
+    
+    
+    
     if _rot != 0.:
         _mrot = buildRotMatrix(_rot)
         nref = N.dot(nref,_mrot)
-
+    
     # Now, compute overall size based on range of pixels and offset from center.
     #xsize = int(xmax - xmin + nref[0])
     #ysize = int(ymax - ymin + nref[1])

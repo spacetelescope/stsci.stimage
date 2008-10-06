@@ -317,6 +317,7 @@ class Pattern(object):
         for member in self.members:
             member.corners['corrected'] -= (_nref[0]/2.,_nref[1]/2.)
 
+
         if update:
             # Shifts position of CRPIX to reflect new size
             # Instead of being centered on (0.,0.) like the original guess.
@@ -335,6 +336,7 @@ class Pattern(object):
                     # uncentered output
                     _refpix['XDELTA'] -= _nref[0]/2.
                     _refpix['YDELTA'] -= _nref[1]/2.
+        
         #
         # TROLL computation not needed, as this get corrected for both
         # in 'recenter()' and in 'wcsfit'...
@@ -822,19 +824,30 @@ class Pattern(object):
 
             chipcen = ( (memwcs.naxis1/2.) + memwcs.offset_x,
                         (memwcs.naxis2/2.) + memwcs.offset_y)
-            xypos = N.dot(ref_pmat,v2v3-ref_v2v3) / scale + ref_xy
+            """
+            Changed two lines below starting with '##'.
+            The reasoning is that this function computes the offsets between the 
+            chips in an observation in model space based on a reference chip.
+            That's why xypos shoulf be coomputed in reference chip space and offset_xy
+            (X/YDELTA) should be chip specific. 
+            """
+            ##xypos = N.dot(ref_pmat,v2v3-ref_v2v3) / scale + ref_xy
+            xypos = N.dot(ref_pmat,v2v3-ref_v2v3) / ref_scale #+ ref_xy
+            
             chiprot = fileutil.buildRotMatrix(theta - ref_theta)
-
             offcen = ((refp['XREF'] - chipcen[0]), (refp['YREF'] - chipcen[1]))
 
             # Update member's geometry model with computed
             # reference position...
             #refp['XDELTA'] = vref[i][0] - v2com + chip.geometry.delta_x
             #refp['YDELTA'] = vref[i][1] - v3com + chip.geometry.delta_y
-            offset_xy = N.dot(chiprot,xypos-offcen)*scale/ref_scale
+            
+            ##offset_xy = N.dot(chiprot,xypos-offcen)*scale/ref_scale
+            offset_xy = N.dot(chiprot,xypos)*ref_scale/scale - offcen
             
             refp['XDELTA'] = offset_xy[0]
             refp['YDELTA'] = offset_xy[1]
+            
 
             # Only set centered to yes for full exposures...
             if member.geometry.wcs.subarray != yes:
