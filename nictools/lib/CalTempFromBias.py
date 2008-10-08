@@ -71,6 +71,8 @@
 #
 #            - adding option '-d' ('dry_run') to force the program to *not* write to the header, but output to
 #              to the screen only if verbosity set. Default is to write the keys to the header
+#   10/08/08 - code version 2.01: improved handling of case where non-existent file is specified, and fixed some print
+#              statements
 #
 import os.path
 import sys, time
@@ -86,7 +88,7 @@ from pytools import parseinput
 # Define some constants
 c2_min = 3.6218723e-06; c2_max = -3.6678544e-07; c3_min = 9.0923490e-11; c3_max = -4.1401650e-11  # used in bad pixel clipping
 
-__version__ = "2.0"   
+__version__ = "2.01"   
 
 ERROR_RETURN = 2  
 
@@ -160,12 +162,16 @@ class CalTempFromBias:
         @rtype: float, float, int, str
         """
 
+        if self.num_files == 0:
+           opusutil.PrintMsg("F","ERROR "+ str('Input file ') + str(self.input_file)+ str(' does not exist'))  
+           return None, None, None, None, None   
+
         self.temp_list = []
         self.sigma_list = []
         self.winner_list = []
         self.nonlinfile_list = []
         self.in_flag_list = []  
-        self.dry_run_list = []  # 0918
+        self.dry_run_list = []  
 
         for ii in range(self.num_files):
 
@@ -587,9 +593,9 @@ class CalTempFromBias:
 
                 fh.close()
                 pass
-        
-        if ( self.verbosity > 0):
-           print ' The headers have been updated.'
+            
+        if (( self.verbosity > 0) & (self.dry_run != 0 )):   
+            print ' The headers have been updated.'
 
         return None
         
@@ -647,8 +653,7 @@ def do_blind( camera, quads, verbosity):
            bc1_3 = (poly(temp3,p3)*pp[1])+pp[0]
 
            temp2 = (bc1_0+bc1_1+bc1_2+bc1_3)/4.
-#           sigma2 = N.sqrt( ((bc1_0 - temp2)**2. + (bc1_1 - temp2)**2. + (bc1_2 - temp2)**2. + (bc1_3 - temp2)**2.)/4.)
-           sigma2 = 0.02   # 091508
+           sigma2 = 0.02   
 
            temps2 = ["%5.2f" % (bc1_0),"%5.2f" % (bc1_1),"%5.2f" % (bc1_2),"%5.2f" % (bc1_3)]
         elif ( camera == 2):   # NIC2 (average of two phase-difference temps)
@@ -663,10 +668,7 @@ def do_blind( camera, quads, verbosity):
            bc2_1 = (poly(temp1,p1)*pp[1])+pp[0]
            
            temp2 = (bc2_0+bc2_1)/2.
-           
-#           sigma2 = N.sqrt( ((bc2_0 - temp2)**2. + (bc2_1 - temp2)**2.)/2.)
-           sigma2 = 0.05 # 091508
-
+           sigma2 = 0.05 
 
            temps2 = ["%5.2f" % (bc2_0),"%5.2f" % (bc2_1),"NA","NA"]            
         elif ( camera == 3):   # NIC3 (a single phase-difference temp)
@@ -674,11 +676,9 @@ def do_blind( camera, quads, verbosity):
            pp = [180.58356,0.0040206280]
            bc3 = quads[3]+((quads[0]-quads[3])*7.5)                                          
            bc3_1 = (poly(bc3,p0)*pp[1])+pp[0]
-           temp2 = bc3_1
 
-#           sigma2 = 0.25          # this is an empirical quantity determined from EOL data
-                                  # it is used for comparison at the bottom of the cascade
-           sigma2 = 0.05 # 091508
+           temp2 = bc3_1
+           sigma2 = 0.05
 
            temps2 = ["NA","NA","NA","%5.2f" % (temp2)]
         else:
@@ -686,8 +686,7 @@ def do_blind( camera, quads, verbosity):
            return None, None
 
         if (verbosity >1):
-            print ' Temp(s) from Algorithm 2 (blind correction):             ',temps2
-            print ' Algorithm 2: ',temp2,' (K) +/- ',sigma2,' (sigma)'
+            print ' Algorithm - Blind Correction: ',temp2,' (K) +/- ',sigma2,' (sigma)'
 
         return temp2, sigma2 
 
@@ -711,8 +710,6 @@ def do_quietest( camera, quads, verbosity ):
            t3 = (quads[3]*pp3[1])+pp3[0]
 
            temp3 = (t2+t3)/2.
-           
-#           sigma3 = N.sqrt( ((t2 - temp3)**2. + (t3 - temp3)**2.)/2.)
            sigma3 = 0.25
 
            temps3 = ["NA","NA","%5.2f" % (t2),"%5.2f" % (t3)]                                                                            
@@ -722,8 +719,6 @@ def do_quietest( camera, quads, verbosity ):
            t3 = (quads[3]*pp3[1])+pp3[0]
            
            temp3 = t3
-
-#           sigma3 = .5              # This is a temporary value and should be changed
            sigma3 = 0.15
 
            temps3 = ["NA","NA","NA","%5.2f" % (t3)]
@@ -735,8 +730,6 @@ def do_quietest( camera, quads, verbosity ):
            t2=(quads[2]*pp2[1])+pp2[0]
 
            temp3=(t1+t2)/2.
-
-     #      sigma3 = N.sqrt( ((t1 - temp3)**2. + (t2 - temp3)**2.)/2.)
            sigma3 = 0.25
 
            temps3 = ["NA","%5.2f" % (t1),"%5.2f" % (t2),"NA"]
@@ -745,8 +738,7 @@ def do_quietest( camera, quads, verbosity ):
            return None, None
 
         if (verbosity >1):
-            print 'Temp(s) from Algorithm 3 (quietest-quad):             ',temps3
-            print ' Algorithm 3: ',temp3,' (K) +/- ',sigma3,' (sigma)'
+            print ' Algorithm - Quietest Quad Correction: ',temp3,' (K) +/- ',sigma3,' (sigma)'
 
         return temp3, sigma3   
 
