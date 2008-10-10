@@ -1,0 +1,64 @@
+How to write a package to be installed
+--
+
+Create these files:
+
+	setup.py
+		It should say :
+			#!/usr/bin/env python
+			import pytools.stsci_distutils_hack
+			pytools.stsci_distutils_hack.run(pytools_version = "3.0")
+
+		You can leave out the parameter for pytools_version
+		if you want, but if present, the pytools that
+		setup.py finds must be that version.
+
+	defsetup.py
+		see sample defsetup.py for content
+
+	lib/
+		Put all the python code for your package here.
+
+		Put all scripts here.  (See note on scripts below.)
+
+	data/
+		You can include data files to be installed.  You
+		can put the data anywhere (as long as you list it
+		properly in defsetup.py), but it is convenient to
+		have them in one place.
+
+	src/
+		You can include modules written in C.  Put them here,
+		and include defintions in defsetup.py.
+
+scripts
+--
+
+In Python, a "script" is a piece of code intended to be run directly
+from the command line.  The name normally does _not_ end with ".py".
+
+distutils installs scripts in a bin/ directory that is (should be)
+on the user's PATH.  The user can just type the name of the script:
+
+	fitsdiff a.fits b.fits
+
+Your script should begin with a line that says:
+
+#! python
+
+When you install the package, distutils will insert the correct
+full path of the python interpreter.
+
+In principle, the rest of the script can be any valid python code,
+but it is convenient to just import a function from your package
+and call it.  For example,
+
+	#! python
+	import sample_package.main
+	sample_package.main.run()
+
+In stsci_python, you can only write scripts in python; because we
+also run on MS Windows, you cannot count on any other scripting
+languages (e.g. sh, csh) to be available.
+
+
