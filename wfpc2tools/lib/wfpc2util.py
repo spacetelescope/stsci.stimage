@@ -8,7 +8,7 @@ import time
 QUIET = 0 # verbosity levels
 VERBOSE = 1
 VERY_VERBOSE = 2   
-HUGE_VAL = 99999. # default for bias_thresh
+HUGE_VAL = 100000. # default for bias_thresh
                                                                                 
 # default values
 verbosity = VERBOSE
