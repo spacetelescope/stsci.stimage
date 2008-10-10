@@ -107,7 +107,7 @@
 #      
 # Linux command line short options and defaults (set in wfpc2util.py):
 #     -g: group (default = 4)
-#     -b: bias_thresh (default = 99999.)
+#     -b: bias_thresh (default = 100000.)
 #     -r: row_thresh (default = 0.1)
 #     -v: verbosity (default = verbose)
 #     -m: input_mask (default = None)    
@@ -122,13 +122,11 @@
 #         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"
 #    C. For a dataset with a single group, using defaults for the thresholds:
 #         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0 
-#    D. For a dataset with a single group, using defaults for the thresholds, setting CR rejection parameter to 20:
-#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0 -n 20. 
-#    E. Same as example F, but specifing an input mask to use:
-#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0 -n 20. -m "mask_u8zq0104.fits"
-#    F. Same as example F, but specifing 3 iterations for the CR rejection :
-#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0 -n 20. -i 3  
-#
+#    D. Same as example F, but specifing an input mask to use:
+#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0  -m "mask_u8zq0104.fits"
+#    E. Same as example F, but specifing 3 iterations for the CR rejection :
+#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0  -i 3  
+#  
 # Example 'A' under pyraf:
 # --> wfp = wfpc2destreak.Wfpc2destreak( "u96r0603m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.2)
 # --> wfp.destreak()
