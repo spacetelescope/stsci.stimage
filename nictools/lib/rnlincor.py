@@ -32,7 +32,7 @@ from pytools import numerixenv #Temporary NUMERIX environment check
 
 import numpy as N
 import pyfits
-from pyraf.iraf import osfn
+from pytools.fileutil import osfn
 from pytools import irafglob               # 
 from pytools.xyinterp import xyinterp #in pytools
 import sys, os, glob, time
