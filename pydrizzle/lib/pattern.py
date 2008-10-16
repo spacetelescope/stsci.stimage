@@ -844,7 +844,7 @@ class Pattern(object):
             
             ##offset_xy = N.dot(chiprot,xypos-offcen)*scale/ref_scale
             offset_xy = N.dot(chiprot,xypos)*ref_scale/scale - offcen
-            if in_model.refpix['empty_model'] == True:
+            if refp.has_key('empty_model') and refp['empty_model'] == True:
                 offset_xy[0]  += ref_xy[0] * scale/ref_scale
                 offset_xy[1]  += ref_xy[1] * scale/ref_scale
                 
