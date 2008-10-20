@@ -128,17 +128,7 @@ class ObsGeometry:
                     chip=chip, direction=self.direction, date=self.date,
                     filter1=_filt1, filter2=_filt2, offtab=_offtab, binned=binned,
                     tddcorr=self.tddcorr)
-                if self.tddcorr:
-                    self.wcs.cd11 = self.header['SCD1_1']
-                    self.wcs.cd12 = self.header['SCD1_2']
-                    self.wcs.cd21 = self.header['SCD2_1']
-                    self.wcs.cd22 = self.header['SCD2_2']
-                    self.wcs.crpix1 = self.header['SCRPIX1']
-                    self.wcs.crpix2 = self.header['SCRPIX2']
-                    self.wcs.crval1 = self.header['SCRVAL1']
-                    self.wcs.crval2 = self.header['SCRVAL2']
-                    self.wcs.orient = fileutil.RADTODEG(N.arctan2(self.wcs.cd12,self.wcs.cd22))
-                    self.wcs.pscale = N.sqrt(N.power(self.wcs.cd11,2)+N.power(self.wcs.cd21,2)) * 3600.
+                
             elif ikey == 'cubic':
                 scale = self.wcs.pscale / ref_pscale
                 self.model = models.DrizzleModel(self.idcfile, scale=scale)
@@ -173,16 +163,7 @@ class ObsGeometry:
                         chip=chip, direction=self.direction, date=self.date,
                         filter1=_filt1, filter2=_filt2, offtab=_offtab, binned=binned,
                         tddcorr=self.tddcorr)
-                if self.tddcorr:
-                    self.wcs.cd11 = self.header['SCD1_1']
-                    self.wcs.cd12 = self.header['SCD1_2']
-                    self.wcs.cd21 = self.header['SCD2_1']
-                    self.wcs.cd22 = self.header['SCD2_2']
-                    self.wcs.crpix1 = self.header['SCRPIX1']
-                    self.wcs.crpix2 = self.header['SCRPIX2']
-                    self.wcs.crval1 = self.header['SCRVAL1']
-                    self.wcs.crval2 = self.header['SCRVAL2']
-
+                
             else:
                 raise ValueError, "Unknown type of coefficients table %s"%idcfile
             
@@ -537,7 +518,7 @@ class ObsGeometry:
         _b = _cd_inv[0,1]
         _c = _cd_inv[1,0]
         _d = _cd_inv[1,1]
-
+        
         self.wcslin.cd11 = _a * self.wcs.cd11 + _c * self.wcs.cd12
         self.wcslin.cd21 = _a * self.wcs.cd21 + _c * self.wcs.cd22
         self.wcslin.cd12 = _b * self.wcs.cd11 + _d * self.wcs.cd12
