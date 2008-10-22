@@ -100,20 +100,13 @@ class ObsGeometry:
             self.wcs.recenter()
             self.wcslin = self.wcs.copy()
             # Implement time-dependent skew for those cases where it is needed
-            # Compute the time dependent distrotion skew terms
-
+            # Read in the time dependent distrotion skew terms
             # default date of 2004.5 = 2004-7-1
-            if (self.header.has_key('WFCTDD') and self.header['WFCTDD'] == 'T') or \
-                (self.header.has_key('TDDCORR') and self.header['TDDCORR'] == 'PERFORM'):
-                self.alpha,self.beta = mutil.compute_wfc_tdd_coeffs(self.header['date-obs'])
+            
+            self.alpha = self.header.get('TDDALPHA', 0.0)
+            self.beta = self.header.get('TDDBETA', 0.0)
+            if self.alpha != 0 or self.beta != 0:
                 self.tddcorr = True
-            elif (self.header.has_key('TDDCORR') and self.header['TDDCORR'] == 'COMPLETE'):
-                self.alpha = self.header['TDDALPHA']
-                self.beta = self.header['TDDBETA']
-                self.tddcorr = True
-            else:
-                self.alpha = 0
-                self.beta  = 0
 
             # Based on the filetype, open the correct geometry model
             if idckey != None:
