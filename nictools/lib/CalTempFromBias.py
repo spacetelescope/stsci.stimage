@@ -73,6 +73,7 @@
 #              to the screen only if verbosity set. Default is to write the keys to the header
 #   10/08/08 - code version 2.01: improved handling of case where non-existent file is specified, and fixed some print
 #              statements
+#   11/18/08 - code version 2.02: added file existence checking, and removed requirement of reference files to be in $nref
 #
 import os.path
 import sys, time
@@ -88,7 +89,7 @@ from pytools import parseinput
 # Define some constants
 c2_min = 3.6218723e-06; c2_max = -3.6678544e-07; c3_min = 9.0923490e-11; c3_max = -4.1401650e-11  # used in bad pixel clipping
 
-__version__ = "2.01"   
+__version__ = "2.02"   
 
 ERROR_RETURN = 2  
 
@@ -190,7 +191,6 @@ class CalTempFromBias:
               print '   ' ; print '   '
               print 'Calculating temp for file ',ii,' : ', filename
 
-
             try:  # ... opening input in update mode
                fh_raw = pyfits.open( filename, mode='update')
                in_flag = 'u'  # update mode
@@ -236,15 +236,19 @@ class CalTempFromBias:
             else:
                nref = os.path.expandvars( "$nref")
 
-            nonlinfile_key = raw_header[ 'NLINFILE' ] 
-            nl_file = nonlinfile_key.split('nref$')[1]
-            nonlin_file = os.path.join( nref, nl_file)
+            nonlinfile_key = raw_header[ 'NLINFILE' ]
+
+            try : 
+               nl_file = nonlinfile_key.split('nref$')[1]  
+               nonlin_file = os.path.join( nref, nl_file)
+            except :
+               nonlin_file = nonlinfile_key              
 
             try:
                fh_nl = pyfits.open( nonlin_file )
                self.nonlin_file = nonlin_file            
             except:
-               opusutil.PrintMsg("F","ERROR "+ str('Unable to open nonlinearity file') + str(nonlin_file))
+               opusutil.PrintMsg("F","ERROR "+ str('Unable to open nonlinearity file: ') + str(nonlin_file))
 
                if ((in_flag[0] != 'f') & ( dry_run != 0)) : 
                    raw_header.update("TFBDONE", "SKIPPED") 
@@ -576,7 +580,13 @@ class CalTempFromBias:
             if (edit_type[0] =="S"): # SPT
                 underbar = filename.find('_')
                 filename =  filename[:underbar] +'_spt.fits'
-            fh = pyfits.open( filename, mode='update' )      
+
+            try:  
+                fh = pyfits.open( filename, mode='update' )      
+            except : 
+                opusutil.PrintMsg("F","ERROR "+ str('Unable to open raw or spt file') + str(filename))    
+                return None, None, None, None, None 
+   
             hdr = fh[0].header # NOTE - this the PRIMARY extension
 
             try :
