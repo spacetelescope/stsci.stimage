@@ -451,6 +451,9 @@ class WFPCObservation(Pattern):
             elif 'c0f.fits' in self.name:
                 dqfile = self.name.replace('0f.fits','1f.fits')
                 dqextn = '[sci,1]'
+            elif 'c0m.fits' in self.name:
+                dqfile = self.name.replace('0m.fits','1m.fits')
+                dqextn = '[sci,1]'
             
         return dqfile, dqextn
 
