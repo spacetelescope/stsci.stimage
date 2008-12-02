@@ -18,11 +18,11 @@ class IRInputImage(InputImage):
     SEPARATOR = '_'
 
 
-    def __init__(self,input,dqname,platescale,memmap=0):
+    def __init__(self,input,dqname,platescale,memmap=0,proc_unit="native"):
         """
         Constructor for IRInputImage class object.
         """
-        InputImage.__init__(self,input,dqname,platescale,memmap=0)
+        InputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         
     def isCountRate(self):
         """

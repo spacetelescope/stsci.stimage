@@ -4,7 +4,7 @@
 #   Purpose: Class used to model STIS specific instrument data.
 
 from pytools import fileutil
-import numpy as N
+import numpy as np
 
 from input_image import InputImage
 from imagemanip import interp2d
@@ -13,13 +13,68 @@ class STISInputImage (InputImage):
 
     SEPARATOR = '_'
 
-    def __init__(self, input,dqname,platescale,memmap=0):
-        InputImage.__init__(self,input,dqname,platescale,memmap=0)
+    def __init__(self, input,dqname,platescale,memmap=0,proc_unit="native"):
+        InputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 8192
         self.platescale = platescale
+        self.full_shape = (1024,1024)
         self._effGain = 1
+
+    def updateMDRIZSKY(self,filename=None): 
+        if (filename == None): 
+            filename = self.name     
+        try: 
+            _handle = fileutil.openImage(filename,mode='update',memmap=0) 
+        except IOError:
+            raise IOError, "Unable to open %s for sky level computation"%filename 
+        # Get the exposure time for the image.  If the exposure time of the image 
+        # is 0, set the MDRIZSKY value to 0.  Otherwise update the MDRIZSKY value 
+        # in units of counts per second. 
+        if (self.getExpTime() == 0.0): 
+            str =  "*******************************************\n" 
+            str += "*                                         *\n" 
+            str += "* ERROR: Image EXPTIME = 0.               *\n" 
+            str += "* MDRIZSKY header value cannot be         *\n" 
+            str += "* converted to units of 'counts/s'        *\n" 
+            str += "* MDRIZSKY will be set to a value of '0'  *\n" 
+            str += "*                                         *\n" 
+            str =  "*******************************************\n" 
+            _handle[0].header['MDRIZSKY'] = 0 
+            print str 
+        else:
+            # Assume the MDRIZSKY keyword is in the primary header.  Try to update 
+            # the header value
+            skyvalue = self.getSubtractedSky() 
+
+            # We need to convert back to native units if computations were done in electrons
+            if self.proc_unit != "native":
+                skyvalue = skyvalue/self.getGain()
+            print "Updating MDRIZSKY keyword to primary header with value %f"%(skyvalue) 
+            _handle[0].header.update('MDRIZSKY',skyvalue)  
+        finally:
+            _handle.close() 
+
+    def doUnitConversions(self): 
+        # Image information 
+        _handle = fileutil.openImage(self.name,mode='update',memmap=0) 
+        _sciext = fileutil.getExtn(_handle,extn=self.extn)         
+
+        # Multiply the values of the sci extension pixels by the gain. 
+        print "Converting %s from COUNTS to ELECTRONS"%(self.name) 
+        # If the exptime is 0 the science image will be zeroed out. 
+        N.multiply(_sciext.data,self.getGain(),_sciext.data)
+
+        # Set the BUNIT keyword to 'electrons'
+        _handle[1].header.update('BUNIT','ELECTRONS')
+
+        # Update the PHOTFLAM value
+        photflam = _handle[1].header['PHOTFLAM']
+        _handle[1].header.update('PHOTFLAM',(photflam/self.getGain()))
+        
+        # Close the files and clean-up
+        _handle.close() 
                 
     def getflat(self):
         """
@@ -32,8 +87,6 @@ class STISInputImage (InputImage):
         This method will return an array the same shape as the
         image.
         
-        :units: electrons
-
         """
 
         # The keyword for STIS flat fields in the primary header of the flt
@@ -57,7 +110,7 @@ class STISInputImage (InputImage):
                 lfltdata = hdu.data
             # No flat field was found.  Assume the flat field is a constant value of 1.
             except:
-                lfltdata = n.ones(self.image_shape,dtype=self.image_dtype)
+                lfltdata = np.ones(self.image_shape,dtype=self.image_dtype)
                 str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
                 print str
         
@@ -75,7 +128,7 @@ class STISInputImage (InputImage):
                 pfltdata = hdu.data
             # No flat field was found.  Assume the flat field is a constant value of 1.
             except:
-                pfltdata = n.ones(self.image_shape,dtype=self.image_dtype)
+                pfltdata = np.ones(self.image_shape,dtype=self.image_dtype)
                 str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
                 print str
         
@@ -122,11 +175,9 @@ class STISInputImage (InputImage):
 
 class CCDInputImage(STISInputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=0):
-        STISInputImage.__init__(self,input,dqname,platescale,memmap=0)
+    def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
+        STISInputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         self.instrument = 'STIS/CCD'
-        self.full_shape = (1024,1024)
-        self.platescale = platescale
   
         if ( self.amp == 'D' or self.amp == 'C' ) : # cte direction depends on amp 
             self.cte_dir =  1 
@@ -135,7 +186,9 @@ class CCDInputImage(STISInputImage):
 
     def getdarkcurrent(self):
         darkcurrent = 0.009 #electrons/sec
-        return darkcurrent / self.getGain()
+        if self.proc_unit == 'native':
+            return darkcurrent / self.getGain()
+        return darkcurrent
     
     def getReadNoise(self):
         """
@@ -147,14 +200,14 @@ class CCDInputImage(STISInputImage):
         :units: DN
         
         """
-        return self._rdnoise / self.getGain()
-
+        if self.proc_unit == 'native':
+            return self._rdnoise / self.getGain()
+        return self._rednoise
+    
 class NUVInputImage(STISInputImage):
-    def __init__(self, input, dqname, platescale, memmap=0):
-        STISInputImage.__init__(self,input,dqname,platescale,memmap=0)
+    def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
+        STISInputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         self.instrument = 'STIS/NUV-MAMA'
-        self.full_shape = (1024,1024)
-        self.platescale = platescale
 
         # no cte correction for STIS/NUV-MAMA so set cte_dir=0.
         print('\nWARNING: No cte correction will be made for this STIS/NUV-MAMA data.\n')
@@ -224,14 +277,14 @@ class NUVInputImage(STISInputImage):
 
     def getdarkcurrent(self):
         darkcurrent = 0.0013 #electrons/sec
-        return darkcurrent / self.getGain()
-
+        if self.proc_unit == 'native':
+            return darkcurrent / self.getGain()
+        return darkcurrent
+    
 class FUVInputImage(STISInputImage):
-    def __init__(self, input, dqname, platescale, memmap=0):
-        STISInputImage.__init__(self,input,dqname,platescale,memmap=0)
+    def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
+        STISInputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         self.instrument = 'STIS/FUV-MAMA'
-        self.full_shape = (1024,1024)
-        self.platescale = platescale
 
         # no cte correction for STIS/FUV-MAMA so set cte_dir=0.
         print('\nWARNING: No cte correction will be made for this STIS/FUV-MAMA data.\n')
@@ -302,6 +355,9 @@ class FUVInputImage(STISInputImage):
         else:
             # In this case, the user has specified both a gain and readnoise values.  Just use them as is.
             pass
+        
     def getdarkcurrent(self):
         darkcurrent = 0.07 #electrons/sec
-        return darkcurrent / self.getGain()
+        if self.proc_unit == 'native':
+            return darkcurrent / self.getGain()
+        return darkcurrent

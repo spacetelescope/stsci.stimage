@@ -4,19 +4,20 @@
 #   Purpose: Class used to model ACS specific instrument data.
 
 from pytools import fileutil
-import numpy as n
+import numpy as np
 from input_image import InputImage
 
 class ACSInputImage(InputImage):
 
     SEPARATOR = '_'
 
-    def __init__(self, input,dqname,platescale,memmap=0):
-        InputImage.__init__(self,input,dqname,platescale,memmap=0)
+    def __init__(self, input,dqname,platescale,memmap=0,proc_unit="native"):
+        InputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
         self.platescale = platescale
         
+    def doUnitConversions(self):
         # Effective gain to be used in the driz_cr step.  Since the
         # ACS images have already been converted to electrons,
         # the effective gain is 1.
@@ -89,7 +90,7 @@ class ACSInputImage(InputImage):
                 hdu = fileutil.getExtn(handle,extn=self.extn)
                 data = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
             except:
-                data = n.ones(self.image_shape,dtype=self.image_dtype)
+                data = np.ones(self.image_shape,dtype=self.image_dtype)
                 str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
                 print str
         flat = data
@@ -134,8 +135,8 @@ class ACSInputImage(InputImage):
 
 class WFCInputImage (ACSInputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=0):
-        ACSInputImage.__init__(self,input,dqname,platescale,memmap=0)
+    def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
+        ACSInputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         self.instrument = 'ACS/WFC'
         self.full_shape = (4096,2048)
         self.platescale = platescale
@@ -147,8 +148,8 @@ class WFCInputImage (ACSInputImage):
 
 class HRCInputImage (ACSInputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=0):
-        ACSInputImage.__init__(self, input, dqname, platescale,memmap=0)
+    def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
+        ACSInputImage.__init__(self, input, dqname, platescale,memmap=0,proc_unit=proc_unit)
         self.instrument = 'ACS/HRC'        
         self.full_shape = (1024,1024)
         self.platescale = platescale
@@ -160,8 +161,8 @@ class HRCInputImage (ACSInputImage):
 
 class SBCInputImage (ACSInputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=0):
-        ACSInputImage.__init__(self,input,dqname,platescale,memmap=0)
+    def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
+        ACSInputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         self.full_shape = (1024,1024)
         self.platescale = platescale
         self.instrument = 'ACS/SBC'

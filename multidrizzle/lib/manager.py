@@ -4,7 +4,7 @@
 #   Purpose: Class Used to drive all algorithmic operations within Multidrizzle.
 
 # Import numpy functionality
-import numpy as N
+import numpy as np
 
 # Import file utilities
 import pyfits
@@ -37,8 +37,6 @@ from pytools.nimageiter import ImageIter,computeBuffRows,FileIter,computeNumberB
 from pytools import iterfile
 from pytools.iterfile import IterFitsFile
 
-__version__ = '1.7.0'
-
 DEFAULT_ORIG_SUFFIX = '_OrIg'
 
 def modifyRootname(rootname,suffix=None):
@@ -65,13 +63,14 @@ class ImageManager(object):
         same ImageManager object without worrying about opening or trying to close
         the same image more than once.
     """
-    def __init__(self, assoc, context, instrpars, workinplace, static_file):  
+    def __init__(self, assoc, context, instrpars, workinplace, static_file, proc_unit="native"):  
         self.context = context
         self.assoc = assoc
         self.output = self.assoc.output
         self.workinplace = workinplace
         self.static_file = static_file
-
+        self.proc_unit = proc_unit
+        
         # Establish a default memory mapping behavior
         self.memmap = 0
 
@@ -118,7 +117,7 @@ class ImageManager(object):
             #    creating one if it doesn't already exist.
             if not p['driz_mask']:
                 # No array has been created yet, so initialize it now...
-                _mask_array = None # N.ones(p['image'].image_shape,dtype=N.uint8)
+                _mask_array = None # np.ones(p['image'].image_shape,dtype=np.uint8)
                 # We also need to create a name for the mask array file
                 p['image'].maskname = p['exposure'].masklist[0]
                 # Build the mask image
@@ -151,7 +150,7 @@ class ImageManager(object):
                     p['exposure'].singlemaskname = p['exposure'].masklist[1]
                     
                     # Now create the mask file on disk
-                    _mask_array = None # N.ones(p['image'].image_shape,dtype=N.uint8)
+                    _mask_array = None # np.ones(p['image'].image_shape,dtype=np.uint8)
                     self._buildMaskImage(p['image'].singlemaskname,_mask_array)
                     del _mask_array
                     
@@ -238,7 +237,7 @@ class ImageManager(object):
         final_static_mask = fileutil.getExtn(static_mask_file,str(0))
 
         # Apply the user supplied static mask to the static mask by Pydrizzle/Multidrizzle
-        tmpArray = N.where( N.equal(input_user_static_mask.data, static_goodval), final_static_mask.data, static_badval)
+        tmpArray = np.where( np.equal(input_user_static_mask.data, static_goodval), final_static_mask.data, static_badval)
         final_static_mask.data = tmpArray.copy()
 
         # Clean up
@@ -257,7 +256,6 @@ class ImageManager(object):
 
         for p in self.assoc.parlist:
             p['image'].setInstrumentParameters (instrpars, p['exposure'].header)
-
             
     def setupInputCopies(self,p,workinplace = False ):
         """ Make copies of all input science files, keeping track of
@@ -326,25 +324,25 @@ class ImageManager(object):
             _dqname = plist['orig_filename']+'['+_dq_extn+']'
 
         if _instrument == 'ACS':
-            if _detector == 'HRC': return HRCInputImage(input,_dqname,_platescale,memmap=0)
-            if _detector == 'WFC': return WFCInputImage(input,_dqname,_platescale,memmap=0)
-            if _detector == 'SBC': return SBCInputImage(input,_dqname,_platescale,memmap=0)
+            if _detector == 'HRC': return HRCInputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
+            if _detector == 'WFC': return WFCInputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
+            if _detector == 'SBC': return SBCInputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
         if _instrument == 'WFPC2':
-            if _detector == 1: return PCInputImage(input,_dqname,_platescale,memmap=0)
-            if _detector == 2: return WF2InputImage(input,_dqname,_platescale,memmap=0)
-            if _detector == 3: return WF3InputImage(input,_dqname,_platescale,memmap=0)
-            if _detector == 4: return WF4InputImage(input,_dqname,_platescale,memmap=0)
+            if _detector == 1: return PCInputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
+            if _detector == 2: return WF2InputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
+            if _detector == 3: return WF3InputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
+            if _detector == 4: return WF4InputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
         if _instrument == 'STIS': 
-            if _detector == 'CCD': return CCDInputImage(input,_dqname,_platescale,memmap=0)
-            if _detector == 'FUV-MAMA': return FUVInputImage(input,_dqname,_platescale,memmap=0)
-            if _detector == 'NUV-MAMA': return NUVInputImage(input,_dqname,_platescale,memmap=0)
+            if _detector == 'CCD': return CCDInputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
+            if _detector == 'FUV-MAMA': return FUVInputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
+            if _detector == 'NUV-MAMA': return NUVInputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
         if _instrument == 'NICMOS':
-            if _detector == 1: return NIC1InputImage(input,_dqname,_platescale,memmap=0)
-            if _detector == 2: return NIC2InputImage(input,_dqname,_platescale,memmap=0)
-            if _detector == 3: return NIC3InputImage(input,_dqname,_platescale,memmap=0)
+            if _detector == 1: return NIC1InputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
+            if _detector == 2: return NIC2InputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
+            if _detector == 3: return NIC3InputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
         if _instrument == 'WFC3':
-            if _detector == 'UVIS': return WFC3UVISInputImage(input,_dqname,_platescale,memmap=0)
-            if _detector == 'IR': return WFC3IRInputImage(input,_dqname,_platescale,memmap =0)
+            if _detector == 'UVIS': return WFC3UVISInputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
+            if _detector == 'IR': return WFC3IRInputImage(input,_dqname,_platescale,memmap =0,proc_unit=self.proc_unit)
 
         # If a supported instrument is not detected, print the following error message
         # and raise an exception.
@@ -399,7 +397,7 @@ class ImageManager(object):
             print 'Updating mask file: ',p['image'].maskname,' with static mask.'
 
             if static_array != None:
-                handle[0].data = N.bitwise_and(handle[0].data,static_array)
+                handle[0].data = np.bitwise_and(handle[0].data,static_array)
 
             handle.close()
             del handle
@@ -417,7 +415,7 @@ class ImageManager(object):
                 print 'Updating mask file: ',p['image'].singlemaskname,' with static mask.'
 
                 if static_array != None:
-                    handle[0].data = N.bitwise_and(handle[0].data,static_array)
+                    handle[0].data = np.bitwise_and(handle[0].data,static_array)
 
                 handle.close()
                 del handle
@@ -694,7 +692,7 @@ class ImageManager(object):
             #
                 
         # create an array for the median output image
-        medianOutputImage = N.zeros(self.single_handles[0].shape,dtype=self.single_handles[0].type())
+        medianOutputImage = np.zeros(self.single_handles[0].shape,dtype=self.single_handles[0].type())
 
         # create the master list to be used by the image iterator
         masterList = []
@@ -753,7 +751,7 @@ class ImageManager(object):
                 for _weight_arr in imageSectionsList[startWht:endWht]:
                     # Initialize an output mask array to ones
                     # This array will be reused for every output weight image
-                    _weight_mask = N.zeros(_weight_arr.shape,dtype=N.uint8)
+                    _weight_mask = np.zeros(_weight_arr.shape,dtype=np.uint8)
 
                     """ Generate new pixel mask file for median step.
                     This mask will be created from the single-drizzled
@@ -768,7 +766,7 @@ class ImageManager(object):
                     _mean = _wht_mean[listIndex]
 
                     # 0 means good, 1 means bad here...
-                    N.putmask(_weight_mask, N.less(_weight_arr,_mean), 1)
+                    np.putmask(_weight_mask, np.less(_weight_arr,_mean), 1)
                     #_weight_mask.info()
                     self.weight_mask_list.append(_weight_mask)
                     listIndex += 1

@@ -3,7 +3,7 @@ import mdzhandler
 import string
 import sys,types,os
 
-import numpy as N
+import numpy as np
 
 from pytools import fileutil
 from pydrizzle import traits102
@@ -19,9 +19,9 @@ def toBoolean(flag):
     return False
 
 def cleanNaN(value):
-    a = N.array(value)
-#    b = N.where(N.isnan(a))
-    if N.any(N.isnan(a)): return None
+    a = np.array(value)
+#    b = np.where(np.isnan(a))
+    if np.any(np.isnan(a)): return None
     return value
 
 def cleanInt(value):
@@ -123,6 +123,11 @@ class MDrizPars (HasTraits):
                         'counts': 'counts'}) 
                         )
     
+    enum_procunit = Trait('native',TraitPrefixMap({ 
+                        'native': 'native',
+                        'electrons': 'electrons'}) 
+                        )
+
     text_editor = TraitEditorText()
 
     __traits__ = {'input':Trait('flt.fits',TraitString()),
@@ -132,6 +137,7 @@ class MDrizPars (HasTraits):
             'runfile':Trait('multidrizzle.run',TraitString()),
             'workinplace':Trait(False, true_boolean, editor=bit_editor),
             'updatewcs':Trait(True, true_boolean, editor=bit_editor),   
+            'proc_unit':Trait('native',enum_procunit, editor=text_editor),
             'context':Trait(True, true_boolean, editor=bit_editor), 
             'clean':Trait(False, true_boolean, editor=bit_editor),
             'group':Trait('',AnyValue),
@@ -208,7 +214,7 @@ class MDrizPars (HasTraits):
             TraitGroup(
                 'input','output','mdriztab','refimage','runfile',
                 'workinplace','context', 'clean','group', 'updatewcs',  
-                'ra', 'dec','coeffs', 'build', 'shiftfile','staticfile',
+                'proc_unit','ra', 'dec','coeffs', 'build', 'shiftfile','staticfile',
                 'timing',
                 label='Init'),
             TraitGroup('static',
@@ -259,7 +265,7 @@ class MDrizPars (HasTraits):
             'median', 'blot', 'driz_cr', 'driz_combine','timing']
             
     master_list = ['mdriztab','refimage','runfile','workinplace','updatewcs', 
-            'context', 'clean','group', 'bits', 'ra', 'dec',
+            'proc_unit','context', 'clean','group', 'bits', 'ra', 'dec',
             'coeffs', 'build', 'shiftfile', 
             'staticfile', 'static_sig', 
             'skywidth', 'skystat', 'skylower',

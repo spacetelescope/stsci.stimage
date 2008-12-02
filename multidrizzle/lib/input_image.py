@@ -12,7 +12,7 @@ from imagestats import ImageStats
 from pytools import imageiter
 from pytools.imageiter import ImageIter
 
-import numpy as N
+import numpy as np
 import quickDeriv
 import driz_cr
 
@@ -23,7 +23,7 @@ class InputImage(object):
        types of images
     '''
 
-    def __init__(self, input,dqname,platescale,memmap=0):
+    def __init__(self, input,dqname,platescale,memmap=0,proc_unit="native"):
         # These will always be populated by the appropriate
         # sub-class, however, this insures that these attributes
         # are not overlooked/forgotten.
@@ -47,7 +47,7 @@ class InputImage(object):
         self.static_badval = 64
         self.static_mask = None
         self.cte_dir = 1 
-
+                
         # read amplifier to be used for HRC or STIS/CCD.
         try:  
             self.amp = fileutil.getKeyword(input,'CCDAMP')
@@ -86,9 +86,25 @@ class InputImage(object):
             self.ltv2 = 0
         self.size1 = self.header['NAXIS1'] + self.ltv1
         self.size2 = self.header['NAXIS2'] + self.ltv2
+        
+        # Set Units used for processing.  Options are "native" or "electrons"
+        self.proc_unit = proc_unit
+
+        # Convert the science data to electrons if specified by the user.  Each
+        # instrument class will need to define its own version of doUnitConversions
+        if self.proc_unit == "electrons":
+            self.doUnitConversions()
+
 
     def setInstrumentParameters(self, instrpars, pri_header):
-        """ Sets the instrument parameters.
+        """ 
+        Sets the instrument parameters.
+        """
+        pass
+    
+    def doUnitConversions(self):
+        """
+        Convert the sci extension pixels to electrons
         """
         pass
         
@@ -258,7 +274,7 @@ class InputImage(object):
                 _handle = fileutil.openImage(self.name,mode='update',memmap=self.memmap)
                 _sciext = fileutil.getExtn(_handle,extn=self.extn)
                 print "%s (computed sky,subtracted sky) : (%f,%f)"%(self.name,self.getComputedSky(),self.getSubtractedSky())
-                N.subtract(_sciext.data,self.getSubtractedSky(),_sciext.data)
+                np.subtract(_sciext.data,self.getSubtractedSky(),_sciext.data)
             except:
                 raise IOError, "Unable to open %s for sky subtraction"%self.name
         finally:
@@ -397,7 +413,7 @@ class InputImage(object):
         :units: electrons
         
         """
-        return N.ones(self.image_shape,dtype=self.image_dtype) * self._rdnoise
+        return np.ones(self.image_shape,dtype=self.image_dtype) * self._rdnoise
 
     def getdarkcurrent(self):
         """
@@ -425,7 +441,7 @@ class InputImage(object):
         :units: electrons
         
         """
-        return N.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
+        return np.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
     
     def getskyimg(self):
         """
@@ -439,6 +455,6 @@ class InputImage(object):
         :units: electrons
         
         """
-        return N.ones(self.image_shape,dtype=self.image_dtype)*self.getSubtractedSky()
+        return np.ones(self.image_shape,dtype=self.image_dtype)*self.getSubtractedSky()
 
     

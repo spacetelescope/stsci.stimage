@@ -47,7 +47,7 @@ from pytools.parseinput import parseinput
 
 
 # Begin Version Information -------------------------------------------
-__version__ = '3.2.1'
+__version__ = '3.3.0dev'
 # End Version Information ---------------------------------------------
 # Revision based version info
 try:
@@ -118,16 +118,20 @@ help file.
                  output     = None,
                  editpars   = False,
                  shiftfile  = None, 
-                 updatewcs = True,
+                 updatewcs  = True,
+                 proc_unit  = proc_unit,
                  **input_dict):
 
         timestamp()
         print 'Running MultiDrizzle ',__version__
 
         # Print version information for all external python modules used
-        self.versions = versioninfo()        
+        self.versions = versioninfo()
+        
         self.shiftfile = shiftfile
-        self.updatewcs = updatewcs   
+        self.updatewcs = updatewcs
+        self.proc_unit = proc_unit
+
         # We need to parse the input to get the list of filenames
         # that are to be processed by Multidrizzle.
         #
@@ -394,7 +398,7 @@ help file.
         # Build the manager object.
         #self.image_manager = ImageManager(association, self.context, self.instrpars, self.workinplace, \
         #self.staticfile, self.updatewcs) 
-        self.image_manager = ImageManager(assoc, self.context, self.instrpars, self.workinplace, self.staticfile) 
+        self.image_manager = ImageManager(assoc, self.context, self.instrpars, self.workinplace, self.staticfile, self.proc_unit) 
 
         # Done with initialization.
         self.steps.markStepDone(ProcSteps.doInitialize)

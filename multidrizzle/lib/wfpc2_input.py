@@ -5,14 +5,14 @@
 
 from pytools import fileutil
 from input_image import InputImage
-import numpy as N
+import numpy as np
 
 class WFPC2InputImage (InputImage):
 
     SEPARATOR = '_'
 
-    def __init__(self, input,dqname,platescale,memmap=0):
-        InputImage.__init__(self,input,dqname,platescale,memmap=0)
+    def __init__(self, input,dqname,platescale,memmap=0,proc_unit="native"):
+        InputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
         
@@ -113,7 +113,6 @@ class WFPC2InputImage (InputImage):
         This method will return an array the same shape as the
         image.
         
-        :units: counts
 
         """
 
@@ -133,14 +132,33 @@ class WFPC2InputImage (InputImage):
                 hdu = fileutil.getExtn(handle,extn=self.grp)
                 data = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
             except:
-                data = N.ones(self.image_shape,dtype=self.image_dtype)
+                data = np.ones(self.image_shape,dtype=self.image_dtype)
                 str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
                 print str
-        # For the WFPC2 flat we need to invert and multiply by the gain
+        # For the WFPC2 flat we need to invert
         # for use in Multidrizzle
         flat = (1.0/data)
         return flat
 
+    def doUnitConversions(self): 
+        # Image information 
+        _handle = fileutil.openImage(self.name,mode='update',memmap=0) 
+        _sciext = fileutil.getExtn(_handle,extn=self.extn)         
+
+        # Multiply the values of the sci extension pixels by the gain. 
+        print "Converting %s from COUNTS to ELECTRONS"%(self.name) 
+        # If the exptime is 0 the science image will be zeroed out. 
+        N.multiply(_sciext.data,self.getGain(),_sciext.data)
+
+        # Set the BUNIT keyword to 'electrons'
+        _handle[1].header.update('BUNIT','ELECTRONS')
+
+        # Update the PHOTFLAM value
+        photflam = _handle[1].header['PHOTFLAM']
+        _handle[1].header.update('PHOTFLAM',(photflam/self.getGain()))
+
+        # Close the files and clean-up
+        _handle.close() 
 
     def getdarkcurrent(self):
         """
@@ -152,11 +170,12 @@ class WFPC2InputImage (InputImage):
         The value in the image header will be converted to units
         of electrons.
         
-        :units: counts
+        :units: counts/electrons
         
         """
-        
-        darkrate = 0.005 / self.getGain() #count/s
+        darkrate = 0.005 # electrons / s
+        if self.proc_unit == 'native':
+            darkrate = darkrate / self.getGain() #count/s
         
         try:
             darkcurrent = self.header['DARKTIME'] * darkrate
@@ -185,10 +204,14 @@ class WFPC2InputImage (InputImage):
         =======
         Method for returning the readnoise of a detector (in counts).
         
-        :units: counts
+        :units: counts/electrons
         
         """
-        return self._rdnoise / self.getGain()
+        
+        rn = self._rdnoise
+        if self.proc_unit == 'native':
+            rn = self._rdnoise / self.getGain()
+        return rn
 
     def _setchippars(self):
         pass
@@ -208,7 +231,7 @@ class WFPC2InputImage (InputImage):
                 _handle = fileutil.openImage(self.name,mode='update',memmap=0)
                 _sciext = fileutil.getExtn(_handle,extn=self.extn)
                 print "%s (computed sky,subtracted sky)  : (%f,%f)"%(self.name,self.getComputedSky(),self.getSubtractedSky()*(self.refplatescale / self.platescale)**2)
-                N.subtract(_sciext.data,self.getSubtractedSky(),_sciext.data)
+                np.subtract(_sciext.data,self.getSubtractedSky(),_sciext.data)
             except:
                 raise IOError, "Unable to open %s for sky subtraction"%self.name
         finally:
@@ -227,84 +250,78 @@ class WFPC2InputImage (InputImage):
 
          # Compute the sky level subtracted from all the WFPC2 detectors based upon the reference plate scale.
         skyvalue = (self.getSubtractedSky()  * (self.refplatescale/self.platescale)**2)
-        
-        try:
-            try:
-                # Assume MDRIZSKY lives in primary header
-                print "Updating MDRIZSKY in %s with %f"%(filename,skyvalue)
-                _handle[0].header['MDRIZSKY'] = skyvalue
-            except:
-                print "Cannot find keyword MDRIZSKY in %s to update"%filename
-                print "Adding MDRIZSKY keyword to primary header with value %f"%skyvalue
-                _handle[0].header.update('MDRIZSKY',skyvalue, comment="Sky value subtracted by Multidrizzle")
-        finally:
-            _handle.close()
+        if self.proc_unit == 'electrons':
+            skyvalue = skyvalue / self.getGain()
+
+        print "Updating MDRIZSKY keyword in primary header with value %f"%skyvalue
+        _handle[0].header.update('MDRIZSKY',skyvalue, comment="Sky value subtracted by Multidrizzle")
+        _handle.close()
 
 
 class WF2InputImage (WFPC2InputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=0):
-        WFPC2InputImage.__init__(self,input,dqname,platescale, memmap=0)
+    def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
+        WFPC2InputImage.__init__(self,input,dqname,platescale, memmap=0,proc_unit=proc_unit)
         self.instrument = 'WFPC2/WF2'
         self.platescale = platescale #0.0996 #arcsec / pixel
         
     def _setchippars(self):
         if self._headergain == 7:
             self._gain    = 7.12
-            self._rdnoise = 5.51  
+            self._rdnoise = 5.51  # electrons
         elif self._headergain == 15:
             self._gain    = 14.50
-            self._rdnoise = 7.84
+            self._rdnoise = 7.84 # electrons
         else:
             raise ValueError, "! Header gain value is not valid for WFPC2"
 
 class WF3InputImage (WFPC2InputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=0):
-        WFPC2InputImage.__init__(self, input, dqname, platescale, memmap=0)
+    def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
+        WFPC2InputImage.__init__(self, input, dqname, platescale, memmap=0,proc_unit=proc_unit)
         self.instrument = 'WFPC2/WF3'
         self.platescale = platescale #0.0996 #arcsec / pixel
 
     def _setchippars(self):
         if self._headergain == 7:
             self._gain    = 6.90
-            self._rdnoise = 5.22  
+            self._rdnoise = 5.22  #electrons
         elif self._headergain == 15:
             self._gain    = 13.95
-            self._rdnoise = 6.99
+            self._rdnoise = 6.99 #electrons
         else:
             raise ValueError, "! Header gain value is not valid for WFPC2"
 
 class WF4InputImage (WFPC2InputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=0):
-        WFPC2InputImage.__init__(self, input, dqname, platescale, memmap=0)
+    def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
+        WFPC2InputImage.__init__(self, input, dqname, platescale, memmap=0,proc_unit=proc_unit)
         self.instrument = 'WFPC2/WF4'
         self.platescale = platescale #0.0996 #arcsec / pixel
 
     def _setchippars(self):
         if self._headergain == 7:
             self._gain    = 7.10
-            self._rdnoise = 5.19  
+            self._rdnoise = 5.19   #electrons
         elif self._headergain == 15:
             self._gain    = 13.95
-            self._rdnoise = 8.32
+            self._rdnoise = 8.32 # electrons
         else:
             raise ValueError, "! Header gain value is not valid for WFPC2"
 
 class PCInputImage (WFPC2InputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=0):
-        WFPC2InputImage.__init__(self,input,dqname,platescale,memmap=0)
+    def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
+        WFPC2InputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         self.instrument = 'WFPC2/PC'
         self.platescale = platescale #0.0455 #arcsec / pixel
 
     def _setchippars(self):
         if self._headergain == 7:
             self._gain    = 7.12
-            self._rdnoise = 5.24  
+            self._rdnoise = 5.24   # electrons
         elif self._headergain == 15:
             self._gain    = 13.99
-            self._rdnoise = 7.02 
+            self._rdnoise = 7.02 # electrons
         else:
             raise ValueError, "! Header gain value is not valid for WFPC2"

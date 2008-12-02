@@ -12,8 +12,8 @@ class WFC3UVISInputImage(InputImage):
 
     SEPARATOR = '_'
 
-    def __init__(self, input,dqname,platescale,memmap=0):
-        InputImage.__init__(self,input,dqname,platescale,memmap=0)
+    def __init__(self, input,dqname,platescale,memmap=0,proc_unit="native"):
+        InputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
 
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
@@ -144,8 +144,8 @@ class WFC3UVISInputImage(InputImage):
 
 class WFC3IRInputImage(IRInputImage):
 
-    def __init__(self, input, dqname, platescale, memmap=0):
-        IRInputImage.__init__(self,input,dqname,platescale,memmap=0)
+    def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
+        IRInputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
@@ -162,6 +162,52 @@ class WFC3IRInputImage(IRInputImage):
         self.full_shape = (1000,1000)
         self.platescale = platescale
 
+    def doUnitConversions(self):
+        # Image information 
+        _handle = fileutil.openImage(self.name,mode='update',memmap=0) 
+        _sciext = fileutil.getExtn(_handle,extn=self.extn)         
+
+        # Set the BUNIT keyword to 'electrons'
+        _handle[1].header.update('BUNIT','ELECTRONS')
+
+        # Counts case 
+        N.multiply(_sciext.data,self.getExpTime(),_sciext.data)
+        
+        # Close the files and clean-up
+        _handle.close() 
+
+    def updateMDRIZSKY(self,filename=None): 
+        if (filename == None): 
+            filename = self.name     
+        try: 
+            _handle = fileutil.openImage(filename,mode='update',memmap=0) 
+        except IOError:
+            raise IOError, "Unable to open %s for sky level computation"%filename 
+        # Get the exposure time for the image.  If the exposure time of the image 
+        # is 0, set the MDRIZSKY value to 0.  Otherwise update the MDRIZSKY value 
+        # in units of electrons per second. 
+        if (self.getExpTime() == 0.0): 
+            str =  "*******************************************\n" 
+            str += "*                                         *\n" 
+            str += "* ERROR: Image EXPTIME = 0.               *\n" 
+            str += "* MDRIZSKY header value cannot be         *\n" 
+            str += "* converted to units of 'electrons/s'     *\n" 
+            str += "* MDRIZSKY will be set to a value of '0'  *\n" 
+            str += "*                                         *\n" 
+            str =  "*******************************************\n" 
+            _handle[0].header['MDRIZSKY'] = 0 
+            print str 
+        else:
+            # Assume the MDRIZSKY keyword is in the primary header.  Try to update 
+            # the header value
+            if self.proc_unit == 'electrons': 
+                skyvalue = self.getSubtractedSky()/self.getExpTime() 
+            else: 
+                skyvalue = self.getSubtractedSky() 
+            print "Updating MDRIZSKY keyword to primary header with value %f"%(skyvalue) 
+            _handle[0].header.update('MDRIZSKY',skyvalue)  
+        finally:
+            _handle.close() 
         
     def setInstrumentParameters(self, instrpars, pri_header):
         """ This method overrides the superclass to set default values into
