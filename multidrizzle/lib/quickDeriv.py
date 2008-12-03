@@ -13,14 +13,14 @@
 __version__ = '0.1.0'
 
 # IMPORT EXTERNAL MODULES
-import numpy as N
+import numpy as np
 
 def qderiv(array): # TAKE THE ABSOLUTE DERIVATIVE OF A NUMARRY OBJECT
     """Take the absolute derivate of an image in memory."""
 
     #Create 2 empty arrays in memory of the same dimensions as 'array'
-    tmpArray = N.zeros(array.shape,dtype=N.float64)
-    outArray = N.zeros(array.shape, dtype=N.float64)
+    tmpArray = np.zeros(array.shape,dtype=np.float64)
+    outArray = np.zeros(array.shape, dtype=np.float64)
 
     # Get the length of an array side
     (naxis1,naxis2) = array.shape
@@ -55,16 +55,16 @@ def qderiv(array): # TAKE THE ABSOLUTE DERIVATIVE OF A NUMARRY OBJECT
 
     
     
-    return outArray.astype(N.float32)
+    return outArray.astype(np.float32)
 
 
 def _absoluteSubtract(array,tmpArray,outArray):
     #subtract shifted image from imput image
     tmpArray = array - tmpArray
     #take the absolute value of tmpArray
-    tmpArray = N.fabs(tmpArray)
+    tmpArray = np.fabs(tmpArray)
     #save maximum value of outArray or tmpArray and save in outArray
-    outArray = N.maximum(tmpArray,outArray)
+    outArray = np.maximum(tmpArray,outArray)
     #zero out tmpArray before reuse
     tmpArray = tmpArray * 0.
 

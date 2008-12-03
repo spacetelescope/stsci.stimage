@@ -5,7 +5,7 @@
 #               mask which is used to mask pixels that are some
 #               sigma BELOW the mode computed for the image.
 
-import numpy as N
+import numpy as np
 
 import imagestats
 from imagestats import ImageStats
@@ -66,11 +66,11 @@ class StaticMask:
         #
         sky_rms_diff = mode - (self.static_sig*rms)
 
-        N.bitwise_and(self.masklist[signature],N.logical_not(N.less( sci_arr, sky_rms_diff)),self.masklist[signature])
+        np.bitwise_and(self.masklist[signature],np.logical_not(np.less( sci_arr, sky_rms_diff)),self.masklist[signature])
 
     def _buildMaskArray(self,signature):
         """ Creates numarray array for static mask array signature. """
-        return N.ones(signature[1],dtype=N.int16)
+        return np.ones(signature[1],dtype=np.int16)
 
     def getMask(self,signature):
         """ Returns the appropriate StaticMask array for the image. """

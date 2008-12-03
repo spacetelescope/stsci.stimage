@@ -29,7 +29,7 @@ __docformat__ = 'restructuredtext'
 
 # Begin Import Modules ---------------------------------------------------
 import os, shutil, sys, string
-import numpy as N
+import numpy as np
 from pydrizzle import pydrizzle, process_input
 from pydrizzle import drutil
 import pyfits
@@ -824,7 +824,7 @@ def versioninfo():
     python_key = " Python Version: "
     
     version_dict[mdrizzle_key] = __version__
-    version_dict[array_key]= N.__version__
+    version_dict[array_key]= np.__version__
     version_dict[pydrizzle_key]= pydrizzle.__version__
     version_dict[pyfits_key] = pyfits.__version__
 

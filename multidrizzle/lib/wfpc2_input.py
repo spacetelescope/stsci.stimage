@@ -148,7 +148,7 @@ class WFPC2InputImage (InputImage):
         # Multiply the values of the sci extension pixels by the gain. 
         print "Converting %s from COUNTS to ELECTRONS"%(self.name) 
         # If the exptime is 0 the science image will be zeroed out. 
-        N.multiply(_sciext.data,self.getGain(),_sciext.data)
+        np.multiply(_sciext.data,self.getGain(),_sciext.data)
 
         # Set the BUNIT keyword to 'electrons'
         _handle[1].header.update('BUNIT','ELECTRONS')

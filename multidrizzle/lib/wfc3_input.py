@@ -101,7 +101,7 @@ class WFC3UVISInputImage(InputImage):
                 hdu = fileutil.getExtn(handle,extn=self.extn)
                 data = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
             except:
-                data = n.ones(self.image_shape,dtype=self.image_dtype)
+                data = np.ones(self.image_shape,dtype=self.image_dtype)
                 str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
                 print str
         flat = data
@@ -171,7 +171,7 @@ class WFC3IRInputImage(IRInputImage):
         _handle[1].header.update('BUNIT','ELECTRONS')
 
         # Counts case 
-        N.multiply(_sciext.data,self.getExpTime(),_sciext.data)
+        np.multiply(_sciext.data,self.getExpTime(),_sciext.data)
         
         # Close the files and clean-up
         _handle.close() 
@@ -263,7 +263,7 @@ class WFC3IRInputImage(IRInputImage):
                 hdu = fileutil.getExtn(handle,extn=self.grp)
                 data = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
             except:
-                data = N.ones(self.image_shape,dtype=self.image_dtype)
+                data = np.ones(self.image_shape,dtype=self.image_dtype)
                 str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
                 print str
 
@@ -293,7 +293,7 @@ class WFC3IRInputImage(IRInputImage):
         # what we know about the detector dark current and assume a
         # constant dark current for the whole image.
         except:
-            darkobj = N.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
+            darkobj = np.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
         return darkobj
 
 

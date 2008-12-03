@@ -89,7 +89,7 @@ class NICMOSInputImage(IRInputImage):
             # If the exptime is 0 the science image will be zeroed out. 
             conversionFactor = (self.getGain())  
 
-        N.multiply(_sciext.data,conversionFactor,_sciext.data)
+        np.multiply(_sciext.data,conversionFactor,_sciext.data)
         
         # Set the BUNIT keyword to 'electrons'
         _handle[1].header.update('BUNIT','ELECTRONS')

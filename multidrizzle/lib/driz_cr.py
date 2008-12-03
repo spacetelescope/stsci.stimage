@@ -1,42 +1,7 @@
 # DRIZ_CR  -- mask blemishes in dithered data by comparison of an image
 #             with a model image and the derivative of the model image.
 #
-# IRAF CL HISTORY
-# ---------------
-# V1.0     -- released June 1998
-# V1.01    -- error in imcalc quotation fixed -- 30 June 1998
-# V1.02    -- updated to handle cps   --  26 Oct 1998
-# V1.03    -- added ability to weight using flatfield  -- A. Fruchter
-# V1.04    -- explicitly specify the ".pl" extension in the last imcalc,
-#               and imtype for _bl and _bl_deriv files.  -- JC Hsu, 21 Jan 2000
-# V1.05    -- added ability to change suffixes for input and output files  --  26 Jun 2000
 #
-# PYTHON HISTORY
-# --------------
-# 22 Oct 2003 -- Version 0.0.0 -- Created a Python version of the DRIZ_CR CL script. -- C.J.Hanley
-# 18 Nov 2003 -- Version 0.1.0 -- Removed the bitvalue parameter as a user selectable parameter.
-#                                   Since we want to work on a boolean dqmask, bad pixels are being
-#                                   set to 0.  The 0 value is hard coded in the putmask step.
-# 30 Jan 2004 -- Version 0.1.1 -- A corr file will now be created in the corrName is set to value. -- CJH
-# 23 Feb 2004 -- Version 0.1.2 -- If the background keyword is not found, the background level for the image
-#                                   is assumed to be 0.  A warning message is printed.  If the exposure time
-#                                   keyword is not found, the countrate is assumed to be 1.  This is only an
-#                                   issue if the units are specified as "CPS" for the image in question.  A
-#                                   warning message is issued when this occurs. -- CJH
-# 22 Mar 2004 -- Version 0.1.3 -- Have completely refactored the driz_cr module.  I have added methods for updating
-#                                 the DQ arrays with the CR information using a specified bit value.  Also, have
-#                                 added a method for outputing the CR mask as a fits files.
-# 12 May 2004 -- Version 0.1.4 -- Fixed logic error in the update of dq arrays methods.  Instead of adding 4096 to
-#                                 the dqarray we now do a bitwise and operation.
-# 20 May 2004 -- Version 0.1.5 -- Fixed bug in the method for creating a cr mask fits file.
-# 30 Sep 2004 -- Version 0.1.6 -- Modified the cor and cr mask file creation methods to install a copy of the
-#                                   input's primary + extension header
-# 05 Apr 2005 -- Version 0.2.0 -- Modified the cor and cr mask file creation methods to remove extension specific
-#                                   keywords from the header it creates. -- CJH
-# 02 Jun 2005 -- Version 1.0.0 -- Added parameters driz_cr_grow and driz_cr_ctegrow for CTE masking of cosmic 
-#                                   rays. -- DMG
-# 16 Jan 2006 -- Version 1.0.1 -- Enforced the format of the crmask file to be UInt8, instead of upcasting to  
-#                                   system defined integer (eg., Int64 for 64-bit systems). -- WJH
 
 # Import external packages
 import numpy as N
@@ -99,7 +64,7 @@ class DrizCR:
         self.crMask = None
 
         # Define output parameters
-        __crMask = N.zeros(self.__inputImage.shape,dtype=N.uint8)
+        __crMask = np.zeros(self.__inputImage.shape,dtype=np.uint8)
 
         # Determine a scaling factor depending on the units of the input image, "counts" or "cps"
         if (self.__units == "counts"):
@@ -124,20 +89,20 @@ class DrizCR:
 #       convolve(tmp1, tmp2, "", "1 1 1", "1 1 1", bilin=yes, radsym=no)
 
         # Create a temp array mask
-        __t1 = N.absolute(self.__inputImage - self.__blotImg)
-        __ta = N.sqrt(self.__gain * N.absolute(self.__blotImg * self.__expmult + self.__back * self.__expmult) + self.__rn * self.__rn)
+        __t1 = np.absolute(self.__inputImage - self.__blotImg)
+        __ta = np.sqrt(self.__gain * np.absolute(self.__blotImg * self.__expmult + self.__back * self.__expmult) + self.__rn * self.__rn)
         __tb = ( self.__mult1 * self.__blotDerivImg + self.__snr1 * __ta / self.__gain )
         del __ta
         __t2 = __tb / self.__expmult
         del __tb
-        __tmp1 = N.logical_not(N.greater(__t1, __t2))
+        __tmp1 = np.logical_not(np.greater(__t1, __t2))
         del __t1
         del __t2
 
         # Create a convolution kernel that is 3 x 3 of 1's
-        __kernel = N.ones((3,3),dtype=N.uint8)
+        __kernel = np.ones((3,3),dtype=np.uint8)
         # Create an output tmp file the same size as the input temp mask array
-        __tmp2 = N.zeros(__tmp1.shape,dtype=N.int16)
+        __tmp2 = np.zeros(__tmp1.shape,dtype=np.int16)
         # Convolve the mask with the kernel
         NC.convolve2d(__tmp1,__kernel,output=__tmp2,fft=0,mode='nearest',cval=0)
         del __kernel
@@ -155,14 +120,14 @@ class DrizCR:
 #       imcalc (imcalin, imcalout, "@"//tmp5, verb-)
 
         # Create the CR Mask
-        __xt1 = N.absolute(self.__inputImage - self.__blotImg)
-        __xta = N.sqrt(self.__gain * N.absolute(self.__blotImg * self.__expmult + self.__back * self.__expmult) + self.__rn * self.__rn)
+        __xt1 = np.absolute(self.__inputImage - self.__blotImg)
+        __xta = np.sqrt(self.__gain * np.absolute(self.__blotImg * self.__expmult + self.__back * self.__expmult) + self.__rn * self.__rn)
         __xtb = ( self.__mult2 * self.__blotDerivImg + self.__snr2 * __xta / self.__gain )
         del __xta
         __xt2 = __xtb / self.__expmult
         del __xtb
         # It is necessary to use a bitwise 'and' to create the mask with numarray objects.
-        __crMask = N.logical_not(N.greater(__xt1, __xt2) & N.less(__tmp2,9) )
+        __crMask = np.logical_not(np.greater(__xt1, __xt2) & np.less(__tmp2,9) )
         del __xt1
         del __xt2
         del __tmp2
@@ -176,15 +141,15 @@ class DrizCR:
 
         # recast __crMask to int for manipulations below; will recast to Bool at end
         __crMask_orig_bool= __crMask.copy() 
-        __crMask= __crMask_orig_bool.astype( N.int8 )
+        __crMask= __crMask_orig_bool.astype( np.int8 )
         
         # make radial convolution kernel and convolve it with original __crMask 
-        cr_grow_kernel = N.ones((grow, grow))     # kernel for radial masking of CR pixel
+        cr_grow_kernel = np.ones((grow, grow))     # kernel for radial masking of CR pixel
         cr_grow_kernel_conv = __crMask.copy()   # for output of convolution
         NC.convolve2d( __crMask, cr_grow_kernel, output = cr_grow_kernel_conv)
         
         # make tail convolution kernel and convolve it with original __crMask
-        cr_ctegrow_kernel = N.zeros((2*ctegrow+1,2*ctegrow+1))  # kernel for tail masking of CR pixel
+        cr_ctegrow_kernel = np.zeros((2*ctegrow+1,2*ctegrow+1))  # kernel for tail masking of CR pixel
         cr_ctegrow_kernel_conv = __crMask.copy()  # for output convolution 
 
         # which pixels are masked by tail kernel depends on sign of ctedir (i.e.,readout direction):
@@ -199,11 +164,11 @@ class DrizCR:
         NC.convolve2d( __crMask, cr_ctegrow_kernel, output = cr_ctegrow_kernel_conv)    
 
         # select high pixels from both convolution outputs; then 'and' them to create new __crMask
-        where_cr_grow_kernel_conv    = N.where( cr_grow_kernel_conv < grow*grow,0,1 )        # radial
-        where_cr_ctegrow_kernel_conv = N.where( cr_ctegrow_kernel_conv < ctegrow, 0, 1 )     # length
-        __crMask = N.logical_and( where_cr_ctegrow_kernel_conv, where_cr_grow_kernel_conv) # combine masks
+        where_cr_grow_kernel_conv    = np.where( cr_grow_kernel_conv < grow*grow,0,1 )        # radial
+        where_cr_ctegrow_kernel_conv = np.where( cr_ctegrow_kernel_conv < ctegrow, 0, 1 )     # length
+        __crMask = np.logical_and( where_cr_ctegrow_kernel_conv, where_cr_grow_kernel_conv) # combine masks
 
-        __crMask = __crMask.astype(N.uint8) # cast back to Bool
+        __crMask = __crMask.astype(np.uint8) # cast back to Bool
 
         del __crMask_orig_bool
         del cr_grow_kernel 
@@ -226,7 +191,7 @@ class DrizCR:
         """ Update the dq file generated mask with the cr mask information """
 
         # Apply CR mask to the DQ array in place
-        N.bitwise_and(self.dqMask,self.crMask,self.dqMask)
+        np.bitwise_and(self.dqMask,self.crMask,self.dqMask)
 
     def createcorrfile(self,
         corrName = None, # Name of output file corr image
@@ -238,8 +203,8 @@ class DrizCR:
 #       imcalc(s1,img0//cor_suffix,"if (im2 .eq. 0) then im3 else im1", verb-)
         try:
             # CREATE THE CORR IMAGE
-            __corrFile = N.zeros(self.__inputImage.shape,dtype=self.__inputImage.dtype)
-            __corrFile = N.where(N.equal(self.dqMask,0),self.__blotImg,self.__inputImage)
+            __corrFile = np.zeros(self.__inputImage.shape,dtype=self.__inputImage.dtype)
+            __corrFile = np.where(np.equal(self.dqMask,0),self.__blotImg,self.__inputImage)
             
             # Remove the existing cor file if it exists
             try:
@@ -284,8 +249,8 @@ class DrizCR:
 
         """ Update the dqarray with the cosmic ray detection information using the provided bit value """
 
-        __bitarray = N.logical_not(self.crMask).astype(N.int16) * cr_bits_value
-        N.bitwise_or(dqarray,__bitarray,dqarray)
+        __bitarray = np.logical_not(self.crMask).astype(np.int16) * cr_bits_value
+        np.bitwise_or(dqarray,__bitarray,dqarray)
 
     def createcrmaskfile(self,
         crName = None, # Name of outputfile cr mask image
@@ -294,8 +259,8 @@ class DrizCR:
 
         """ Create a fits file containing the generated cosmic ray mask. """
         try:
-            _cr_file = N.zeros(self.__inputImage.shape,N.uint8)
-            _cr_file = N.where(self.crMask,1,0).astype(N.uint8)
+            _cr_file = np.zeros(self.__inputImage.shape,np.uint8)
+            _cr_file = np.where(self.crMask,1,0).astype(np.uint8)
             
             # Remove the existing cor file if it exists
             try:
