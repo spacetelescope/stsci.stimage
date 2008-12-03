@@ -28,10 +28,7 @@ class NICMOSInputImage(IRInputImage):
         # no cte correction for NICMOS so set cte_dir=0.
         self.cte_dir = 0   
 
-        if self.proc_unit == "electrons":
-            self._effGain = 1
-        else:
-            self._effGain = self.getGain()
+        self._effGain = 1
 
     def updateMDRIZSKY(self,filename=None): 
         if (filename == None): 
@@ -69,7 +66,7 @@ class NICMOSInputImage(IRInputImage):
         _handle.close() 
 
     def doUnitConversions(self): 
-        # Image information 
+        # Image information        
         _handle = fileutil.openImage(self.name,mode='update',memmap=0) 
         _sciext = fileutil.getExtn(_handle,extn=self.extn)         
 
@@ -92,11 +89,11 @@ class NICMOSInputImage(IRInputImage):
         np.multiply(_sciext.data,conversionFactor,_sciext.data)
         
         # Set the BUNIT keyword to 'electrons'
-        _handle[1].header.update('BUNIT','ELECTRONS')
+        _handle[0].header.update('BUNIT','ELECTRONS')
 
         # Update the PHOTFLAM value
-        photflam = _handle[1].header['PHOTFLAM']
-        _handle[1].header.update('PHOTFLAM',(photflam/self.getGain()))
+        photflam = _handle[0].header['PHOTFLAM']
+        _handle[0].header.update('PHOTFLAM',(photflam/self.getGain()))
         
         # Close the files and clean-up
         _handle.close() 
@@ -141,7 +138,6 @@ class NICMOSInputImage(IRInputImage):
         usingDefaultReadnoise = False
         if (instrpars['rnkeyword'] == None):
             usingDefaultReadnoise = True
-
             
         # Set the default readnoise values based upon the amount of user input given.
         
@@ -149,7 +145,10 @@ class NICMOSInputImage(IRInputImage):
         if usingDefaultReadnoise:
             # Set the default gain and readnoise values
             self._setchippars()
-
+        
+        # Set the darkrate for the chips
+        self._setDarkRate()
+        
         # Convert the science data to electrons if specified by the user.  Each
         # instrument class will need to define its own version of doUnitConversions
         if self.proc_unit == "electrons":
@@ -258,6 +257,8 @@ class NIC1InputImage(NICMOSInputImage):
     def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
         NICMOSInputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         self.instrument = 'NICMOS/1'
+        
+    def _setDarkRate(self):
         self.darkrate = 0.08 #electrons/s
         if self.proc_unit == 'native':
             self.darkrate = self.darkrate / self.getGain() # DN/s
@@ -271,6 +272,8 @@ class NIC2InputImage(NICMOSInputImage):
     def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
         NICMOSInputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         self.instrument = 'NICMOS/2'
+        
+    def _setDarkRate(self):
         self.darkrate = 0.08 #electrons/s
         if self.proc_unit == 'native':
             self.darkrate = self.darkrate / self.getGain() # DN/s
@@ -284,6 +287,8 @@ class NIC3InputImage(NICMOSInputImage):
     def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
         NICMOSInputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         self.instrument = 'NICMOS/3'
+        
+    def _setDarkRate(self):
         self.darkrate = 0.15 #electrons/s
         if self.proc_unit == 'native':
             self.darkrate = self.darkrate/self.getGain() #DN/s
