@@ -4,7 +4,7 @@
 #
 
 # Import external packages
-import numpy as N
+import numpy as np
 import convolve as NC
 import pyfits
 import os
