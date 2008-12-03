@@ -150,6 +150,11 @@ class NICMOSInputImage(IRInputImage):
             # Set the default gain and readnoise values
             self._setchippars()
 
+        # Convert the science data to electrons if specified by the user.  Each
+        # instrument class will need to define its own version of doUnitConversions
+        if self.proc_unit == "electrons":
+            self.doUnitConversions()
+
     def _setchippars(self):
         self._setDefaultReadnoise()
                 

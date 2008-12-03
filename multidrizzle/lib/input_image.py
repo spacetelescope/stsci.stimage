@@ -90,12 +90,6 @@ class InputImage(object):
         # Set Units used for processing.  Options are "native" or "electrons"
         self.proc_unit = proc_unit
 
-        # Convert the science data to electrons if specified by the user.  Each
-        # instrument class will need to define its own version of doUnitConversions
-        if self.proc_unit == "electrons":
-            self.doUnitConversions()
-
-
     def setInstrumentParameters(self, instrpars, pri_header):
         """ 
         Sets the instrument parameters.

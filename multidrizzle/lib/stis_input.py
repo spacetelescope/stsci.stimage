@@ -162,6 +162,11 @@ class STISInputImage (InputImage):
             print 'ERROR: invalid instrument task parameter'
             raise ValueError
 
+        # Convert the science data to electrons if specified by the user.  Each
+        # instrument class will need to define its own version of doUnitConversions
+        if self.proc_unit == "electrons":
+            self.doUnitConversions()
+
     def _setMAMAchippars(self):
         self._setMAMADefaultGain()
         self._setMAMADefaultReadnoise()
