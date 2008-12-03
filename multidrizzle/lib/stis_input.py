@@ -53,8 +53,7 @@ class STISInputImage (InputImage):
                 skyvalue = skyvalue/self.getGain()
             print "Updating MDRIZSKY keyword to primary header with value %f"%(skyvalue) 
             _handle[0].header.update('MDRIZSKY',skyvalue)  
-        finally:
-            _handle.close() 
+        _handle.close() 
 
     def doUnitConversions(self): 
         # Image information 

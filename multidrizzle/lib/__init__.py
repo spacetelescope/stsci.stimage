@@ -119,7 +119,6 @@ help file.
                  editpars   = False,
                  shiftfile  = None, 
                  updatewcs  = True,
-                 proc_unit  = proc_unit,
                  **input_dict):
 
         timestamp()
@@ -130,7 +129,7 @@ help file.
         
         self.shiftfile = shiftfile
         self.updatewcs = updatewcs
-        self.proc_unit = proc_unit
+        self.proc_unit = input_dict['proc_unit']
 
         # We need to parse the input to get the list of filenames
         # that are to be processed by Multidrizzle.

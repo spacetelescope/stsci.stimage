@@ -206,8 +206,7 @@ class WFC3IRInputImage(IRInputImage):
                 skyvalue = self.getSubtractedSky() 
             print "Updating MDRIZSKY keyword to primary header with value %f"%(skyvalue) 
             _handle[0].header.update('MDRIZSKY',skyvalue)  
-        finally:
-            _handle.close() 
+        _handle.close() 
         
     def setInstrumentParameters(self, instrpars, pri_header):
         """ This method overrides the superclass to set default values into
