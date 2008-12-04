@@ -16,7 +16,8 @@ class ACSInputImage(InputImage):
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
         self.platescale = platescale
-        
+        self._effGain = 1
+
     def doUnitConversions(self):
         # Effective gain to be used in the driz_cr step.  Since the
         # ACS images have already been converted to electrons,
