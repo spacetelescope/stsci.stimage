@@ -129,7 +129,11 @@ help file.
         
         self.shiftfile = shiftfile
         self.updatewcs = updatewcs
-        self.proc_unit = input_dict['proc_unit']
+        if input_dict.has_key('proc_unit'):
+            self.proc_unit = input_dict['proc_unit']
+        else:
+            self.proc_unit = "native"
+
 
         # We need to parse the input to get the list of filenames
         # that are to be processed by Multidrizzle.
