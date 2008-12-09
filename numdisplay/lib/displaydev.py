@@ -51,8 +51,11 @@ except ImportError, error:
     # set a default that will be compatible with Win platform
     os.O_NDELAY = 0
 
-from pytools import fileutil
-
+try:
+    from pytools import fileutil
+except:
+    fileutil=None
+    
 try:
     SOCKTYPE = socket.AF_UNIX
 except AttributeError, error:
@@ -252,7 +255,12 @@ class ImageDisplay(object):
         try:
             # Try to use the IRAF 'stdimage' value as the default
             # fbconfig number, if it exists 
-            self.fbname = fileutil.envget('stdimage')
+            if fileutil is not None:
+                self.fbname = fileutil.envget('stdimage')
+            else:
+                if 'stdimage' in os.environ: 
+                    self.fbname = os.environ['stdimage']
+
             if self.fbname is not None:
                 # Search through all IMTOOLRC entries to find a match 
                 _fbconfig = self.getConfigno(self.fbname)
