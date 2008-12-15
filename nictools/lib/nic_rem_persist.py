@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 #
-# Author : Dave Grumm (based on IDL routine by Adam Riess)
+# Author : Dave Grumm (based on an IDL routine by Adam Riess)
 # Program: nic_rem_persist.py
 # Purpose: routine to remove persistence from NICMOS data
 # History:
@@ -81,25 +81,33 @@ class NicRemPersist:
             print '=== BEP', __version__,' starting at ', current_time  
 
         [ options, args, parser ] = persutil.getOptions()
-
+        
         persutil.setVerbosity( options.verbosity)  
         verbosity = options.verbosity 
-
+ 
         # get parameter values if not specified on command line
         if (persist_lo == None ):
             persist_lo = persutil.getPersist_lo( input_file, options) 
 
+        if (persist_lo == None ):  # true if keyword is not in model file
+            persist_lo = persutil.persist_lo 
+
         if (used_lo == None ):
             used_lo = persutil.getUsed_lo( input_file, options)
 
+        if (used_lo == None ):  # true if keyword is not in model file
+            used_lo = persutil.used_lo   
+        
         if (persist_model == None ):
             persist_model = persutil.getPersist_model( input_file, options)
 
         if (persist_mask == None ):
             persist_mask = persutil.getPersist_mask( input_file, options)
 
+
+
         # do some parameter type checking        
-        if ( __name__ == 'nic_rem_persist'):  
+        if ( __name__ == 'nic_rem_persist'):
               [ persist_lo, used_lo, persist_model, persist_mask ] = check_py_pars(input_file, persist_lo, used_lo, persist_model, persist_mask)
         else:
               [ persist_lo, used_lo] = check_cl_pars(input_file, persist_lo, used_lo)
@@ -336,6 +344,7 @@ def check_cl_pars(input_file, persist_lo, used_lo):
    except:
         opusutil.PrintMsg("F","ERROR - unable to open the input file  "+ str(input_file))
         sys.exit( ERROR_RETURN)
+
    try:
        if (type( persist_lo ) == str):
           persist_lo = string.atof(persist_lo)
