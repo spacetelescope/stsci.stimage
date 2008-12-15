@@ -4,6 +4,7 @@ import sys
 import time
 import pyfits
 from optparse import OptionParser  
+import os
 
 # Utility functions and parameters for nic_rem_persist
 
@@ -17,6 +18,7 @@ verbosity = VERBOSE
 persist_lo = 0.5   # only used for pyraf version
 used_lo = 0.5   # only used for pyraf version
 
+nref = os.path.expandvars('$nref') 
 
 def all_printMsg( message, level=VERBOSE):
 
@@ -44,11 +46,13 @@ def checkVerbosity( level):
     return (verbosity >= level)
 
 def getPersist_lo( input_file, options):
-    """
+    """ Get value of persist_lo from either being set on the command line or from
+        BEPVALLO in the persistence model file PMODFILE 
+
     @param input_file: input ped file
     @type iput_file: string
-    @options: array of values to sigma clip
-    @type clip:  Float32
+    @options: command line options
+    @type clip:  string
 
     @return: persist_lo
     @rtype:  float    
@@ -57,8 +61,9 @@ def getPersist_lo( input_file, options):
     if (options.persist_lo == None ):    # get pmodfile from header of input_file, and get bepvallo from pmodfile           
          fh_infile = pyfits.open( input_file)
          pmodfile =  fh_infile[0].header.get( "PMODFILE" )
-         fh_pmod = pyfits.open( pmodfile)         
-         persist_lo =  fh_pmod[0].header.get( "BEPVALLO" )
+         pmodfile = os.path.join( nref, pmodfile.split('nref$')[1] )
+         fh_pmod = pyfits.open( pmodfile)       
+         persist_lo =  fh_pmod[0].header.get( "BEPVALLO" ) 
          fh_infile.close(); fh_pmod.close()
     else:
          persist_lo = options.persist_lo
@@ -67,19 +72,23 @@ def getPersist_lo( input_file, options):
 
 
 def getUsed_lo( input_file, options):
-    """
+    """  Get value of used_lo from either being set on the command line or from
+        BEPUSELO in the persistence model file PMODFILE 
+
     @param input_file: input ped file
     @type iput_file: string
-    @options: array of values to sigma clip
-    @type clip:  Float32
+    @options: command line options
+    @type clip:  string
 
     @return:  used_lo
     @rtype:  float    
     """
+
     if (options.used_lo == None ):    # get pmodfile from header of input_file, and get bepuselo from pmodfile           
          fh_infile = pyfits.open( input_file)
          pmodfile =  fh_infile[0].header.get( "PMODFILE" )
-         fh_pmod = pyfits.open( pmodfile)         
+         pmodfile = os.path.join( nref, pmodfile.split('nref$')[1])
+         fh_pmod = pyfits.open( pmodfile)
          used_lo =  fh_pmod[0].header.get( "BEPUSELO" )
          fh_infile.close(); fh_pmod.close()
     else:
@@ -89,19 +98,22 @@ def getUsed_lo( input_file, options):
              
 
 def getPersist_model( input_file, options):
-    """
+    """  Get name of persistence model from either the command line or from
+         PMODFILE in the input file 
+
     @param input_file: input ped file
     @type iput_file: string
-    @options: array of values to sigma clip
-    @type clip:  Float32
+    @options: command line options
+    @type clip:  string
 
     @return: persist_model
     @rtype: string    
     """
-
+    
     if (options.persist_model == None ):    # get pmodfile from header of input_file
          fh_infile = pyfits.open( input_file)
          persist_model = fh_infile[0].header.get( "PMODFILE" )
+         persist_model = os.path.join( nref, persist_model.split('nref$')[1] )
          fh_infile.close(); 
     else:
          persist_model = options.persist_model
@@ -110,18 +122,22 @@ def getPersist_model( input_file, options):
 
 
 def getPersist_mask( input_file, options):
-    """
+    """ Get name of persistence mask from either the command line or from
+         PMSKFILE in the input file 
+
     @param input_file: iput ped file
     @type iput_file: string
-    @options: array of values to sigma clip
-    @type clip:  Float32
+    @options: command line options
+    @type clip: string
 
     @return: persist_mask
     @rtype: string    
     """
+    
     if (options.persist_mask == None ):    # get pmskfile from header of input_file
              fh_infile = pyfits.open( input_file)
              persist_mask = fh_infile[0].header.get( "PMSKFILE" )
+             persist_mask = os.path.join( nref,persist_mask.split('nref$')[1])
              fh_infile.close(); 
     else:
              persist_mask = options.persist_mask
