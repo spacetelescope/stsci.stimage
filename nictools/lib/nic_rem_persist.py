@@ -25,6 +25,7 @@
 #  08/25/08 - for consistency with other NICMOS tasks in the pipeline, changing BEPCORR
 #             to BEPCORR plus BEPDONE. BEPCORR will not be updated; BEPDONE will be updated to
 #             PERFORMED, SKIPPED, or OMITTED
+#  12/15/08 - Will use default values for used_lo and and persist_lo if BEPEUSELO and BEPVALLO are not in the PMODFILE. 
 #
 
 import pyfits
@@ -35,7 +36,7 @@ import persutil
 import string 
 import ndimage    # for median_filter
 
-__version__ = "1.3 (2008 Aug 26)"
+__version__ = "1.4 (2008 Dec 15)"
 
 
 ERROR_RETURN = -2
