@@ -14,7 +14,7 @@
 #              in which parameters are overwritten:
 #              --> tfb = CalTempFromBias.CalTempFromBias( "n8tf30jnq_raw.fits", edit_type="SPT",
 #                        force="QUIET", hdr_key="MYHKEY", err_key="MYEKEY", verbosity=2)
-#              --> [temp, sigma, winner ]= tfb.calctemp()
+#              --> [temp, sigma, winner, in_flag, dry_run ]= tfb.calctemp()
 #              --> stat = tfb.update_header( temp, sigma, winner)
 #              The same example under linux:
 #              hal> ./CalTempFromBias.py "n8tf30jnq_raw.fits" -e "SPT" -f "Q" -k "MYHKEY" -s "MYEKEY" -v
@@ -74,6 +74,9 @@
 #   10/08/08 - code version 2.01: improved handling of case where non-existent file is specified, and fixed some print
 #              statements
 #   11/18/08 - code version 2.02: added file existence checking, and removed requirement of reference files to be in $nref
+#   01/06/09 - code version 2.03: added check in update header to abort if calctemp() failed to calculate a valid temperature; this has
+#              been added for the case of running under pyraf to suppress display of traceback when TFBCALC and force are not set;
+#              embellished error message for this case 
 #
 import os.path
 import sys, time
@@ -89,7 +92,7 @@ from pytools import parseinput
 # Define some constants
 c2_min = 3.6218723e-06; c2_max = -3.6678544e-07; c3_min = 9.0923490e-11; c3_max = -4.1401650e-11  # used in bad pixel clipping
 
-__version__ = "2.02"   
+__version__ = "2.03"   
 
 ERROR_RETURN = 2  
 
@@ -353,7 +356,8 @@ class CalTempFromBias:
                 print quads
 
             # do requested caluculation based on TFBCALC and force settings
-            if (tfbcalc == 'PERFORM'): 
+            if (tfbcalc == 'PERFORM'):
+
                 if ((force == '') | (force == None) ) : #   [ reg test 1a, 1b ] 
                     force = str("B")                      
                     [temp, sig ] = do_blind( camera, quads, verbosity )  
@@ -425,10 +429,11 @@ class CalTempFromBias:
                 fh_raw.close()
                 return None, None, None, None, None
             else: # tfbcalc not set (user running on old file)
-                if ( verbosity > 0):
-                    print ' WARNING : TFBCALC is not set in the input file.'
+                print ' WARNING : TFBCALC is not set in the input file.'
+                
                 if ((force == '') | (force == None)) :   #  [  reg test 6 ] 
-                    opusutil.PrintMsg("F","ERROR "+ str('Force not set, so aborting.')) 
+                    opusutil.PrintMsg("F","ERROR "+ str('Because the keyword TFBCALC is not set in the input file and the parameter Force is not set, this run is aborting. If you want to process this file, either set TFBCALC to PERFORM or set Force to an allowed option (not None)'))  
+
                     if ((in_flag[0] != 'f') & ( dry_run != 0)) : 
                        raw_header.update("TFBDONE", "SKIPPED")
                        raw_header.update("TFBVER", self.tfb_version)
@@ -437,11 +442,13 @@ class CalTempFromBias:
                     return None, None, None, None, None  
                 elif (force.upper()[0] == "B") :     #  [  reg test 7 ] 
                     [temp, sig ] = do_blind( camera, quads, verbosity )
+                    
                     winner = 2
                     if ((in_flag[0] != 'f') & ( dry_run != 0)) :  
                        raw_header.update("TFBDONE", "PERFORMED")
                     if ((self.verbosity >1) & (dry_run == 0)) :
                        print ' The calculated temperature = ' , temp,' and sigma = ', sig
+
                 elif (force.upper()[0] == "Q") :    #  [  reg test 8 ] 
                     [temp, sig ] = do_quietest( camera, quads, verbosity )
                     winner = 3
@@ -527,6 +534,9 @@ class CalTempFromBias:
         @return: status (not None for failure due to key not being specified)
         @rtype: int
         """
+
+        if ( temp == None):   # added to abort if calctemp() failed to calculate a valid temperature; to suppress traceback under pyraf
+            return ERROR_RETURN     
  
         for ii in range(self.num_files):
             this_file = self.outlist0[ii]        
@@ -897,7 +907,7 @@ if __name__=="__main__":
 
          [temp, sigma, winner, in_flag, dry_run ]= tfb.calctemp()
 
-         if ([temp, sigma, winner ] != [None, None, None]):  
+         if ([temp, sigma, winner ] != [None, None, None]): 
 
              stat = None 
              if (( in_flag[0] == 'u' ) & ( dry_run != 0)): 
