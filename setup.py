@@ -22,6 +22,7 @@ all_packages_input = [
     "ndimage",
     "nictools",
     "numdisplay",
+    "opuscoords",
     "pydrizzle",
     "pytools",
     "sample_package",
