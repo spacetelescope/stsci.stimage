@@ -729,7 +729,7 @@ class ImageManager(object):
 #        _overlaprows = _nrows - (_overlap+1)
 #        _niter = int(_imgrows/_nrows)
 #        _niter = 1 + int( (_imgrows - _overlaprows)/_nrows)
-        _niter = computeNumberBuff(_imgrows,_nrows,_overlap)
+        _niter,_nrows = computeNumberBuff(_imgrows,_nrows,_overlap)
         _lastrows = _imgrows - (_niter*_nrows) 
         
         # check to see if this buffer size will leave enough rows for
