@@ -53,7 +53,7 @@ __version__ = '3.3.1dev'
 try:
     import svn_version
     __svn_version__ = svn_version.__svn_version__
-except:
+except ImportError:
     __svn_version__ = 'Unable to determine SVN revision'
 
 class Multidrizzle:
@@ -699,48 +699,39 @@ help file.
                                 driz_cr = driz_cr,
                                 driz_combine = driz_combine,
                                 timing = timing)
-        
-        # Insure that if an error occurs,
-        # all file handles are closed before exiting...
-        try:
-            # Start by applying input parameters to redefine
-            # the output frame as necessary
-            self.image_manager._setOutputFrame(self.driz_sep_pars)
-        
-            self._preMedian(skysub)
-            if self.steps.doStep(ProcSteps.doMedian):
-                self.image_manager.createMedian(self.medianpars)
-                self.steps.markStepDone(ProcSteps.doMedian)
 
-            self._postMedian(self.blotpars, self.drizcrpars, self.skypars)
+        # Start by applying input parameters to redefine
+        # the output frame as necessary
+        self.image_manager._setOutputFrame(self.driz_sep_pars)
+    
+        self._preMedian(skysub)
+        if self.steps.doStep(ProcSteps.doMedian):
+            self.image_manager.createMedian(self.medianpars)
+            self.steps.markStepDone(ProcSteps.doMedian)
 
-            if self.steps.doStep(ProcSteps.doFinalDriz):
-                self.image_manager.doFinalDriz(self.driz_final_pars, self.runfile)
-                self.image_manager.updateMdrizVerHistory(self.driz_final_pars['build'],self.versions)
-                self.steps.markStepDone(ProcSteps.doFinalDriz)
+        self._postMedian(self.blotpars, self.drizcrpars, self.skypars)
 
-        finally:
-            # Close open file handles opened by PyDrizzle
-            # Now that we are done with the processing,
-            # delete any input copies we created.
+        if self.steps.doStep(ProcSteps.doFinalDriz):
+            self.image_manager.doFinalDriz(self.driz_final_pars, self.runfile)
+            self.image_manager.updateMdrizVerHistory(self.driz_final_pars['build'],self.versions)
+            self.steps.markStepDone(ProcSteps.doFinalDriz)
 
-            if not self.workinplace:
-                self.image_manager.removeInputCopies()
+        # Close open file handles opened by PyDrizzle
+        # Now that we are done with the processing,
+        # delete any input copies we created.
 
-            # If clean has been set, remove intermediate products now.
-            if self.clean:
-                # Start by deleting the runfile
-                if os.path.exists(self.runfile):
-                    os.remove(self.runfile)
+        if not self.workinplace:
+            self.image_manager.removeInputCopies()
 
-                # Now have image_manager remove all image products
-                self.image_manager.removeMDrizProducts()
-            """    
-            # Remove the self.zeroExptimeAsnTable file if it exists
-            if self.zeroExptimeAsnTable != None:
-                if os.path.exists(self.zeroExptimeAsnTable):
-                    os.remove(self.zeroExptimeAsnTable)
-            """
+        # If clean has been set, remove intermediate products now.
+        if self.clean:
+            # Start by deleting the runfile
+            if os.path.exists(self.runfile):
+                os.remove(self.runfile)
+
+            # Now have image_manager remove all image products
+            self.image_manager.removeMDrizProducts()
+
         if self.pars.switches['timing']:
             self.steps.reportTimes()
 
