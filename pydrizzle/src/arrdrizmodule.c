@@ -30,17 +30,17 @@ tdriz(PyObject *obj, PyObject *args)
     double expin;
     char *shfr2;
     int xmin, ymin, uniqid, ystart;
-    long nmiss, nskip;
+    int nmiss, nskip;
     char *align, *kernel;
     char *coeffs, *shiftfr, *shiftun, *inun;
     char vers[80];
-    int vflag;
+    int vflag,coeffs_len;
     float istat;
     int nx,ny,onx,ony,dny;
     int xgdim, ygdim;
     float wtscl;
     char *fillstr;
-    long align_len, kernel_len, coeffs_len;
+    long align_len, kernel_len;
     long shiftfr_len, shiftun_len, inun_len;
     long vers_len, fillstr_len;
     long shfr2_len;
@@ -62,7 +62,7 @@ tdriz(PyObject *obj, PyObject *args)
     ftnlen shfr2_len, ftnlen align_len, ftnlen kernel_len, 
     ftnlen coeffs_len, ftnlen inun_len, ftnlen filstr_len, ftnlen vers_len);
 	
-    if (!PyArg_ParseTuple(args,"OOOOOlllllddssdddddddsOOsdsssffsOllldd",
+    if (!PyArg_ParseTuple(args,"OOOOOiiiiiddssdddddddsOOsdsssffsOiiidd",
             &oimg,&owei,&oout,&owht,&ocon,&uniqid, &ystart,&xmin,&ymin,&dny,
             &xsh,&ysh, &shiftfr,&shiftun, &rot,&scale, 
             &xsh2, &ysh2, &xscale, &yscale, &rot2, &shfr2, &opxg, &opyg, 
@@ -247,11 +247,11 @@ tblot(PyObject *obj, PyObject *args)
     float ef;
     char *align, *interp;
     char *coeffs;
-    int vflag,istat;
+    int vflag,istat,coeffs_len;
     float misval, sinscl, kscale;
     int nx,ny,onx,ony;
     int xgdim, ygdim;
-    long align_len, interp_len, coeffs_len;
+    long align_len, interp_len;
     long shfr2_len;
     double alpha,beta;
     /*
@@ -274,7 +274,7 @@ tblot(PyObject *obj, PyObject *args)
 	vflag, doublereal *alpha, doublereal *beta,
     ftnlen shfr2_len, ftnlen align_len, ftnlen interp_len, ftnlen coeffs_len);
     
-	if (!PyArg_ParseTuple(args,"OOllllddddfdddddsOOsssfffldd",&oimg,&oout,
+	if (!PyArg_ParseTuple(args,"OOiiiiddddfdddddsOOsssfffidd",&oimg,&oout,
            &xmin,&xmax,&ymin,&ymax,
            &xsh,&ysh,&rot,&scale,&kscale,
            &xsh2,&ysh2,&xscale,&yscale,&rot2,&shfr2,
