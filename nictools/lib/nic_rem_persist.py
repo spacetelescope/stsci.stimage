@@ -41,6 +41,13 @@ import ndimage    # for median_filter
 __version__ = "1.5 (2009 Jan 15)"
 
 
+_success  = 0
+_none     = 1
+_error    = 2
+_abort    = 3
+
+
+
 ERROR_RETURN = -2
 CLIP = 4  # number of std to use in sigma clipping  
 
@@ -77,7 +84,6 @@ class NicRemPersist:
         @type run_stdout: file handle 
 
         """
-
         if (run_stdout != None): # set standard output to trailer file
             self.orig_stdout = sys.stdout # save original stdout
             sys.stdout = run_stdout  # set stdout to open trailer file
@@ -87,7 +93,7 @@ class NicRemPersist:
             print '=== BEP', __version__,' starting at ', current_time  
 
         [ options, args, parser ] = persutil.getOptions()
-        
+
         persutil.setVerbosity( options.verbosity)  
         verbosity = options.verbosity 
  
@@ -110,15 +116,13 @@ class NicRemPersist:
         if (persist_mask == None ):
             persist_mask = persutil.getPersist_mask( calcfile, options)
 
-
         # do some parameter type checking        
         if ( __name__ == 'nic_rem_persist'):
-              [ persist_lo, used_lo, persist_model, persist_mask ] = check_py_pars(calcfile, targfile, persist_lo, used_lo, persist_model, persist_mask)
+              [ persist_lo, used_lo, persist_model, persist_mask ] = check_py_pars(self, calcfile, targfile, persist_lo, used_lo, persist_model, persist_mask)
         else:
-              [ persist_lo, used_lo] = check_cl_pars(calcfile, targfile, persist_lo, used_lo)
+              [ persist_lo, used_lo] = check_cl_pars(self, calcfile, targfile, persist_lo, used_lo)
 
-        [ persist_lo, used_lo] = check_cl_pars(calcfile, targfile, persist_lo, used_lo)
-        
+
         self.calcfile = calcfile
         self.targfile = targfile
         self.persist_lo = persist_lo
@@ -127,7 +131,7 @@ class NicRemPersist:
         self.persist_mask = persist_mask
         self.verbosity = verbosity
         self.run_stdout = run_stdout   
-
+        self._applied = None   
  
     def persist( self ):
         """ remove persistence due to the full bright Earth.    
@@ -147,12 +151,16 @@ class NicRemPersist:
            fh_calcfile = pyfits.open( calcfile, mode='update')
         except:
            opusutil.PrintMsg("F","ERROR "+ str('Unable to open PED file') + str(calcfile))
+           self._applied = _error  
+  
            sys.exit( ERROR_RETURN)
 
         try:  # read the image for the persistence model
            fh_per_median = pyfits.open( self.persist_model )
         except:    
            opusutil.PrintMsg("F"," ERROR "+ str('Unable to open medianed persistence model file') + str(persist_model))
+           self._applied = _error  
+           
            sys.exit( ERROR_RETURN)
         ps = fh_per_median[0].data 
 
@@ -160,12 +168,16 @@ class NicRemPersist:
            fh_targfile = pyfits.open( targfile, mode='update')
         except:
            opusutil.PrintMsg("F","ERROR "+ str('Unable to open CAL file') + str(targfile))
+           self._applied = _error 
+           
            sys.exit( ERROR_RETURN)
 
         try:  # read the image for the mask
            fh_per_mask = pyfits.open( self.persist_mask )
         except:    
            opusutil.PrintMsg("F"," ERROR "+ str('Unable to open the mask file') + str(persist_mask))
+           self._applied = _error  
+
            sys.exit( ERROR_RETURN)           
         per_mask = fh_per_mask[0].data  # persistence mask data (0 is good, non-0 is bad)
 
@@ -224,15 +236,21 @@ class NicRemPersist:
 
     #     write correction if fraction of pixels used and calculated persistence exceed thresholds
         if ( persist < self.persist_lo ):
+              self._applied = _none  
+
               if (verbosity > 0):
                   print ' The calculated persistence for this file is ', persist,', which is below the minimum allowed value of the persistence (', persist_lo,').  Therefore no corrected image will be written.'
 
         elif ( used < self.used_lo ):
-
+              self._applied = _none  
+              
               if (verbosity > 0):
                   print ' The fraction of ped file pixels used for the calculation is ', used,', which is below the minimum allowed value of the fraction (', used_lo,').  Therefore no corrected image will be written.'
+
               fh_targfile[0].header.update( key = 'BEPDONE', value = 'SKIPPED') 
         else:   # update target file (CAL) with required keywords
+              self._applied = _success  
+
               fh_targfile[1].data = correct
               fh_targfile[0].header.update( key = 'BEPSCALE', value = persist) 
               fh_targfile[0].header.update( key = 'BEPFRAC', value = used) 
@@ -253,6 +271,8 @@ class NicRemPersist:
 
         if (self.run_stdout  != None):  #reset stdout if needed
            sys.stdout = self.orig_stdout 
+
+        return self._applied
           
     # end of def persist
 
@@ -272,7 +292,7 @@ class NicRemPersist:
         print '  The fraction of pixels used :  ' , self.used
 
 
-def check_py_pars( calcfile, targfile, persist_lo, used_lo, persist_model, persist_mask):  
+def check_py_pars( self, calcfile, targfile, persist_lo, used_lo, persist_model, persist_mask):  
        """ When run under python, check validity of input parameters. For unspecified *_lo parameters, the
            user will be given the option of typing in a value or accepting the default value. For an unspecified
            model(mask) file, will try to get file name from PMODFILE(PMSKFILE) from input file header, otherwise
@@ -300,6 +320,8 @@ def check_py_pars( calcfile, targfile, persist_lo, used_lo, persist_model, persi
             in_ped_hdr = fh_calcfile[0].header
        except:
             opusutil.PrintMsg("F","ERROR - unable to open the PED file  "+ str(calcfile))
+            self._applied = _error 
+
             sys.exit( ERROR_RETURN)
 
        try:
@@ -307,6 +329,8 @@ def check_py_pars( calcfile, targfile, persist_lo, used_lo, persist_model, persi
             in_cal_hdr = fh_targfile[0].header
        except:
             opusutil.PrintMsg("F","ERROR - unable to open the CAL file  "+ str(targfile))
+            self._applied = _error  
+
             sys.exit( ERROR_RETURN)
 
        if (persist_lo == None):
@@ -350,7 +374,7 @@ def check_py_pars( calcfile, targfile, persist_lo, used_lo, persist_model, persi
        return  persist_lo, used_lo, persist_model, persist_mask
 
 
-def check_cl_pars(calcfile, targfile, persist_lo, used_lo):
+def check_cl_pars(self, calcfile, targfile, persist_lo, used_lo):
    """ When run from linux command line, verify that each parameter is valid.
        @param calcfile: name of ped file
        @type calcfile: string
@@ -369,12 +393,16 @@ def check_cl_pars(calcfile, targfile, persist_lo, used_lo):
         fh_c0 = pyfits.open(calcfile)
    except:
         opusutil.PrintMsg("F","ERROR - unable to open the PED file  "+ str(calcfile))
+        self._applied = _error 
+
         sys.exit( ERROR_RETURN)
 
    try:
         fh_c0 = pyfits.open(targfile)
    except:
         opusutil.PrintMsg("F","ERROR - unable to open the cal file  "+ str(targfile))
+        self._applied = _error 
+              
         sys.exit( ERROR_RETURN)
 
    try:
@@ -382,6 +410,8 @@ def check_cl_pars(calcfile, targfile, persist_lo, used_lo):
           persist_lo = string.atof(persist_lo)
    except:
        print ' The persist_lo value entered (',persist_lo,') is invalid. Try again'
+       self._applied = _error 
+
        sys.exit( ERROR_RETURN)
 
    try:
@@ -389,6 +419,8 @@ def check_cl_pars(calcfile, targfile, persist_lo, used_lo):
           used_lo = string.atof(used_lo)
    except:
        print ' The used_lo value entered (',used_lo,') is invalid. Try again'
+       self._applied = _error  
+
        sys.exit( ERROR_RETURN)
 
    return  persist_lo, used_lo
@@ -498,8 +530,8 @@ if __name__=="__main__":
          if ( sys.argv[2] ): targfile = sys.argv[2] 
        
          try:
-            nrp = NicRemPersist( calcfile, targfile, persist_lo=None, used_lo=None, persist_model=None, persist_mask=None, verbosity=None )                      
-            nrp.persist()
+            nrp = NicRemPersist( calcfile, targfile, persist_lo=None, used_lo=None, persist_model=None, persist_mask=None, verbosity=None )
+            nrp_stat = nrp.persist()
 
             del nrp
          except Exception, errmess:
