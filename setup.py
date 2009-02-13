@@ -207,6 +207,15 @@ if "version" in sys.argv :
     sys.exit(0)
 
 ####
+# leave a tombstone file with list of scripts in it
+# used by opus tools
+f=open(".script_tombstone","w")
+for x in all_scripts :
+    x = x.split("/")
+    f.write(x[0]+" "+x[-1]+"\n")
+f.close()
+
+####
 #
 # We have accumulated all the information - now all we need is
 # to run the setup.
