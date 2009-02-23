@@ -39,7 +39,7 @@ class InputImage(object):
         self.dqfile_fullname = dqname
         self.dqfile_name,self.dqfile_extn = fileutil.parseFilename(dqname)
         self.extn     = _extn
-        self.grp      = fileutil.parseExtn(_extn)
+        self.grp      = fileutil.parseExtn(_extn)[1]
         self.rootname = self.getRootname(_fname)
         self.datafile = _fname
         self.cr_bits_value = None
