@@ -43,7 +43,7 @@ def thing_with_doctest( x ) :
     >>> thing_with_doctest(3) 
     4
     >>> thing_with_doctest(4)
-    99
+    5
     >>>
 
     """
