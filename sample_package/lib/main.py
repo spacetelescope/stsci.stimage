@@ -42,8 +42,6 @@ def thing_with_doctest( x ) :
     3
     >>> thing_with_doctest(3) 
     4
-    >>> thing_with_doctest(4)
-    5
     >>>
 
     """
