@@ -1,6 +1,7 @@
 import sample_package
 import os
 
+
 def show_file(dir, name) :
     list = [ os.path.dirname(__file__) ]
     if dir :
