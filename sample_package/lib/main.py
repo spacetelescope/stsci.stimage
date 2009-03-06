@@ -31,3 +31,20 @@ def run() :
     print "I am version",sample_package.__version__
     print "I am from svn:",sample_package.__svn_version__
     print "I am from:",sample_package.__full_svn_info__
+
+def thing_with_doctest( x ) :
+    """
+    thing_with_doctext(x) - adds 1 to x; has doctest
+
+    >>> thing_with_doctest(1)
+    2
+    >>> thing_with_doctest(2)
+    3
+    >>> thing_with_doctest(3) 
+    4
+    >>> thing_with_doctest(4)
+    99
+    >>>
+
+    """
+    return x+1
