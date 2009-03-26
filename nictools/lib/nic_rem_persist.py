@@ -38,7 +38,7 @@ import persutil
 import string 
 import ndimage    # for median_filter
 
-__version__ = "1.5 (2009 Jan 15)"
+__version__ = "1.6 (2009 Mar 26)"
 
 
 _success  = 0
@@ -88,40 +88,28 @@ class NicRemPersist:
             self.orig_stdout = sys.stdout # save original stdout
             sys.stdout = run_stdout  # set stdout to open trailer file
 
+        persutil.setVerbosity(verbosity)  
+
         if (verbosity > 0 ):
             current_time = time.asctime()
             print '=== BEP', __version__,' starting at ', current_time  
 
-        [ options, args, parser ] = persutil.getOptions()
-
-        persutil.setVerbosity( options.verbosity)  
-        verbosity = options.verbosity 
- 
         # get parameter values if not specified on command line
         if (persist_lo == None ): 
-            persist_lo = persutil.getPersist_lo( calcfile, options) 
-
-        if (persist_lo == None ):  # true if keyword is not in model file
-            persist_lo = persutil.persist_lo 
+            persist_lo = persutil.getPersist_lo( calcfile) 
 
         if (used_lo == None ):
-            used_lo = persutil.getUsed_lo( calcfile, options)
-
-        if (used_lo == None ):  # true if keyword is not in model file
-            used_lo = persutil.used_lo   
+            used_lo = persutil.getUsed_lo( calcfile)
         
         if (persist_model == None ):
-            persist_model = persutil.getPersist_model( calcfile, options)
+            persist_model = persutil.getPersist_model( calcfile)
 
         if (persist_mask == None ):
-            persist_mask = persutil.getPersist_mask( calcfile, options)
+            persist_mask = persutil.getPersist_mask( calcfile)
 
-        # do some parameter type checking        
-        if ( __name__ == 'nic_rem_persist'):
+        # do some parameter type checking, if not already performed at the command-line      
+        if ( __name__ != "__main__"):
               [ persist_lo, used_lo, persist_model, persist_mask ] = check_py_pars(self, calcfile, targfile, persist_lo, used_lo, persist_model, persist_mask)
-        else:
-              [ persist_lo, used_lo] = check_cl_pars(self, calcfile, targfile, persist_lo, used_lo)
-
 
         self.calcfile = calcfile
         self.targfile = targfile
@@ -292,7 +280,7 @@ class NicRemPersist:
         print '  The fraction of pixels used :  ' , self.used
 
 
-def check_py_pars( self, calcfile, targfile, persist_lo, used_lo, persist_model, persist_mask):  
+def check_py_pars(self, calcfile, targfile, persist_lo, used_lo, persist_model, persist_mask):  
        """ When run under python, check validity of input parameters. For unspecified *_lo parameters, the
            user will be given the option of typing in a value or accepting the default value. For an unspecified
            model(mask) file, will try to get file name from PMODFILE(PMSKFILE) from input file header, otherwise
@@ -317,7 +305,8 @@ def check_py_pars( self, calcfile, targfile, persist_lo, used_lo, persist_model,
 
        try:
             fh_calcfile = pyfits.open(calcfile)
-            in_ped_hdr = fh_calcfile[0].header
+            #in_ped_hdr = fh_calcfile[0].header
+            fh_calcfile.close()
        except:
             opusutil.PrintMsg("F","ERROR - unable to open the PED file  "+ str(calcfile))
             self._applied = _error 
@@ -326,7 +315,8 @@ def check_py_pars( self, calcfile, targfile, persist_lo, used_lo, persist_model,
 
        try:
             fh_targfile = pyfits.open(targfile)
-            in_cal_hdr = fh_targfile[0].header
+            #in_cal_hdr = fh_targfile[0].header
+            fh_targfile.close()
        except:
             opusutil.PrintMsg("F","ERROR - unable to open the CAL file  "+ str(targfile))
             self._applied = _error  
@@ -374,7 +364,7 @@ def check_py_pars( self, calcfile, targfile, persist_lo, used_lo, persist_model,
        return  persist_lo, used_lo, persist_model, persist_mask
 
 
-def check_cl_pars(self, calcfile, targfile, persist_lo, used_lo):
+def check_cl_pars(calcfile, targfile, persist_lo, used_lo):
    """ When run from linux command line, verify that each parameter is valid.
        @param calcfile: name of ped file
        @type calcfile: string
@@ -391,17 +381,19 @@ def check_cl_pars(self, calcfile, targfile, persist_lo, used_lo):
 
    try:
         fh_c0 = pyfits.open(calcfile)
+        fh_c0.close()
    except:
         opusutil.PrintMsg("F","ERROR - unable to open the PED file  "+ str(calcfile))
-        self._applied = _error 
+        #self._applied = _error 
 
         sys.exit( ERROR_RETURN)
 
    try:
         fh_c0 = pyfits.open(targfile)
+        fh_c0.close()
    except:
         opusutil.PrintMsg("F","ERROR - unable to open the cal file  "+ str(targfile))
-        self._applied = _error 
+        #self._applied = _error 
               
         sys.exit( ERROR_RETURN)
 
@@ -410,7 +402,7 @@ def check_cl_pars(self, calcfile, targfile, persist_lo, used_lo):
           persist_lo = string.atof(persist_lo)
    except:
        print ' The persist_lo value entered (',persist_lo,') is invalid. Try again'
-       self._applied = _error 
+       #self._applied = _error 
 
        sys.exit( ERROR_RETURN)
 
@@ -419,7 +411,7 @@ def check_cl_pars(self, calcfile, targfile, persist_lo, used_lo):
           used_lo = string.atof(used_lo)
    except:
        print ' The used_lo value entered (',used_lo,') is invalid. Try again'
-       self._applied = _error  
+       #self._applied = _error  
 
        sys.exit( ERROR_RETURN)
 
@@ -517,23 +509,27 @@ def median( y, mask):
 
 
 if __name__=="__main__":
-         """Get input file and other arguments, and call nic_rem_persist.
+        """Get input file and other arguments, and call nic_rem_persist.
             The command-line options are:
             -q (quiet)
             -v (very verbose)
 
             @param cmdline: command-line arguments
             @type cmdline: list of strings
-         """
+        """
 
-         if ( sys.argv[1] ): calcfile = sys.argv[1] 
-         if ( sys.argv[2] ): targfile = sys.argv[2] 
+        if ( sys.argv[1] ): calcfile = sys.argv[1] 
+        if ( sys.argv[2] ): targfile = sys.argv[2] 
+        [ options, args, parser ] = persutil.getOptions() 
        
-         try:
-            nrp = NicRemPersist( calcfile, targfile, persist_lo=None, used_lo=None, persist_model=None, persist_mask=None, verbosity=None )
+        try:
+            [ persist_lo, used_lo] = check_cl_pars(calcfile, targfile, persist_lo, used_lo)
+            nrp = NicRemPersist( calcfile, targfile, persist_lo=options.persist_lo, used_lo=options.used_lo, 
+                                persist_model=options.persist_model, persist_mask=options.persist_mask, 
+                                verbosity=options.verbosity )
             nrp_stat = nrp.persist()
 
             del nrp
-         except Exception, errmess:
+        except Exception, errmess:
             opusutil.PrintMsg("F","ERROR "+ str(errmess))
             sys.exit( ERROR_RETURN)
