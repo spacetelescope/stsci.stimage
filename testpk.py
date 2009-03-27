@@ -160,7 +160,7 @@ def testpk( ):
     
 
 
-def report_pk() :
+def report_pk(opus_mode) :
     # cannot create a proper report from the current directory where the
     # stsci_python distribution is; go somewhere else
     try :os.chdir("/")
@@ -168,7 +168,10 @@ def report_pk() :
 
     colfmt = "%-25s %-15s %-15s %s"
 
-    print colfmt%("package","version","expected","location")
+    if not opus_mode :
+        print colfmt%("package","version","expected","location")
+    else :
+        print colfmt%("package","version","","location")
     print ""
 
 
@@ -178,14 +181,17 @@ def report_pk() :
     # print the package info
     for p in a :
         i = pkg_info(p)
-        expect="-"
-        if p in optional_versions :
-            if i[0] != optional_versions[p] :
-                expect = optional_versions[p]
-        if p in required_versions :
-            if i[0] != required_versions[p] :
-                expect = required_versions[p]
-        print colfmt%(p,i[0],expect,i[1])
+        if not opus_mode :
+            expect="-"
+            if p in optional_versions :
+                if i[0] != optional_versions[p] :
+                    expect = optional_versions[p]
+            if p in required_versions :
+                if i[0] != required_versions[p] :
+                    expect = required_versions[p]
+            print colfmt%(p,i[0],expect,i[1])
+        else :
+            print colfmt%(p,i[0],'',i[1])
 
 interactive_help = """
 python testpk.py
@@ -194,6 +200,9 @@ python testpk.py -t
 
 python testpk -r
     report versions of everything
+
+python testpk -o
+    report versions in format for opus
 
 python testpk.py -h
     this help
@@ -206,7 +215,9 @@ if __name__ == '__main__':
                 print interactive_help
                 sys.exit(0)
             if sys.argv[1] == '-r' :
-                report_pk()
+                report_pk(0)
+            if sys.argv[1] == '-o' :
+                report_pk(1)
             if sys.argv[1] == '-t' :
                 testpk()
         else :
