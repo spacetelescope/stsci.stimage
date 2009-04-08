@@ -39,8 +39,11 @@
                 name -- optional name to pass along for identifying array
 
                 bufname -- name of buffer to use for displaying array
-                            to best match size of array (such as 'imt1024')
-                            [default: 512x512 buffer named 'imt512']
+                           (such as 'imt512')
+                            'iraf': look for 'stdimage' and use that buffer or
+                                    default to 'imt1024' [1024x1024 buffer]
+                            None  : ignore 'stdimage' and automatically select
+                                    a buffer matched to the size of the image. 
 
                 z1,z2  -- minimum/maximum pixel value to display (float)
                           Not specifying values will default
@@ -116,7 +119,7 @@ try:
 except ImportError:
     geotrans = None
 
-__version__ = "1.5.3 (9-Dec-2008)"
+__version__ = "1.5.4 (8-Apr-2009)"
 #
 # Version 0.1-alpha: Initial release
 #       WJH 7-Oct-2003
@@ -378,11 +381,17 @@ class NumDisplay(object):
 
         # If the user has not selected a specific buffer for the display,
         # select and set the frame buffer size based on input image size.
+        if bufname == 'iraf':
+            useiraf = True
+            bufname = None
+        else:
+            useiraf = False
+
         if bufname != None:
             _d.setFBconfig(None,bufname=bufname)
         else:
             _ny,_nx = pix.shape
-            _d.selectFB(_nx,_ny,reset=1)
+            _d.selectFB(_nx,_ny,reset=1,useiraf=useiraf)
 
         # Initialize the specified frame buffer
         _d.setFrame(self.frame)

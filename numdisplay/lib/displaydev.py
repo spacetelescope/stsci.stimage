@@ -252,6 +252,15 @@ class ImageDisplay(object):
         self.frame = 1        
         
         self.fbname = None
+            
+        _fbconfig = self.getDefaultFBConfig()
+
+        self.fbconfig = _fbconfig
+        self.fbwidth = self.fbdict[self.fbconfig]['width']
+        self.fbheight = self.fbdict[self.fbconfig]['height']
+        
+        
+    def getDefaultFBConfig(self):
         try:
             # Try to use the IRAF 'stdimage' value as the default
             # fbconfig number, if it exists 
@@ -268,11 +277,9 @@ class ImageDisplay(object):
                 _fbconfig = _default_fbconfig
         except:    
             _fbconfig = _default_fbconfig
-            
-        self.fbconfig = _fbconfig
-        self.fbwidth = self.fbdict[self.fbconfig]['width']
-        self.fbheight = self.fbdict[self.fbconfig]['height']
-        
+
+        return _fbconfig
+    
     def readCursor(self,sample=0):
 
         """Read image cursor value for this image display
@@ -311,15 +318,15 @@ class ImageDisplay(object):
             
         return _fbconfig
 
-    def selectFB(self,nx,ny,reset=None):
+    def selectFB(self,nx,ny,reset=None,useiraf=True):
         """ Select the frame buffer that best matches the input image size."""
         newfb = None
         _tmin = 100000
 
         #if iraffunctions:
-        if self.fbname is not None:
+        if self.fbname is not None and useiraf:
             # Use the STDIMAGE variable defined in the IRAF session...
-            newfb = self.fbconfig
+            newfb = self.getDefaultFBConfig()
         else:
             # Otherwise, fall back to finding the buffer with the
             # size closest to the image's size.
@@ -462,16 +469,16 @@ class ImageDisplay(object):
         """ Update WCS to match frame buffer being used. """
         
         # Update WCS information with offsets into frame buffer for image        
-        wcsinfo.tx = int((wcsinfo.full_nx / 2.) - ((self.fbwidth) / 2.) + 0.5)
-        wcsinfo.ty = int((self.fbheight+1) + ((wcsinfo.full_ny / 2.) - (self.fbheight / 2.)) + 0.5)
+        wcsinfo.tx = int(((wcsinfo.full_nx + 1.0) / 2.) - ((self.fbwidth) / 2.) + 0.5) 
+        wcsinfo.ty = int((self.fbheight+ 1.0) + ((wcsinfo.full_ny / 2.) - (self.fbheight / 2.)) + 0.5) 
 
         wcsinfo.nx = min(wcsinfo.full_nx, self.fbwidth)
         wcsinfo.ny = min(wcsinfo.full_ny, self.fbheight)
         
         # Keep track of the origin of the displayed, trimmed image
         # which fits in the buffer.
-        wcsinfo.dtx = int((wcsinfo.nx / 2.) - ((self.fbwidth) / 2.))
-        wcsinfo.dty = int((self.fbheight) + ((wcsinfo.ny / 2.) - (self.fbheight / 2.)))
+        wcsinfo.dtx = int((wcsinfo.nx / 2.) - ((self.fbwidth) / 2.) + 0.5)
+        wcsinfo.dty = int((self.fbheight) + ((wcsinfo.ny / 2.) - (self.fbheight / 2.)) + 0.5)
 
     def writeImage(self,pix,wcsinfo):
 
@@ -483,7 +490,7 @@ class ImageDisplay(object):
         _nx,_ny = wcsinfo.nx,wcsinfo.ny
         _ty = wcsinfo.dty
         _tx = wcsinfo.dtx
-
+        
         _nnx = min(_nx,_fbw)
         _nny = min(_ny,_fbh)
         
