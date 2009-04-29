@@ -28,9 +28,11 @@ all_packages_input = [
     "sample_package",
     "stistools",
     "wfpc2tools",
+    "stwcs",
+    "betadrizzle"
 ]
 
-for x in [ "pyfits", "pysynphot" ] :
+for x in [ "pyfits", "pysynphot", "pywcs" ] :
     if os.path.isdir(x) :
         all_packages_input.append(x) 
     else :
