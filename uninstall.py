@@ -12,6 +12,10 @@ never = False
 if "-n" in sys.argv :
     never = True
 
+# make_old is an undocumented features that is not intended for users.
+if "-old" in sys.argv :
+    make_old = True
+
 # a function to ask yes/no
 def print_and_ask(n) :
     sys.stdout.write("\n")
@@ -95,6 +99,11 @@ to contact the distributors of Scisoft if you have problems.
 #
 
 all_package = [
+# packages in developmenbt
+    "betadrizzle",
+    "opuscoords",
+    "stwcs",
+    "pywcs",
 # packages in 2.7
     "calcos",
     "convolve",
@@ -254,12 +263,19 @@ for x in sys.path :
             if os.path.isdir(np) :
                 found_any = 1
                 if print_and_ask("delete package "+np) :
-                    deltree(np)
+                    if make_old :
+                        os.rename(np, np+".old")
+                    else :
+                        deltree(np)
 
         for p in all_module :
             if module_file(x,p) :
                 found_any = 1
                 if print_and_ask("delete module "+x+"/"+p) :
+                    if make_old :
+                        # saves the py file only
+                        os.rename(x+"/"+p+".py",x+"/"+p+".py.old")
+                    # removes py, pyc, pyo
                     rm_module_file(x,p)
 
     elif os.path.isfile(x) :
