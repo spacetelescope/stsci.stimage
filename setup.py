@@ -230,7 +230,7 @@ distutils.core.setup(
 
     # This version is expected to be compared to other version numbers.
     # It will also appear in some file names.
-    version="2.7dev",
+    version="2.9dev",
 
     # Apparently, description is not used anywhere.
     description="",
