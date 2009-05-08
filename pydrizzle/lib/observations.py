@@ -386,8 +386,11 @@ class WFPCObservation(Pattern):
         _chip1_rot = None
         # Build rootname here for each SCI extension...
         if self.pars['section'] == None:
-            self.pars['section'] = [None]*self.nmembers
-
+            self.pars['section'] = [None] * self.nmembers
+            group_indx = range(1,self.nmembers+1)
+        else:
+            group_indx = self.pars['section']
+            
         for i in range(self.nmembers):
             _extname = self.imtype.makeSciName(i+1,section=self.pars['section'][i])
 
@@ -401,7 +404,7 @@ class WFPCObservation(Pattern):
             self.imtype.dq_extn = _dqextn
             
             # Build mask file for this member chip
-            _dqname = self.imtype.makeDQName(extver=i+1)
+            _dqname = self.imtype.makeDQName(extver=group_indx[i])
             _masklist = []
             _masknames = []
 
@@ -411,12 +414,12 @@ class WFPCObservation(Pattern):
                 _maskname = None
             _masknames.append(_maskname)
 
-            outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,i+1,_maskname, bitvalue=self.bitvalue[0], binned=self.binned)
+            outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,group_indx[i],_maskname, bitvalue=self.bitvalue[0], binned=self.binned)
             _masklist.append(outmask)
 
             _maskname = _maskname.replace('final_mask','single_mask')
             _masknames.append(_maskname)
-            outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,i+1,_maskname, bitvalue=self.bitvalue[1], binned=self.binned)
+            outmask = buildmask.buildShadowMaskImage(_dqname,_detnum,group_indx[i],_maskname, bitvalue=self.bitvalue[1], binned=self.binned)
             _masklist.append(outmask)
             _masklist.append(_masknames)
 

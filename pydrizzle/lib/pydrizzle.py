@@ -21,7 +21,7 @@ _default_pars = {'psize':None,'default_rot':None,'idckey':None}
 
 INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS","WFC3"]
 
-__version__ = "6.3.0 (19-Nov-2008)"
+__version__ = "6.3.1 (8-May-2009)"
 
 
 class _PyDrizzle:
@@ -611,7 +611,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 # this product; in particular, TIME-OBS and DATE-OBS.
                 if _numchips == 0:
                     _template = plist['data']
-                
+
                 if _nimg == 0 and self.debug == yes:
                     # Only update the WCS from drizzling the
                     # first image in the list, just like IRAF DRIZZLE
