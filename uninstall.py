@@ -264,6 +264,7 @@ for x in sys.path :
                 found_any = 1
                 if print_and_ask("delete package "+np) :
                     if make_old :
+                        print "rename ",np, np+".old"
                         os.rename(np, np+".old")
                     else :
                         deltree(np)
@@ -274,7 +275,9 @@ for x in sys.path :
                 if print_and_ask("delete module "+x+"/"+p) :
                     if make_old :
                         # saves the py file only
-                        os.rename(x+"/"+p+".py",x+"/"+p+".py.old")
+                        np = x + "/" + p
+                        print "rename ",np, np+".old"
+                        os.rename(np+".py",np+".py.old")
                     # removes py, pyc, pyo
                     rm_module_file(x,p)
 
@@ -309,7 +312,11 @@ if p :
                 found_any = 1
                 if print_and_ask("delete script "+p) :
                     try :
-                        os.remove(p)
+                        if make_old :
+                            print "rename ",p, p+".old"
+                            os.rename(p, p+".old")
+                        else :
+                            os.remove(p)
                     except Exception, e:
                         print p, e
 
