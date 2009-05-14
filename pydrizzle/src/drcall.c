@@ -14,12 +14,6 @@
 
 /* Common Block Declarations */
 
-struct {
-    logical verbose;
-} verbose_;
-
-#define verbose_1 verbose_
-
 /* Table of constant values */
 
 static integer c__1 = 1;
@@ -63,20 +57,6 @@ static integer c__2 = 2;
 	*istat = e_wsfe();
 L100001:
 	;
-    } else {
-	if (verbose_1.verbose) {
-	    *istat = s_wsfe(&io___2);
-	    if (*istat != 0) {
-		goto L100002;
-	    }
-	    *istat = do_fio(&c__1, line, line_len);
-	    if (*istat != 0) {
-		goto L100002;
-	    }
-	    *istat = e_wsfe();
-L100002:
-	    ;
-	}
     }
     return 0;
 } /* umsput_ */

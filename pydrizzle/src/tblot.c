@@ -14,12 +14,6 @@
 
 /* Common Block Declarations */
 
-struct {
-    logical verbose;
-} verbose_;
-
-#define verbose_1 verbose_
-
 /* Table of constant values */
 
 static integer c__1 = 1;
@@ -131,11 +125,6 @@ static integer c__100 = 100;
     pxg -= pxg_offset;
 
     /* Function Body */
-    if (*vflag == 1) {
-	verbose_1.verbose = TRUE_;
-    } else {
-	verbose_1.verbose = FALSE_;
-    }
 /* First announce the version */
     s_copy(vers, "Callable BLOT Version 0.6 (1st Nov 2005)", (ftnlen)45, (
 	    ftnlen)40);

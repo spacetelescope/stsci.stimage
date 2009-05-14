@@ -14,11 +14,6 @@
 
 /* Common Block Declarations */
 
-struct {
-    logical verbose;
-} verbose_;
-
-#define verbose_1 verbose_
 
 /* Table of constant values */
 
@@ -271,11 +266,6 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
     --wcs;
 
     /* Function Body */
-    if (*vflag == 1) {
-	verbose_1.verbose = TRUE_;
-    } else {
-	verbose_1.verbose = FALSE_;
-    }
 /* Define Version ID */
     s_copy(vers, "Callable DRIZZLE Version 0.7 (4th Apr 2005)", (ftnlen)50, (
 	    ftnlen)43);

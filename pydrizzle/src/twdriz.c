@@ -14,12 +14,6 @@
 
 /* Common Block Declarations */
 
-struct {
-    logical verbose;
-} verbose_;
-
-#define verbose_1 verbose_
-
 /* Table of constant values */
 
 static integer c__1 = 1;
@@ -189,7 +183,6 @@ doublereal twdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
 /* Context related things */
 /* We give these minimal dimensions */
 /* Secondary geometrical parameters, added in V1.5 */
-/* Check for verbose */
     /* Parameter adjustments */
     wei_dim1 = *nx;
     wei_offset = 1 + wei_dim1;
@@ -212,12 +205,6 @@ doublereal twdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
     pxg_offset = 1 + pxg_dim1;
     pxg -= pxg_offset;
 
-    /* Function Body */
-    if (*vflag == 1) {
-	verbose_1.verbose = TRUE_;
-    } else {
-	verbose_1.verbose = FALSE_;
-    }
 /* Define Version ID */
     s_copy(vers, "Callable WDRIZZLE Version 0.5 (25rd June 2004)", (ftnlen)50,
 	     (ftnlen)46);
