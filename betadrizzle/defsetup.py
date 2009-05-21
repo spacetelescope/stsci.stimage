@@ -9,10 +9,10 @@ except ImportError:
     "Numpy was not found. It may not be installed or it may not be on your PYTHONPATH. Multidrizzle requires numpy v 1.0.2 or later.\n"
 
 try:
-    #import pywcs
-    #pywcslib = pywcs.__path__[0]
-    pywcs_path = ['/user/hack/dev/release/lib/python/pywcs']
-    pywcslib = pywcs_path[0]
+    import pywcs
+    pywcslib = pywcs.__path__[0]
+    #pywcs_path = ['/user/hack/dev/release/lib/python/pywcs']
+    #pywcslib = pywcs_path[0]
 except ImportError:
     "PyWCS was not found. It may not be installed or it may not be on your PYTHONPATH. \nMultidrizzle requires numpy v 1.0.2 or later.\n"
 
