@@ -190,7 +190,10 @@ for lpkg in all_packages_input :
             ( instdir, files ) = x
             t = [ ]
             for y in files :
-                t.append( pkg[0] + "/" + y )
+                if y.startswith("/") :
+                    t.append( y ) # better only happen in development environment
+                else :
+                    t.append( pkg[0] + "/" + y )
             all_data_files.append( ( instdir, t ) )
 
 
