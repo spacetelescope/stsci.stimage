@@ -1,3 +1,6 @@
+
+from __future__ import division # confidence high
+
 import webbrowser, os.path, sys, os
 __doc__ = """
 stscidocs contains documentation for stsci_python packages and modules.

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import division # confidence high
+
 try :
     import pytools.stsci_distutils_hack
 except ImportError, e:
