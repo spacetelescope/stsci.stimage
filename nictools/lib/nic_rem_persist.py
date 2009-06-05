@@ -29,7 +29,7 @@
 #  01/15/09 - Changing interface so that ped file and cal file are input, and correction based on calculation of
 #             ped file (CALCFILE) is applied to cal file (TARGFILE). This corresponds to TRAC ticket #317.
 #
-
+from __future__ import division # confidence high
 import pyfits
 import numpy as N
 import sys, time
