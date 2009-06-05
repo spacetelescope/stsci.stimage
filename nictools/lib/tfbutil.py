@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+from __future__ import division  # confidence high
 import sys, os
 
 # Utility functions and parameters for temp_from_bias
