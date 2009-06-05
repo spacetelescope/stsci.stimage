@@ -4,7 +4,8 @@
 # Program: finesky.py
 # Purpose: routine to create median mask 
 # History: 03/07/08 - first version
-  
+
+from __future__ import division  # confidence high
 import numpy as N
 import pyfits, sys, string, time
 from convolve import boxcar
