@@ -78,6 +78,8 @@
 #              been added for the case of running under pyraf to suppress display of traceback when TFBCALC and force are not set;
 #              embellished error message for this case 
 #
+#   06/05/09 - code version 2.04; changed '/' to '//' in quadmean() and added 'from __future__ import division' for upcoming python version
+from __future__ import division  # confidence high
 import os.path
 import sys, time
 from optparse import OptionParser
@@ -92,7 +94,7 @@ from pytools import parseinput
 # Define some constants
 c2_min = 3.6218723e-06; c2_max = -3.6678544e-07; c3_min = 9.0923490e-11; c3_max = -4.1401650e-11  # used in bad pixel clipping
 
-__version__ = "2.03"   
+__version__ = "2.04"   
 
 ERROR_RETURN = 2  
 
@@ -799,12 +801,12 @@ def quadmean( im, border):
       border = 0
 
     x1 = 0 + border
-    x2 = ((xsize/2)-1) - border
-    x3 = (xsize/2) + border
+    x2 = ((xsize//2)-1) - border
+    x3 = (xsize//2) + border
     x4 = (xsize-1) - border
     y1 = 0 + border
-    y2 = ((ysize/2)-1) - border
-    y3 = (ysize/2) + border
+    y2 = ((ysize//2)-1) - border
+    y3 = (ysize//2) + border
     y4 = (ysize-1) - border
 
     quads[0] = N.mean(im[y1:y2+1,x1:x2+1])
