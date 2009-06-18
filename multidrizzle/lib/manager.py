@@ -734,16 +734,16 @@ class ImageManager(object):
         
         # check to see if this buffer size will leave enough rows for
         # the section returned on the last iteration
-        if _lastrows < _overlap+1:
-            _delta_rows = (_overlap+1 - _lastrows)/_niter
-            if _delta_rows < 1 and _delta_rows > 0: _delta_rows = 1
-            _bufsize += (_imgarr.shape[1]*_imgarr.itemsize) * _delta_rows
+        # This should not be needed if nimageiter is working correctly. 18-Jun-09 WJH
+        #if _lastrows < _overlap+1:
+        #    _delta_rows = (_overlap+1 - _lastrows)/_niter
+        #    if _delta_rows < 1 and _delta_rows > 0: _delta_rows = 1
+        #    _bufsize += (_imgarr.shape[1]*_imgarr.itemsize) * _delta_rows
         
         masterList[0].close()
         del _imgarr
 
         for imageSectionsList,prange in FileIter(masterList,overlap=_overlap,bufsize=_bufsize):
-
             if newmasks:
                 """ Build new masks from single drizzled images. """
                 self.weight_mask_list = []
