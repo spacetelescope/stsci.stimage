@@ -714,12 +714,12 @@ class ImageManager(object):
 
         # Fire up the image iterator
         #
-        # The overlap value needs to be set to 2*grow in order to 
+        # The overlap value needs to be set to 2*grow+1 in order to 
         # avoid edge effects when scrolling down the image, and to
         # insure that the last section returned from the iterator
         # has enough row to span the kernel used in the boxcar method
         # within minmed.  
-        _overlap = 2*int(grow)
+        _overlap = 2*int(grow)+1
         
         #Start by computing the buffer size for the iterator
         _imgarr = masterList[0].data
@@ -734,8 +734,7 @@ class ImageManager(object):
         
         # check to see if this buffer size will leave enough rows for
         # the section returned on the last iteration
-        # This should not be needed if nimageiter is working correctly. 18-Jun-09 WJH
-        #if _lastrows < _overlap+1:
+        #if abs(_lastrows) < _overlap+1:
         #    _delta_rows = (_overlap+1 - _lastrows)/_niter
         #    if _delta_rows < 1 and _delta_rows > 0: _delta_rows = 1
         #    _bufsize += (_imgarr.shape[1]*_imgarr.itemsize) * _delta_rows
