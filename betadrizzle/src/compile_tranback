@@ -1,1 +1,0 @@
-xc -p stsdas tranback.f drutil.f x_tranback.x /usr/stsci/stsdasx/lib/libiraf77.a
