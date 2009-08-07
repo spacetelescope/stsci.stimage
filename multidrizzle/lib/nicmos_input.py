@@ -66,6 +66,9 @@ class NICMOSInputImage(IRInputImage):
         _handle.close() 
 
     def doUnitConversions(self): 
+        """ Converts data units to a count image, from count rate image. 
+            If proc_unit == 'electrons', the gain correction will be applied.
+        """
         # Image information        
         _handle = fileutil.openImage(self.name,mode='update',memmap=0) 
         _sciext = fileutil.getExtn(_handle,extn=self.extn)         
@@ -73,23 +76,30 @@ class NICMOSInputImage(IRInputImage):
         # Determine if Multidrizzle is in units of counts/second or counts 
         # 
         # Counts per second case 
-        if (_handle[0].header['UNITCORR'].strip() == 'PERFORM'):         
+        exptime = self.getExpTime()  
+        if (_sciext.header['BUNIT'].find('/') > -1):         
             # Multiply the values of the sci extension pixels by the gain. 
             print "Converting %s from COUNTS/S to ELECTRONS"%(self.name) 
             # If the exptime is 0 the science image will be zeroed out. 
-            conversionFactor = (self.getExpTime() * self.getGain())
-
+            conversionFactor = exptime
+            
         # Counts case 
         else:
             # Multiply the values of the sci extension pixels by the gain. 
             print "Converting %s from COUNTS to ELECTRONS"%(self.name) 
             # If the exptime is 0 the science image will be zeroed out. 
-            conversionFactor = (self.getGain())  
-
+            conversionFactor = 1.0
+            
+        # Implement conversion to electrons if specified by user
+        if self.proc_unit == "electrons":
+            conversionFactor *= self.getGain()
+            self._expscale = self.getGain()
+            
         np.multiply(_sciext.data,conversionFactor,_sciext.data)
-        
+                
         # Set the BUNIT keyword to 'electrons'
-        _handle[0].header.update('BUNIT','ELECTRONS')
+        bunit_val = _handle[0].header['BUNIT']
+        _handle[0].header.update('BUNIT',bunit_val.replace('COUNTS','ELECTRONS'))
 
         # Update the PHOTFLAM value
         photflam = _handle[0].header['PHOTFLAM']
@@ -151,8 +161,8 @@ class NICMOSInputImage(IRInputImage):
         
         # Convert the science data to electrons if specified by the user.  Each
         # instrument class will need to define its own version of doUnitConversions
-        if self.proc_unit == "electrons":
-            self.doUnitConversions()
+        #if self.proc_unit == "electrons":
+        self.doUnitConversions()        
 
     def _setchippars(self):
         self._setDefaultReadnoise()
