@@ -240,7 +240,8 @@ class WFC3IRInputImage(IRInputImage):
 
         # Convert the science data to electrons if specified by the user.  Each
         # instrument class will need to define its own version of doUnitConversions
-        if self.proc_unit == "electrons":
+        # always need to convert from electrons/sec to electrons
+        if self.proc_unit:# == "electrons":
             self.doUnitConversions()
 
     def getflat(self):
