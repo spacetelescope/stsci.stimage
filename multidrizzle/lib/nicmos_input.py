@@ -79,32 +79,36 @@ class NICMOSInputImage(IRInputImage):
         exptime = self.getExpTime()  
         if (_sciext.header['BUNIT'].find('/') > -1):         
             # Multiply the values of the sci extension pixels by the gain. 
-            print "Converting %s from COUNTS/S to ELECTRONS"%(self.name) 
+            print "Converting %s from COUNTS/S to "%(self.name), 
             # If the exptime is 0 the science image will be zeroed out. 
             conversionFactor = exptime
             
         # Counts case 
         else:
             # Multiply the values of the sci extension pixels by the gain. 
-            print "Converting %s from COUNTS to ELECTRONS"%(self.name) 
+            print "Converting %s from COUNTS to "%(self.name), 
             # If the exptime is 0 the science image will be zeroed out. 
             conversionFactor = 1.0
             
         # Implement conversion to electrons if specified by user
         if self.proc_unit == "electrons":
+            print 'ELECTRONS'
             conversionFactor *= self.getGain()
             self._expscale = self.getGain()
-            
-        np.multiply(_sciext.data,conversionFactor,_sciext.data)
-                
-        # Set the BUNIT keyword to 'electrons'
-        bunit_val = _handle[0].header['BUNIT']
-        _handle[0].header.update('BUNIT',bunit_val.replace('COUNTS','ELECTRONS'))
 
-        # Update the PHOTFLAM value
-        photflam = _handle[0].header['PHOTFLAM']
-        _handle[0].header.update('PHOTFLAM',(photflam/self.getGain()))
+            # Set the BUNIT keyword to 'electrons'
+            bunit_val = _sciext.header['BUNIT']
+            _sciext.header.update('BUNIT',bunit_val.replace('COUNTS','ELECTRONS'))
+
+            # Update the PHOTFLAM value
+            photflam = _handle[0].header['PHOTFLAM']
+            _handle[0].header.update('PHOTFLAM',(photflam/self.getGain()))
+        else:
+            print 'COUNTS'
         
+        if conversionFactor != 1.0:   
+            np.multiply(_sciext.data,conversionFactor,_sciext.data)
+                    
         # Close the files and clean-up
         _handle.close() 
 
