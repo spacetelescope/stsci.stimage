@@ -580,11 +580,12 @@ class ImageManager(object):
 
             if (p['single_driz_mask'] == None and self.static_mask != None):
                 p['single_driz_mask'] = self.static_mask.getMask(p['image'].signature())
-                
-            if isinstance(p['image'],IRInputImage):
-                p['in_units'] = 'cps'
-            else:
-                p['in_units'] = 'counts'
+            
+             
+            #if isinstance(p['image'],IRInputImage):
+            #    p['in_units'] = 'cps'
+            #else:
+            #    p['in_units'] = 'counts'
             
             print("\ndrizzle data='"+p['data']+"' outdata='"+p['outsingle']+"' outweig='"+p['outsweight']+
                 "' in_mask='static_mask"+"' kernel='"+p['kernel']+
@@ -633,6 +634,7 @@ class ImageManager(object):
             hthresh = float(medianpars['hthresh'])
         grow = medianpars['grow']
         maskpt = medianpars['maskpt']
+        
         
         """ Builds combined array from single drizzled images."""
         # Start by removing any previous products...
@@ -687,6 +689,14 @@ class ImageManager(object):
                 readnoiseList.append(p['image'].getReadNoise())
 
                 print "reference sky value for image ",p['image'].rootname," is ", p['image'].getreferencesky()
+                # convert data based parameters to units which match the data
+                # user will provide values in terms of original input data units
+                # this code needs them to be in units of electrons (always)
+                if isinstance(p['image'],IRInputImage):
+                    if hthresh is not None: 
+                        hthresh *= p['image']._expscale
+                    if lthresh is not None: 
+                        lthresh *= p['image']._expscale
             #
             # END Loop over input image list
             #
@@ -878,11 +888,11 @@ class ImageManager(object):
             p['orig_single'] = p['outsingle']
             p['outsingle'] = self.medianfile
 
-
-            if isinstance(p['image'],IRInputImage):
-                origexptime[p['rootname']] = p['exptime']
-                p['exptime']=1
-
+            
+            #if isinstance(p['image'],IRInputImage):
+            #    origexptime[p['rootname']] = p['exptime']
+            #    p['exptime']=1
+            
             print("\nblot data='"+p['outsingle']+"' outdata='"+p['outblot']+"' scale="+str(p['scale'])+
                 " coeffs='"+p['coeffs']+"' xsh="+str(p['xsh'])+" ysh="+str(p['ysh'])+
                 " rot="+str(p['rot'])+" outnx="+str(p['blotnx'])+" outny="+str(p['blotny'])+
@@ -897,9 +907,8 @@ class ImageManager(object):
         # so that PyDrizzle can remove them as necessary
         for p in self.assoc.parlist:
             p['outsingle'] = p['orig_single']
-            if isinstance(p['image'],IRInputImage):
-                p['exptime']=origexptime[p['rootname']]
-
+            #if isinstance(p['image'],IRInputImage):
+            #    p['exptime']=origexptime[p['rootname']]
 
     def doDrizCR(self, drizcrpars, skypars):
         """ Runs deriv and driz_cr to create cosmic-ray masks. """
@@ -1016,11 +1025,10 @@ class ImageManager(object):
             if not self.context:
                 p['outcontext'] = ''
 
-            if isinstance(p['image'],IRInputImage):
-                p['in_units'] = 'cps'
-            else:
-                p['in_units'] = 'counts'
-
+            #if isinstance(p['image'],IRInputImage):
+            #    p['in_units'] = 'cps'
+            #else:
+            #    p['in_units'] = 'counts'
 
         print("drizzle.outnx = "+str(self.assoc.parlist[0]['outnx']))
         print("drizzle.outny = "+str(self.assoc.parlist[0]['outny']))

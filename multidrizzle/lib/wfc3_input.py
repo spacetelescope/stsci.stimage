@@ -168,16 +168,19 @@ class WFC3IRInputImage(IRInputImage):
         self.platescale = platescale
 
     def doUnitConversions(self):
+        """ Convert units to a count image from a count rate image.
+        """
         # Image information 
         _handle = fileutil.openImage(self.name,mode='update',memmap=0) 
         _sciext = fileutil.getExtn(_handle,extn=self.extn)         
 
-        # Set the BUNIT keyword to 'electrons'
-        _handle[1].header.update('BUNIT','ELECTRONS')
-
-        # Counts case 
-        np.multiply(_sciext.data,self.getExpTime(),_sciext.data)
-        
+        # Check to see if conversion to count-rate image was turned on in calibration
+        if _sciext.header['BUNIT'].find('/') > -1:
+            # Set the BUNIT keyword to 'electrons'
+            _handle[1].header.update('BUNIT','ELECTRONS')
+            print "Converting %s from ELECTRONS/S to ELECTRONS"%(self.name)
+            n.multiply(_sciext.data,self.getExpTime(),_sciext.data)            
+                    
         # Close the files and clean-up
         _handle.close() 
 
@@ -240,8 +243,9 @@ class WFC3IRInputImage(IRInputImage):
 
         # Convert the science data to electrons if specified by the user.  Each
         # instrument class will need to define its own version of doUnitConversions
-        if self.proc_unit == "electrons":
-            self.doUnitConversions()
+        # always need to convert from electrons/sec to electrons
+        #if self.proc_unit:# == "electrons":
+        self.doUnitConversions()
 
     def getflat(self):
         """

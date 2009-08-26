@@ -74,6 +74,7 @@ class DrizCR:
                 self.__expmult = self.__header[self.__expkey]
             except:
                 print "WARNING: Exposure time keyword ", self.__expkey, " was not found.  Count rate set to 1."
+                self.__expmult = 1
         else:
             raise ValueError, "UNITS KEYWORD NOT RECOGONIZED"
 
