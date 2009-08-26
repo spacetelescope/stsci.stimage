@@ -23,7 +23,6 @@ class IRInputImage(InputImage):
         Constructor for IRInputImage class object.
         """
         InputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
-        self._expscale = 1.0
         
     def isCountRate(self):
         """
