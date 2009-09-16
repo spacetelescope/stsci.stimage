@@ -63,7 +63,7 @@ class Imtype:
         if section == None:
             _extname = self.filename+self._setSciExtn(extn=extver)
         else:
-            _extname = self.filename+'['+str(section)+']'
+            _extname = self.filename+'[sci,'+str(section)+']'
 
         return _extname
 
