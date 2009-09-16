@@ -33,7 +33,7 @@
                 Close the display device defined by 'imtdev'. This must
                 be done before resetting the display buffer to a new size.
 
-            display(pix, name=None, bufname=None, z1=None, z2=None,
+            display(pix, name=None, bufname=None, z1=None, z2=None, quiet=False,
                     transform=None, scale=None, offset=None, frame=None):
                 Display the scaled array in display tool (ds9/ximtool/...).
                 name -- optional name to pass along for identifying array
@@ -71,6 +71,9 @@
 
                 frame  -- image buffer frame number in which to display array
                             (integer)
+                
+                quiet  -- if True (default: False), will turn off 
+                            all status messages (bool)
 
                 The display parameters set here will ONLY apply to the display
                 of the current array.
@@ -119,7 +122,7 @@ try:
 except ImportError:
     geotrans = None
 
-__version__ = "1.5.4 (8-Apr-2009)"
+__version__ = "1.5.5 (16-Sept-2009)"
 #
 # Version 0.1-alpha: Initial release
 #       WJH 7-Oct-2003
@@ -335,7 +338,7 @@ class NumDisplay(object):
 
     def display(self, pix, name=None, bufname=None, z1=None, z2=None,
              transform=None, zscale=False, contrast=0.25, scale=None,
-             offset=None, frame=None):
+             offset=None, frame=None,quiet=False):
 
         """ Displays byte-scaled (UInt8) n to XIMTOOL device.
             This method uses the IIS protocol for displaying the data
@@ -358,7 +361,8 @@ class NumDisplay(object):
         # on the display
         if zscale:
             if transform != None:
-                print "transform disallowed when zscale=True"
+                if not quiet:
+                    print "transform disallowed when zscale=True"
                 transform = None
 
             z1, z2 = _zscale.zscale(pix, contrast=contrast)
@@ -409,7 +413,8 @@ class NumDisplay(object):
         # If there was a problem in the transformation, then restore the original
         # array as the one to be displayed, even though it may not be ideal.
         if _z1 == _z2:
-            print 'Error encountered during transformation. No transformation applied...'
+            if not quiet:
+                print 'Error encountered during transformation. No transformation applied...'
             bpix = pix
             self.z1 = n.minimum.reduce(n.ravel(bpix))
             self.z2 = n.maximum.reduce(n.ravel(bpix))
@@ -426,7 +431,8 @@ class NumDisplay(object):
             self.z2 = _z2
 
         _wcsinfo = displaydev.ImageWCS(bpix,z1=self.z1,z2=self.z2,name=name)
-        print 'Image displayed with Z1: ',self.z1,' Z2:',self.z2
+        if not quiet:
+            print 'Image displayed with Z1: ',self.z1,' Z2:',self.z2
 
         bpix = self._fbclipImage(bpix,_d.fbwidth,_d.fbheight)
 
