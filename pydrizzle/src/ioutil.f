@@ -1805,6 +1805,10 @@ C Check for WCS coefficients - Spitzer format in image
 C header
          IF(COEFFS.EQ.'wcs') THEN
            CALL GTSPCO(IDD,COTY,CONUM,XCO,YCO,ISTAT)
+
+C Additional check here
+           IF(ISTAT.NE.0) RETURN
+
            CALL UMSPUT('-Reading non-linear WCS coefficients',
      :                 1,0,ISTAT)
            RETURN
@@ -2170,6 +2174,9 @@ C
       CHARACTER*12 CTYPE1,CTYPE2
       CHARACTER*5 KEY
       DOUBLE PRECISION CRPIX1,CRPIX2,XCO(*),YCO(*)
+      DOUBLE PRECISION PSCALE, CD11, CD12, CD21, CD22
+      DOUBLE PRECISION RSCALE
+      INTEGER PINDX
 
 C First try to get the CTYPE keywords and confirm they are as
 C expected
@@ -2231,13 +2238,39 @@ C Now look for the order in X and Y
          RETURN
       ENDIF
 
+C Now read in the photometric scaling parameter
+      CALL UHDGSD(ID,'PAMSCALE',PSCALE, ISTAT)
+      IF(ISTAT.NE.0) THEN
+          ISTAT=0
+          CALL UHDGSD(ID,'IDCSCALE',PSCALE, ISTAT)
+      ENDIF
+      IF(ISTAT.NE.0) THEN
+         CALL UMSPUT(
+     :   '! Unable to find photometric scale in header',1,0,IS)
+         ISTAT=1
+         RETURN
+      ENDIF
+C Get the CD matrix values to compute the area of the ref pixel
+      CALL UHDGSD(ID,'CD1_1',CD11, ISTAT)
+      CALL UHDGSD(ID,'CD1_2',CD12, ISTAT)
+      CALL UHDGSD(ID,'CD2_1',CD21, ISTAT)
+      CALL UHDGSD(ID,'CD2_2',CD22, ISTAT)
+      RSCALE = SQRT(ABS(CD11*CD22 - CD21*CD12))*3600.
+      
 C Set the order to the higher
       ORDER=MAX(XORD,YORD)
 
 C Offset to show we have an explicit refpix
       COTY=COOFF+ORDER
-      CONUM=(ORDER+1)*(ORDER+2)/2+1
+C Add an additional 1 to CONUM to accomodate 
+C    photometric scaling terms
+      CONUM=(ORDER+1)*(ORDER+2)/2+1+1
 
+C Initialize the photometric scaling terms with default values
+      PINDX = CONUM-1
+      XCO(PINDX)= RSCALE
+      YCO(PINDX)= PSCALE
+      
 C and set the refpix to the CRPIXs
       XCO(CONUM)=CRPIX1
       YCO(CONUM)=CRPIX2

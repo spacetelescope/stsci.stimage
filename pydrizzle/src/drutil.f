@@ -2281,6 +2281,9 @@ C
       DOUBLE PRECISION R2,ES,EFAC,NSIG,XCEN,YCEN
       DOUBLE PRECISION OVER,TEM
 	  DOUBLE PRECISION ALPHA, BETA
+
+      DOUBLE PRECISION SCALE2, PRATIO
+      INTEGER PINDX, NORDER, NCOEFF
 	  
 C Some things are still single
       REAL VC,WTSCL,D,DOW,DD
@@ -2395,6 +2398,21 @@ C Image subset size
 C Recalculate the area scaling factor 
       S2=SCALE*SCALE
 
+C Apply additional photometric scaling when using SIP coefficients
+      IF (COTY.GT.100) THEN
+          NORDER = COTY - 100
+      ELSE
+          NORDER = COTY
+      ENDIF
+      NCOEFF = (NORDER+1)*(NORDER+2)/2 + 1
+      
+      IF(CONUM.GT.NCOEFF) THEN
+         SCALE2 = S2
+         PINDX = CONUM - 1
+         PRATIO = XCO(PINDX)/YCO(PINDX)
+         S2 = SCALE2 * PRATIO * PRATIO
+      ENDIF      
+      
 C Offsets
       DX=DBLE(XMIN-1)
       DY=DBLE(YMIN-1)
