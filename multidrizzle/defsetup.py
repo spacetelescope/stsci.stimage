@@ -5,7 +5,7 @@ import sys
 pkg =  "multidrizzle"
 
 setupargs = {
-    'version' :         "3.2.0",
+    'version' :         "3.3.5dev",
     'description' :		"Automated process for HST image combination and cosmic-ray rejection",
     'author' :		    "Warren Hack, Christopher Hanley, Ivo Busko, Robert Jedrzejewski, and Anton Koekemoer",
     'author_email' :    "help@stsci.edu",
