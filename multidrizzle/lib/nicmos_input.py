@@ -7,16 +7,15 @@ from pytools import fileutil
 from nictools import readTDD
 import numpy as np
 
-from ir_input import IRInputImage
 from input_image import InputImage
 
 
-class NICMOSInputImage(IRInputImage):
+class NICMOSInputImage(InputImage):
 
     SEPARATOR = '_'
 
     def __init__(self, input,dqname,platescale,memmap=0,proc_unit="native"):
-        IRInputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
+        InputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
@@ -24,11 +23,14 @@ class NICMOSInputImage(IRInputImage):
         # Detector parameters
         self.platescale = platescale
         self.full_shape = (256,256)
-         
-        # no cte correction for NICMOS so set cte_dir=0.
-        self.cte_dir = 0   
+        self.native_units = "COUNTS/S"
 
+        # no cte correction for NICMOS so set cte_dir=0.
+        self.cte_dir = 0
+        
+        # All data is converted to electrons so use effective gain of 1
         self._effGain = 1
+        
 
     def updateMDRIZSKY(self,filename=None): 
         if (filename == None): 
@@ -57,18 +59,15 @@ class NICMOSInputImage(IRInputImage):
             if (_handle[0].header['UNITCORR'].strip() == 'PERFORM'): 
                 skyvalue = self.getSubtractedSky()/self.getExpTime() 
             else: 
-                skyvalue = self.getSubtractedSky() 
+                skyvalue = self.getSubtractedSky()
             # We need to convert back to native units if computations were done in electrons
             if self.proc_unit != "native":
-                skyvalue = skyvalue/self.getGain()
+                skyvalue = skyvalue/self.getGain()    
             print "Updating MDRIZSKY keyword to primary header with value %f"%(skyvalue) 
             _handle[0].header.update('MDRIZSKY',skyvalue)  
         _handle.close() 
 
     def doUnitConversions(self): 
-        """ Converts data units to a count image, from count rate image. 
-            If proc_unit == 'electrons', the gain correction will be applied.
-        """
         # Image information        
         _handle = fileutil.openImage(self.name,mode='update',memmap=0) 
         _sciext = fileutil.getExtn(_handle,extn=self.extn)         
@@ -76,39 +75,28 @@ class NICMOSInputImage(IRInputImage):
         # Determine if Multidrizzle is in units of counts/second or counts 
         # 
         # Counts per second case 
-        exptime = self.getExpTime()  
-        if (_sciext.header['BUNIT'].find('/') > -1):         
+        if (_handle[0].header['UNITCORR'].strip() == 'PERFORM'):         
             # Multiply the values of the sci extension pixels by the gain. 
-            print "Converting %s from COUNTS/S to "%(self.name), 
+            print "Converting %s from COUNTS/S to ELECTRONS"%(self.name) 
             # If the exptime is 0 the science image will be zeroed out. 
-            conversionFactor = exptime
-            
+            conversionFactor = (self.getExpTime() * self.getGain())
+
         # Counts case 
         else:
             # Multiply the values of the sci extension pixels by the gain. 
-            print "Converting %s from COUNTS to "%(self.name), 
+            print "Converting %s from COUNTS to ELECTRONS"%(self.name) 
             # If the exptime is 0 the science image will be zeroed out. 
-            conversionFactor = 1.0
-            
-        # Implement conversion to electrons if specified by user
-        if self.proc_unit == "electrons":
-            print 'ELECTRONS'
-            conversionFactor *= self.getGain()
-            self._expscale = self.getGain()
+            conversionFactor = (self.getGain())  
 
-            # Set the BUNIT keyword to 'electrons'
-            bunit_val = _sciext.header['BUNIT']
-            _sciext.header.update('BUNIT',bunit_val.replace('COUNTS','ELECTRONS'))
-
-            # Update the PHOTFLAM value
-            photflam = _handle[0].header['PHOTFLAM']
-            _handle[0].header.update('PHOTFLAM',(photflam/self.getGain()))
-        else:
-            print 'COUNTS'
+        np.multiply(_sciext.data,conversionFactor,_sciext.data)
         
-        if conversionFactor != 1.0:   
-            np.multiply(_sciext.data,conversionFactor,_sciext.data)
-                    
+        # Set the BUNIT keyword to 'electrons'
+        _handle[0].header.update('BUNIT','ELECTRONS')
+
+        # Update the PHOTFLAM value
+        photflam = _handle[0].header['PHOTFLAM']
+        _handle[0].header.update('PHOTFLAM',(photflam/self.getGain()))
+        
         # Close the files and clean-up
         _handle.close() 
 
@@ -165,8 +153,8 @@ class NICMOSInputImage(IRInputImage):
         
         # Convert the science data to electrons if specified by the user.  Each
         # instrument class will need to define its own version of doUnitConversions
-        #if self.proc_unit == "electrons":
-        self.doUnitConversions()        
+        if self.proc_unit == "electrons":
+            self.doUnitConversions()
 
     def _setchippars(self):
         self._setDefaultReadnoise()
@@ -274,13 +262,9 @@ class NIC1InputImage(NICMOSInputImage):
         
     def _setDarkRate(self):
         self.darkrate = 0.08 #electrons/s
-        if self.proc_unit == 'native':
-            self.darkrate = self.darkrate / self.getGain() # DN/s
 
     def _setDefaultReadnoise(self):
         self._rdnoise = 26.0 # electrons
-        if self.proc_unit == 'native':
-            self._rdnoise = self._rdnoise / self.getGain() # ADU
 
 class NIC2InputImage(NICMOSInputImage):
     def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
@@ -289,13 +273,9 @@ class NIC2InputImage(NICMOSInputImage):
         
     def _setDarkRate(self):
         self.darkrate = 0.08 #electrons/s
-        if self.proc_unit == 'native':
-            self.darkrate = self.darkrate / self.getGain() # DN/s
 
     def _setDefaultReadnoise(self):
         self._rdnoise = 26.0 #electrons
-        if self.proc_unit == 'native':
-            self._rdnoise = self._rdnoise/self.getGain() #ADU
 
 class NIC3InputImage(NICMOSInputImage):
     def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
@@ -304,10 +284,6 @@ class NIC3InputImage(NICMOSInputImage):
         
     def _setDarkRate(self):
         self.darkrate = 0.15 #electrons/s
-        if self.proc_unit == 'native':
-            self.darkrate = self.darkrate/self.getGain() #DN/s
 
     def _setDefaultReadnoise(self):
         self._rdnoise = 29.0 # electrons
-        if self.proc_unit == 'native':
-            self._rdnoise = self._rdnoise/self.getGain() #ADU

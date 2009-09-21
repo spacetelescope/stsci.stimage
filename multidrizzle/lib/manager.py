@@ -21,7 +21,6 @@ from wfpc2_input import WFPC2InputImage, PCInputImage, WF2InputImage, WF3InputIm
 from stis_input import STISInputImage, CCDInputImage, FUVInputImage, NUVInputImage
 from nicmos_input import NICMOSInputImage, NIC1InputImage, NIC2InputImage, NIC3InputImage
 from wfc3_input import WFC3UVISInputImage, WFC3IRInputImage
-from ir_input import IRInputImage
 
 # Import general tools
 import imagestats
@@ -580,12 +579,9 @@ class ImageManager(object):
 
             if (p['single_driz_mask'] == None and self.static_mask != None):
                 p['single_driz_mask'] = self.static_mask.getMask(p['image'].signature())
-            
-             
-            #if isinstance(p['image'],IRInputImage):
-            #    p['in_units'] = 'cps'
-            #else:
-            #    p['in_units'] = 'counts'
+                
+            # 'in_units' will always be counts given that the input is converted to 'electrons' in call cases
+            p['in_units'] = 'counts'
             
             print("\ndrizzle data='"+p['data']+"' outdata='"+p['outsingle']+"' outweig='"+p['outsweight']+
                 "' in_mask='static_mask"+"' kernel='"+p['kernel']+
@@ -624,17 +620,36 @@ class ImageManager(object):
         nsigma2 = medianpars['nsigma2']
         nlow = medianpars['nlow']
         nhigh = medianpars['nhigh']
+        
+        # Convert the units of the threshold values if necessary
+        native_units = self.assoc.parlist[1]['image'].native_units
+        proc_units = self.assoc.parlist[1]['image'].proc_unit
+        det_gain = self.assoc.parlist[1]['image'].getGain()
+        img_exptime = self.assoc.parlist[1]['image'].getExpTime()
+
         if (medianpars['lthresh'] == None):
             lthresh = None
         else:
             lthresh = float(medianpars['lthresh'])
+            if proc_units.lower() == 'native':
+                if native_units.lower() == "counts":
+                    lthresh = lthresh * det_gain
+                    if native_units.lower() == "counts/s":
+                        lthresh = lthresh * img_exptime
+
         if (medianpars['hthresh'] == None):
             hthresh = None
         else:
             hthresh = float(medianpars['hthresh'])
+            if proc_units.lower() == 'native':
+                if native_units.lower() == "counts":
+                    htrhest = hthresh * det_gain
+                    if native_units.lower() == "counts/s":
+                        hthresh = hthresh * img_exptime
+
+
         grow = medianpars['grow']
         maskpt = medianpars['maskpt']
-        
         
         """ Builds combined array from single drizzled images."""
         # Start by removing any previous products...
@@ -689,14 +704,6 @@ class ImageManager(object):
                 readnoiseList.append(p['image'].getReadNoise())
 
                 print "reference sky value for image ",p['image'].rootname," is ", p['image'].getreferencesky()
-                # convert data based parameters to units which match the data
-                # user will provide values in terms of original input data units
-                # this code needs them to be in units of electrons (always)
-                if isinstance(p['image'],IRInputImage):
-                    if hthresh is not None: 
-                        hthresh *= p['image']._expscale
-                    if lthresh is not None: 
-                        lthresh *= p['image']._expscale
             #
             # END Loop over input image list
             #
@@ -736,19 +743,9 @@ class ImageManager(object):
         _bufsize = nimageiter.BUFSIZE
         _imgrows = _imgarr.shape[0]
         _nrows = computeBuffRows(_imgarr)
-#        _overlaprows = _nrows - (_overlap+1)
-#        _niter = int(_imgrows/_nrows)
-#        _niter = 1 + int( (_imgrows - _overlaprows)/_nrows)
         _niter,_nrows = computeNumberBuff(_imgrows,_nrows,_overlap)
         _lastrows = _imgrows - (_niter*_nrows) 
-        
-        # check to see if this buffer size will leave enough rows for
-        # the section returned on the last iteration
-        #if abs(_lastrows) < _overlap+1:
-        #    _delta_rows = (_overlap+1 - _lastrows)/_niter
-        #    if _delta_rows < 1 and _delta_rows > 0: _delta_rows = 1
-        #    _bufsize += (_imgarr.shape[1]*_imgarr.itemsize) * _delta_rows
-        
+                
         masterList[0].close()
         del _imgarr
 
@@ -820,10 +817,7 @@ class ImageManager(object):
             else:
                 medianOutputImage[prange[0]:prange[1],:] = result.combArrObj
             
-            
             del result
-
-
             del self.weight_mask_list
             self.weight_mask_list = None
 
@@ -888,11 +882,7 @@ class ImageManager(object):
             p['orig_single'] = p['outsingle']
             p['outsingle'] = self.medianfile
 
-            
-            #if isinstance(p['image'],IRInputImage):
-            #    origexptime[p['rootname']] = p['exptime']
-            #    p['exptime']=1
-            
+
             print("\nblot data='"+p['outsingle']+"' outdata='"+p['outblot']+"' scale="+str(p['scale'])+
                 " coeffs='"+p['coeffs']+"' xsh="+str(p['xsh'])+" ysh="+str(p['ysh'])+
                 " rot="+str(p['rot'])+" outnx="+str(p['blotnx'])+" outny="+str(p['blotny'])+
@@ -907,8 +897,6 @@ class ImageManager(object):
         # so that PyDrizzle can remove them as necessary
         for p in self.assoc.parlist:
             p['outsingle'] = p['orig_single']
-            #if isinstance(p['image'],IRInputImage):
-            #    p['exptime']=origexptime[p['rootname']]
 
     def doDrizCR(self, drizcrpars, skypars):
         """ Runs deriv and driz_cr to create cosmic-ray masks. """
@@ -1024,11 +1012,8 @@ class ImageManager(object):
             p['wt_scl'] = drizpars['wt_scl']
             if not self.context:
                 p['outcontext'] = ''
+            p['in_units'] = 'counts'
 
-            #if isinstance(p['image'],IRInputImage):
-            #    p['in_units'] = 'cps'
-            #else:
-            #    p['in_units'] = 'counts'
 
         print("drizzle.outnx = "+str(self.assoc.parlist[0]['outnx']))
         print("drizzle.outny = "+str(self.assoc.parlist[0]['outny']))
@@ -1098,6 +1083,20 @@ class ImageManager(object):
         self.assoc.run(save=True,build=drizpars['build'])
         
         self.updateMdrizskyHistory(drizpars['build'])
+        
+        if self.proc_unit.lower() == 'native':
+            if self.assoc.parlist[0]['image'].native_units.lower().find('counts') != -1:
+                _plist = self.assoc.parlist[0]
+                if drizpars['build']: 
+                    _output = _plist['output']
+                else: 
+                    _output = _plist['outdata']
+        
+                fhdu = pyfits.open(_output,mode='update')
+                fhdu['sci'].data = fhdu['sci'].data / _plist['image'].getGain()
+                fhdu['sci'].header['bunit'] = fhdu['sci'].header['bunit'].upper().replace("ELECTRONS","COUNTS")
+                fhdu.close()
+
         
     def updateMdrizskyHistory(self,build):
         """ Update the output SCI image with HISTORY cards

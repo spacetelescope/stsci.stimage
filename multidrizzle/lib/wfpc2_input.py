@@ -17,10 +17,9 @@ class WFPC2InputImage (InputImage):
         self.cr_bits_value = 4096
         
         self.platescale = platescale 
-
         self.cte_dir = -1    # independent of amp, chip   
-        
         self._effGain = 1
+        self.native_units = "COUNTS"
 
         # Attribute defining the pixel dimensions of WFPC2 chips.
         self.full_shape = (800,800)
@@ -103,10 +102,8 @@ class WFPC2InputImage (InputImage):
             self._gain = self._headergain
             print "Using user defined values for gain and readnoise"
 
-        # Convert the science data to electrons if specified by the user.  Each
-        # instrument class will need to define its own version of doUnitConversions
-        if self.proc_unit == "electrons":
-            self.doUnitConversions()
+        # Convert the science data to electrons
+        self.doUnitConversions()
 
     def getflat(self):
         """
@@ -178,9 +175,7 @@ class WFPC2InputImage (InputImage):
         :units: counts/electrons
         
         """
-        darkrate = 0.005 # electrons / s
-        if self.proc_unit == 'native':
-            darkrate = darkrate / self.getGain() #count/s
+        darkrate = 0.005 # electrons/s
         
         try:
             darkcurrent = self.header['DARKTIME'] * darkrate
@@ -209,13 +204,11 @@ class WFPC2InputImage (InputImage):
         =======
         Method for returning the readnoise of a detector (in counts).
         
-        :units: counts/electrons
+        :units: electrons
         
         """
         
         rn = self._rdnoise
-        if self.proc_unit == 'native':
-            rn = self._rdnoise / self.getGain()
         return rn
 
     def _setchippars(self):

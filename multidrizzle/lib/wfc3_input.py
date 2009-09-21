@@ -4,9 +4,8 @@
 #   Purpose: Class used to model WFC3 specific instrument data.
 
 from pytools import fileutil
-import numpy as n
+import numpy as np
 from input_image import InputImage
-from ir_input import IRInputImage
 
 class WFC3UVISInputImage(InputImage):
 
@@ -17,8 +16,7 @@ class WFC3UVISInputImage(InputImage):
 
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
-        self.platescale = platescale
-        
+                
         # Effective gain to be used in the driz_cr step.  Since the
         # WFC3 UVIS images have already been converted to electrons,
         # the effective gain is 1.
@@ -27,6 +25,7 @@ class WFC3UVISInputImage(InputImage):
         self.instrument = 'WFC3/UVIS'
         self.full_shape = (4096,2048)
         self.platescale = platescale
+        self.native_units = "electrons"
 
         # get direction, which depends on which chip but is independent of amp 
         if ( self.extn == 'sci,1') : 
@@ -73,8 +72,7 @@ class WFC3UVISInputImage(InputImage):
 
         # Convert the science data to electrons if specified by the user.  Each
         # instrument class will need to define its own version of doUnitConversions
-        if self.proc_unit == "electrons":
-            self.doUnitConversions()
+        self.doUnitConversions()
 
     def getflat(self):
         """
@@ -147,10 +145,10 @@ class WFC3UVISInputImage(InputImage):
         
         return darkcurrent
 
-class WFC3IRInputImage(IRInputImage):
+class WFC3IRInputImage(InputImage):
 
     def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
-        IRInputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
+        InputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
@@ -166,21 +164,19 @@ class WFC3IRInputImage(IRInputImage):
         self.instrument = 'WFC3/IR'
         self.full_shape = (1000,1000)
         self.platescale = platescale
+        self.native_units = "ELECTRONS/S"
 
     def doUnitConversions(self):
-        """ Convert units to a count image from a count rate image.
-        """
         # Image information 
         _handle = fileutil.openImage(self.name,mode='update',memmap=0) 
         _sciext = fileutil.getExtn(_handle,extn=self.extn)         
 
-        # Check to see if conversion to count-rate image was turned on in calibration
-        if _sciext.header['BUNIT'].find('/') > -1:
-            # Set the BUNIT keyword to 'electrons'
-            _handle[1].header.update('BUNIT','ELECTRONS')
-            print "Converting %s from ELECTRONS/S to ELECTRONS"%(self.name)
-            n.multiply(_sciext.data,self.getExpTime(),_sciext.data)            
-                    
+        # Set the BUNIT keyword to 'electrons'
+        _handle[1].header.update('BUNIT','ELECTRONS')
+
+        # Counts case 
+        np.multiply(_sciext.data,self.getExpTime(),_sciext.data)
+        
         # Close the files and clean-up
         _handle.close() 
 
@@ -206,12 +202,10 @@ class WFC3IRInputImage(IRInputImage):
             _handle[0].header['MDRIZSKY'] = 0 
             print str 
         else:
-            # Assume the MDRIZSKY keyword is in the primary header.  Try to update 
-            # the header value
-            if self.proc_unit == 'electrons': 
-                skyvalue = self.getSubtractedSky()/self.getExpTime() 
-            else: 
-                skyvalue = self.getSubtractedSky() 
+            skyvalue = self.getSubtractedSky()
+            if self.proc_unit == 'electrons':
+                skyvalue = skyvalue / self.getExpTime()
+
             print "Updating MDRIZSKY keyword to primary header with value %f"%(skyvalue) 
             _handle[0].header.update('MDRIZSKY',skyvalue)  
         _handle.close() 
@@ -241,10 +235,6 @@ class WFC3IRInputImage(IRInputImage):
             print 'ERROR: invalid instrument task parameter'
             raise ValueError
 
-        # Convert the science data to electrons if specified by the user.  Each
-        # instrument class will need to define its own version of doUnitConversions
-        # always need to convert from electrons/sec to electrons
-        #if self.proc_unit:# == "electrons":
         self.doUnitConversions()
 
     def getflat(self):

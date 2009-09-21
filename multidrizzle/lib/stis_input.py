@@ -18,9 +18,11 @@ class STISInputImage (InputImage):
         
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 8192
+        
         self.platescale = platescale
         self.full_shape = (1024,1024)
         self._effGain = 1
+        self.native_units = "COUNTS"
 
     def updateMDRIZSKY(self,filename=None): 
         if (filename == None): 
@@ -46,11 +48,10 @@ class STISInputImage (InputImage):
         else:
             # Assume the MDRIZSKY keyword is in the primary header.  Try to update 
             # the header value
-            skyvalue = self.getSubtractedSky() 
+            skyvalue = self.getSubtractedSky()
+            if self.proc_unit == 'electrons':
+                skyvalue = skyvalue / self.getGain()
 
-            # We need to convert back to native units if computations were done in electrons
-            if self.proc_unit != "native":
-                skyvalue = skyvalue/self.getGain()
             print "Updating MDRIZSKY keyword to primary header with value %f"%(skyvalue) 
             _handle[0].header.update('MDRIZSKY',skyvalue)  
         _handle.close() 
@@ -164,8 +165,7 @@ class STISInputImage (InputImage):
 
         # Convert the science data to electrons if specified by the user.  Each
         # instrument class will need to define its own version of doUnitConversions
-        if self.proc_unit == "electrons":
-            self.doUnitConversions()
+        self.doUnitConversions()
 
     def _setMAMAchippars(self):
         self._setMAMADefaultGain()
@@ -190,8 +190,6 @@ class CCDInputImage(STISInputImage):
 
     def getdarkcurrent(self):
         darkcurrent = 0.009 #electrons/sec
-        if self.proc_unit == 'native':
-            return darkcurrent / self.getGain()
         return darkcurrent
     
     def getReadNoise(self):
@@ -199,13 +197,11 @@ class CCDInputImage(STISInputImage):
         
         Purpose
         =======
-        Method for trturning the readnoise of a detector (in DN).
+        Return the detector readnoise.
         
-        :units: DN
+        :units: electrons
         
         """
-        if self.proc_unit == 'native':
-            return self._rdnoise / self.getGain()
         return self._rednoise
     
 class NUVInputImage(STISInputImage):
@@ -281,8 +277,6 @@ class NUVInputImage(STISInputImage):
 
     def getdarkcurrent(self):
         darkcurrent = 0.0013 #electrons/sec
-        if self.proc_unit == 'native':
-            return darkcurrent / self.getGain()
         return darkcurrent
     
 class FUVInputImage(STISInputImage):
@@ -362,6 +356,4 @@ class FUVInputImage(STISInputImage):
         
     def getdarkcurrent(self):
         darkcurrent = 0.07 #electrons/sec
-        if self.proc_unit == 'native':
-            return darkcurrent / self.getGain()
         return darkcurrent
