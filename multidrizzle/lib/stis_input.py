@@ -67,11 +67,11 @@ class STISInputImage (InputImage):
         np.multiply(_sciext.data,self.getGain(),_sciext.data)
 
         # Set the BUNIT keyword to 'electrons'
-        _handle[1].header.update('BUNIT','ELECTRONS')
+        _sciext.header.update('BUNIT','ELECTRONS')
 
         # Update the PHOTFLAM value
-        photflam = _handle[1].header['PHOTFLAM']
-        _handle[1].header.update('PHOTFLAM',(photflam/self.getGain()))
+        photflam = _sciext.header['PHOTFLAM']
+        _sciext.header.update('PHOTFLAM',(photflam/self.getGain()))
         
         # Close the files and clean-up
         _handle.close() 

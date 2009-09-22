@@ -172,7 +172,7 @@ class WFC3IRInputImage(InputImage):
         _sciext = fileutil.getExtn(_handle,extn=self.extn)         
 
         # Set the BUNIT keyword to 'electrons'
-        _handle[1].header.update('BUNIT','ELECTRONS')
+        _sciext.header.update('BUNIT','ELECTRONS')
 
         # Counts case 
         np.multiply(_sciext.data,self.getExpTime(),_sciext.data)
