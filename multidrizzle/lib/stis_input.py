@@ -68,10 +68,6 @@ class STISInputImage (InputImage):
 
         # Set the BUNIT keyword to 'electrons'
         _sciext.header.update('BUNIT','ELECTRONS')
-
-        # Update the PHOTFLAM value
-        photflam = _sciext.header['PHOTFLAM']
-        _sciext.header.update('PHOTFLAM',(photflam/self.getGain()))
         
         # Close the files and clean-up
         _handle.close() 
