@@ -198,7 +198,7 @@ class CCDInputImage(STISInputImage):
         :units: electrons
         
         """
-        return self._rednoise
+        return self._rdnoise
     
 class NUVInputImage(STISInputImage):
     def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
