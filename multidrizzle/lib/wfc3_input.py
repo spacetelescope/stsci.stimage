@@ -147,6 +147,8 @@ class WFC3UVISInputImage(InputImage):
 
 class WFC3IRInputImage(InputImage):
 
+    SEPARATOR = '_'
+
     def __init__(self, input, dqname, platescale, memmap=0,proc_unit="native"):
         InputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         
