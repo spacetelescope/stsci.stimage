@@ -23,7 +23,7 @@ class WFC3UVISInputImage(InputImage):
         self._effGain = 1
 
         self.instrument = 'WFC3/UVIS'
-        self.full_shape = (4096,2048)
+        self.full_shape = (4096,2051)
         self.platescale = platescale
         self.native_units = "electrons"
 
@@ -164,7 +164,7 @@ class WFC3IRInputImage(InputImage):
         self.cte_dir = 0   
 
         self.instrument = 'WFC3/IR'
-        self.full_shape = (1000,1000)
+        self.full_shape = (1014,1014)
         self.platescale = platescale
         self.native_units = "ELECTRONS/S"
 
