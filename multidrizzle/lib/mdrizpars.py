@@ -460,7 +460,14 @@ class MDrizPars (HasTraits):
         # Append any values for keywords provided by user in keylist
         if keylist != None:
             for kw in keylist:
-                _driz_dict[kw] = self.master_pars[kw]
+                if kw == 'group' and self.master_pars[kw] is not None:
+                    # Always set up group as a list, if specified
+                    group = []
+                    glist = str(self.master_pars[kw]).split(',')
+                    for g in glist: group.append(int(g))
+                    _driz_dict[kw] = group
+                else:
+                    _driz_dict[kw] = self.master_pars[kw]
 
         return _driz_dict
         
