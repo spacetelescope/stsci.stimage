@@ -194,15 +194,17 @@ class Pattern(object):
 
         if self.pars['section'] == None:
             self.pars['section'] = [None] * self.nmembers 
+            extver_indx = range(1,self.nmembers+1)
             group_indx = range(1,self.nmembers+1)
         else:
-            group_indx = self.pars['section']
-
+            extver_indx = self.pars['section']
+            group_indx = [1]
+            
         # Build rootname here for each SCI extension...
         for i in range(self.nmembers):
             _extver = self.pars['section'][i]
             _sciname = self.imtype.makeSciName(i+1,section=_extver)
-            _dqname = self.imtype.makeDQName(group_indx[i])
+            _dqname = self.imtype.makeDQName(extver_indx[i])
             _extname = self.imtype.dq_extname
             
             # Build mask files based on input 'bits' parameter values
@@ -211,11 +213,11 @@ class Pattern(object):
             #
             # If we have a valid bits value...
             # Creat the name of the output mask file
-            _maskname = buildmask.buildMaskName(_dqname,group_indx[i])
+            _maskname = buildmask.buildMaskName(_dqname,extver_indx[i])
             _masknames.append(_maskname)
 
             # Create the actual mask file now...
-            outmask = buildmask.buildMaskImage(_dqname,self.bitvalue[0],_maskname,extname=_extname,extver=group_indx[i])
+            outmask = buildmask.buildMaskImage(_dqname,self.bitvalue[0],_maskname,extname=_extname,extver=extver_indx[i])
             _masklist.append(outmask)
 
             #
@@ -226,7 +228,7 @@ class Pattern(object):
             _masknames.append(_maskname)
 
             # Create new mask file with different bit value.
-            outmask = buildmask.buildMaskImage(_dqname,self.bitvalue[1],_maskname,extname=_extname,extver=group_indx[i])
+            outmask = buildmask.buildMaskImage(_dqname,self.bitvalue[1],_maskname,extname=_extname,extver=extver_indx[i])
             # Add new name to list for single drizzle step
             _masklist.append(outmask)
             _masklist.append(_masknames)

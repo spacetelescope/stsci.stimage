@@ -21,7 +21,7 @@ _default_pars = {'psize':None,'default_rot':None,'idckey':None}
 
 INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS","WFC3"]
 
-__version__ = "6.3.1 (8-May-2009)"
+__version__ = "6.3.2 (23-Oct-2009)"
 
 
 class _PyDrizzle:
@@ -569,7 +569,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 if (_sciext.data.dtype > N.float32):
                     #WARNING: Input array recast as a float32 array
                     _sciext.data = _sciext.data.astype(N.float32)
-
+                    
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
                             _outctx[_planeid], _uniqid, ystart, 1, 1, _dny,
                             plist['xsh'],plist['ysh'], 'output','output',
