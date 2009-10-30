@@ -12,7 +12,7 @@ image names to initialize the MultiDrizzle object:
 >>> md.build()
 >>> md.run()
 
-MultiDrizzle defines default values for all inputs, and only 
+MultiDrizzle defines default values for all inputs, and only
 those values which need to be over-ridden should be entered.
 
 Further help can be obtained interactively using:
@@ -47,7 +47,7 @@ from pytools.parseinput import parseinput
 
 
 # Begin Version Information -------------------------------------------
-__version__ = '3.3.5'
+__version__ = '3.3.6dev'
 # End Version Information ---------------------------------------------
 # Revision based version info
 try:
@@ -57,15 +57,15 @@ except ImportError:
     __svn_version__ = 'Unable to determine SVN revision'
 
 class Multidrizzle:
-    """ 
+    """
 The MultiDrizzle object manages the processing of the images.  All
 input parameters, including the input, have default values, so only
 those parameters which need to be changed should be specified. The
 processing requires the following steps to be performed in order:
-  - input all parameters and convert all input images to 
+  - input all parameters and convert all input images to
     multi-extension FITS (MEF) files
 
-    >>> md = multidrizzle.MultiDrizzle (input, output=None, 
+    >>> md = multidrizzle.MultiDrizzle (input, output=None,
                                         editpars=no,**input_dict)
 
     where editpars turns on/off the GUI parameter editor
@@ -95,29 +95,29 @@ help file.
     """
     init_keys = ['mdriztab','runfile','workinplace',
                 'context','clean','shiftfile','staticfile',
-                'static_sig','coeffs'] 
+                'static_sig','coeffs']
 
     driz_keys = ['refimage','group','ra','dec','build']
-    
+
     instr_keys = ['gain','gnkeyword','rdnoise','rnkeyword',
                     'exptime', 'expkeyword','crbit']
     sky_keys = ['skywidth','skystat', 'skylower','skyupper',
-                    'skyclip','skylsigma','skyusigma','skyuser']   
-                        
+                    'skyclip','skylsigma','skyusigma','skyuser']
+
     median_keys = ['median_newmasks','combine_type','combine_nsigma',
                     'combine_nlow', 'combine_nhigh','combine_lthresh',
                     'combine_hthresh','combine_grow','combine_maskpt','nsigma1','nsigma2' ]
 
     drizcr_keys = ['driz_cr_snr','driz_cr_scale', 'driz_cr_corr',
-                   'driz_cr_grow','driz_cr_ctegrow']    
-    
+                   'driz_cr_grow','driz_cr_ctegrow']
+
     blot_keys = ['blot_interp','blot_sinscl']
-    
+
     def __init__(self,
                  input      = '*flt.fits',
                  output     = None,
                  editpars   = False,
-                 shiftfile  = None, 
+                 shiftfile  = None,
                  updatewcs  = True,
                  **input_dict):
 
@@ -126,7 +126,7 @@ help file.
 
         # Print version information for all external python modules used
         self.versions = versioninfo()
-        
+
         self.shiftfile = shiftfile
         self.updatewcs = updatewcs
         if input_dict.has_key('proc_unit'):
@@ -178,29 +178,29 @@ help file.
         # be created if the input association file containings members whose
         # EXPTIME value is zero
         #self.zeroExptimeAsnTable = None
-            
+
         # We need to make certain that we have not thrown out all of the data
         # because of the zero exposure time problem.
-        #                
+        #
         # numInputs <= 0: We have no input.
         self.errorstate = False
 
         # Remember the original user 'input' value
         self.input = input
         asndict, ivmfiles, output = process_input.process_input(input, output=output, updatewcs=self.updatewcs, shiftfile=shiftfile)
-        self.asndict = asndict 
+        self.asndict = asndict
         self.ivmlist = ivmfiles
-        self.output = output        
+        self.output = output
         if not self.asndict:
             self.errorstate = True
             return
-        # Check status of file processing.  If all files have been         
+        # Check status of file processing.  If all files have been
         # Report the names of the input files that have just been parsed.
         self.files = [fileutil.buildRootname(f) for f in self.asndict['order']]
 
         self.printInputFiles()
-        
-        # Check input files.  This is the private method used to call the 
+
+        # Check input files.  This is the private method used to call the
         # MAKEWCS application.  MAKEWCS is used to recompute and update the
         # WCS for input images, which updatewcs makes optional
 
@@ -211,9 +211,9 @@ help file.
         # since it needs to be able to open the file to read the
         # MDRIZTAB keyword, if this parameter is set to TRUE.
 
-        self.pars = mdrizpars.MDrizPars(self.input, self.output, 
+        self.pars = mdrizpars.MDrizPars(self.input, self.output,
                             dict=input_dict,files=self.files)
-            
+
         # Initialize attributes needed for each processing step
         # These get populated by the 'build' method.
         self.steps = None
@@ -229,11 +229,11 @@ help file.
 
         # Convenience for user: if they specify 'editpars' on
         # command line as parameter, then automatically run GUI
-        # editor for them.  
-        self.traits_edited = False      
+        # editor for them.
+        self.traits_edited = False
         if editpars:
             self.editpars()
-            
+
     def editpars(self):
         """ Run Python GUI parameter editor to set parameter values. """
         self.pars.edit_traits()
@@ -243,15 +243,15 @@ help file.
     def build(self):
         """ Parses parameter list into dictionaries for use by
             each processing step, builds the PyDrizzle input
-            association table, builds the PyDrizzle object and 
+            association table, builds the PyDrizzle object and
             uses that to build the InputImage instances needed
             for MultiDrizzle processing.
         """
-        
+
         if self.errorstate == True:
             # If we are in this conditional, the Multidrizzle constructor
             # exited with a return without actually completing it's normal
-            # processing.  This exit from Multidrizzle is to allow for 
+            # processing.  This exit from Multidrizzle is to allow for
             # the stopping of execution withour raising an acception.  This
             # keeps the HST pipeline from crashing because of a raised
             # reception.  This state likely occured because all of the input
@@ -260,11 +260,11 @@ help file.
             # value).
             #
             # Just return and end exection
-            return 
-        
+            return
+
         #Update master_pars dictionary, and switches dictionary
         # based on last set values.
-        if self.traits_edited:        
+        if self.traits_edited:
             self.pars.updateMasterPars()
 
         # Use the values in the master parlist to set the values
@@ -275,13 +275,13 @@ help file.
         # so we have to make sure it's a string
         self.runfile = str(self.runfile)
 
-                
+
         # Create object that controls step execution and mark
         # initialization step.
         self.steps = self.pars.steps
         self.steps.doStep(ProcSteps.doInitialize)
 
-        self.skypars    = self.pars.getParList(self.sky_keys) 
+        self.skypars    = self.pars.getParList(self.sky_keys)
         self.medianpars = self.pars.getParList(self.median_keys,prefix='combine_')
         self.drizcrpars = self.pars.getParList(self.drizcr_keys)
         self.blotpars   = self.pars.getParList(self.blot_keys, prefix='blot_')
@@ -289,10 +289,10 @@ help file.
         # Finalize building PyDrizzle and instrument parameters.
         # If not defined by the user, use defaults.
         self.driz_sep_pars = self.pars.getDrizPars(prefix='driz_sep',keylist=self.driz_keys)
-        self.driz_final_pars = self.pars.getDrizPars(prefix='driz_final',keylist=self.driz_keys) 
+        self.driz_final_pars = self.pars.getDrizPars(prefix='driz_final',keylist=self.driz_keys)
         self.instrpars = self.pars.getParList(self.instr_keys)
-        
-        # Finish massaging median pars parameters to account for 
+
+        # Finish massaging median pars parameters to account for
         # special processing of input values
         self.setMedianPars()
 
@@ -336,7 +336,7 @@ help file.
                 errorstr += "#######################################################\n\n"
                 print errorstr
                 self.pars.switches['driz_cr'] = False
-                    
+
 
 
         # Extract the 'driz_final_wht_type' parameter
@@ -350,7 +350,7 @@ help file.
         if (self.staticfile != None):
             self._checkStaticFile(self.staticfile)
 
-        
+
         # Create copies of input files for processing
         if not self.workinplace:
             self._createInputCopies(self.files)
@@ -360,22 +360,22 @@ help file.
             print "WARNING:  Units of sci extensions will be electrons"
             print "WARNING:  Value of MDRIZSKY is in units of input data sci extensions."
             print "********************\n\n"
-       
+
         # Extract bits value and final units from master dictionary for use in setupAssociation
         self.driz_sep_bits = self.pars.master_pars['driz_sep_bits']
         self.final_bits = self.pars.master_pars['driz_final_bits']
         self.final_units = self.pars.master_pars['driz_final_units']
-        
+
         # Build association object
         #association = self._setupAssociation()
         # Run PyDrizzle; make sure there are no intermediate products
-        # laying around...  
+        # laying around...
         #self.asndict.update(shiftfile=self.shiftfile)
         #asnname = fileutil.buildNewRootname(self.asndict['output'], extn='_asn.fits')
         #print 'asnname', asnname
-        
-        assoc = pydrizzle._PyDrizzle(self.asndict, output=self.output, 
-                                    idckey=self.coeffs, 
+
+        assoc = pydrizzle._PyDrizzle(self.asndict, output=self.output,
+                                    idckey=self.coeffs,
                                     section=self.driz_sep_pars['group'],
                                     bits_single=self.driz_sep_bits,
                                     bits_final=self.final_bits,
@@ -400,8 +400,8 @@ help file.
 
         # Build the manager object.
         #self.image_manager = ImageManager(association, self.context, self.instrpars, self.workinplace, \
-        #self.staticfile, self.updatewcs) 
-        self.image_manager = ImageManager(assoc, self.context, self.instrpars, self.workinplace, self.staticfile, self.proc_unit) 
+        #self.staticfile, self.updatewcs)
+        self.image_manager = ImageManager(assoc, self.context, self.instrpars, self.workinplace, self.staticfile, self.proc_unit)
 
         # Done with initialization.
         self.steps.markStepDone(ProcSteps.doInitialize)
@@ -409,21 +409,21 @@ help file.
 
     def printInputFiles(self):
         """
-        
+
         METHOD  : printInputFiles
         PURPOSE : Print out the names of the file that Multidrizzle has identified
                   for processing based upon the given input string.
         INPUT   : String representing the user provided input string
         OUTPUT  : none
-        
+
         """
-        
+
         print "Input string provided to Multidrizzle: ", str(self.input)
         print "The following files have been identified by the given input string:"
         for filename in self.files:
             print "          ",str(filename)
         print "Output rootname: ", str(self.output)
-        
+
 
     def setMedianPars(self):
         """ Sets the special median parameters which need to
@@ -433,16 +433,16 @@ help file.
         self.medianpars['nsigma1']  = _nsigma1
         self.medianpars['nsigma2']  = _nsigma2
         self.medianpars['newmasks'] = self.medianpars['median_newmasks']
-        
+
 
     def _createInputCopies(self,files):
-        """ 
+        """
         Creates copies of all input images.
-        
+
         If a previous execution of multidrizzle has failed and _OrIg
         files already exist, before removing the _OrIg files, we will
         copy the 'sci' extensions out of those files _OrIg files and
-        use them to overwrite what is currently in the existing 
+        use them to overwrite what is currently in the existing
         input files.  This protects us against crashes in the HST
         pipeline where Multidrizzle is restarted after the sky
         has already been subtracted from the input files.
@@ -480,14 +480,14 @@ help file.
         """ Checks that MAKEWCS is run on any ACS image in 'files' list. """
         """
         for p in files:
-            
+
             if fileutil.getKeyword(p,'idctab') != None:
                 if fileutil.getKeyword(p,'PA_V3') != None:
                     # Update the CD matrix using the new IDCTAB
-                    # Not perfect, but it removes majority of errors...                   
-                    if updatewcs == True: 
-                        makewcs.run(input=p)   # optionally update wcs 
-                     
+                    # Not perfect, but it removes majority of errors...
+                    if updatewcs == True:
+                        makewcs.run(input=p)   # optionally update wcs
+
                 elif (os.path.exists(p[0:p.find('_')]+'_spt.fits')):
                     msgstr =  "\n########################################\n"
                     msgstr += "#                                      #\n"
@@ -502,7 +502,7 @@ help file.
                     msgstr += "#                                      #\n"
                     msgstr += "########################################\n"
                     print msgstr
-                    
+
                     try:
                         # Build the name of the SPT we are trying to find
                         sptfilename = p[0:p.find('_')]+'_spt.fits'
@@ -519,7 +519,7 @@ help file.
                         img[0].header.update("PA_V3",float(pa_v3))
                         # Close the input file.
                         img.close()
-                        # Optionally run makewcs                        
+                        # Optionally run makewcs
                         if updatewcs == True: makewcs.run(input=p)
                     except:
                         # We have failed to add the PA_V3 value to the
@@ -538,7 +538,7 @@ help file.
         msgstr += "* World Coordinate keywords cannot be     *\n"
         msgstr += "* recomputed without a valid PA_V3 value. *\n"
         msgstr += "* Please insure that PA_V3 is populated   *\n"
-        msgstr += "* in the primary header of                *\n" 
+        msgstr += "* in the primary header of                *\n"
         msgstr += "      %s \n"%(filename)
         msgstr += "* This keyword is generated by versions   *\n"
         msgstr += "* of OPUS 15.7 or later. If the data were *\n"
@@ -550,9 +550,9 @@ help file.
         msgstr += "* may be found in the SPT file header)    *\n"
         msgstr += "*                                         *\n"
         msgstr += "*******************************************\n"
-        
+
         print msgstr
-        
+
     """
     def _checkStaticFile(self, static_file):
 
@@ -569,7 +569,7 @@ help file.
                     raise ValueError, _err_str
             except IOError:
                 raise ValueError, _err_str
-                
+
             # Verify that the number of sci extensions in the input is equal
             # to the number of MASK extensions in the static file.
 
@@ -677,7 +677,7 @@ help file.
         if self.errorstate == True:
             # If we are in this conditional, the Multidrizzle constructor
             # exited with a return without actually completing it's normal
-            # processing.  This exit from Multidrizzle is to allow for 
+            # processing.  This exit from Multidrizzle is to allow for
             # the stopping of execution without raising an acception.  This
             # keeps the HST pipeline from crashing because of a raised
             # exception.  This state likely occured because all of the input
@@ -686,7 +686,7 @@ help file.
             # value).
             #
             # Just return and end exection
-            return 
+            return
 
 
         # Update object that controls step execution. Use either user
@@ -703,7 +703,7 @@ help file.
         # Start by applying input parameters to redefine
         # the output frame as necessary
         self.image_manager._setOutputFrame(self.driz_sep_pars)
-    
+
         self._preMedian(skysub)
         if self.steps.doStep(ProcSteps.doMedian):
             self.image_manager.createMedian(self.medianpars)
@@ -736,26 +736,26 @@ help file.
             self.steps.reportTimes()
 
     def help(self):
-        """ 
+        """
 
         Purpose
         =======
-        Help function on Multidrizzle Class that 
+        Help function on Multidrizzle Class that
         prints __doc__ string.
-        
+
         """
-        
+
         print 'MultiDrizzle Version ',__version__
         print self.__doc__
-        
+
 
 def _splitNsigma(s):
     """
-    
+
     Purpose
     =======
     This is a help function that is used to split up the "combine_nsigma"
-    string. If a second value is specified, then this will be used later 
+    string. If a second value is specified, then this will be used later
     in "minmed" where a second-iteration rejection is done. Typically
     the second value should be around 3 sigma, while the first
     can be much higher.
@@ -770,16 +770,16 @@ def _splitNsigma(s):
 
 
 def help():
-    """ 
+    """
 
     Purpose
     =======
     Function prints help information for MultiDrizzle.
-    
+
     """
-    
-    
-    help_str =  "MultiDrizzle combines astronomical images while removing       \n" 
+
+
+    help_str =  "MultiDrizzle combines astronomical images while removing       \n"
     help_str += "distortion and cosmic-rays. The Python syntax for using        \n"
     help_str += "MultiDrizzle relies on initializing a MultiDrizzle object,     \n"
     help_str += "building up the parameters necessary for combining the images, \n"
@@ -800,24 +800,24 @@ def help():
 
 
 def versioninfo():
-    """ 
-    
+    """
+
     Purpose
     =======
-    Function prints version information for packages used by Multidrizzle 
-    
+    Function prints version information for packages used by Multidrizzle
+
     """
 
     # Initialize version dictionary
     version_dict = {}
-    
+
     # Set up version ID's for printing to the log file
     mdrizzle_key = " MultiDrizzle "
     array_key = " NUMPY Version  "
     pydrizzle_key = " PyDrizzle Version "
     pyfits_key =  " PyFITS Version    "
     python_key = " Python Version: "
-    
+
     version_dict[mdrizzle_key] = __version__
     version_dict[array_key]= np.__version__
     version_dict[pydrizzle_key]= pydrizzle.__version__
@@ -828,15 +828,15 @@ def versioninfo():
     for _sys_str in _sys_version_list:
         _sys_version += _sys_str+"\n # "
     version_dict[python_key] = '\n'+_sys_version
-   
+
     # Print out version information for libraries used by MultiDrizzle
     print "\n"
     print " Version Information for MultiDrizzle "+version_dict[mdrizzle_key]
-    print "-------------------------------------------- "        
+    print "-------------------------------------------- "
     print array_key + version_dict[array_key]
     print pyfits_key + version_dict[pyfits_key]
     print pydrizzle_key + version_dict[pydrizzle_key]
     print python_key + version_dict[python_key]
     print "\n"
-    
+
     return version_dict

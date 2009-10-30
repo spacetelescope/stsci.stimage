@@ -15,26 +15,26 @@ class WFPC2InputImage (InputImage):
         InputImage.__init__(self,input,dqname,platescale,memmap=0,proc_unit=proc_unit)
         # define the cosmic ray bits value to use in the dq array
         self.cr_bits_value = 4096
-        
-        self.platescale = platescale 
-        self.cte_dir = -1    # independent of amp, chip   
+
+        self.platescale = platescale
+        self.cte_dir = -1    # independent of amp, chip
         self._effGain = 1
         self.native_units = "COUNTS"
 
         # Attribute defining the pixel dimensions of WFPC2 chips.
         self.full_shape = (800,800)
-        
+
         # Reference Plate Scale used for updates to MDRIZSKY
         self.refplatescale = 0.0996 # arcsec / pixel
 
     def getEffGain(self):
         """
-        
+
         Purpose
         =======
         Method used to return the effective gain of a instrument's
         detector.
-        
+
         This method returns a single floating point value.
 
         """
@@ -45,13 +45,13 @@ class WFPC2InputImage (InputImage):
         """ This method overrides the superclass to set default values into
             the parameter dictionary, in case empty entries are provided.
         """
-                
+
         if self._isNotValid (instrpars['gain'], instrpars['gnkeyword']):
             instrpars['gnkeyword'] = 'ATODGAIN'
-    
+
         if self._isNotValid (instrpars['rdnoise'], instrpars['rnkeyword']):
             instrpars['rnkeyword'] = None
-            
+
         if self._isNotValid (instrpars['exptime'], instrpars['expkeyword']):
             instrpars['expkeyword'] = 'EXPTIME'
 
@@ -59,16 +59,16 @@ class WFPC2InputImage (InputImage):
             instrpars['crbit'] = self.cr_bits_value
 
         self._headergain      = self.getInstrParameter(instrpars['gain'], pri_header,
-                                                 instrpars['gnkeyword'])    
+                                                 instrpars['gnkeyword'])
         self._exptime   = self.getInstrParameter(instrpars['exptime'], pri_header,
                                                  instrpars['expkeyword'])
         self._crbit     = instrpars['crbit']
-        
-        # We need to treat Read Noise as a special case since it is 
+
+        # We need to treat Read Noise as a special case since it is
         # not populated in the WFPC2 primary header
         if (instrpars['rnkeyword'] != None):
             self._rdnoise   = self.getInstrParameter(instrpars['rdnoise'], pri_header,
-                                                     instrpars['rnkeyword'])                                                 
+                                                     instrpars['rnkeyword'])
         else:
             self._rdnoise = None
 
@@ -77,8 +77,8 @@ class WFPC2InputImage (InputImage):
             raise ValueError
 
         # We need to determine if the user has used the default readnoise/gain value
-        # since if not, they will need to supply a gain/readnoise value as well        
-        
+        # since if not, they will need to supply a gain/readnoise value as well
+
         usingDefaultGain = False
         usingDefaultReadnoise = False
         if (instrpars['gnkeyword'] == 'ATODGAIN'):
@@ -86,17 +86,17 @@ class WFPC2InputImage (InputImage):
         if (instrpars['rnkeyword'] == None):
             usingDefaultReadnoise = True
 
-            
+
         # If the user has specified either the readnoise or the gain, we need to make sure
         # that they have actually specified both values.  In the default case, the readnoise
         # of the system depends on what the gain
-        
+
         if usingDefaultReadnoise and usingDefaultGain:
             self._setchippars()
         elif usingDefaultReadnoise and not usingDefaultGain:
             raise ValueError, "ERROR: You need to supply readnoise information\n when not using the default gain for WFPC2."
         elif not usingDefaultReadnoise and usingDefaultGain:
-            raise ValueError, "ERROR: You need to supply gain information when\n not using the default readnoise for WFPC2." 
+            raise ValueError, "ERROR: You need to supply gain information when\n not using the default readnoise for WFPC2."
         else:
             # In this case, the user has specified both a gain and readnoise values.  Just use them as is.
             self._gain = self._headergain
@@ -111,19 +111,19 @@ class WFPC2InputImage (InputImage):
         Purpose
         =======
         Method for retrieving a detector's flat field.
-        
+
         This method will return an array the same shape as the
         image.
-        
+
 
         """
 
         # The keyword for WFPC2 flat fields in the primary header of the flt
-        # file is FLATFILE.  This flat file is *not* already in the required 
+        # file is FLATFILE.  This flat file is *not* already in the required
         # units of electrons.
-        
+
         filename = self.header['FLATFILE']
-        
+
         try:
             handle = fileutil.openImage(filename,mode='readonly',writefits=False,memmap=0)
             hdu = fileutil.getExtn(handle,extn=self.grp)
@@ -139,17 +139,17 @@ class WFPC2InputImage (InputImage):
                 print str
         # For the WFPC2 flat we need to invert
         # for use in Multidrizzle
-        flat = (1.0/data)
+        flat = (1.0/data)/self.getGain()
         return flat
 
-    def doUnitConversions(self): 
-        # Image information 
-        _handle = fileutil.openImage(self.name,mode='update',memmap=0) 
-        _sciext = fileutil.getExtn(_handle,extn=self.extn)         
+    def doUnitConversions(self):
+        # Image information
+        _handle = fileutil.openImage(self.name,mode='update',memmap=0)
+        _sciext = fileutil.getExtn(_handle,extn=self.extn)
 
-        # Multiply the values of the sci extension pixels by the gain. 
-        print "Converting %s from COUNTS to ELECTRONS"%(self.name) 
-        # If the exptime is 0 the science image will be zeroed out. 
+        # Multiply the values of the sci extension pixels by the gain.
+        print "Converting %s from COUNTS to ELECTRONS"%(self.name)
+        # If the exptime is 0 the science image will be zeroed out.
         np.multiply(_sciext.data,self.getGain(),_sciext.data)
 
         # Set the BUNIT keyword to 'electrons'
@@ -160,26 +160,26 @@ class WFPC2InputImage (InputImage):
         _sciext.header.update('PHOTFLAM',(photflam/self.getGain()))
 
         # Close the files and clean-up
-        _handle.close() 
+        _handle.close()
 
     def getdarkcurrent(self):
         """
-        
+
         Purpose
         =======
         Return the dark current for the WFPC2 detector.  This value
         will be contained within an instrument specific keyword.
         The value in the image header will be converted to units
         of electrons.
-        
+
         :units: counts/electrons
-        
+
         """
         darkrate = 0.005 # electrons/s
-        
+
         try:
             darkcurrent = self.header['DARKTIME'] * darkrate
-            
+
         except:
             str =  "#############################################\n"
             str += "#                                           #\n"
@@ -193,21 +193,21 @@ class WFPC2InputImage (InputImage):
             str += "#                                           #\n"
             str += "#############################################\n"
             raise ValueError, str
-        
-        
+
+
         return darkcurrent
 
     def getReadNoise(self):
         """
-        
+
         Purpose
         =======
         Method for returning the readnoise of a detector (in counts).
-        
+
         :units: electrons
-        
+
         """
-        
+
         rn = self._rdnoise
         return rn
 
@@ -219,10 +219,10 @@ class WFPC2InputImage (InputImage):
 
     def getComputedSky(self):
         return (self._computedsky * (self.refplatescale / self.platescale)**2 )
-        
+
     def setSubtractedSky(self,newValue):
         self._subtractedsky = (newValue / (self.refplatescale /  self.platescale)**2)
-            
+
     def subtractSky(self):
         try:
             try:
@@ -237,10 +237,10 @@ class WFPC2InputImage (InputImage):
             del _sciext,_handle
 
     def updateMDRIZSKY(self,filename=None):
-    
+
         if (filename == None):
             filename = self.name
-            
+
         try:
             _handle = fileutil.openImage(filename,mode='update',memmap=0)
         except:
@@ -262,7 +262,7 @@ class WF2InputImage (WFPC2InputImage):
         WFPC2InputImage.__init__(self,input,dqname,platescale, memmap=0,proc_unit=proc_unit)
         self.instrument = 'WFPC2/WF2'
         self.platescale = platescale #0.0996 #arcsec / pixel
-        
+
     def _setchippars(self):
         if self._headergain == 7:
             self._gain    = 7.12
