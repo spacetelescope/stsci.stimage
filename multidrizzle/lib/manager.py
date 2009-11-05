@@ -1089,12 +1089,14 @@ class ImageManager(object):
                 _plist = self.assoc.parlist[0]
                 if drizpars['build']: 
                     _output = _plist['output']
+                    sci_ext = 'sci'
                 else: 
                     _output = _plist['outdata']
-        
+                    sci_ext = 0
+                    
                 fhdu = pyfits.open(_output,mode='update')
-                fhdu['sci'].data = fhdu['sci'].data / _plist['image'].getGain()
-                fhdu['sci'].header['bunit'] = fhdu['sci'].header['bunit'].upper().replace("ELECTRONS","COUNTS")
+                fhdu[sci_ext].data = fhdu[sci_ext].data / _plist['image'].getGain()
+                fhdu[sci_ext].header['bunit'] = fhdu[sci_ext].header['bunit'].upper().replace("ELECTRONS","COUNTS")
                 fhdu.close()
 
         
