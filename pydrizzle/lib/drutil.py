@@ -18,7 +18,7 @@ tasks.
 import string,os,types
 from math import ceil,floor
 
-import numpy as N
+import numpy as np
 from numpy import linalg
 
 from pytools import fileutil
@@ -43,7 +43,7 @@ except:
 
 """
 def factorial(n):
-    #Compute a factorial for integer n. 
+    #Compute a factorial for integer n.
     m = 1
     for i in range(int(n)):
         m = m * (i+1)
@@ -163,8 +163,8 @@ def getIDCFile(image,keyword="",directory=None):
         # Now we need to recursively expand any IRAF symbols to full paths...
         #if directory:
         idcfile = fileutil.osfn(idcfile)
-        
-            
+
+
     if idcfile == None:
         print 'WARNING: No valid distortion coefficients available!'
         print 'Using default unshifted, unscaled, unrotated model.'
@@ -296,17 +296,17 @@ def readTraugerTable(idcfile,wavelength):
     # Now, convert the coefficients into a Numeric array
     # with the right coefficients in the right place.
     # Populate output values now...
-    fx = N.zeros(shape=(order+1,order+1),dtype=N.float64)
-    fy = N.zeros(shape=(order+1,order+1),dtype=N.float64)
+    fx = np.zeros(shape=(order+1,order+1),dtype=np.float64)
+    fy = np.zeros(shape=(order+1,order+1),dtype=np.float64)
     # Assign the coefficients to their array positions
     fx[0,0] = 0.
-    fx[1] = N.array([a_coeffs[2],a_coeffs[1],0.,0.],dtype=N.float64)
-    fx[2] = N.array([a_coeffs[5],a_coeffs[4],a_coeffs[3],0.],dtype=N.float64)
-    fx[3] = N.array([a_coeffs[9],a_coeffs[8],a_coeffs[7],a_coeffs[6]],dtype=N.float64)
+    fx[1] = np.array([a_coeffs[2],a_coeffs[1],0.,0.],dtype=np.float64)
+    fx[2] = np.array([a_coeffs[5],a_coeffs[4],a_coeffs[3],0.],dtype=np.float64)
+    fx[3] = np.array([a_coeffs[9],a_coeffs[8],a_coeffs[7],a_coeffs[6]],dtype=np.float64)
     fy[0,0] = 0.
-    fy[1] = N.array([b_coeffs[2],b_coeffs[1],0.,0.],dtype=N.float64)
-    fy[2] = N.array([b_coeffs[5],b_coeffs[4],b_coeffs[3],0.],dtype=N.float64)
-    fy[3] = N.array([b_coeffs[9],b_coeffs[8],b_coeffs[7],b_coeffs[6]],dtype=N.float64)
+    fy[1] = np.array([b_coeffs[2],b_coeffs[1],0.,0.],dtype=np.float64)
+    fy[2] = np.array([b_coeffs[5],b_coeffs[4],b_coeffs[3],0.],dtype=np.float64)
+    fy[3] = np.array([b_coeffs[9],b_coeffs[8],b_coeffs[7],b_coeffs[6]],dtype=np.float64)
 
     # Used in Pattern.computeOffsets()
     refpix = {}
@@ -332,8 +332,8 @@ def rotateCubic(fxy,theta):
     #
     # Set up some simplifications
     newf = fxy * 0.
-    cost = N.cos(DEGTORAD(theta))
-    sint = N.sin(DEGTORAD(theta))
+    cost = np.cos(DEGTORAD(theta))
+    sint = np.sin(DEGTORAD(theta))
     cos2t = pow(cost,2)
     sin2t = pow(sint,2)
     cos3t = pow(cost,3)
@@ -361,7 +361,7 @@ def rotatePos(pos, theta,offset=None,scale=None):
         scale = 1.
 
     if offset == None:
-        offset = N.array([0.,0.],dtype=N.float64)
+        offset = np.array([0.,0.],dtype=np.float64)
     mrot = buildRotMatrix(theta)
     xr = ((pos[0] * mrot[0][0]) + (pos[1]*mrot[0][1]) )/ scale + offset[0]
     yr = ((pos[0] * mrot[1][0]) + (pos[1]*mrot[1][1]) )/ scale + offset[1]
@@ -400,16 +400,16 @@ def getRange(members,ref_wcs,verbose=None):
             #rotate coordinates to match output orientation
             # Now, rotate new coord
             _mrot = buildRotMatrix(_theta)
-            xypos = N.dot(xypos,_mrot)
+            xypos = np.dot(xypos,_mrot)
 
-        _oxmax = N.maximum.reduce(xypos[:,0])
-        _oymax = N.maximum.reduce(xypos[:,1])
-        _oxmin = N.minimum.reduce(xypos[:,0])
-        _oymin = N.minimum.reduce(xypos[:,1])
+        _oxmax = np.maximum.reduce(xypos[:,0])
+        _oymax = np.maximum.reduce(xypos[:,1])
+        _oxmin = np.minimum.reduce(xypos[:,0])
+        _oymin = np.minimum.reduce(xypos[:,1])
 
         # Update the corners attribute of the member with the
         # positions of the computed, distortion-corrected corners
-        #member.corners['corrected'] = N.array([(_oxmin,_oymin),(_oxmin,_oymax),(_oxmax,_oymin),(_oxmax,_oymax)],dtype=N.float64)
+        #member.corners['corrected'] = np.array([(_oxmin,_oymin),(_oxmin,_oymax),(_oxmax,_oymin),(_oxmax,_oymax)],dtype=np.float64)
         member.corners['corrected'] = xypos
 
         xma.append(_oxmax)
@@ -422,37 +422,37 @@ def getRange(members,ref_wcs,verbose=None):
         #nref_y.append(nrefy)
         #if _rot != 0.:
         #    mrot = buildRotMatrix(_rot)
-        #    nref = N.dot(N.array([nrefx,nrefy]),_mrot)
+        #    nref = np.dot(np.array([nrefx,nrefy]),_mrot)
     # Determine the full size of the metachip
-    xmax = N.maximum.reduce(xma)
-    ymax = N.maximum.reduce(yma)
-    ymin = N.minimum.reduce(ymi)
-    xmin = N.minimum.reduce(xmi)
+    xmax = np.maximum.reduce(xma)
+    ymax = np.maximum.reduce(yma)
+    ymin = np.minimum.reduce(ymi)
+    xmin = np.minimum.reduce(xmi)
 
     # Compute offset from center that distortion correction shifts the image.
     # This accounts for the fact that the output is no longer symmetric around
     # the reference position...
     # Scale by ratio of plate-scales so that DELTAs are always in input frame
     #
-    
+
     """
-    Keep the computation of nref in reference chip space. 
+    Keep the computation of nref in reference chip space.
     Using the ratio below is almost correct for ACS and wrong for WFPC2 subarrays
-    
+
     """
     ##_ratio = ref_wcs.pscale / _wcslin.pscale
     ##nref = ( (xmin + xmax)*_ratio, (ymin + ymax)*_ratio )
-    
+
     nref = ( (xmin + xmax), (ymin + ymax))
     #print 'nref_x, nref_y', nref_x, nref_y
-    #nref = (N.maximum.reduce(nref_x), N.maximum.reduce(nref_y)) 
-    
-    
-    
+    #nref = (np.maximum.reduce(nref_x), np.maximum.reduce(nref_y))
+
+
+
     if _rot != 0.:
         _mrot = buildRotMatrix(_rot)
-        nref = N.dot(nref,_mrot)
-    
+        nref = np.dot(nref,_mrot)
+
     # Now, compute overall size based on range of pixels and offset from center.
     #xsize = int(xmax - xmin + nref[0])
     #ysize = int(ymax - ymin + nref[1])
@@ -479,8 +479,8 @@ def getRange(members,ref_wcs,verbose=None):
 
 def computeRange(corners):
     """ Determine the range spanned by an array of pixel positions. """
-    _xrange = (N.minimum.reduce(corners[:,0]),N.maximum.reduce(corners[:,0]))
-    _yrange = (N.minimum.reduce(corners[:,1]),N.maximum.reduce(corners[:,1]))
+    _xrange = (np.minimum.reduce(corners[:,0]),np.maximum.reduce(corners[:,0]))
+    _yrange = (np.minimum.reduce(corners[:,1]),np.maximum.reduce(corners[:,1]))
     return _xrange,_yrange
 
 def convertWCS(inwcs,drizwcs):
@@ -506,8 +506,8 @@ def updateWCS(drizwcs,inwcs):
     inwcs.cd21     = drizwcs[5]
     inwcs.cd12     = drizwcs[6]
     inwcs.cd22     = drizwcs[7]
-    inwcs.pscale = N.sqrt(N.power(inwcs.cd11,2)+N.power(inwcs.cd21,2)) * 3600.
-    inwcs.orient = N.arctan2(inwcs.cd12,inwcs.cd22) * 180./N.pi
+    inwcs.pscale = np.sqrt(np.power(inwcs.cd11,2)+np.power(inwcs.cd21,2)) * 3600.
+    inwcs.orient = np.arctan2(inwcs.cd12,inwcs.cd22) * 180./np.pi
 
 def wcsfit(img_geom, ref):
     """
@@ -529,14 +529,14 @@ def wcsfit(img_geom, ref):
     ref_wcs = ref.copy()
 
     # Convert the RA/Dec positions back to X/Y in output product image
-    _cpix_xyref = N.zeros((4,2),dtype=N.float64)
+    _cpix_xyref = np.zeros((4,2),dtype=np.float64)
 
     # Start by setting up an array of points +/-0.5 pixels around CRVAL1,2
     # However, we must shift these positions by 1.0pix to match what
     # drizzle will use as its reference position for 'align=center'.
     _cpix = (img_wcs.crpix1,img_wcs.crpix2)
-    _cpix_arr = N.array([_cpix,(_cpix[0],_cpix[1]+1.),
-                       (_cpix[0]+1.,_cpix[1]+1.),(_cpix[0]+1.,_cpix[1])], dtype=N.float64)
+    _cpix_arr = np.array([_cpix,(_cpix[0],_cpix[1]+1.),
+                       (_cpix[0]+1.,_cpix[1]+1.),(_cpix[0]+1.,_cpix[1])], dtype=np.float64)
     # Convert these positions to RA/Dec
     _cpix_rd = img_wcs.xy2rd(_cpix_arr)
     for pix in xrange(len(_cpix_rd[0])):
@@ -550,7 +550,7 @@ def wcsfit(img_geom, ref):
         offx, offy = (1.0, 1.0)
 
     # Now, apply distortion model to input image XY positions
-    _cpix_xyc = N.zeros((4,2),dtype=N.float64)
+    _cpix_xyc = np.zeros((4,2),dtype=np.float64)
     _cpix_xyc[:,0],_cpix_xyc[:,1] = img_geom.apply(_cpix_arr - (offx, offy), order=1)
 
     if in_refpix:
@@ -576,7 +576,7 @@ def fitlin(imgarr,refarr):
         A Python translation of 'FITLIN' from 'drutil.f' (Drizzle V2.9).
     """
     # Initialize variables
-    _mat = N.zeros((3,3),dtype=N.float64)
+    _mat = np.zeros((3,3),dtype=np.float64)
     _xorg = imgarr[0][0]
     _yorg = imgarr[0][1]
     _xoorg = refarr[0][0]
@@ -591,10 +591,10 @@ def fitlin(imgarr,refarr):
     _npos = len(imgarr)
     # Populate matrices
     for i in xrange(_npos):
-        _mat[0][0] += N.power((imgarr[i][0] - _xorg),2)
+        _mat[0][0] += np.power((imgarr[i][0] - _xorg),2)
         _mat[0][1] += (imgarr[i][0] - _xorg) * (imgarr[i][1] - _yorg)
         _mat[0][2] += (imgarr[i][0] - _xorg)
-        _mat[1][1] += N.power((imgarr[i][1] - _yorg),2)
+        _mat[1][1] += np.power((imgarr[i][1] - _yorg),2)
         _mat[1][2] += imgarr[i][1] - _yorg
 
         _sigxox += (refarr[i][0] - _xoorg)*(imgarr[i][0] - _xorg)
@@ -636,7 +636,7 @@ def getRotatedSize(corners,angle):
         #_cen = ( ((_xr[1] - _xr[0])/2.)+_xr[0],((_yr[1]-_yr[0])/2.)+_yr[0])
         _rotm = buildRotMatrix(angle)
         # Rotate about the center
-        #_corners = N.dot(corners - _cen,_rotm)
-        _corners = N.dot(corners,_rotm)
+        #_corners = np.dot(corners - _cen,_rotm)
+        _corners = np.dot(corners,_rotm)
 
     return computeRange(_corners)

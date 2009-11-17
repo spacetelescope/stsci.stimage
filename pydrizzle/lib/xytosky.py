@@ -1,7 +1,7 @@
 import string, copy, os
 
 import pyfits
-import numpy as N
+import numpy as np
 from numpy import char as C
 from math import *
 
@@ -16,7 +16,7 @@ no = False
 #
 #
 #               Interface to IRAF version
-#    This version requires 'wcsutil_iraf.py' 
+#    This version requires 'wcsutil_iraf.py'
 #               __version__= '1.1 (12-Feb-2007)'
 #
 #
@@ -24,9 +24,9 @@ no = False
 def XYtoSky_pars(input,x=None,y=None,coords=None,colnames=None,linear=yes,
                 idckey='IDCTAB',hms=no,output=None,verbose=yes):
 
-    #Determine whether we are working with a single input pos or 
+    #Determine whether we are working with a single input pos or
     # a file with multiple positions
-    if not coords:             
+    if not coords:
         # Working with a single position
         xy = (x,y)
     else:
@@ -48,7 +48,7 @@ def XYtoSky_pars(input,x=None,y=None,coords=None,colnames=None,linear=yes,
             x = _ftab[1].data.field(_clist[0]).tolist()
             y = _ftab[1].data.field(_clist[1]).tolist()
             for i in xrange(len(x)):
-                xy.append([x[i],y[i]])                
+                xy.append([x[i],y[i]])
             _ftab.close()
             del _ftab
         else:
@@ -56,12 +56,12 @@ def XYtoSky_pars(input,x=None,y=None,coords=None,colnames=None,linear=yes,
             _ifile = open(coords)
             _lines = _ifile.readlines()
             _ifile.close()
-            
+
             # Get the column names, if specified
             if colnames:
                 _clist = colnames.split(',')
             else:
-                _clist = ['1','2']            
+                _clist = ['1','2']
             # Convert strings to ints for use in parsing the lines of the file
             for n in xrange(len(_clist)): _clist[n] = string.atoi(_clist[n]) - 1
             # Read in lines and convert appropriate columns to X,Y lists
@@ -75,13 +75,13 @@ def XYtoSky_pars(input,x=None,y=None,coords=None,colnames=None,linear=yes,
                     x = string.atof(_xy[_clist[0]])
                     y = string.atof(_xy[_clist[1]])
                     xy.append([x,y])
-                    
+
     #
     # Get ra/dec position or Python list of ra/dec positions
     #
     radec = XYtoSky(input, xy, idckey=idckey, linear=linear, verbose=no)
 
-    # 
+    #
     # Now format the output for the user...
     #
     # Break out the values into separate lists...
@@ -90,12 +90,12 @@ def XYtoSky_pars(input,x=None,y=None,coords=None,colnames=None,linear=yes,
         for pos in radec:
             radd.append(pos[0])
             decdd.append(pos[1])
-        radd = N.array(radd)
-        decdd = N.array(decdd)
+        radd = np.array(radd)
+        decdd = np.array(decdd)
     else:
-        radd = N.array([radec[0]])
-        decdd = N.array([radec[1]])
-           
+        radd = np.array([radec[0]])
+        decdd = np.array([radec[1]])
+
     if hms:
         # Convert value(s) to HMS format from decimal degrees
         # Returns as Python lists of string values
@@ -106,7 +106,7 @@ def XYtoSky_pars(input,x=None,y=None,coords=None,colnames=None,linear=yes,
         if not output or verbose:
             # If they input a list, but don't specify an output file,
             # the only way they are going to get results is to print them
-            # to the screen. 
+            # to the screen.
             for i in xrange(len(ra)):
                 print 'RA (deg.) = ',ra[i],', Dec (deg.)= ',dec[i]
 
@@ -132,11 +132,11 @@ def XYtoSky_pars(input,x=None,y=None,coords=None,colnames=None,linear=yes,
                     # normal numpy objects
                     racol = pyfits.Column(name=raname,format='1d',array=ra)
                     deccol = pyfits.Column(name=decname,format='1d',array=dec)
-                    
+
                 # Add columns to table now.
                 _tcol.add_col(racol)
                 _tcol.add_col(deccol)
-                
+
                 # Update table by replacing old HDU with new one
                 _thdu = pyfits.new_table(_tcol)
                 del _fout[1]
@@ -145,7 +145,7 @@ def XYtoSky_pars(input,x=None,y=None,coords=None,colnames=None,linear=yes,
                 del _fout
                 del _thdu
                 del _tcol
-                                    
+
             else:
                 # If user wants to append results to an ASCII coord file...
                 _olines.insert(0,'# Image: '+input+'\n')
@@ -207,23 +207,23 @@ def XYtoSky(input, pos, idckey='IDCTAB', linear=yes, verbose=no):
         raise IOError, 'No extension specified for input image!'
 
     # Now we need to insure that the input is an array:
-    if not isinstance(pos,N.ndarray):
-        if N.array(pos).ndim > 1:
-            pos = N.array(pos,dtype=N.float64)
+    if not isinstance(pos,np.ndarray):
+        if np.array(pos).ndim > 1:
+            pos = np.array(pos,dtype=np.float64)
 
     # Set up Exposure object
     _exposure = pydrizzle.Exposure(input,idckey=idckey)
 
     ra,dec = _exposure.geometry.XYtoSky(pos,linear=linear,verbose=verbose)
 
-    if not isinstance(ra,N.ndarray):
+    if not isinstance(ra,np.ndarray):
         # We are working with a single input, return single values
         return ra,dec
     else:
         # We are working with arrays, so we need to convert them
         # from 2 arrays with RA in one and Dec in the other to 1 array
         # with pairs of RA/Dec values.
-        _radec = N.zeros(shape=(len(ra),2),dtype=ra.dtype)
+        _radec = np.zeros(shape=(len(ra),2),dtype=ra.dtype)
         _radec[:,0] = ra
         _radec[:,1] = dec
 

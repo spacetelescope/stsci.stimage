@@ -1,7 +1,7 @@
 from pattern import *
 from pytools import fileutil
 from distortion import mutil
-import numpy as N
+import numpy as np
 
 class ACSObservation(Pattern):
     """This class defines an observation with information specific
@@ -33,7 +33,7 @@ class ACSObservation(Pattern):
 
         # Set up the input members and create the product meta-chip
         self.buildProduct(filename, output)
-                
+
 class GenericObservation(Pattern):
     """
         This class defines an observation stored in a Simple FITS format;
@@ -93,7 +93,7 @@ class STISObservation(Pattern):
     IDCKEY = 'cubic'
 
     __theta = 0.0
-    __parity = fileutil.buildRotMatrix(__theta) * N.array([[-1.,1.],[-1.,1.]])
+    __parity = fileutil.buildRotMatrix(__theta) * np.array([[-1.,1.],[-1.,1.]])
     PARITY = {'CCD':__parity,'NUV-MAMA':__parity,'FUV-MAMA':__parity}
 
     # The dictionaries 'REFDATA' and 'REFPIX' are required for use with
@@ -166,7 +166,7 @@ class NICMOSObservation(Pattern):
     NUM_IMSET = 5
 
     __theta = 0.0
-    __parity = fileutil.buildRotMatrix(__theta) * N.array([[-1.,1.],[-1.,1.]])
+    __parity = fileutil.buildRotMatrix(__theta) * np.array([[-1.,1.],[-1.,1.]])
     PARITY = {'1':__parity,'2':__parity,'3':__parity}
 
     # The dictionaries 'REFDATA' and 'REFPIX' are required for use with
@@ -208,7 +208,7 @@ class NICMOSObservation(Pattern):
         # Set up the input members and create the product meta-chip
         self.buildProduct(filename, output)
 
-    
+
     def addMembers(self):
         """ Build rootname for each SCI extension, and
             create the mask image from the DQ extension.
@@ -220,7 +220,7 @@ class NICMOSObservation(Pattern):
 
         if self.pars['section'] == None:
             self.pars['section'] = [None]*self.nmembers
-     
+
         # Build rootname here for each SCI extension...
         for i in range(self.nmembers):
             _sciname = self.imtype.makeSciName(i+1,section=self.pars['section'][i])
@@ -251,19 +251,19 @@ class NICMOSObservation(Pattern):
             # Add new name to list for single drizzle step
             _masklist.append(outmask)
             _masklist.append(_masknames)
-            
+
             self.members.append(Exposure(_sciname, idckey=self.idckey, dqname=_dqname,
                     mask=_masklist, pa_key=self.pa_key, parity=self.PARITY[detector],
                     idcdir=self.pars['idcdir'], group_indx = i+1,
                     handle=self.image_handle,extver=i+1,exptime=self.exptime[0], ref_pscale=self.REFDATA[self.detector]['psize'],mt_wcs=self.pars['mt_wcs']))
-            
+
 class WFC3Observation(Pattern):
     """This class defines an observation with information specific
        to ACS WFC exposures, including knowledge of how to mosaic both
        chips."""
-    
+
     #__theta = 45.00
-    #__ir_parity = fileutil.buildRotMatrix(__theta) * N.array([[-1.,1.],[-1.,1.]])
+    #__ir_parity = fileutil.buildRotMatrix(__theta) * np.array([[-1.,1.],[-1.,1.]])
     # Define a class variable for the gap between the chips
     PARITY = {'UVIS':[[-1.0,0.0],[0.0,1.0]],'IR':[[-1.0,0.0],[0.0,1.0]]}
 
@@ -289,8 +289,8 @@ class WFC3Observation(Pattern):
 
         # Set up the input members and create the product meta-chip
         self.buildProduct(filename, output)
-        
-        
+
+
 class WFPCObservation(Pattern):
     """This class defines an observation with information specific
        to WFPC2 exposures, including knowledge of how to mosaic the
@@ -302,7 +302,7 @@ class WFPCObservation(Pattern):
     # This parity is the multiplication of PC1 rotation matrix with
     # a flip in X for output image.
     #__theta = 44.67
-    __pmat = N.array([[-1.,0.],[0.,1.]])
+    __pmat = np.array([[-1.,0.],[0.,1.]])
     __refchip = 3
     PARITY = {'1':__pmat,'2':__pmat,'3':__pmat,'4':__pmat,'WFPC':__pmat}
 
@@ -312,7 +312,7 @@ class WFPCObservation(Pattern):
     # cubic and Trauger coefficients tables in 'computeCubicCoeffs'.
     #
     # This information provides the absolute relationship between the chips
-    
+
     #REFDATA ={'1':{'psize':0.04554,'xoff':354.356,'yoff':343.646,'v2':2.374,'v3':-30.268,'theta':224.8480},
     #         '2':{'psize':0.0996,'xoff':345.7481,'yoff':375.28818,'v2':-51.368,'v3':-5.698,'theta':314.3520},
     #          '3':{'psize':0.0996,'xoff':366.56876,'yoff':354.79435,'v2':0.064,'v3':48.692,'theta':44.67},
@@ -359,7 +359,7 @@ class WFPCObservation(Pattern):
         except ValueError:
             chip_ind = 0
         self.refchip = chips[chip_ind]
-        
+
         if self.members[0].geometry.ikey != 'idctab':
             # Correct distortion coefficients to match output pixel scale
             self.computeCubicCoeffs()
@@ -390,7 +390,7 @@ class WFPCObservation(Pattern):
             group_indx = range(1,self.nmembers+1)
         else:
             group_indx = self.pars['section']
-            
+
         for i in range(self.nmembers):
             _extname = self.imtype.makeSciName(i+1,section=self.pars['section'][i])
 
@@ -398,11 +398,11 @@ class WFPCObservation(Pattern):
 
             # Start by looking for the corresponding WFPC2 'c1h' files
             _dqfile, _dqextn = self._findDQFile()
-            
+
             # Reset dqfile name in ImType class to point to new file
             self.imtype.dqfile = _dqfile
             self.imtype.dq_extn = _dqextn
-            
+
             # Build mask file for this member chip
             _dqname = self.imtype.makeDQName(extver=group_indx[i])
             _masklist = []
@@ -429,7 +429,7 @@ class WFPCObservation(Pattern):
                 idcdir=self.pars['idcdir'], group_indx = i+1,
                 rot=_chip1_rot, handle=self.image_handle, extver=_detnum,
                 exptime=self.exptime[0], ref_pscale=self.REFDATA['1']['psize'], binned=self.binned))
-            
+
             if self.idckey != 'idctab':
                 _chip1_rot = self.members[0].geometry.def_rot
 
@@ -457,7 +457,7 @@ class WFPCObservation(Pattern):
             elif 'c0m.fits' in self.name:
                 dqfile = self.name.replace('0m.fits','1m.fits')
                 dqextn = '[sci,1]'
-            
+
         return dqfile, dqextn
 
     def setOrient(self):

@@ -22,7 +22,7 @@ from obsgeometry import ObsGeometry
 from pytools import fileutil, wcsutil
 from math import ceil,floor
 
-import numpy as N
+import numpy as np
 
 yes = True  # 1
 no = False  # 0
@@ -133,7 +133,7 @@ class Exposure:
                 self.bunit = _header['BUNIT']
             else:
                 self.bunit = 'ELECTRONS'
-                
+
         else:
             _chip = 1
             _header = None
@@ -214,7 +214,7 @@ class Exposure:
         # Keep track of the positions of the corners of the exposure
         # both for the RAW image and the
         # distortion-corrected, unscaled, unrotated image
-        self.corners = {'raw':N.zeros((4,2),dtype=N.float64),'corrected':N.zeros((4,2),dtype=N.float64)}
+        self.corners = {'raw':np.zeros((4,2),dtype=np.float64),'corrected':np.zeros((4,2),dtype=np.float64)}
         self.setCorners()
 
         # Generate BLOT output name specific to this Exposure
@@ -244,14 +244,14 @@ class Exposure:
 
     def setCorners(self):
         """ Initializes corners for the raw image. """
-        self.corners['raw'] = N.array([(1.,1.),(1.,self.naxis2),(self.naxis1,1.),(self.naxis1,self.naxis2)],dtype=N.float64)
+        self.corners['raw'] = np.array([(1.,1.),(1.,self.naxis2),(self.naxis1,1.),(self.naxis1,self.naxis2)],dtype=np.float64)
 
     def setSingleOffsets(self):
         """ Computes the zero-point offset and shape of undistorted single chip relative
             to the full final output product metachip.
         """
         _wcs = self.geometry.wcs
-        _corners = N.array([(1.,1.),(1.,_wcs.naxis2),(_wcs.naxis1,1.),(_wcs.naxis1,_wcs.naxis2)],dtype=N.int64)
+        _corners = np.array([(1.,1.),(1.,_wcs.naxis2),(_wcs.naxis1,1.),(_wcs.naxis1,_wcs.naxis2)],dtype=np.int64)
         _wc = self.geometry.wtraxy(_corners,self.product_wcs)
 
         _xrange = (_wc[:,0].min(),_wc[:,0].max())
@@ -375,8 +375,8 @@ class Exposure:
             # No distortion image specified.
             # Defaulting to empty 2x2 array.
             xgdim = ygdim = 2
-            _pxg = N.zeros((ygdim,xgdim),dtype=N.float32)
-            _pyg = N.zeros((ygdim,xgdim),dtype=N.float32)
+            _pxg = np.zeros((ygdim,xgdim),dtype=np.float32)
+            _pyg = np.zeros((ygdim,xgdim),dtype=np.float32)
         else:
             # Open distortion correction FITS file
             _xgfile = fileutil.openImage(self.xgeoim)
@@ -455,7 +455,7 @@ class Exposure:
         # build up arrays for pixel positions for the edges
         # These arrays need to be: array([(x,y),(x1,y1),...])
         numpix = self.naxis1*2 + self.naxis2 * 2
-        border = N.zeros(shape=(numpix,2),dtype=N.float64)
+        border = np.zeros(shape=(numpix,2),dtype=np.float64)
 
         # Now determine the appropriate values for this array
         # We also need to account for any subarray offsets
@@ -468,8 +468,8 @@ class Exposure:
         # Add 1 to make them consistent with pixel numbering in IRAF
         # Also include the LTV offsets to represent position in full chip
         #   since the model works relative to full chip positions.
-        xside = N.arange(self.naxis1) + xmin
-        yside = N.arange(self.naxis2) + ymin
+        xside = np.arange(self.naxis1) + xmin
+        yside = np.arange(self.naxis2) + ymin
 
         #Now apply them to the array to generate the appropriate tuples
         #bottom
@@ -531,7 +531,7 @@ class Exposure:
         # Compute the rotation and shifts between input and reference WCS.
         xsh = abxt[2]
         ysh = cdyt[2]
-        rot = fileutil.RADTODEG(N.arctan2(abxt[1],cdyt[0]))
+        rot = fileutil.RADTODEG(np.arctan2(abxt[1],cdyt[0]))
         scale = self.product_wcs.pscale / self.geometry.wcslin.pscale
 
         # Now, trim the final output to only match this chip
@@ -548,13 +548,13 @@ class Exposure:
         # with respect to byteorder and byteswapping.
         # This buffer should be reused for each input.
         #
-        _outsci = N.zeros((_out_naxis2,_out_naxis1),dtype=N.float32)
-        _outwht = N.zeros((_out_naxis2,_out_naxis1),dtype=N.float32)
-        _inwcs = N.zeros([8],dtype=N.float64)
+        _outsci = np.zeros((_out_naxis2,_out_naxis1),dtype=np.float32)
+        _outwht = np.zeros((_out_naxis2,_out_naxis1),dtype=np.float32)
+        _inwcs = np.zeros([8],dtype=np.float64)
 
         # Only one chip will ever be drizzled using this method, so
         # the context image will only ever contain 1 bit-plane
-        _outctx = N.zeros((_out_naxis2,_out_naxis1),dtype=N.int32)
+        _outctx = np.zeros((_out_naxis2,_out_naxis1),dtype=np.int32)
 
         # Read in the distortion correction arrays, if specifij8cw08n4q_raw.fitsed
         _pxg,_pyg = self.getDGEOArrays()
@@ -574,7 +574,7 @@ class Exposure:
         _planeid = 1
 
         # Select which mask needs to be read in for drizzling
-        _inwht = N.ones((self.naxis2,self.naxis1),dtype=N.float32)
+        _inwht = np.ones((self.naxis2,self.naxis1),dtype=np.float32)
 
         # Default case: wt_scl = exptime
         _wtscl = self.exptime
