@@ -2,7 +2,7 @@ import types
 
 # Import PyDrizzle utility modules
 import mutil
-import numpy as N
+import numpy as np
 import mutil
 from mutil import combin
 
@@ -71,8 +71,8 @@ class GeometryModel:
         to the reference position of the chip.
         """
 
-        _cxs = N.zeros(shape=cx.shape,dtype=cx.dtype)
-        _cys = N.zeros(shape=cy.shape,dtype=cy.dtype)
+        _cxs = np.zeros(shape=cx.shape,dtype=cx.dtype)
+        _cys = np.zeros(shape=cy.shape,dtype=cy.dtype)
         _k = self.norder + 1
         # loop over each input coefficient
         for m in xrange(_k):
@@ -193,7 +193,7 @@ class GeometryModel:
 
         Compute delta from reference position
         """
-        
+
         """
         scale actually is a ratio of pscale/self.model.pscale
         what is pscale?
@@ -209,7 +209,7 @@ class GeometryModel:
         _cy = self.cy / (self.pscale * scale)
         _convert = no
         _p = pixpos
-        
+
         # Do NOT include any zero-point terms in CX,CY here
         # as they should not be scaled by plate-scale like rest
         # of coeffs...  This makes the computations consistent
@@ -218,7 +218,7 @@ class GeometryModel:
         _cy[0,0] = 0.
 
         if isinstance(_p,types.ListType) or isinstance(_p,types.TupleType):
-            _p = N.array(_p,dtype=N.float64)
+            _p = np.array(_p,dtype=np.float64)
             _convert = yes
 
         dxy = _p - (self.refpix['XREF'],self.refpix['YREF'])
@@ -284,7 +284,7 @@ class IDCModel(GeometryModel):
             self.refpix['YSIZE'] = self.refpix['YSIZE'] / binned
 
         self.pscale = self.refpix['PSCALE']
-        
+
 
 class WCSModel(GeometryModel):
     """
@@ -301,7 +301,7 @@ class WCSModel(GeometryModel):
         self.name += '_sip'
         if header.has_key('wfctdd') and header['wfctdd'] == 'T':
             self.name += '_tdd'
-            
+
         # Initialize all necessary distortion arrays with
         # default model...
         #self.cx,self.cy,self.refpix,self.order = mutil.defaultModel()
@@ -328,10 +328,10 @@ class DrizzleModel(GeometryModel):
         self.name = idcfile
         self.cx,self.cy,self.refpix,self.norder = mutil.readCubicTable(idcfile)
 
-        # scale is the ratio wcs.pscale/model.pscale. 
+        # scale is the ratio wcs.pscale/model.pscale.
         # model.pscale for WFPC2 is passed from REFDATA.
         # This is needed for WFPC2 binned data.
-        
+
         if scale != None:
             self.pscale = scale
         else:
@@ -340,7 +340,7 @@ class DrizzleModel(GeometryModel):
         """
         The above definition looks wrong.
         In one case it's a ratio in the other it's pscale.
-        
+
         """
 
 class TraugerModel(GeometryModel):
