@@ -1,7 +1,7 @@
 from pytools import fileutil, wcsutil
 import imtype, buildmask
 from exposure import Exposure
-import numpy as N
+import numpy as np
 import drutil
 
 #from pydrizzle import __version__
@@ -109,7 +109,7 @@ class Pattern(object):
         self.exptime = None
 
         self.binned = 1
-        
+
         # These attributes are used for keeping track of the reference
         # image used for computing the shifts, and the shifts computed
         # for each observation, respectively.
@@ -193,20 +193,20 @@ class Pattern(object):
         self.detector = detector = str(self.header[self.DETECTOR_NAME])
 
         if self.pars['section'] == None:
-            self.pars['section'] = [None] * self.nmembers 
+            self.pars['section'] = [None] * self.nmembers
             extver_indx = range(1,self.nmembers+1)
             group_indx = range(1,self.nmembers+1)
         else:
             extver_indx = self.pars['section']
             group_indx = [1]
-            
+
         # Build rootname here for each SCI extension...
         for i in range(self.nmembers):
             _extver = self.pars['section'][i]
             _sciname = self.imtype.makeSciName(i+1,section=_extver)
             _dqname = self.imtype.makeDQName(extver_indx[i])
             _extname = self.imtype.dq_extname
-            
+
             # Build mask files based on input 'bits' parameter values
             _masklist = []
             _masknames = []
@@ -232,12 +232,12 @@ class Pattern(object):
             # Add new name to list for single drizzle step
             _masklist.append(outmask)
             _masklist.append(_masknames)
-        
+
             self.members.append(Exposure(_sciname, idckey=self.idckey, dqname=_dqname,
                     mask=_masklist, pa_key=self.pa_key, parity=self.PARITY[detector],
                     idcdir=self.pars['idcdir'], group_indx = group_indx[i],
                     handle=self.image_handle,extver=i+1,exptime=self.exptime[0], mt_wcs=self.pars['mt_wcs']))
- 
+
     def setBunit(self,value=None):
         """Set the bunit attribute for each member.
             Default value defined in Exposure class is 'ELECTRONS'
@@ -255,7 +255,7 @@ class Pattern(object):
         for member in self.members:
             _prodcorners += member.corners['corrected'].tolist()
 
-        self.product.corners['corrected'] = N.array(_prodcorners,dtype=N.float64)
+        self.product.corners['corrected'] = np.array(_prodcorners,dtype=np.float64)
 
     def buildProduct(self,filename,output):
         """
@@ -344,7 +344,7 @@ class Pattern(object):
                     # uncentered output
                     _refpix['XDELTA'] -= _nref[0]/2.
                     _refpix['YDELTA'] -= _nref[1]/2.
-        
+
         #
         # TROLL computation not needed, as this get corrected for both
         # in 'recenter()' and in 'wcsfit'...
@@ -356,7 +356,7 @@ class Pattern(object):
         # information using algorithm provided by R. Hook from WDRIZZLE.
         abxt,cdyt = drutil.wcsfit(self.members[0].geometry, meta_wcs)
         #Compute the rotation between input and reference from fit coeffs.
-        _delta_rot = RADTODEG(N.arctan2(abxt[1],cdyt[0]))
+        _delta_rot = RADTODEG(np.arctan2(abxt[1],cdyt[0]))
         _crpix = (meta_wcs.crpix1 + abxt[2], meta_wcs.crpix2 + cdyt[2])
 
         meta_wcs.crval1,meta_wcs.crval2 = meta_wcs.xy2rd(_crpix)
@@ -456,28 +456,28 @@ class Pattern(object):
         _out_wcs.crpix1 = _cen[0]
         _out_wcs.crpix2 = _cen[1]
         """
-        
+
     def getShifts(self,member,wcs):
         """
-        Translate the delta's in RA/Dec for each image's shift into a 
+        Translate the delta's in RA/Dec for each image's shift into a
         shift of the undistorted image.
- 
+
         Input:
             member - Exposure class for chip
             wcs    - PyDrizzle product WCS object
- 
+
         Output:
-            [xsh, ysh, rot, scale] - 
+            [xsh, ysh, rot, scale] -
                   Returns the full set of shift information as a list
- 
+
         """
-        
+
         if self.pars['delta_ra'] == 0.0 and self.pars['delta_dec'] == 0.0:
             xsh = 0.0
             ysh = 0.0
             drot = 0.0
             dscale = 1.0
-        else:     
+        else:
             # translate delta's into shifts
             ncrpix1,ncrpix2 = wcs.rd2xy((wcs.crval1+self.pars['delta_ra'],
                                          wcs.crval2+self.pars['delta_dec']))
@@ -486,9 +486,9 @@ class Pattern(object):
             ysh = ncrpix2 - wcs.crpix2
             drot= -self.pars['rot']
             dscale = self.pars['scale']
-            
+
         return [xsh,ysh,drot,dscale]
-        
+
     # This method would use information from the product class and exposure class
     # to build the complete parameter list for running the 'drizzle' task
     def buildPars(self,ref=None):
@@ -553,8 +553,8 @@ class Pattern(object):
         ref_wcs.recenter()
 
         # Convert shifts into delta RA/Dec values
-        
-        
+
+
         for member in self.members:
             in_wcs = member.geometry.wcslin
             in_wcs_orig = member.geometry.wcs
@@ -570,10 +570,10 @@ class Pattern(object):
             abxt,cdyt = drutil.wcsfit(member.geometry, ref_wcs)
 
             # Compute the rotation between input and reference from fit coeffs.
-            _delta_roty = _delta_rot = RADTODEG(N.arctan2(abxt[1],cdyt[0]))
-            _delta_rotx = RADTODEG(N.arctan2(abxt[0],cdyt[1]))
+            _delta_roty = _delta_rot = RADTODEG(np.arctan2(abxt[1],cdyt[0]))
+            _delta_rotx = RADTODEG(np.arctan2(abxt[0],cdyt[1]))
             # Compute scale from fit to allow WFPC2 (and similar) data to be handled correctly
-            _scale = 1./N.sqrt(abxt[0]**2 + abxt[1]**2)
+            _scale = 1./np.sqrt(abxt[0]**2 + abxt[1]**2)
 
             # Correct for additional shifts from shiftfile now
             _delta_x = abxt[2]
@@ -613,7 +613,7 @@ class Pattern(object):
 
             parameters['alpha'] = member.geometry.alpha
             parameters['beta'] = member.geometry.beta
-            
+
             # Calculate any rotation relative to the orientation
             # AFTER applying ONLY the distortion coefficients without
             # applying any additional rotation...
@@ -754,8 +754,8 @@ class Pattern(object):
                 _model.refpix['V3REF'] = _refdata['yoff'] * _pscale
 
             # Correct the coefficients for the differences in plate scales
-            _model.cx = _model.cx * N.array([_model.pscale/_ratio],dtype=N.float64)
-            _model.cy = _model.cy * N.array([_model.pscale/_ratio],dtype=N.float64)
+            _model.cx = _model.cx * np.array([_model.pscale/_ratio],dtype=np.float64)
+            _model.cy = _model.cy * np.array([_model.pscale/_ratio],dtype=np.float64)
             _model.refpix['XREF'] = self.REFPIX['x']
             _model.refpix['YREF'] = self.REFPIX['y']
 
@@ -802,10 +802,10 @@ class Pattern(object):
             if not refchip or refchip == int(member.chip):
                 ref_model = member.geometry.model
                 ref_scale = ref_model.refpix['PSCALE']
-                ref_v2v3 = N.array([ref_model.refpix['V2REF'],ref_model.refpix['V3REF']])
+                ref_v2v3 = np.array([ref_model.refpix['V2REF'],ref_model.refpix['V3REF']])
                 ref_theta = ref_model.refpix['THETA']
                 if ref_theta == None: ref_theta = 0.0
-                ref_pmat = N.dot(fileutil.buildRotMatrix(ref_theta), member.parity)
+                ref_pmat = np.dot(fileutil.buildRotMatrix(ref_theta), member.parity)
                 ref_xy = (ref_model.refpix['XREF'],ref_model.refpix['YREF'])
                 break
 
@@ -814,7 +814,7 @@ class Pattern(object):
             ref_theta = 0.0
             ref_v2v3 = [0.,0.]
             ref_xy = [0.,0.]
-            ref_pmat = N.array([[1.,0.],[0.,1.0]])
+            ref_pmat = np.array([[1.,0.],[0.,1.0]])
 
         # Now compute the offset for each chip
         # Compute position of each chip's common point relative
@@ -825,7 +825,7 @@ class Pattern(object):
             pscale = in_model.pscale
             memwcs = member.geometry.wcs
 
-            v2v3 = N.array([in_model.refpix['V2REF'],in_model.refpix['V3REF']])
+            v2v3 = np.array([in_model.refpix['V2REF'],in_model.refpix['V3REF']])
             scale = refp['PSCALE']
             theta = refp['THETA']
             if theta == None: theta = 0.0
@@ -834,14 +834,14 @@ class Pattern(object):
                         (memwcs.naxis2/2.) + memwcs.offset_y)
             """
             Changed two lines below starting with '##'.
-            The reasoning is that this function computes the offsets between the 
+            The reasoning is that this function computes the offsets between the
             chips in an observation in model space based on a reference chip.
             That's why xypos shoulf be coomputed in reference chip space and offset_xy
-            (X/YDELTA) should be chip specific. 
+            (X/YDELTA) should be chip specific.
             """
-            ##xypos = N.dot(ref_pmat,v2v3-ref_v2v3) / scale + ref_xy
-            xypos = N.dot(ref_pmat,v2v3-ref_v2v3) / ref_scale #+ ref_xy
-            
+            ##xypos = np.dot(ref_pmat,v2v3-ref_v2v3) / scale + ref_xy
+            xypos = np.dot(ref_pmat,v2v3-ref_v2v3) / ref_scale #+ ref_xy
+
             chiprot = fileutil.buildRotMatrix(theta - ref_theta)
             offcen = ((refp['XREF'] - chipcen[0]), (refp['YREF'] - chipcen[1]))
 
@@ -849,16 +849,16 @@ class Pattern(object):
             # reference position...
             #refp['XDELTA'] = vref[i][0] - v2com + chip.geometry.delta_x
             #refp['YDELTA'] = vref[i][1] - v3com + chip.geometry.delta_y
-            
-            ##offset_xy = N.dot(chiprot,xypos-offcen)*scale/ref_scale
-            offset_xy = N.dot(chiprot,xypos)*ref_scale/scale - offcen
+
+            ##offset_xy = np.dot(chiprot,xypos-offcen)*scale/ref_scale
+            offset_xy = np.dot(chiprot,xypos)*ref_scale/scale - offcen
             if refp.has_key('empty_model') and refp['empty_model'] == True:
                 offset_xy[0]  += ref_xy[0] * scale/ref_scale
                 offset_xy[1]  += ref_xy[1] * scale/ref_scale
-                
+
             refp['XDELTA'] = offset_xy[0]
             refp['YDELTA'] = offset_xy[1]
-            
+
 
             # Only set centered to yes for full exposures...
             if member.geometry.wcs.subarray != yes:
