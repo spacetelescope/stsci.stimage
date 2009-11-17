@@ -34,15 +34,15 @@ import string,os,types
 from pytools import fileutil, readgeis
 
 import pyfits
-import numpy as N
+import numpy as np
 
 yes = True
 no = False
 
 def buildMask(dqarr,bitvalue):
     """ Builds a bit-mask from an input DQ array and a bitvalue flag"""
-    _maskarr = N.bitwise_or(dqarr,N.array([bitvalue]))
-    return N.choose(N.greater(_maskarr,bitvalue),(1,0)).astype(N.uint8)
+    _maskarr = np.bitwise_or(dqarr,np.array([bitvalue]))
+    return np.choose(np.greater(_maskarr,bitvalue),(1,0)).astype(np.uint8)
 
 def buildMaskName(rootname,extver):
     """ Builds name for mask file based on rootname and extver. """
@@ -83,7 +83,7 @@ def buildMaskImage(rootname,bitvalue,output,extname='DQ',extver=1):
             dqarr = fdq[_extn].data
         else:
             dqarr = None
-            
+
         # For the case where there is no DQ array,
         # create a mask image of all ones.
         if dqarr == None:
@@ -92,7 +92,7 @@ def buildMaskImage(rootname,bitvalue,output,extname='DQ',extver=1):
             _sci_extn = fileutil.findExtname(fdq,'SCI',extver=extver)
             if _sci_extn != None:
                 _shape = fdq[_sci_extn].data.shape
-                dqarr = N.zeros(_shape,dtype=N.uint16)
+                dqarr = np.zeros(_shape,dtype=np.uint16)
             else:
                 raise Exception
         # Build mask array from DQ array
@@ -197,8 +197,8 @@ def buildShadowMaskImage(rootname,detnum,extnum,maskname,replace=yes,bitvalue=No
             _funcx = _funcroot+detnum+'x'
             _funcy = _funcroot+detnum+'y'
 
-            _xarr = N.clip(N.fromfunction(eval(_funcx),(800,800)),0.0,1.0).astype(N.uint8)
-            _yarr = N.clip(N.fromfunction(eval(_funcy),(800,800)),0.0,1.0).astype(N.uint8)
+            _xarr = np.clip(np.fromfunction(eval(_funcx),(800,800)),0.0,1.0).astype(np.uint8)
+            _yarr = np.clip(np.fromfunction(eval(_funcy),(800,800)),0.0,1.0).astype(np.uint8)
             maskarr = _xarr * _yarr
 
             if binned !=1:
