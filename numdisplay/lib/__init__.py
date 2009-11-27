@@ -122,7 +122,7 @@ try:
 except ImportError:
     geotrans = None
 
-__version__ = "1.5.5 (16-Sept-2009)"
+__version__ = "1.5.6 (27-Nov-2009)"
 #
 # Version 0.1-alpha: Initial release
 #       WJH 7-Oct-2003

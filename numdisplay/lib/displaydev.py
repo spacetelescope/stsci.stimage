@@ -470,7 +470,7 @@ class ImageDisplay(object):
         
         # Update WCS information with offsets into frame buffer for image        
         wcsinfo.tx = int(((wcsinfo.full_nx + 1.0) / 2.) - ((self.fbwidth) / 2.) + 0.5) 
-        wcsinfo.ty = int((self.fbheight+ 1.0) + ((wcsinfo.full_ny / 2.) - (self.fbheight / 2.)) + 0.5) 
+        wcsinfo.ty = int((self.fbheight) + ((wcsinfo.full_ny / 2.) - (self.fbheight / 2.)) + 0.5) 
 
         wcsinfo.nx = min(wcsinfo.full_nx, self.fbwidth)
         wcsinfo.ny = min(wcsinfo.full_ny, self.fbheight)
@@ -490,7 +490,7 @@ class ImageDisplay(object):
         _nx,_ny = wcsinfo.nx,wcsinfo.ny
         _ty = wcsinfo.dty
         _tx = wcsinfo.dtx
-        
+
         _nnx = min(_nx,_fbw)
         _nny = min(_ny,_fbh)
         
@@ -504,17 +504,17 @@ class ImageDisplay(object):
 
         # Flip image array so that (0,0) pixel is in upper left
         _fpix = pix[::-1,:]
-        
+
         # Now, for each block, write out the image section
         if _lper_block == 1:
             # send each line of image to display
             for block in xrange(int(_nblocks)):
-                _ydisp = _fbh - (_ty - (block+1))
+                _ydisp = _fbh - (_ty - block)
                 self.writeData(_lx,_ydisp,_fpix[block,:])
         else:
             # display each line segment separately
             for block in xrange(int(_nblocks)):
-                _y0 = (block+1) * _lper_block
+                _y0 = block * _lper_block
                 _ydisp = _fbh - (_ty - _y0)                
                 _xper_block = (_nx / (_nx * _lper_block))
                 for xblock in xrange(int(_xper_block)):
