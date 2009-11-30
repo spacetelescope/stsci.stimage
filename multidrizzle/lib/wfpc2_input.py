@@ -139,7 +139,7 @@ class WFPC2InputImage (InputImage):
                 print str
         # For the WFPC2 flat we need to invert
         # for use in Multidrizzle
-        flat = (1.0/data)/self.getGain()
+        flat = (1.0/data)
         return flat
 
     def doUnitConversions(self):
@@ -213,9 +213,6 @@ class WFPC2InputImage (InputImage):
 
     def _setchippars(self):
         pass
-
-    def _getCalibratedGain(self):
-        return self._gain
 
     def getComputedSky(self):
         return (self._computedsky * (self.refplatescale / self.platescale)**2 )

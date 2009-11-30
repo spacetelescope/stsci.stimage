@@ -62,14 +62,14 @@ class ImageManager(object):
         same ImageManager object without worrying about opening or trying to close
         the same image more than once.
     """
-    def __init__(self, assoc, context, instrpars, workinplace, static_file, proc_unit="native"):  
+    def __init__(self, assoc, context, instrpars, workinplace, static_file, proc_unit="native"):
         self.context = context
         self.assoc = assoc
         self.output = self.assoc.output
         self.workinplace = workinplace
         self.static_file = static_file
         self.proc_unit = proc_unit
-        
+
         # Establish a default memory mapping behavior
         self.memmap = 0
 
@@ -126,7 +126,7 @@ class ImageManager(object):
                 p['image'].maskname = p['driz_mask']
 
             # Create the name of the single drizzle mask file if it doesn't exist.
-            
+
             # This is done in the default case in which the user has not provided a
             # static mask file
             p['image'].singlemaskname = p['exposure'].singlemaskname
@@ -147,21 +147,21 @@ class ImageManager(object):
                     # the mask would have gotten if the mask had been created.
                     p['image'].singlemaskname = p['exposure'].masklist[1]
                     p['exposure'].singlemaskname = p['exposure'].masklist[1]
-                    
+
                     # Now create the mask file on disk
                     _mask_array = None # np.ones(p['image'].image_shape,dtype=np.uint8)
                     self._buildMaskImage(p['image'].singlemaskname,_mask_array)
                     del _mask_array
-                    
+
                 # Now that we have created a mask for the single drizzle step, we will need
-                # to apply the user supplied static mask file to it and the mask for the 
+                # to apply the user supplied static mask file to it and the mask for the
                 # final drizzle step.
-                self._applyUserStaticFile(p['image'].singlemaskname, 
-                                                        static_file, 
+                self._applyUserStaticFile(p['image'].singlemaskname,
+                                                        static_file,
                                                         p['image'].grp
                                                         )
-                self._applyUserStaticFile(p['image'].maskname, 
-                                                    static_file, 
+                self._applyUserStaticFile(p['image'].maskname,
+                                                    static_file,
                                                     p['image'].grp
                                                     )
 
@@ -193,34 +193,34 @@ class ImageManager(object):
         # instrument parameters can also be reset from the mdriztab
         # table by an external call.
         self.setInstrumentParameters(instrpars)
-                
+
 
     def _applyUserStaticFile(self, static_mask, user_static_mask, imageExtNumber):
-    
+
         """
         Method:     _applyUserStaticFile
         Purpose:    Apply the user provided static mask file to the mask created by the
                     static mask step.
-                    
-        Input:      user_static_file - user specified mask file.  The file is assumed to be 
+
+        Input:      user_static_file - user specified mask file.  The file is assumed to be
                     a multi extension FITS file.  Pixel values of 1 are considered "good"
                     and 0 "bad".  There needs to be one "MASK" extension for each extension
                     of the input science image.  This means a static mask file for WFPC2
                     input should have 4 "MASK" extensions while a static mask file for
                     ACS WFC dat would have 2 "MASK" extensions.
-                    
+
                     static_mask - name of static mask file for single and final drizzle steps created
                     by Multidrizzle/Pydrizzle.
-                                        
+
                     imageExtNumber - extension of the inputimage currently being processed
                     by the static_mask step.
-                    
+
         Output:     None
-        
+
         """
 
         # Define integer values for good and bad pixels
-        
+
         static_goodval = 1
         static_badval = 0
 
@@ -245,7 +245,7 @@ class ImageManager(object):
         file.close()
         static_mask_file.close()
 
-        print "STATICFILE: ",user_static_mask," applied to ",static_mask             
+        print "STATICFILE: ",user_static_mask," applied to ",static_mask
 
     def setInstrumentParameters(self, instrpars):
         """ Sets intrument parameters into all image instances.
@@ -255,7 +255,7 @@ class ImageManager(object):
 
         for p in self.assoc.parlist:
             p['image'].setInstrumentParameters (instrpars, p['exposure'].header)
-            
+
     def setupInputCopies(self,p,workinplace = False ):
         """ Make copies of all input science files, keeping track of
             the names of the copies and originals.
@@ -274,7 +274,7 @@ class ImageManager(object):
             p['orig_filename'] = _copy
         else:
             p['orig_filename'] = _img_root
-        
+
 
 
     # This is called after 'doFinalDriz'...
@@ -302,7 +302,7 @@ class ImageManager(object):
 
         # Extract the instrument name for the data that is being processed by Multidrizzle
         _instrument = plist['exposure'].header['INSTRUME']
-        
+
         # Determine the instrument detector in use.  NICMOS is a special case because it does
         # not use the 'DETECTOR' keyword.  It instead used 'CAMERA' to identify which of it's
         # 3 camera's is in use.  All other instruments support the 'DETECTOR' keyword.
@@ -310,12 +310,12 @@ class ImageManager(object):
             _detector = plist['exposure'].header['CAMERA']
         else:
             _detector = plist['exposure'].header['DETECTOR']
-            
+
         # Extract the plate scale in use by the detector
         _platescale = plist['exposure'].pscale
         if _platescale == None:
             raise ValueError, 'The plate scale has a value of -- None -- '
-        
+
         # Extract the dq array designation
         _dqname = plist['exposure'].dqname
         if _instrument != 'WFPC2':
@@ -331,7 +331,7 @@ class ImageManager(object):
             if _detector == 2: return WF2InputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
             if _detector == 3: return WF3InputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
             if _detector == 4: return WF4InputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
-        if _instrument == 'STIS': 
+        if _instrument == 'STIS':
             if _detector == 'CCD': return CCDInputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
             if _detector == 'FUV-MAMA': return FUVInputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
             if _detector == 'NUV-MAMA': return NUVInputImage(input,_dqname,_platescale,memmap=0,proc_unit=self.proc_unit)
@@ -369,13 +369,13 @@ class ImageManager(object):
     def createStatic(self, static_sig):
 
         """ Create the static bad-pixel mask from input images."""
-        
+
         #Print paramater values supplied through the interface
         print "USER PARAMETERS:"
         print "static     =  True"
         print "static_sig = ",static_sig
         print "\n"
-                 
+
         self.static_mask = StaticMask(goodval = 1, badval = 0, staticsig=static_sig)
 
         for p in self.assoc.parlist:
@@ -400,9 +400,9 @@ class ImageManager(object):
 
             handle.close()
             del handle
-        
+
             # If there is going to be a separate mask for the single drizzle step and it is different
-            # from the mask used for the final drizzle step it will also need to be updated with the 
+            # from the mask used for the final drizzle step it will also need to be updated with the
             # static mask information
             if ( ((p['image'].singlemaskname != None) and (p['image'].singlemaskname != '')) and (p['image'].singlemaskname != p['image'].maskname) ):
                 handle = fileutil.openImage(p['image'].singlemaskname,mode='update')
@@ -418,9 +418,9 @@ class ImageManager(object):
 
                 handle.close()
                 del handle
-                
+
     def doSky(self, skypars, skysub):
-    
+
         # Print out the parameters provided by the interface
         print "USER PARAMETERS:"
         print "skysub    = ",skysub
@@ -431,7 +431,7 @@ class ImageManager(object):
         print "skyclip   = ",skypars['skyclip']
         print "skylsigma = ",skypars['skylsigma']
         print "skyusigma = ",skypars['skyusigma']
-        print "skyuser   = ",skypars['skyuser'] 
+        print "skyuser   = ",skypars['skyuser']
         print "\n"
 
         """ Processes sky in input images."""
@@ -476,7 +476,7 @@ class ImageManager(object):
                 # NOTE: This can be generalized later with changes to PyDrizzle
                 #       to provide an attribute that specifies whether each member
                 #       associated with file is a separate exposure or not.
-                #   WJH/CJH 
+                #   WJH/CJH
                 if (p['exposure'].header['INSTRUME'] != 'STIS'):
                     p['image'].setSubtractedSky(_imageMinDict[p['rootname']])
                 else:
@@ -497,7 +497,7 @@ class ImageManager(object):
 
     def _setOutputFrame(self, pars):
 
-        """ Set up user-specified output frame using a SkyField object."""        
+        """ Set up user-specified output frame using a SkyField object."""
         _sky_field = None
 
         if pars['refimage'] != '' and pars['refimage'] != None:
@@ -537,7 +537,7 @@ class ImageManager(object):
             # when setting up output field parameters.
             if pars['outnx'] == None: _shape = None
             else: _shape = (pars['outnx'],pars['outny'])
-            
+
             print 'Default orientation for output: ',_orient,'degrees'
 
             _sky_field.set(psize=pars['scale'], orient=_orient,
@@ -554,12 +554,12 @@ class ImageManager(object):
         #
         self.assoc.resetPars(field=_sky_field,
                             pixfrac=pars['pixfrac'],
-                            kernel=pars['kernel']) 
+                            kernel=pars['kernel'])
 
     def doDrizSeparate(self, pars):
 
         """ Drizzle separate input images. """
-        
+
         # Start by applying input parameters to redefine
         # the output frame as necessary
         for p in self.assoc.parlist:
@@ -571,18 +571,18 @@ class ImageManager(object):
 
             # NB DO NOT USE "tophat" unless pixfrac is sufficiently
             # large (> sqrt(2))
-            
+
             p['fillval'] = pars['fillval']
-            
+
             # Pass in the new wt_scale value
             p['wt_scl'] = pars['wt_scl']
 
             if (p['single_driz_mask'] == None and self.static_mask != None):
                 p['single_driz_mask'] = self.static_mask.getMask(p['image'].signature())
-                
+
             # 'in_units' will always be counts given that the input is converted to 'electrons' in call cases
             p['in_units'] = 'counts'
-            
+
             print("\ndrizzle data='"+p['data']+"' outdata='"+p['outsingle']+"' outweig='"+p['outsweight']+
                 "' in_mask='static_mask"+"' kernel='"+p['kernel']+
                 "' outnx="+str(p['outnx'])+" outny="+str(p['outny'])+" xsh="+str(p['xsh'])+" ysh="+str(p['ysh'])+
@@ -599,13 +599,13 @@ class ImageManager(object):
 
 
     def createMedian(self, medianpars):
-    
+
         # Print out the parameters provided by the interface
         print "USER PARAMETERS:"
         print "median          =  True"
         print "median_newmasks  = ",medianpars['newmasks']
         print "combine_maskpt  = ",medianpars['maskpt']
-        print "combine_type    = ",medianpars['type']  
+        print "combine_type    = ",medianpars['type']
         print "combine_nsigma  = ",medianpars['nsigma1']," ",medianpars['nsigma2']
         print "combine_nlow    = ",medianpars['nlow']
         print "combine_nhigh   = ",medianpars['nhigh']
@@ -613,14 +613,14 @@ class ImageManager(object):
         print "combine_hthresh = ",medianpars['hthresh']
         print "combine_grow    = ",medianpars['grow']
         print "\n"
-                    
+
         newmasks = medianpars['newmasks']
         comb_type = medianpars['type']
         nsigma1 = medianpars['nsigma1']
         nsigma2 = medianpars['nsigma2']
         nlow = medianpars['nlow']
         nhigh = medianpars['nhigh']
-        
+
         # Convert the units of the threshold values if necessary
         native_units = self.assoc.parlist[1]['image'].native_units
         proc_units = self.assoc.parlist[1]['image'].proc_unit
@@ -650,7 +650,7 @@ class ImageManager(object):
 
         grow = medianpars['grow']
         maskpt = medianpars['maskpt']
-        
+
         """ Builds combined array from single drizzled images."""
         # Start by removing any previous products...
         fileutil.removeFile(self.medianfile)
@@ -676,7 +676,7 @@ class ImageManager(object):
                     _weight_file = IterFitsFile(p['outsweight'])
                     self.weight_handles.append(_weight_file)
                     tmp_mean_value = ImageStats(_weight_file.data,lower=1e-8,lsig=None,usig=None,fields="mean",nclip=0)
-                    
+
                     _wht_mean.append(tmp_mean_value.mean * maskpt)
                     # Clear the memory used by reading in the whole data array for
                     # computing the mean.  This requires that subsequent access to
@@ -684,10 +684,10 @@ class ImageManager(object):
                     #del _weight_file.data
 
                 # Extract instrument specific parameters and place in lists
-                
+
                 # Check for 0 exptime values.  If an image has zero exposure time we will
                 # redefine that value as '1'.  Although this will cause inaccurate scaling
-                # of the data to occur in the 'minmed' combination algorith, this is a 
+                # of the data to occur in the 'minmed' combination algorith, this is a
                 # necessary evil since it avoids divide by zero exceptions.  It is more
                 # important that the divide by zero exceptions not cause Multidrizzle to
                 # crash in the pipeline than it is to raise an exception for this obviously
@@ -695,7 +695,7 @@ class ImageManager(object):
                 # with Multidrizzle.
                 #
                 # Get the exposure time from the InputImage object
-                imageExpTime = p['image'].getExpTime() 
+                imageExpTime = p['image'].getExpTime()
                 exposureTimeList.append(imageExpTime)
 
                 # Extract the sky value for the chip to be used in the model
@@ -707,7 +707,7 @@ class ImageManager(object):
             #
             # END Loop over input image list
             #
-                
+
         # create an array for the median output image
         medianOutputImage = np.zeros(self.single_handles[0].shape,dtype=self.single_handles[0].type())
 
@@ -731,21 +731,21 @@ class ImageManager(object):
 
         # Fire up the image iterator
         #
-        # The overlap value needs to be set to 2*grow+1 in order to 
+        # The overlap value needs to be set to 2*grow+1 in order to
         # avoid edge effects when scrolling down the image, and to
         # insure that the last section returned from the iterator
         # has enough row to span the kernel used in the boxcar method
-        # within minmed.  
+        # within minmed.
         _overlap = 2*int(grow)+1
-        
+
         #Start by computing the buffer size for the iterator
         _imgarr = masterList[0].data
         _bufsize = nimageiter.BUFSIZE
         _imgrows = _imgarr.shape[0]
         _nrows = computeBuffRows(_imgarr)
         _niter,_nrows = computeNumberBuff(_imgrows,_nrows,_overlap)
-        _lastrows = _imgrows - (_niter*_nrows) 
-                
+        _lastrows = _imgrows - (_niter*_nrows)
+
         masterList[0].close()
         del _imgarr
 
@@ -809,14 +809,14 @@ class ImageManager(object):
                                         upper=hthresh,
                                         lower=lthresh
                                     )
-                                    
+
             # We need to account for any specified overlap when writing out
             # the processed image sections to the final output array.
             if prange[1] != _imgrows:
                 medianOutputImage[prange[0]:prange[1]-_overlap,:] = result.combArrObj[:-_overlap,:]
             else:
                 medianOutputImage[prange[0]:prange[1],:] = result.combArrObj
-            
+
             del result
             del self.weight_mask_list
             self.weight_mask_list = None
@@ -900,18 +900,18 @@ class ImageManager(object):
 
     def doDrizCR(self, drizcrpars, skypars):
         """ Runs deriv and driz_cr to create cosmic-ray masks. """
-        
+
         # Print out the parameters provided by the interface
         print "USER PARAMETERS:"
         print "driz_cr         =  True"
         print "driz_cr_corr    = ",drizcrpars['driz_cr_corr']
         print "driz_cr_snr     = ",drizcrpars['driz_cr_snr']
         print "driz_cr_scale   = ",drizcrpars['driz_cr_scale']
-        print "driz_cr_grow    = ",drizcrpars['driz_cr_grow']      
-        print "driz_cr_ctegrow = ",drizcrpars['driz_cr_ctegrow']   
+        print "driz_cr_grow    = ",drizcrpars['driz_cr_grow']
+        print "driz_cr_ctegrow = ",drizcrpars['driz_cr_ctegrow']
 
         print "\n"
-        
+
         for p in self.assoc.parlist:
             # If cor_file is desired, then build name for file
             if drizcrpars['driz_cr_corr']:
@@ -951,7 +951,7 @@ class ImageManager(object):
         _new_field = None
 
         # Make sure parameters are set to original values
-        self.assoc.resetPars()   
+        self.assoc.resetPars()
 
         if drizpars['refimage'] != '' and drizpars['refimage'] != None:
             # Use the following if the refimage isn't actually going to be
@@ -968,12 +968,12 @@ class ImageManager(object):
                 _orient = refimg_wcs.orientat
 
             # Now, build output WCS using the SkyField class
-            # and default product's WCS as the initial starting point. 
+            # and default product's WCS as the initial starting point.
             _new_field = pydrizzle.SkyField(wcs=refimg_wcs)
 
             # Update with user specified scale and rotation
             _new_field.set(psize=drizpars['scale'],orient=_orient)
-        
+
         elif _final_shape != None or \
             drizpars['scale'] != None or \
             drizpars['rot'] != None or\
@@ -993,10 +993,10 @@ class ImageManager(object):
 
         # Now, reset parameters to final values
         # We always want to insure that pixfrac and kernel are reset
-        self.assoc.resetPars(field=_new_field, 
-                    pixfrac=drizpars['pixfrac'], 
-                    kernel=drizpars['kernel'], units=drizpars['units'] ) 
-                    
+        self.assoc.resetPars(field=_new_field,
+                    pixfrac=drizpars['pixfrac'],
+                    kernel=drizpars['kernel'], units=drizpars['units'] )
+
         if _new_field != None:
             # Restore the 'image' parameters to the newly updated parlist
             for _nimg in xrange(len(self.assoc.parlist)):
@@ -1081,25 +1081,25 @@ class ImageManager(object):
             runlog.close()
 
         self.assoc.run(save=True,build=drizpars['build'])
-        
+
         self.updateMdrizskyHistory(drizpars['build'])
-        
+
         if self.proc_unit.lower() == 'native':
             if self.assoc.parlist[0]['image'].native_units.lower().find('counts') != -1:
                 _plist = self.assoc.parlist[0]
-                if drizpars['build']: 
+                if drizpars['build']:
                     _output = _plist['output']
                     sci_ext = 'sci'
-                else: 
+                else:
                     _output = _plist['outdata']
                     sci_ext = 0
-                    
+
                 fhdu = pyfits.open(_output,mode='update')
                 fhdu[sci_ext].data = fhdu[sci_ext].data / _plist['image'].getGain()
                 fhdu[sci_ext].header['bunit'] = fhdu[sci_ext].header['bunit'].upper().replace("ELECTRONS","COUNTS")
                 fhdu.close()
 
-        
+
     def updateMdrizskyHistory(self,build):
         """ Update the output SCI image with HISTORY cards
             that document what MDRIZSKY value was applied to each
@@ -1108,17 +1108,17 @@ class ImageManager(object):
         _plist = self.assoc.parlist[0]
         if build == True: _sky_output = _plist['output']
         else: _sky_output = _plist['outdata']
-        
+
         fhdu = pyfits.open(_sky_output,mode='update')
         prihdr = fhdu[0].header
-        
+
         for sky in self._getMdrizskyValues():
             sky_str = sky[0]+' MDRIZSKY = '+str(sky[1])
             prihdr.add_history(sky_str)
-            
+
         fhdu.close()
         del fhdu
-        
+
     def updateMdrizVerHistory(self,build,versions):
         """ Update the output SCI image with HISTORY cards
             that document what version of MultiDrizzle was used.
@@ -1126,13 +1126,13 @@ class ImageManager(object):
         _plist = self.assoc.parlist[0]
         if build == True: _output = _plist['output']
         else: _output = _plist['outdata']
-        
+
         fhdu = pyfits.open(_output,mode='update')
         prihdr = fhdu[0].header
-        
+
         ver_str = "MultiDrizzle product generated using: "
         prihdr.add_history(ver_str)
-        
+
         for key in versions:
             if versions[key].find('\n') < 0:
                 prihdr.add_history(key+versions[key])
@@ -1143,10 +1143,10 @@ class ImageManager(object):
                 for val in _ver_str:
                     if val.strip() != '':
                         prihdr.add_history(val)
-                     
+
         #ver_str = '    MultiDrizzle Version '+str(version)
         #prihdr.add_history(ver_str)
-            
+
         fhdu.close()
         del fhdu
 
@@ -1158,32 +1158,32 @@ class ImageManager(object):
         mlist = []
         for member in self.assoc.parlist:
             fname = member['image'].datafile
-            if not mdict.has_key(fname): 
+            if not mdict.has_key(fname):
                 mlist.append((fname, member['image'].getSubtractedSky()))
                 mdict[fname] = 1
-                
+
         return mlist
 
-                 
+
     def _applyIVM(self,parlistentry):
         """
-        
+
         Purpose
         =======
         Private method of the ImageMagager class that
-        is used to apply IVM files.  
-        
+        is used to apply IVM files.
+
         Algorithm
         =========
         If the user provides IVM files they are applied
-        to the final masks.  Otherwise they are automatically 
+        to the final masks.  Otherwise they are automatically
         generated.
-        
-        Automatically generated IVM files are specific to the 
-        instrument being used and the details of the detector 
+
+        Automatically generated IVM files are specific to the
+        instrument being used and the details of the detector
         used to acquire the image.
 
-        
+
         """
 
         if parlistentry['ivmname'] != None:
@@ -1191,16 +1191,16 @@ class ImageManager(object):
 
             #Parse the input file name to get the extension we are working on
             sciextn = parlistentry['image'].extn
-            index = sciextn.find(',')   
+            index = sciextn.find(',')
             extn = "IVM,"+sciextn[index+1:]
-            
+
             #Open the mask image for updating and the IVM image
             mask = fileutil.openImage(parlistentry['image'].maskname,mode='update')
             ivm =  fileutil.openImage(parlistentry['ivmname'],mode='readonly')
 
             ivmfile = fileutil.getExtn(ivm,extn)
-            
-            # Multiply the IVM file by the input mask in place.        
+
+            # Multiply the IVM file by the input mask in place.
             mask[0].data = ivmfile.data * mask[0].data
 
             mask.close()
@@ -1208,30 +1208,41 @@ class ImageManager(object):
 
             # Update 'wt_scl' parameter to match use of IVM file
             parlistentry['wt_scl'] = pow(parlistentry['exptime'],2)/pow(parlistentry['scale'],4)
-                        
+
         else:
-                        
+
             imageobj = parlistentry['image']
-            
+
             print "Automatically creating IVM files..."
-            # If no IVM files were provided by the user we will 
-            # need to automatically generate them based upon 
+            # If no IVM files were provided by the user we will
+            # need to automatically generate them based upon
             # instrument specific information.
-            
+
             flat = imageobj.getflat()
             RN = imageobj.getReadNoiseImage()
             darkimg = imageobj.getdarkimg()
             skyimg = imageobj.getskyimg()
-            
+
+
+            #ivmlog = open('ivmlog.txt','a')
+            #ivmlog.write("flat: "+str(flat[400:404,400:404])+'\n')
+            #ivmlog.write("RN: "+str(RN[400:404,400:404])+'\n')
+            #ivmlog.write("dark: "+str(darkimg[400:404,400:404])+'\n')
+            #ivmlog.write( "sky: "+str(skyimg[400:404,400:404])+'\n')
+
             ivm = (flat)**2/(darkimg+(skyimg*flat)+RN**2)
+
+            #ivmlog.write("ivm: "+str(ivm[400:404,400:404])+'\n')
+            #ivmlog.write('----------'+'\n')
+            #ivmlog.close()
 
             #Open the mask image for updating
             mask = fileutil.openImage(parlistentry['image'].maskname,mode='update')
-            
-            # Multiply the IVM file by the input mask in place.        
+
+            # Multiply the IVM file by the input mask in place.
             mask[0].data = ivm * mask[0].data
             mask.close()
-            
+
             # Update 'wt_scl' parameter to match use of IVM file
             parlistentry['wt_scl'] = pow(parlistentry['exptime'],2)/pow(parlistentry['scale'],4)
 
@@ -1241,14 +1252,14 @@ class ImageManager(object):
         """
         _applyERR(self,parlistentry):  A method of the ImageManager class that applies
         the ERROR image as an IVM like file to the input image.
-        
+
         """
         # Not all input images will have an 'ERR' extension.  We must be prepared for the
-        # failure of the open of the err array.  
+        # failure of the open of the err array.
 
         # Parse the input file name to get the extension we are working on
         sciextn = parlistentry['image'].extn
-        index = sciextn.find(',')   
+        index = sciextn.find(',')
         extn = "ERR,"+sciextn[index+1:]
         fname,fextn = fileutil.parseFilename(parlistentry['data'])
 
@@ -1261,7 +1272,7 @@ class ImageManager(object):
             print "Applying ERR file ",fname+'['+extn+']'," to mask file ",parlistentry['image'].maskname
             errfile = fileutil.getExtn(err,extn)
 
-            # Multiply the scaled ERR file by the input mask in place.        
+            # Multiply the scaled ERR file by the input mask in place.
             mask[0].data = 1/(errfile.data)**2 * mask[0].data
 
             mask.close()
@@ -1275,7 +1286,7 @@ class ImageManager(object):
             # If we were unable to find an 'ERR' extension to apply, one possible reason was that
             # the input was a 'standard' WFPC2 data file that does not actually contain an error array.
             # Test for this condition and issue a Warning to the user and continue on to the final
-            # drizzle.   
+            # drizzle.
                 errstr =  "*******************************************\n"
                 errstr += "*                                         *\n"
                 errstr += "* WARNING: No ERR weighting will be       *\n"
@@ -1291,7 +1302,7 @@ class ImageManager(object):
                 errstr += "* variance maps and use 'IVM' as the      *\n"
                 errstr += "* final_wht_type.  See the HELP file for  *\n"
                 errstr += "* more details on using inverse variance  *\n"
-                errstr += "* maps.                                   *\n" 
+                errstr += "* maps.                                   *\n"
                 errstr += "*                                         *\n"
                 errstr =  "*******************************************\n"
                 print errstr
@@ -1314,4 +1325,4 @@ class ImageManager(object):
                 print "\n Continue with final drizzle step..."
             # Ensure that the mask file has been closed.
             mask.close()
-            
+
