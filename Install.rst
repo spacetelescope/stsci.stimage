@@ -313,7 +313,7 @@ To run PyRAF, enter the command
 
 A PyRAF tutorial is available at http://stsdas.stsci.edu/pyraf/doc.old/pyraf_tutorial/
 
-Note: PyRAF is heavily dependent on IRAF, therefore does not work on MS Windows.
+Note: In STSCI_PYTHON 2.9, pyraf is is not tested on MS Windows, but the latest version of pyraf does provide partial support for Windows.  See http://www.stsci.edu/resources/software_hardware/pyraf/current/download for details.
 
 
 Assistance 
