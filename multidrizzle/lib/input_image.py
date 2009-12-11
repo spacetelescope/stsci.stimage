@@ -101,7 +101,7 @@ class InputImage(object):
         Convert the sci extension pixels to electrons
         """
         pass
-        
+
     def getInstrParameter(self, value, header, keyword):
         """ This method gets a instrument parameter from a
             pair of task parameters: a value, and a header keyword.

@@ -48,6 +48,7 @@ from pytools.parseinput import parseinput
 
 # Begin Version Information -------------------------------------------
 __version__ = '3.3.7dev'
+__vdate__ = '11-Dec-2009'
 # End Version Information ---------------------------------------------
 # Revision based version info
 try:
