@@ -22,12 +22,12 @@ For more information:
 Dependencies:
           numpy 1.0.2.dev3534 or higher
           pyfits v1.1b4 or higher
-          imagestats v1.1.0 or higher
+          imagestats v1.3 or higher
 
 """
 
-__version__="1.2"
-__vdate__="2007-11-30"
+__version__="1.3"
+__vdate__="2009-12-14"
 
 # The above text is duplicated in the __init__ file for the package, since
 #that's where it shows up for the user.
@@ -42,6 +42,8 @@ import SP_LeastSquares as LeastSquares #Excerpt from Hinsen's Scientific Python
 from numpy.linalg import LinAlgError
 
 #History:
+# New version of imagestats: 14 Dec 09, Laidler
+#   - imagestats v1.3 uses "midpt" to duplicate iraf imstats functionality
 # Enhancements, 20 Jan 06, Laidler
 #   - replaced infile by calcfile and targfile
 #   - allow applying correction to a file other than that on which it
@@ -777,7 +779,8 @@ def get_dark_data(imgfile,darkpath):
     return im1,im2,dark
 
 def flat_saaper(saaper,img):
-    mm=imstat(saaper,nclip=1,binwidth=0.01,fields='median').median
+    #The "midpt" computes a pseudo-median function.
+    mm=imstat(saaper,nclip=1,binwidth=0.01,fields='midpt').midpt
     #Use median, or mode? which is better?
     if img.h['flatdone'] == 'PERFORMED':
         flatname=osfn(img.h['flatfile'])

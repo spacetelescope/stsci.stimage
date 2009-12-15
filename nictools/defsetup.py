@@ -5,7 +5,7 @@ import sys
 pkg = "nictools"
 
 setupargs = {
-      'version' : 		"1.0.0",
+      'version' : 		"1.0.1",
       'description' : 	"Python Tools for NICMOS Data",
       'author' : 		"Vicki Laidler, David Grumm",
       'author_email' : 	"help@stsci.edu",
