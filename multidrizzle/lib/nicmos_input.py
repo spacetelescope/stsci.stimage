@@ -151,10 +151,8 @@ class NICMOSInputImage(InputImage):
         # Set the darkrate for the chips
         self._setDarkRate()
         
-        # Convert the science data to electrons if specified by the user.  Each
-        # instrument class will need to define its own version of doUnitConversions
-        if self.proc_unit == "electrons":
-            self.doUnitConversions()
+        # Convert the science data to electrons.
+        self.doUnitConversions()
 
     def _setchippars(self):
         self._setDefaultReadnoise()

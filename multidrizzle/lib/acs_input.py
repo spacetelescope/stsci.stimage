@@ -63,10 +63,8 @@ class ACSInputImage(InputImage):
             print 'ERROR: invalid instrument task parameter'
             raise ValueError
 
-        # Convert the science data to electrons if specified by the user.  Each
-        # instrument class will need to define its own version of doUnitConversions
-        if self.proc_unit == "electrons":
-            self.doUnitConversions()
+        # Convert the science data to electrons 
+        self.doUnitConversions()
 
     def getflat(self):
         """
