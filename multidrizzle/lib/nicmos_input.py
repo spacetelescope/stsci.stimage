@@ -94,8 +94,8 @@ class NICMOSInputImage(InputImage):
         _sciext.header.update('BUNIT','ELECTRONS')
 
         # Update the PHOTFLAM value
-        photflam = _sciext.header['PHOTFLAM']
-        _sciext.header.update('PHOTFLAM',(photflam/self.getGain()))
+        photflam = _handle[0].header['PHOTFLAM']
+        _handle[0].header.update('PHOTFLAM',(photflam/self.getGain()))
         
         # Close the files and clean-up
         _handle.close() 
