@@ -278,12 +278,12 @@ class Exposure:
         #"special handling of middle col/row"
         if self.camera < 3:
             temp=imstat( (self.data[:,127]-self.data[:,126]),
-                         nclip=1,binwidth=0.01,fields='median')
-            self.data[:,127]=self.data[:,127]-temp.median
+                         nclip=1,binwidth=0.01,fields='midpt')
+            self.data[:,127]=self.data[:,127]-temp.midpt
         elif self.camera==3:
             temp=imstat( (self.data[127,:]-self.data[126,:]),
-                         nclip=1,binwidth=0.01,fields='median')
-            self.data[127,:]=self.data[127,:]-temp.median
+                         nclip=1,binwidth=0.01,fields='midpt')
+            self.data[127,:]=self.data[127,:]-temp.midpt
         else:
             raise ValueError, "Bad camera value"
 
