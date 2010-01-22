@@ -11,7 +11,7 @@ from observations import *
 #import p_m_input
 
 import pyfits
-import numpy as np
+import numpy as N
 
 yes = True  # 1
 no = False  # 0
@@ -21,7 +21,7 @@ _default_pars = {'psize':None,'default_rot':None,'idckey':None}
 
 INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS","WFC3"]
 
-__version__ = "6.3.2 (23-Oct-2009)"
+__version__ = "6.3.3 (23-Jan-2010)"
 
 
 class _PyDrizzle:
@@ -97,7 +97,7 @@ More help on SkyField objects and their parameters can be obtained using:
         idcdir=DEFAULT_IDCDIR,memmap=0,dqsuffix=None):
 
         if idcdir == None: idcdir = DEFAULT_IDCDIR
-
+        
 
         print 'Starting PyDrizzle Version ',__version__,' at ', _ptime()
 
@@ -109,7 +109,7 @@ More help on SkyField objects and their parameters can be obtained using:
         # Insure that the section parameter always becomes a list
         if isinstance(section,list) == False and section != None:
             section = [section]
-
+            
         # Set the default value for 'build'
         self.build = yes
 
@@ -123,11 +123,11 @@ More help on SkyField objects and their parameters can be obtained using:
             psize = None
             orient = None
             orient_rot = 0.
-
-        #self.pars['orient_rot'] was originaly self.pars['rot']. It is set based on
-        # orientat but it looks like it is not used. In SkyField.mergeWCS() rot is
-        #defined again based on orientat.
-
+        
+        #self.pars['orient_rot'] was originaly self.pars['rot']. It is set based on 
+        # orientat but it looks like it is not used. In SkyField.mergeWCS() rot is 
+        #defined again based on orientat. 
+        
         # These can also be set by the user.
         # Minimum set needed: psize, rot, and idckey
         self.pars = {'psize':psize,'units':units,'kernel':kernel,'orient_rot':orient_rot,
@@ -135,12 +135,12 @@ More help on SkyField objects and their parameters can be obtained using:
             'fillval':fillval,'section':section, 'idcdir':idcdir+os.sep,
             'memmap':memmap,'dqsuffix':dqsuffix, 'in_units':in_units,
             'bits':[bits_final,bits_single], 'mt_wcs': None}
-
+        
         # Watch out for any errors.
         # If they arise, all open files need to be closed...
         self.observation = None
         self.parlist = None
-
+        
         if len(asndict['order']) > 1:
             self.observation = DitherProduct(asndict,pars=self.pars)
         else:
@@ -178,17 +178,17 @@ More help on SkyField objects and their parameters can be obtained using:
         # Let the user know parameters have been successfully calculated
         print 'Drizzle parameters have been calculated. Ready to .run()...'
         print 'Finished calculating parameters at ',_ptime()
-
+    
     def translateShifts(self, asndict):
         """
-        Translate the shifts specified in the ASNDICT (as read in from the
+        Translate the shifts specified in the ASNDICT (as read in from the 
         shiftfile) into offsets in the sky, so they can be translated back
         into the WCS of the PyDrizzle output product.
-
-        NOTE:  Only works with 'delta' shifts now, and
+        
+        NOTE:  Only works with 'delta' shifts now, and 
                     requires that a 'refimage' be specified.
         """
-
+                
         # for each set of shifts, translate them into delta(ra,dec) based on refwcs
         for img in asndict['order']:
 
@@ -209,7 +209,7 @@ More help on SkyField objects and their parameters can be obtained using:
                     cp2 = refwcs.crpix2
 
                     nra,ndec = refwcs.xy2rd((cp1+xsh,cp2+ysh))
-
+                    
                     delta_ra = refwcs.crval1-nra
                     delta_dec = refwcs.crval2-ndec
                 else:
@@ -217,10 +217,10 @@ More help on SkyField objects and their parameters can be obtained using:
                     # No conversion necessary
                     delta_ra = xsh
                     delta_dec = ysh
-
+            
             asndict['members'][img]['delta_ra'] = delta_ra
             asndict['members'][img]['delta_dec'] = delta_dec
-
+            
     def clean(self,coeffs=no,final=no):
         """ Removes intermediate products from disk. """
         for img in self.parlist:
@@ -272,7 +272,7 @@ More help on SkyField objects and their parameters can be obtained using:
         # Setup the versions info dictionary for output to PRIMARY header
         # The keys will be used as the name reported in the header, as-is
         #
-        _versions = {'PyDrizzle':__version__,'PyFITS':pyfits.__version__,'Numpy':np.__version__}
+        _versions = {'PyDrizzle':__version__,'PyFITS':pyfits.__version__,'Numpy':N.__version__}
 
         # Set parameters for each input and run drizzle on it here.
 
@@ -285,8 +285,8 @@ More help on SkyField objects and their parameters can be obtained using:
 
             for plist in self.parlist:
 
-                _insci = np.zeros((plist['outny'],plist['outnx']),dtype=np.float32)
-                _outsci = np.zeros((plist['blotny'],plist['blotnx']),dtype=np.float32)
+                _insci = N.zeros((plist['outny'],plist['outnx']),dtype=N.float32)
+                _outsci = N.zeros((plist['blotny'],plist['blotnx']),dtype=N.float32)
                 _hdrlist.append(plist)
                 # Open input image as PyFITS object
                 if plist['outsingle'] != plist['outdata']:
@@ -341,9 +341,9 @@ More help on SkyField objects and their parameters can be obtained using:
                 #
                 # This call to 'arrdriz.tdriz' uses the F2C syntax
                 #
-                if (_insci.dtype > np.float32):
+                if (_insci.dtype > N.float32):
                     #WARNING: Input array recast as a float32 array
-                    _insci = _insci.astype(np.float32)
+                    _insci = _insci.astype(N.float32)
                 t = arrdriz.tblot(_insci, _outsci,xmin,xmax,ymin,ymax,
                             xsh,ysh, plist['rot'],plist['scale'], kscale,
                             0.0,0.0, 1.0,1.0, 0.0, 'output',
@@ -401,9 +401,9 @@ More help on SkyField objects and their parameters can be obtained using:
             # This buffer should be reused for each input.
             #
             plist = self.parlist[0]
-            _outsci = np.zeros((plist['outny'],plist['outnx']),dtype=np.float32)
-            _outwht = np.zeros((plist['outny'],plist['outnx']),dtype=np.float32)
-            _inwcs = np.zeros([8],dtype=np.float64)
+            _outsci = N.zeros((plist['outny'],plist['outnx']),dtype=N.float32)
+            _outwht = N.zeros((plist['outny'],plist['outnx']),dtype=N.float32)
+            _inwcs = N.zeros([8],dtype=N.float64)
 
             # Compute how many planes will be needed for the context image.
             _nplanes = int((_numctx['all']-1) / 32) + 1
@@ -414,7 +414,7 @@ More help on SkyField objects and their parameters can be obtained using:
 
             # Always initialize context images to a 3-D array
             # and only pass the appropriate plane to drizzle as needed
-            _outctx = np.zeros((_nplanes,plist['outny'],plist['outnx']),dtype=np.int32)
+            _outctx = N.zeros((_nplanes,plist['outny'],plist['outnx']),dtype=N.int32)
 
             # Keep track of how many chips have been processed
             # For single case, this will determine when to close
@@ -440,8 +440,16 @@ More help on SkyField objects and their parameters can be obtained using:
 
                 # Determine output value of BUNITS
                 # and make sure it is not specified as 'ergs/cm...'
-                _bunit = plist['bunit']
-
+                # we want to use the actual value from the input image header directly
+                # when possible in order to account for any unit conversions that may
+                # be applied to the input image between initialization of PyDrizzle
+                # and the calling of this run() method.
+                if _sciext.header.has_key('bunit') and _sciext.header['bunit'] not in ['','N/A']:
+                    _bunit = _sciext.header['bunit']
+                else:
+                    # default based on instrument-specific logic
+                    _bunit = plist['bunit']
+                
                 _bindx = _bunit.find('/')
                 if plist['units'] == 'cps':
                     # If BUNIT value does not specify count rate already...
@@ -449,7 +457,7 @@ More help on SkyField objects and their parameters can be obtained using:
                         # ... append '/SEC' to value
                         _bunit += '/S'
                     else:
-                        # reset _bunit here to None so it does not
+                        # reset _bunit here to None so it does not 
                         #    overwrite what is already in header
                         _bunit = None
                 else:
@@ -457,9 +465,9 @@ More help on SkyField objects and their parameters can be obtained using:
                         # remove '/S'
                         _bunit = _bunit[:_bindx]
                     else:
-                        # reset _bunit here to None so it does not
+                        # reset _bunit here to None so it does not 
                         #    overwrite what is already in header
-                        _bunit = None
+                        _bunit = None                 
 
                 # Compute what plane of the context image this input would
                 # correspond to:
@@ -470,22 +478,22 @@ More help on SkyField objects and their parameters can be obtained using:
                     _mask = plist['single_driz_mask']
                 else:
                     _mask = plist['driz_mask']
-
+                    
                 # Check to see whether there is a mask_array at all to use...
                 if isinstance(_mask,types.StringType):
                     if _mask != None and _mask != '':
                         _wht_handle = fileutil.openImage(_mask,mode='readonly',memmap=0)
-                        _inwht = _wht_handle[0].data.astype(np.float32)
+                        _inwht = _wht_handle[0].data.astype(N.float32)
                         _wht_handle.close()
                         del _wht_handle
                     else:
                         print 'No weight or mask file specified!  Assuming all pixels are good.'
-                        _inwht = np.ones((plist['blotny'],plist['blotnx']),dtype=np.float32)
+                        _inwht = N.ones((plist['blotny'],plist['blotnx']),dtype=N.float32)
                 elif _mask != None:
-                    _inwht = _mask.astype(np.float32)
+                    _inwht = _mask.astype(N.float32)
                 else:
                     print 'No weight or mask file specified!  Assuming all pixels are good.'
-                    _inwht = np.ones((plist['blotny'],plist['blotnx']),dtype=np.float32)
+                    _inwht = N.ones((plist['blotny'],plist['blotnx']),dtype=N.float32)
 
                 if plist['wt_scl'] != None:
                     if isinstance(plist['wt_scl'],types.StringType):
@@ -566,10 +574,10 @@ More help on SkyField objects and their parameters can be obtained using:
                 #
                 _dny = plist['blotny']
                 # Call 'drizzle' to perform image combination
-                if (_sciext.data.dtype > np.float32):
+                if (_sciext.data.dtype > N.float32):
                     #WARNING: Input array recast as a float32 array
-                    _sciext.data = _sciext.data.astype(np.float32)
-
+                    _sciext.data = _sciext.data.astype(N.float32)
+                    
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
                             _outctx[_planeid], _uniqid, ystart, 1, 1, _dny,
                             plist['xsh'],plist['ysh'], 'output','output',
@@ -604,7 +612,7 @@ More help on SkyField objects and their parameters can be obtained using:
 
                 del _pxg,_pyg
 
-                # Remember the name of the first image that goes into
+                # Remember the name of the first image that goes into 
                 # this particular product
                 # This will insure that the header reports the proper
                 # values for the start of the exposure time used to make
@@ -640,7 +648,7 @@ More help on SkyField objects and their parameters can be obtained using:
 
                     #If output units were set to 'counts', rescale the array in-place
                     if plist['units'] == 'counts':
-                        np.multiply(_outsci, _expscale, _outsci)
+                        N.multiply(_outsci, _expscale, _outsci)
 
                     #
                     # Write output arrays to FITS file(s) and reset chip counter
@@ -648,7 +656,7 @@ More help on SkyField objects and their parameters can be obtained using:
                     _outimg = outputimage.OutputImage(_hdrlist, build=build, wcs=_wcs, single=single)
                     _outimg.set_bunit(_bunit)
                     _outimg.set_units(plist['units'])
-
+                    
                     _outimg.writeFITS(_template,_outsci,_outwht,ctxarr=_outctx,versions=_versions)
                     del _outimg
                     #
@@ -656,9 +664,9 @@ More help on SkyField objects and their parameters can be obtained using:
                     #
                     _numchips = 0
                     _nimg = 0
-                    np.multiply(_outsci,0.,_outsci)
-                    np.multiply(_outwht,0.,_outwht)
-                    np.multiply(_outctx,0,_outctx)
+                    N.multiply(_outsci,0.,_outsci)
+                    N.multiply(_outwht,0.,_outwht)
+                    N.multiply(_outctx,0,_outctx)
 
                     _hdrlist = []
                 else:
@@ -859,7 +867,7 @@ class SkyField:
         _mrot = fileutil.buildRotMatrix(_delta_rot)
 
         if self.shape == None:
-            _corners = np.array([[0.,0.],[wcs.naxis1,0.],[0.,wcs.naxis2],[wcs.naxis1,wcs.naxis2]])
+            _corners = N.array([[0.,0.],[wcs.naxis1,0.],[0.,wcs.naxis2],[wcs.naxis1,wcs.naxis2]])
             _corners -= (wcs.naxis1/2.,wcs.naxis2/2.)
             _range = drutil.getRotatedSize(_corners,_delta_rot)
             shape = ((_range[0][1] - _range[0][0])*_ratio,(_range[1][1]-_range[1][0])*_ratio)
@@ -871,7 +879,7 @@ class SkyField:
             #    _crpix = (self.wcs.crpix1,self.wcs.crpix2)
             #else:
                 # Rotate original scaled crpix position to new orientation
-                #_crpix = np.dot((wcs.crpix1*_ratio - _cen[0],wcs.crpix2*_ratio -_cen[1]),_mrot)+_cen
+                #_crpix = N.dot((wcs.crpix1*_ratio - _cen[0],wcs.crpix2*_ratio -_cen[1]),_mrot)+_cen
             _crpix = _cen
         else:
             shape = self.shape
@@ -984,7 +992,7 @@ class DitherProduct(Pattern):
         # Setup a default exposure to contain the results
         Pattern.__init__(self, None, output=output, pars=pars)
         self.pars = prodlist['members']
-        self.nmembers = self.nimages = len(prodlist['members'])
+        self.nmembers = self.nimages = len(prodlist['members']) 
         self.offsets = None
 
         self.addMembers(prodlist,pars,output)
@@ -996,14 +1004,14 @@ class DitherProduct(Pattern):
         self.exptime = self.getExptime()
 
         self.buildProduct(output)
-
+    
     def closeHandle(self):
         """ Close image handle for each member."""
         for member in self.members:
             member.closeHandle()
-
-
-
+            
+    
+        
     def buildProduct(self,output):
         # Build default Metachip based on unmodified header WCS values
         output_wcs = self.buildMetachip()
@@ -1024,7 +1032,7 @@ class DitherProduct(Pattern):
         _prodcorners = []
         for prod in self.members:
             _prodcorners +=  prod.product.corners['corrected'].tolist()
-        self.product.corners['corrected'] = np.array(_prodcorners,dtype=np.float64)
+        self.product.corners['corrected'] = N.array(_prodcorners,dtype=N.float64)
 
     def computeOffsets(self):
         """
@@ -1049,7 +1057,7 @@ class DitherProduct(Pattern):
 
             _delta_rot = in_wcs.orient - ref_wcs.orient
             # Determine which image has the smallest offset
-            _tot = np.sqrt(np.power(xoff,2)+np.power(yoff,2))
+            _tot = N.sqrt(N.power(xoff,2)+N.power(yoff,2))
 
             """
             # Use first image as reference
@@ -1095,9 +1103,9 @@ class DitherProduct(Pattern):
         For each entry in prodlist, append the appropriate type
         of Observation to the members list.
 
-        If it's a moving target observation apply the wcs of the first
+        If it's a moving target observation apply the wcs of the first 
         observation to  all other observations.
-        """
+        """     
 
         member = prodlist['order'][0]
         filename = fileutil.buildRootname(member)
@@ -1108,10 +1116,10 @@ class DitherProduct(Pattern):
             mt_wcs = {}
             for member in mt_member.members:
                 mt_wcs[member.chip] = member.geometry.wcs
-
+            
             pars['mt_wcs'] = mt_wcs
-            del mt_member
-
+            del mt_member   
+ 
         for memname in prodlist['order']:
             pardict = self.pars[memname]
             pardict.update(pars)
@@ -1214,7 +1222,7 @@ class DitherProduct(Pattern):
             abxt,cdyt = drutil.wcsfit(member.geometry, meta_wcs)
 
             # Compute the rotation between input and reference from fit coeffs.
-            _angle = RADTODEG(np.arctan2(abxt[1],cdyt[0]))
+            _angle = RADTODEG(N.arctan2(abxt[1],cdyt[0]))
             _dpos = (abxt[2],cdyt[2])
 
             _delta_x += _dpos[0]
@@ -1243,15 +1251,15 @@ class DitherProduct(Pattern):
             _yr.append(_dpos[1] + _yrange[1]*_scale)
 
         # Determine the full size of the metachip
-        _xmin = np.minimum.reduce(_xr)
-        _ymin = np.minimum.reduce(_yr)
-        _xmax = np.maximum.reduce(_xr)
-        _ymax = np.maximum.reduce(_yr)
+        _xmin = N.minimum.reduce(_xr)
+        _ymin = N.minimum.reduce(_yr)
+        _xmax = N.maximum.reduce(_xr)
+        _ymax = N.maximum.reduce(_yr)
 
-        _dxmin = np.minimum.reduce(_dpx)
-        _dymin = np.minimum.reduce(_dpy)
-        _dxmax = np.maximum.reduce(_dpx)
-        _dymax = np.maximum.reduce(_dpy)
+        _dxmin = N.minimum.reduce(_dpx)
+        _dymin = N.minimum.reduce(_dpy)
+        _dxmax = N.maximum.reduce(_dpx)
+        _dymax = N.maximum.reduce(_dpy)
 
         _nimg = len(prodlist)
         _delta_x /= _nimg
