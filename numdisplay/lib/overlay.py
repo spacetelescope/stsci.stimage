@@ -1,3 +1,5 @@
+from __future__ import division # confidence high
+
 import math
 import struct
 
@@ -290,8 +292,8 @@ def marker (**kwargs):
     points = sprite
     npts = len(points[0])
     for i in range(npts):
-        iy = y - iysize/2 + points[0][i]
-        ix = x - ixsize/2 + points[1][i]
+        iy = y - iysize//2 + points[0][i]
+        ix = x - ixsize//2 + points[1][i]
 
         if ix >= 0 and iy >= 0 and ix < fbwidth and iy < fbheight:
             # save the value that is currently at (x,y)

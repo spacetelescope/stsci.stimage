@@ -1,3 +1,5 @@
+from __future__ import division # confidence high
+
 import math
 import numpy
 
@@ -23,7 +25,7 @@ def zscale (image, nsamples=1000, contrast=0.25, bpmask=None, zmask=None):
     zmin = samples[0]
     zmax = samples[-1]
     # For a zero-indexed array
-    center_pixel = (npix - 1) / 2
+    center_pixel = (npix - 1) // 2
     if npix%2 == 1:
         median = samples[center_pixel]
     else:

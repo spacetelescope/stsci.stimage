@@ -29,6 +29,7 @@ replacement for CDL.
 $Id$
 
 """
+from __future__ import division # confidence medium
 
 import os, socket, struct
 
@@ -496,11 +497,11 @@ class ImageDisplay(object):
         
         # compute the range in output pixels the input image would cover
         # input image could be smaller than buffer size/output image size.
-        _lx = (_fbw / 2) - (_nnx / 2)
+        _lx = (_fbw // 2) - (_nnx // 2)
                 
-        _lper_block = SZ_BLOCK / _fbw
+        _lper_block = SZ_BLOCK // _fbw
         if _lper_block > 1: _lper_block = 1        
-        _nblocks = _nny / _lper_block
+        _nblocks = _nny // _lper_block
 
         # Flip image array so that (0,0) pixel is in upper left
         _fpix = pix[::-1,:]
@@ -516,7 +517,7 @@ class ImageDisplay(object):
             for block in xrange(int(_nblocks)):
                 _y0 = block * _lper_block
                 _ydisp = _fbh - (_ty - _y0)                
-                _xper_block = (_nx / (_nx * _lper_block))
+                _xper_block = (_nx // (_nx * _lper_block))
                 for xblock in xrange(int(_xper_block)):
                     _x0 = xblock * _xper_block
                     _xend = xblock + 1 * _xper_block

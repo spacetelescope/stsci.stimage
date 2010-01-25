@@ -16,6 +16,8 @@ loadImtoolrc (imtoolrc=None):
         1056 1024
 
 """    
+from __future__ import division # confidence high
+
 import os,string,sys
 
 _default_imtoolrc_env = ["imtoolrc","IMTOOLRC"]

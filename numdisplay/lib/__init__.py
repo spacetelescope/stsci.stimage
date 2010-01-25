@@ -110,6 +110,7 @@
             >>> numdisplay.display(fdata, zscale=True, contrast=0.5)
 
 """
+from __future__ import division # confidence medium
 
 import numpy as n
 import math, string
@@ -122,7 +123,7 @@ try:
 except ImportError:
     geotrans = None
 
-__version__ = "1.5.6 (27-Nov-2009)"
+__version__ = "1.6.0 (25-Jan-2010)"
 #
 # Version 0.1-alpha: Initial release
 #       WJH 7-Oct-2003
@@ -289,8 +290,8 @@ class NumDisplay(object):
         if _nx > fbwidth or _ny > fbheight:
 
             # Compute the starting pixel of the image section to be displayed.
-            _lx = (_nx / 2) - (fbwidth / 2)
-            _ly = (_ny / 2) - (fbheight / 2)
+            _lx = (_nx // 2) - (fbwidth // 2)
+            _ly = (_ny // 2) - (fbheight // 2)
             # We need to determine the region of the image to be put in frame
             _nx = min(_nx,fbwidth)
             _ny = min(_ny,fbheight)
