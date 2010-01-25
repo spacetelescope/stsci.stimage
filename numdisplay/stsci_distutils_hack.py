@@ -28,6 +28,7 @@ If you are not a developer at STScI, this module is probably not of
 much interest to you.
 
 """
+from __future__ import division # confidence high
 
 __docformat__ = 'restructuredtext'
 
