@@ -298,7 +298,7 @@ def boxcar(data, boxshape, output=None, mode="nearest", cval=0.0):
     array([  6,   3,   0,   0,   0, 333, 666], dtype=int64)
     >>> boxcar(num.array([10, 0, 0, 0, 0, 0, 1000]), (3,), mode="constant").astype(num.longlong)
     array([  3,   3,   0,   0,   0, 333, 333], dtype=int64)
-    >>> a = num.zeros((10,10))
+    >>> a = num.zeros((10,10),dtype=num.int64)
     >>> a[0,0] = 100
     >>> a[5,5] = 1000
     >>> a[9,9] = 10000
