@@ -1,6 +1,8 @@
 __version__ = '2.0'
 from Convolve import *
 import iraf_frame
+import os
+import pytools.tester
 
 
 def test(*args,**kwds):
