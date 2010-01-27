@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 import numpy as np
 import nose
-from image import *
 from nose.tools import *
-
+from image import combine
 def test_median1():
     """
     median() nominally computes the median pixels for a stack of
@@ -32,7 +31,7 @@ def test_median1():
     a = np.arange(4)
     a = a.reshape((2,2))
     arrays = [a*16, a*4, a*2, a*8]
-    result = median(arrays)
+    result = combine.median(arrays)
     test = np.array([[ 0,  6],
            [12, 18]])
     assert_equal(result.all(),test.all())
@@ -41,7 +40,7 @@ def test_median2():
     a = np.arange(4)
     a = a.reshape((2,2))
     arrays = [a*16, a*4, a*2, a*8]
-    result = median(arrays, nhigh=1)
+    result = combine.median(arrays, nhigh=1)
     test = np.array([[ 0,  4],
            [ 8, 12]])
     assert_equal(result.all(),test.all())
@@ -50,7 +49,7 @@ def test_median3():
     a = np.arange(4)
     a = a.reshape((2,2))
     arrays = [a*16, a*4, a*2, a*8]
-    result = median(arrays, nlow=1)
+    result = combine.median(arrays, nlow=1)
     test = np.array([[ 0,  8],
            [16, 24]])
     assert_equal(result.all(),test.all())
@@ -59,7 +58,7 @@ def test_median4():
     a = np.arange(4)
     a = a.reshape((2,2))
     arrays = [a*16, a*4, a*2, a*8]
-    result = median(arrays, outtype=np.float32)
+    result = combine.median(arrays, outtype=np.float32)
     test = np.array([[  0.,   6.],
            [ 12.,  18.]], dtype=np.float32)
     assert_equal(result.all(),test.all())
@@ -70,7 +69,7 @@ def test_median5():
     arrays = [a*16, a*4, a*2, a*8]
     bm = np.zeros((4,2,2), dtype=np.bool8)
     bm[2,...] = 1
-    result = median(arrays, badmasks=bm)
+    result = combine.median(arrays, badmasks=bm)
     test = np.array([[ 0,  8],
            [16, 24]])
     assert_equal(result.all(),test.all())
@@ -79,7 +78,7 @@ def test_median6():
     a = np.arange(4)
     a = a.reshape((2,2))
     arrays = [a*16, a*4, a*2, a*8]
-    result = median(arrays, badmasks=threshhold(arrays, high=25))
+    result = combine.median(arrays, badmasks=combine.threshhold(arrays, high=25))
     test = np.array([[ 0,  6],
            [ 8, 12]])
     assert_equal(result.all(),test.all())

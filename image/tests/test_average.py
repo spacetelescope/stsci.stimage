@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import numpy as np
 import nose
-from image import *
 from nose.tools import *
+from image import combine
 
 def test_average1():
     """
@@ -32,7 +32,7 @@ def test_average1():
     a = np.arange(4)
     a = a.reshape((2,2))
     arrays = [a*16, a*4, a*2, a*8]
-    result = average(arrays)
+    result = combine.average(arrays)
     test = np.array([[ 0,  7],
            [15, 22]])
     assert_equal(result.all(),test.all())
@@ -41,7 +41,7 @@ def test_average2():
     a = np.arange(4)
     a = a.reshape((2,2))
     arrays = [a*16, a*4, a*2, a*8]
-    result = average(arrays, nhigh=1)
+    result = combine.average(arrays, nhigh=1)
     test = np.array([[ 0,  4],
            [ 9, 14]])
     assert_equal(result.all(),test.all())
@@ -50,7 +50,7 @@ def test_average3():
     a = np.arange(4)
     a = a.reshape((2,2))
     arrays = [a*16, a*4, a*2, a*8]
-    result = average(arrays, nlow=1)
+    result = combine.average(arrays, nlow=1)
     test = np.array([[ 0,  9],
            [18, 28]])
     assert_equal(result.all(),test.all())
@@ -59,7 +59,7 @@ def test_average4():
     a = np.arange(4)
     a = a.reshape((2,2))
     arrays = [a*16, a*4, a*2, a*8]
-    result = average(arrays, outtype=np.float32)
+    result = combine.average(arrays, outtype=np.float32)
     test = np.array([[  0. ,   7.5],
            [ 15. ,  22.5]], dtype=np.float32)
     assert_equal(result.all(),test.all())
@@ -70,7 +70,7 @@ def test_average5():
     arrays = [a*16, a*4, a*2, a*8]
     bm = np.zeros((4,2,2), dtype=np.bool8)
     bm[2,...] = 1
-    result = average(arrays, badmasks=bm)
+    result = combine.average(arrays, badmasks=bm)
     test = np.array([[ 0,  9],
            [18, 28]])
     assert_equal(result.all(),test.all())
@@ -79,7 +79,7 @@ def test_average6():
     a = np.arange(4)
     a = a.reshape((2,2))
     arrays = [a*16, a*4, a*2, a*8]
-    result = average(arrays, badmasks=threshhold(arrays, high=25))
+    result = combine.average(arrays, badmasks=combine.threshhold(arrays, high=25))
     test = np.array([[ 0,  7],
            [ 9, 14]])
     assert_equal(result.all(),test.all())

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import numpy as np
 import nose
-from image import *
 from nose.tools import *
+from image import combine
 
 def test_threshhold1():
     """
@@ -14,7 +14,7 @@ def test_threshhold1():
 
     a=np.arange(100)
     a=a.reshape((10,10))
-    result = (threshhold(a, 1, 50)).astype(np.int8)
+    result = (combine.threshhold(a, 1, 50)).astype(np.int8)
     test = np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -30,7 +30,7 @@ def test_threshhold1():
 def test_threshold2():
     a=np.arange(100)
     a=a.reshape((10,10))
-    result = (threshhold([ range(10)]*10, 3, 7)).astype(np.int8)
+    result = (combine.threshhold([ range(10)]*10, 3, 7)).astype(np.int8)
     test = np.array([[1, 1, 1, 0, 0, 0, 0, 1, 1, 1],
            [1, 1, 1, 0, 0, 0, 0, 1, 1, 1],
            [1, 1, 1, 0, 0, 0, 0, 1, 1, 1],
@@ -46,7 +46,7 @@ def test_threshold2():
 def test_threshold3():
     a=np.arange(100)
     a=a.reshape((10,10))
-    result = (threshhold(a, high=50)).astype(np.int8)
+    result = (combine.threshhold(a, high=50)).astype(np.int8)
     test = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -62,7 +62,7 @@ def test_threshold3():
 def test_threshold4():
     a=np.arange(100)
     a=a.reshape((10,10))
-    result = (threshhold(a, low=50)).astype(np.int8)
+    result = (combine.threshhold(a, low=50)).astype(np.int8)
     test = np.array([[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
