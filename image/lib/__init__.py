@@ -1,32 +1,13 @@
-import sys
+import os,sys
 from _image import *
 from combine import *
+import pytools.tester
 
 __version__ = '2.0'
-if sys.version_info < (2,4):
-    def test():
-        import doctest, _image, combine
 
-        t = doctest.Tester(globs = globals())
-
-        t.rundict(_image.__dict__, "_image")
-        t.rundict(combine.__dict__, "combine")
-
-        return t.summarize()
-
-else:
-    def test():
-        import doctest, _image, combine
-
-        finder=doctest.DocTestFinder()
-        tests=finder.find(_image)
-        tests.extend(finder.find(combine))
-
-        runner=doctest.DocTestRunner(verbose=False)
-
-        for test in tests:
-            runner.run(test)
-        return runner.summarize()
+def test(*args,**kwds):
+    thisdir = os.path.dirname(os.path.abspath(__file__))
+    pytools.tester.test(curdir=thisdir)
 
 try:
     from svn_version import __svn_version__, __full_svn_info__
