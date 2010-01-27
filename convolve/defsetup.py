@@ -4,7 +4,7 @@ import distutils.extension
 import numpy
 
 def extmod(name) :
-    return distutils.extension.Extension( 
+    return distutils.extension.Extension(
         pkg+"."+name,
         [ "src/"+name+"module.c" ],
         include_dirs = [ numpy.get_include(), numpy.get_numarray_include() ],
@@ -27,5 +27,7 @@ setupargs = {
     'author_email' :    'help@stsci.edu',
 
     'ext_modules' :     [ extmod("_correlate"), extmod("_lineshape") ],
+
+    'data_files' :              [ ( pkg +'/tests', ['tests/*']), ]
 
 }

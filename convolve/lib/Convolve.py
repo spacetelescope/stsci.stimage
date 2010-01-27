@@ -382,10 +382,3 @@ def _fbroadcast(f, N, shape, args, params=()):
     else:
         for i in range(shape[0]):
             _fbroadcast(f, N, shape[1:], [x[i] for x in args], params)
-
-def test():
-    import doctest, Convolve
-    return doctest.testmod(Convolve)
-
-if __name__ == "__main__":
-    print test()
