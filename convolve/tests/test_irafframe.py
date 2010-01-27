@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import numpy as np
 import nose
-from convolve import *
 from convolve.iraf_frame import *
 from nose.tools import *
 
