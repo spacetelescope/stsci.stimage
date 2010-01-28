@@ -6,8 +6,7 @@ import pytools.tester
 
 
 def test(*args,**kwds):
-    thisdir = os.path.dirname(os.path.abspath(__file__))
-    pytools.tester.test(curdir=thisdir)
+    pytools.tester.test(modname=__name__, *args, **kwds)
 
 try:
     from svn_version import __svn_version__, __full_svn_info__

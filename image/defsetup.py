@@ -5,16 +5,14 @@ import numpy
 
 def extmod(name) :
     return distutils.extension.Extension(
-        pkg+"."+name,
+        pkgname+"."+name,
         [ "src/"+name+"module.c" ],
         include_dirs = [ numpy.get_include(), numpy.get_numarray_include() ],
         define_macros = [ ('NUMPY', '1') ]
-        # library_dirs = [ "/usr/local/lib" ]
-        # libraries = [ "X11" ]
     )
 
-
-pkg = "image"
+pkgname = "image"
+pkg = ["image", "image.tests"]
 
 setupargs = {
 
@@ -26,10 +24,9 @@ setupargs = {
 
     'author_email' :    'help@stsci.edu',
 
+    'package_dir' : { 'image':'lib', 'image.tests':'tests'},
+
     'ext_modules' :     [ extmod("_combine") ],
-
-    'data_files' :              [ ( pkg +'/tests', ['tests/*']), ]
-
 
 }
 
