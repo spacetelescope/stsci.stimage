@@ -1,5 +1,7 @@
 import os,sys
 from _image import *
+from combine import *
+
 import pytools.tester
 
 __version__ = '2.0'
