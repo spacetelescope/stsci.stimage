@@ -21,7 +21,7 @@ _default_pars = {'psize':None,'default_rot':None,'idckey':None}
 
 INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS","WFC3"]
 
-__version__ = "6.3.3 (23-Jan-2010)"
+__version__ = "6.3.4 (28-Jan-2010)"
 
 
 class _PyDrizzle:
@@ -1234,7 +1234,7 @@ class DitherProduct(Pattern):
             # output meta-frame coordinates
             # Each product in this list could have a different plate scale.
             # apply
-            _scale = meta_wcs.pscale / _wcs.pscale
+            _scale = _wcs.pscale / meta_wcs.pscale
 
             # Now, account for any rotation difference between
             # input and output frames
