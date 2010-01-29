@@ -31,8 +31,9 @@
 import math
 import numpy
 from numpy import fft
-from scipy.testing import *
-import scipy.ndimage as ndimage
+import ndimage as ndimage
+import unittest
+from numpy.testing.utils import assert_equal, assert_array_equal
 
 eps = 1e-12
 
@@ -57,7 +58,7 @@ def diff(a, b):
     return math.sqrt(t)
 
 
-class TestNdimage(TestCase):
+class TestNdimage(unittest.TestCase):
 
     def setUp(self):
         # list of numarray data types
