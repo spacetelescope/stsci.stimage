@@ -10,7 +10,7 @@ try:
 except:
     raise ImportError("NUMPY was not found. It may not be installed or it may not be on your PYTHONPATH")
 
-pkg = "imagemanip"
+pkg = [ "imagemanip", 'imagemanip.test' ]
 
 setupargs = {
       'version' :		"1.0",
@@ -26,6 +26,8 @@ setupargs = {
       'platforms' :		["Linux","Solaris","Mac OS X", "Windows"],
 
       'data_files' :	[('imagemanip',['lib/LICENSE.txt'])],
+
+      'package_dir' :   { 'imagemanip':'lib', 'imagemanip.test':'test' },
 
       'ext_modules' :   [
                         distutils.core.Extension('imagemanip.bilinearinterp',['src/bilinearinterp.c'],

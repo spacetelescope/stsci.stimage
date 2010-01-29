@@ -5,15 +5,14 @@ import numpy
 
 def extmod(name) :
     return distutils.extension.Extension(
-        pkgname+"."+name,
+        pkg[0]+"."+name,
         [ "src/"+name+"module.c" ],
         include_dirs = [ numpy.get_include(), numpy.get_numarray_include() ],
         define_macros = [ ('NUMPY', '1') ]
     )
 
 
-pkgname = "convolve"
-pkg = ["convolve", "convolve.tests"]
+pkg = ["convolve", "convolve.test"]
 
 setupargs = {
 
@@ -25,7 +24,7 @@ setupargs = {
 
     'author_email' :    'help@stsci.edu',
 
-    'package_dir' :     { 'convolve':'lib', 'convolve.tests':'tests'},
+    'package_dir' :     { 'convolve':'lib', 'convolve.test':'test'},
 
     'ext_modules' :     [ extmod("_correlate"), extmod("_lineshape") ],
 

@@ -3,14 +3,15 @@ from __future__ import division # confidence high
 import distutils.extension
 import numpy
 
-
-pkg = "ndimage"
+pkg = [ "ndimage", "ndimage.test" ]
 
 setupargs = {
 
+    'package_dir' :     { 'ndimage':'lib', 'ndimage.test':'test'},
+
     'ext_modules' :     [ 
                         distutils.extension.Extension( 
-                            pkg+"._nd_image",
+                            "ndimage._nd_image",
                             [
                                 "src/nd_image.c","src/ni_filters.c", "src/ni_fourier.c",
                                 "src/ni_interpolation.c", "src/ni_measure.c", 
@@ -20,11 +21,5 @@ setupargs = {
                             )
                         ],
 
-    'date_files' :      [
-                            ( pkg+"/tests", [ "tests/*" ] )
-                        ],
 }
-
-
-#     config.add_data_dir('tests')
 
