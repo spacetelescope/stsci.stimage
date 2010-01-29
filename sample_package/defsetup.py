@@ -2,7 +2,9 @@
 from __future__ import division # confidence high
 
 import distutils.extension
-pkg = "sample_package"
+
+# list of all the packages to be installed
+pkg = [ 'sample_package', 'sample_package.test' ]
 
 setupargs = {
 
@@ -24,16 +26,19 @@ setupargs = {
 
     'platforms' :       ["Linux","Solaris","Mac OS X", "Win"],
 
+    # what directory each python package comes from:
+    'package_dir' :     { 'sample_package' : 'lib', 'sample_package.test' : 'test' },
+
     # how to install your data files:
     #   [
     #       ( directory_name_files_go_to, [ file_name_in_source_tree, another_data_file, etc ] )
     #   ]
-    'data_files' :      [ ( pkg, [ "a.txt" ] ), ( pkg+"/data", [ "data/*.dat" ] ) ],
+    'data_files' :      [ ( pkg[0], [ "a.txt" ] ), ( pkg[0]+"/data", [ "data/*.dat" ] ) ],
 
     # extension modules:
     #
     'ext_modules' :     [ 
-                        distutils.extension.Extension( pkg+".sscanf", [ "src/sscanf.c" ] ),
+                        distutils.extension.Extension( pkg[0]+".sscanf", [ "src/sscanf.c" ] ),
                         ]
 
 }

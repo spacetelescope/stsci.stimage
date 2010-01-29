@@ -37,7 +37,7 @@ def run() :
 
 def thing_with_doctest( x ) :
     """
-    thing_with_doctext(x) - adds 1 to x; has doctest
+    thing_with_doctest(x) - adds 1 to x; has doctest
 
     >>> thing_with_doctest(1)
     2
@@ -49,3 +49,7 @@ def thing_with_doctest( x ) :
 
     """
     return x+1
+
+def plus2( x ) :
+    # a function for the sample test in ../test/test_plus2.py
+    return x+2
