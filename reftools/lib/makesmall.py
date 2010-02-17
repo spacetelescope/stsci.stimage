@@ -5,8 +5,8 @@ import os
 from pytools import fileutil,parseinput
 import numpy as np
 
-__version__ = '0.1.1'
-__vdate__ = '2009-12-22'
+__version__ = '0.2.0'
+__vdate__ = '2010-02-17'
     
 def dxy(dgeofile, filter=None, colcorr=None,corrext='DX',minsize=32,debug=False):
     ''' Build subsampled CDBS _dxy files from full-frame(Jay's) DXM and DYM images. 
@@ -24,6 +24,7 @@ def dxy(dgeofile, filter=None, colcorr=None,corrext='DX',minsize=32,debug=False)
     odgeofile = dgeofile
     # Interpret input filename, expanding any variables used for path to file
     dgeofile = fileutil.osfn(dgeofile)
+    dgeoroot = os.path.split(dgeofile)[1]
     if not os.path.exists(dgeofile):
         print' Input: ',dgeofile
         raise InputError, "No valid input found! "
@@ -74,9 +75,14 @@ def dxy(dgeofile, filter=None, colcorr=None,corrext='DX',minsize=32,debug=False)
     #grid=[4095,2047,64,64]
     # compute step size needed to create DXY file no smaller than 32x32
     stepsize = min(dxy_shape[1]/minsize, dxy_shape[0]/minsize)
-    grid=[dxy_shape[1]-1,dxy_shape[0]-1,stepsize,stepsize]
+    grid=[dxy_shape[1]+1,dxy_shape[0]+1,stepsize,stepsize]
     xpts = np.array(range(0,grid[0],grid[2]),np.float32)
+    xpts -= 1
+    xpts[0] = 0
     ypts = np.array(range(0,grid[1],grid[3]),np.float32)
+    ypts -= 1
+    ypts[0] = 0
+    
     xygrid = np.meshgrid(xpts,ypts)
     
     # count the number of chips in DGEOFILE 
@@ -129,12 +135,14 @@ def dxy(dgeofile, filter=None, colcorr=None,corrext='DX',minsize=32,debug=False)
     print filter1, filter2
     
     # Update keywords
-    newname = detector.lower()+'_'+str(stepsize)+'_' + string.lower(filter) + '_npl.fits'
+    #newname = detector.lower()+'_'+str(stepsize)+'_' + string.lower(filter) + '_npl.fits'
+    newname = dgeoroot[:dgeoroot.find('_dxy.fits')] + '_npl.fits'
     if os.path.exists(newname): os.remove(newname)
     dxyfile[0].header['filename'] = newname
     dxyfile[0].header['filter1'] = filter1
     dxyfile[0].header['filter2'] = filter2
     dxyfile[0].header.update('pedigree','INFLIGHT 01/03/2002 01/10/2005')
+    dxyfile[0].header.add_history('File generated from DGEOFILE: %s'%odgeofile,after='pedigree')
     dxyfile.writeto(newname)    
 
     # close open file handles
