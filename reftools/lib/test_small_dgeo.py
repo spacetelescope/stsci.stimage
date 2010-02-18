@@ -88,6 +88,7 @@ def run(scifile,dgeofile=None,output=False,match_sci=False,update=True,vmin=None
     # WCSDVARR extensions to remove the scaling by the linear terms imposed by 
     # the SIP convention
     npolfile = fileutil.osfn(pyfits.getval(scifile,'NPOLFILE'))
+    npolroot = os.path.split(npolfile)[1]
     dxextns = [['dx',1],['dy',1],['dx',2],['dy',2]]
     # Update input file with NPOLFILE arrays now
     print 'Updating input file ',scifile,' with original '
@@ -105,9 +106,14 @@ def run(scifile,dgeofile=None,output=False,match_sci=False,update=True,vmin=None
     # Replace WCSDVARR arrays here...
     for dxe,wextn in zip(dxextns,range(1,5)):
         fsci['wcsdvarr',wextn].data = pyfits.getdata(npolfile,dxe[0],dxe[1])
+    # Now replace the NPOLEXT keyword value with a new one so that it will automatically
+    # update with the correct file next time updatewcs is run.
+    fsci['sci',1].header['npolext'] = npolroot
+    print 'Updated NPOLEXT with ',npolroot
     fsci.close()
     print '\n====='
     print 'WARNING: Updated file ',scifile,' NO LONGER conforms to SIP convention!'
+    print '         This file will need to be updated with updatewcs before using with MultiDrizzle.'
     print '=====\n'
     
     # Get info on full-size DGEOFILE
