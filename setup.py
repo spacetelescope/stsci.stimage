@@ -31,6 +31,7 @@ all_packages_input = [
     "stistools",
     "wfpc2tools",
     "stwcs",
+    "reftools",
     "betadrizzle"
 ]
 
