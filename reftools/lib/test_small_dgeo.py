@@ -11,8 +11,8 @@ import wtraxyutils
 import os
 import imagestats
 
-__version__ = '0.1'
-__vdate__ = '2009-10-07'
+__version__ = '0.2'
+__vdate__ = '2010-02-18'
 
 #import gc  #call gc.collect() occasionally
 
@@ -51,7 +51,7 @@ def transform_d2im_dgeo(img,extver,xarr,yarr,verbose=False):
 
     return xout,yout
 
-def run(scifile,dgeofile=None,output=False,match_sci=False,update=True):
+def run(scifile,dgeofile=None,output=False,match_sci=False,update=True,vmin=None,vmax=None):
     """ 
         This routine compares how well the sub-sampled DGEOFILE (generated 
         using the 'makesmall' module) corrects the input science image as 
@@ -84,10 +84,36 @@ def run(scifile,dgeofile=None,output=False,match_sci=False,update=True):
         # update input SCI file to be consistent with reference files in header
         print 'Updating input file ',scifile,' to be consistent with reference files listed in header...'
         updatewcs.updatewcs(scifile)
-
+    # Now, get the original NPOLFILE and overwrite the data in the scifile
+    # WCSDVARR extensions to remove the scaling by the linear terms imposed by 
+    # the SIP convention
+    npolfile = fileutil.osfn(pyfits.getval(scifile,'NPOLFILE'))
+    dxextns = [['dx',1],['dy',1],['dx',2],['dy',2]]
+    # Update input file with NPOLFILE arrays now
+    print 'Updating input file ',scifile,' with original '
+    print '    NPOLFILE arrays from ',npolfile
+    fsci =pyfits.open(scifile,mode='update')
+    try:
+        next = fsci.index_of(('wcsdvarr',1))
+    except KeyError:
+        fsci.close()
+        print '====='
+        print 'ERROR: No WCSDVARR extensions found!'
+        print '       Please make sure NPOLFILE is specified and run this task with "update=True".'
+        print '====='
+        return
+    # Replace WCSDVARR arrays here...
+    for dxe,wextn in zip(dxextns,range(1,5)):
+        fsci['wcsdvarr',wextn].data = pyfits.getdata(npolfile,dxe[0],dxe[1])
+    fsci.close()
+    print '\n====='
+    print 'WARNING: Updated file ',scifile,' NO LONGER conforms to SIP convention!'
+    print '=====\n'
+    
+    # Get info on full-size DGEOFILE
     if dgeofile is None:
         # read in full dgeofile from header
-        fulldgeofile = pyfits.getval(scifile,'ODGEOFIL')
+        fulldgeofile = pyfits.getval(scifile,'DGEOFILE')
     else:
         fulldgeofile = dgeofile
         
@@ -152,8 +178,8 @@ def run(scifile,dgeofile=None,output=False,match_sci=False,update=True):
         dx= (xout-xarr).reshape(grid[1],grid[0])
         fulldatax = pyfits.getdata(fulldgeofile,'DX',dgeochip)
         diffx=(dx-fulldatax[-ltv2:-ltv2+ny,-ltv1:-ltv1+nx]).astype(np.float32)
-
-        pl.imshow(diffx)
+        
+        pl.imshow(diffx,vmin=vmin,vmax=vmax)
         pl.title('dx-full_x: %s %s(DX,%d) with %g +/- %g'%(filter_names,detector,dgeochip,diffx.mean(),diffx.std()))
         pl.colorbar()
         
@@ -164,7 +190,7 @@ def run(scifile,dgeofile=None,output=False,match_sci=False,update=True):
         fulldatay = pyfits.getdata(fulldgeofile,'DY',dgeochip)
         diffy=(dy-fulldatay[-ltv2:-ltv2+ny,-ltv1:-ltv1+nx]).astype(np.float32)
 
-        pl.imshow(diffy)
+        pl.imshow(diffy,vmin=vmin,vmax=vmax)
         pl.title('dy-full_y: %s %s(DY,%d) with %g +/- %g '%(filter_names,detector,dgeochip,diffy.mean(),diffy.std()))
         pl.colorbar()
 
@@ -186,7 +212,7 @@ def run(scifile,dgeofile=None,output=False,match_sci=False,update=True):
             hdulist.append(fhdulist['dy',1])
             fhdulist.close()
             
-            outname = outroot+'_sci'+'_dgeo_diffxy.match'
+            outname = outroot+'_sci'+str(chip)+'_dgeo_diffxy.match'
             if os.path.exists(outname): os.remove(outname)
             wtraxyutils.write_xy_file(outname,[xgarr[::32,::32].flatten(),
                                                 ygarr[::32,::32].flatten(),
