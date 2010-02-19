@@ -5,8 +5,8 @@ import os
 from pytools import fileutil,parseinput
 import numpy as np
 
-__version__ = '0.2.0'
-__vdate__ = '2010-02-17'
+__version__ = '0.2.1'
+__vdate__ = '2010-02-19'
     
 def dxy(dgeofile, filter=None, colcorr=None,corrext='DX',minsize=32,debug=False):
     ''' Build subsampled CDBS _dxy files from full-frame(Jay's) DXM and DYM images. 
@@ -142,6 +142,7 @@ def dxy(dgeofile, filter=None, colcorr=None,corrext='DX',minsize=32,debug=False)
     dxyfile[0].header['filter1'] = filter1
     dxyfile[0].header['filter2'] = filter2
     dxyfile[0].header.update('pedigree','INFLIGHT 01/03/2002 01/10/2005')
+    dxyfile[0].header.update('date',fileutil.getDate())
     dxyfile[0].header.add_history('File generated from DGEOFILE: %s'%odgeofile,after='pedigree')
     dxyfile.writeto(newname)    
 
