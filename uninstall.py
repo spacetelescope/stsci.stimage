@@ -106,6 +106,7 @@ all_package = [
     "opuscoords",
     "stwcs",
     "pywcs",
+    "reftools",
 # packages in 2.7
     "calcos",
     "convolve",
