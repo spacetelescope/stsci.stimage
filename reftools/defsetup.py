@@ -10,7 +10,7 @@ setupargs = {
     'author_email' :    "help@stsci.edu",
     'license' :         "http://www.stsci.edu/resources/software_hardware/pyraf/LICENSE",
     'platforms' :       ["Linux","Solaris","Mac OS X","Win"],
-    'scripts' :         [ 'lib/update_npol'] ,
+    'scripts' :         [ ],
                     
     }
 
