@@ -361,3 +361,49 @@ def compare_sub_to_full_sci(subarray,full_sci,output=False,update=True):
             print 'Created output file with differences named: ',outname
     if output:
         hdulist.close()
+
+def dgeo_function1(x,y):
+    """ returns the dgeofile array value for pixel(s) x,y 
+        for a simple basic function.
+        This will be used to generate a full-sized artificial DGEOFILE that can be
+        used to compare with an NPOLFILE generated from this test file.
+    """
+    return 0.01 + 0.005*(x/4096.0) + 0.005*(y/2048.0)
+
+def dgeo_function2(x,y):
+    """ returns the dgeofile array value for pixel(s) x,y 
+        for a simple basic function.
+        This will be used to generate a full-sized artificial DGEOFILE that can be
+        used to compare with an NPOLFILE generated from this test file.
+    """
+    return -0.01 - 0.005*(x/4096.0) + 0.01*(y/2048.0)
+
+def create_testdgeo(template,output,xfunc=dgeo_function1,yfunc=dgeo_function2):
+    """ Generate an artificial DGEOFILE with very simple functions that will
+        allow for a simpler comparison with NPOLFILE.
+    """
+    # start by creating x and y arrays
+    xarr = np.fromfunction(xfunc,[2048,4096]).astype(np.float32)
+    yarr = np.fromfunction(yfunc,[2048,4096]).astype(np.float32)
+    # Open template
+    f = pyfits.open(template,mode='readonly')
+    # create new file in memory
+    o = pyfits.HDUList()
+    for e in f:
+        o.append(e)
+    f.close()
+    # update arrays with generated arrays
+    for chip in [1,2]:
+        o['dx',chip].data = xarr
+        o['dy',chip].data = yarr
+    # write out new file
+    if os.path.exists(output):os.remove(output)
+    o.writeto(output)
+    o.close()
+    del xarr,yarr
+
+
+
+    
+
+    
