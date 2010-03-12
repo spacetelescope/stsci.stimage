@@ -93,6 +93,7 @@
 #                     from earlier tests of NSIGMA)
 #          07/23/08 - put bias_thresh back in as a settable parameter; set default row_thresh = 0.1
 #          09/25/08 - added check for __name__ 
+#          03/12/10 - added support for geis, waiver fits, and multi-extension fits input
 #
 # Outline:
 #
@@ -103,7 +104,8 @@
 #     - For each row, the mean is calculated for all unmasked pixels 
 #     - For each row, the difference between the mean and the global mean is subtracted from the c0 data
 #
-# 2. The modified c0 data is written to the file <dataset>_bjc_<chip>.fits
+# 2. The modified c0 data is written to the file <dataset>_bjc_<chip>.fits ( 'bjc' stands for
+#        'bias jump corrected')
 #      
 # Linux command line short options and defaults (set in wfpc2util.py):
 #     -g: group (default = 4)
@@ -126,6 +128,8 @@
 #         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0  -m "mask_u8zq0104.fits"
 #    E. Same as example F, but specifing 3 iterations for the CR rejection :
 #         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0  -i 3  
+#    F. Run the routine for group 3 of a geis image  :
+#         hal> ./wfpc2destreak.py "ub080106m.c0h" -g 3
 #  
 # Example 'A' under pyraf:
 # --> wfp = wfpc2destreak.Wfpc2destreak( "u96r0603m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.2)
@@ -134,23 +138,25 @@
 # Example 'A' under stsdas ( after loading hst_calib and wfpc )
 # --> from wfpc2tools import wfpc2destreak
 # --> wfp = wfpc2destreak.Wfpc2destreak( "u96r0603m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.2)
+# --> wfp.destreak()
 #  or :
 # --> import wfpc2tools
 # --> wfp = wfpc2tools.wfpc2destreak.Wfpc2destreak( "u96r0603m_c0h.fits")
+# --> wfp.destreak()
 #
 ###########################################################################
 
-from __future__ import division # confidence high
+from __future__ import division
 import pyfits
 import numpy as N
 from convolve import boxcar 
 import pytools
-from pytools import numerixenv      
 from optparse import OptionParser
 import ndimage
+from pytools import fileutil   
 import wfpc2util, opusutil, sys, string
 
-__version__ = "2.17 (2008 July 22)"
+__version__ = "2.2 (2010 March 12)"
 
 NUM_SIG = 2.5  # number of sigma to use in sigma clipping
 TOT_ITER = 4   # maximum number of iterations for sigma clipping
@@ -212,19 +218,11 @@ class Wfpc2destreak:
         niter = self.niter 
 
         file_prefix = input_file.split('.')[0] 
-
-    # read data from input c0h fits file:
-        fh_c0 = pyfits.open(input_file) 
+        fh_c0 = fileutil.openImage( input_file )
+        data_cube = fh_c0[group].data
+        c0_data = data_cube
         c0_hdr = fh_c0[0].header 
-
-        data_cube = fh_c0[0].data
-
-        if ( group == 0 ): # for single group image case
-            c0_data = data_cube
-        else:
-            c0_data = data_cube[group-1] # 0-based 
-            
-        xsize = fh_c0[0].header.get( "NAXIS1"); ysize = fh_c0[0].header.get( "NAXIS2")
+        xsize = c0_data.shape[0]; ysize = c0_data.shape[1] 
 
         clip_row_mean = N.zeros(ysize); good_row_mean = N.zeros(ysize)
 
@@ -250,6 +248,8 @@ class Wfpc2destreak:
            im_mask_2d = N.resize( im_mask, [image_data.shape[0], image_data.shape[1]])    
            masked_image = image_data * (1-im_mask_2d)  # gives 0 where there are Cosmic Rays in image section
            self.input_mask = "None"  # for writing to header
+
+        if (verbosity >=1 ):  print 'Masked image has min, mean, max = ', masked_image.min(),',', masked_image.mean(),',', masked_image.max()
 
 
     # calculate stats for all pixels in c0 image region
@@ -287,9 +287,9 @@ class Wfpc2destreak:
     # write mask file for c0 image region
         mask_file = file_prefix + str('_bjc_Imask_')+str(group)+str('.fits')
 
+        write_mask( masked_image, mask_file )
+        
         if (verbosity >=1 ): print 'Wrote mask for c0 image region to: ',mask_file
-        write_mask( masked_image, mask_file, verbosity )
-
             
     # calculate statistics for original c0 image data
         orig_c0_data = c0_data[:,:].copy().astype(N.float32) 
@@ -314,7 +314,6 @@ class Wfpc2destreak:
 
            good_pix = N.where( row_data_b > 0.0 )
            good_val =  row_data_b[ good_pix ]
-           clip_row_mean[ i_row] = good_val.mean()
 
            bad_pix = N.where( row_data_b <= 0.0 )
            bad_val =  row_data_b[ bad_pix ]
@@ -324,9 +323,13 @@ class Wfpc2destreak:
               if   good_val.size > 0 :
                  print ' good pixels: number, min, mean, max, std = ' ,  good_val.size,good_val.min(),good_val.mean(),good_val.max(),good_val.std()
 
-           clip_row_mean[ i_row] = good_val.mean()
+           if (  len(good_val) > 0 ):               
+               clip_row_mean[ i_row] = good_val.mean() 
+           else:
+               clip_row_mean[ i_row] = 0.0  
 
         glob_im_clip_mean = clip_row_mean[1:ysize-2].mean() # calculate global clipped mean
+        
         for i_row in range (1, ysize-2 ):      # for each row, subtract difference between clipped mean and global clipped mean 
 
            to_subtract_2[ i_row ] = clip_row_mean[ i_row ]- glob_im_clip_mean
@@ -376,9 +379,7 @@ class Wfpc2destreak:
             print '   ', self.dcormean,'   ', self.dcorstd,'   ', self.dcormin,'   ', self.dcormax,'   ', self.dcorpix
 
         outfile = file_prefix + str('_bjc_')+str(group)+str('.fits')
-
         update_header(self, c0_hdr, verbosity) # add statistics keywords to header c0_hdr
-
         write_to_file(corr_c0_data, outfile, c0_hdr, verbosity, im_mean, im_sigma) 
             
         # close open file handles
@@ -419,12 +420,6 @@ def check_py_pars(input_file, group, bias_thresh, row_thresh, input_mask, niter)
        @return: group, bias_thresh, row_thresh
        @rtype:  int, float, float
        """
-
-       try:
-            fh_c0 = pyfits.open(input_file)
-       except:
-            opusutil.PrintMsg("F","ERROR - unable to open the input file  "+ str(input_file))
-            sys.exit( ERROR_RETURN)
        
        if (group == None):
             group = wfpc2util.group
@@ -492,7 +487,7 @@ def check_py_pars(input_file, group, bias_thresh, row_thresh, input_mask, niter)
   
 
 def check_cl_pars(input_file, group,  bias_thresh, row_thresh, input_mask, niter):  
-       """ When run from linux coammand line, verify that each parameter is valid.
+       """ When run from linux command line, verify that each parameter is valid.
 
        @param input_file: name of input file
        @type input_file: string
@@ -510,13 +505,6 @@ def check_cl_pars(input_file, group,  bias_thresh, row_thresh, input_mask, niter
        @return: group, row_thresh, niter
        @rtype:  int, float, float, int
        """
-       
-       try:
-            fh_c0 = pyfits.open(input_file)
-       except:
-            opusutil.PrintMsg("F","ERROR - unable to open the input file  "+ str(input_file))
-            sys.exit( ERROR_RETURN)
-
 
        try:
            if (type( group ) == str):
@@ -765,7 +753,7 @@ def fitline( x, y, mask):
 def update_header(self, hdr, verbosity):   
     """ update header from input c0 file with specified header, and updated data
 
-    @param hdr: hdr
+    @param hdr: header
     @type hdr: Pyfits header object
     @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
     @type verbosity: string
@@ -787,7 +775,7 @@ def update_header(self, hdr, verbosity):
     hdr.update(key='DORGMAX', value=self.dorgmax, comment="maximum in original c0 image region" )
 
     hdr.update(key='DMSKPIX', value=self.dmskpix, comment="number of unmasked pixels in c0 image region" ) 
-    hdr.update(key='DMSKMEAN', value=self.dmskmean, comment="mean of unmasked c0 image region" ) 
+    hdr.update(key='DMSKMEAN', value=self.dmskmean, comment="mean of unmasked c0 image region" )
     hdr.update(key='DMSKSTD', value=self.dmskstd, comment="sigma of unmasked c0 image region" ) 
     hdr.update(key='DMSKMIN', value=self.dmskmin, comment="minimum of unmasked c0 image region" ) 
     hdr.update(key='DMSKMAX', value=self.dmskmax, comment="maximum of unmasked c0 image region" )
@@ -795,9 +783,17 @@ def update_header(self, hdr, verbosity):
     hdr.update(key='USERMASK', value=self.input_mask, comment="name of input mask file" )
     hdr.update(key='CRITER', value=self.niter, comment="number of CR rejection iterations" )
 
-# write  mask
-def write_mask(data, filename, verbosity):
 
+def write_mask(data, filename):
+    """ write specified mask
+
+    @param data: mask array
+    @type data: array of floats
+    @param filename: mask file name
+    @type file name: string
+    @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
+    @type verbosity: string
+    """
     fimg = pyfits.HDUList()
     fimghdu = pyfits.PrimaryHDU()
     fimghdu.data = data
@@ -806,6 +802,20 @@ def write_mask(data, filename, verbosity):
 
 
 def write_to_file(data, filename, hdr, verbosity, im_mean, im_sigma):
+    """
+    @param data: array
+    @type data: array of floats
+    @param filename: mask file name
+    @type file name: string
+    @param hdr: header
+    @type hdr: Pyfits header object
+    @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
+    @type verbosity: string
+    @param im_mean: clipped mean of image region
+    @type im_mean: float
+    @param im_sigma: clipped sigma of image region
+    @type im_sigma: float
+    """
 
     fimg = pyfits.HDUList()
     hdr.update(key='IMMEAN', value=im_mean, comment="clipped mean of image region" )
@@ -813,7 +823,8 @@ def write_to_file(data, filename, hdr, verbosity, im_mean, im_sigma):
     fimghdu = pyfits.PrimaryHDU( header = hdr)
     fimghdu.data = data
     fimg.append(fimghdu)
-    fimg.writeto(filename)
+    fimg.writeto(filename) 
+
     if (verbosity >=1 ): print 'Wrote updated data to: ',filename
 
 
@@ -830,8 +841,12 @@ if __name__ =="__main__":
 
     usage = "usage:  %prog [options] inputfile"
     parser = OptionParser( usage)
-
-    if ( sys.argv[1] ): filename = sys.argv[1]   
+ 
+    if ( len(sys.argv) > 1 ):    
+        filename = sys.argv[1]
+    else:
+        opusutil.PrintMsg("F","ERROR - the input file must be specified.")
+        sys.exit( ERROR_RETURN)
 
     parser.set_defaults( verbosity = wfpc2util.VERBOSE)
 
