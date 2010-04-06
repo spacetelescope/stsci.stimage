@@ -11,6 +11,10 @@ except:
     __svn_version__ = 'Unable to determine SVN revision'
     __full_svn_info__ = __svn_version__
 
+# If you import pytools.tests _inside_ the test() function, then we don't
+# need to worry about whether it exists or not.  We also don't increase
+# the load time of this package.
+
 def test(*args,**kwds):
     import pytools.tester
     pytools.tester.test(modname=__name__, *args, **kwds)
