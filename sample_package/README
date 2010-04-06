@@ -31,6 +31,10 @@ Create these files:
 		You can include modules written in C.  Put them here,
 		and include defintions in defsetup.py.
 
+	tests/
+		If you want to have tests that are installed with your
+		package, put them here and see below.
+
 scripts
 --
 
@@ -62,3 +66,28 @@ also run on MS Windows, you cannot count on any other scripting
 languages (e.g. sh, csh) to be available.
 
 
+tests
+--
+
+If you would like tests that are installed with your package, do
+it this way:
+
+Make a directory here named "tests" (with "s" at the end of the name).
+It cannot be named "test".  In tests/__init__.py, put
+	from __future__ import division
+
+In tests/test_*.py, put your tests.  Read tests/README.txt for notes on
+standards that you must conform to for your tests to work.
+
+Add these lines to __init__.py:
+
+	def test(*args,**kwds):
+	    import pytools.tester
+	    pytools.tester.test(modname=__name__, *args, **kwds)
+
+After installing your tests, the user can run them by:
+
+>>> import your_package
+>>> your_package.test()
+
+Note t

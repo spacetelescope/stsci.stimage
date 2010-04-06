@@ -1,5 +1,6 @@
 from sample_package.main import plus2
 
+# Just write a function named test_* that asserts whatever it is you are looking for.
 
 def test_1() :
     assert plus2(2) == 4
