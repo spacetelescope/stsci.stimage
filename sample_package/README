@@ -33,7 +33,8 @@ Create these files:
 
 	tests/
 		If you want to have tests that are installed with your
-		package, put them here and see below.
+		package, put them in this directory and see the sample
+		in defsetup.py
 
 scripts
 --
@@ -73,7 +74,10 @@ If you would like tests that are installed with your package, do
 it this way:
 
 Make a directory here named "tests" (with "s" at the end of the name).
-It cannot be named "test".  In tests/__init__.py, put
+(Do not name it "test" - that name conflicts with the test() function
+that we will define.)
+
+In tests/__init__.py, put
 	from __future__ import division
 
 In tests/test_*.py, put your tests.  Read tests/README.txt for notes on
@@ -87,7 +91,14 @@ Add these lines to __init__.py:
 
 After installing your tests, the user can run them by:
 
->>> import your_package
->>> your_package.test()
+	>>> import your_package
+	>>> your_package.test()
 
-Note t
+You can run them with
+
+	% nosetests tests
+or
+	% pdkrun tests
+
+but of course you must install your package so that the tests can find it.
+
