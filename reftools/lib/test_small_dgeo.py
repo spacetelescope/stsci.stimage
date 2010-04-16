@@ -11,8 +11,8 @@ import wtraxyutils
 import os
 import imagestats
 
-__version__ = '0.3'
-__vdate__ = '2010-03-15'
+__version__ = '0.3.1'
+__vdate__ = '2010-04-16'
 
 #import gc  #call gc.collect() occasionally
 
@@ -63,11 +63,11 @@ def run(scifile,dgeofile=None,output=False,match_sci=False,update=True,vmin=None
         
         where:
             scifile   - name of science image
-            dgeofile  - name of full-sized DGEOFILE if not in ODGEOFILE keyword
+            dgeofile  - name of full-sized DGEOFILE if not in DGEOFILE keyword
             output    - if True, write out differences to FITS file(s)
 
         The user can either specify the full-size DGEOFILE reference filename
-        as the 'dgeofile' parameter or the code will look for the 'ODGEOFIL' 
+        as the 'dgeofile' parameter or the code will look for the 'DGEOFILE' 
         keyword in the primary header for the name of the full-sized reference
         file.  
         
@@ -89,7 +89,12 @@ def run(scifile,dgeofile=None,output=False,match_sci=False,update=True,vmin=None
     # the SIP convention
     npolfile = fileutil.osfn(pyfits.getval(scifile,'NPOLFILE'))
     npolroot = os.path.split(npolfile)[1]
-    dxextns = [['dx',1],['dy',1],['dx',2],['dy',2]]
+    dxextns = []
+    for extn in pyfits.open(npolfile):
+        if extn.header.has_key('extname') and extn.header['extname'] in ['DX','DY']:
+            dxextns.append([extn.header['extname'],extn.header['extver']])
+    #dxextns = [['dx',1],['dy',1],['dx',2],['dy',2]]
+    ndxextns = len(dxextns)
     # Update input file with NPOLFILE arrays now
     print 'Updating input file ',scifile,' with original '
     print '    NPOLFILE arrays from ',npolfile
@@ -104,7 +109,7 @@ def run(scifile,dgeofile=None,output=False,match_sci=False,update=True,vmin=None
         print '====='
         return
     # Replace WCSDVARR arrays here...
-    for dxe,wextn in zip(dxextns,range(1,5)):
+    for dxe,wextn in zip(dxextns,range(1,ndxextns+1)):
         fsci['wcsdvarr',wextn].data = pyfits.getdata(npolfile,dxe[0],dxe[1])
     # Now replace the NPOLEXT keyword value with a new one so that it will automatically
     # update with the correct file next time updatewcs is run.
@@ -223,7 +228,7 @@ def run(scifile,dgeofile=None,output=False,match_sci=False,update=True,vmin=None
             wtraxyutils.write_xy_file(outname,[xgarr[::32,::32].flatten(),
                                                 ygarr[::32,::32].flatten(),
                                                 (xgarr+diffx)[::32,::32].flatten(),
-                                                (ygarr+diffy)[::32,::32].flatten()],append=True)
+                                                (ygarr+diffy)[::32,::32].flatten()],format="%20.8f",append=True)
             
             outname = outroot+'_sci'+str(chip)+'_newfull_dxy.fits'
             if os.path.exists(outname): os.remove(outname)
