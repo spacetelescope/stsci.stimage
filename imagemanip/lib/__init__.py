@@ -1,3 +1,5 @@
+from __future__ import division
+
 import interp2d
 
 import pytools.tester
