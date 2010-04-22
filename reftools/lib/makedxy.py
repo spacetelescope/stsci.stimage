@@ -1,6 +1,7 @@
 """ makedxy - Generate DXY reference files from a grid of points
 
 """
+from __future__ import division # confidence high
 
 import os
 import numpy as np
@@ -129,8 +130,8 @@ def expand_array(input,output_shape,spline_order=1):
             http://www.scipy.org/Cookbook/Interpolation
     """
     # define range of x and y values spanned by input array
-    stepx = int(output_shape[1]/(input.shape[1]-1))
-    stepy = int(output_shape[0]/(input.shape[0]-1))
+    stepx = output_shape[1]//(input.shape[1]-1)
+    stepy = output_shape[0]//(input.shape[0]-1)
     x = np.transpose(np.array([range(0,output_shape[1]+1,stepx)],np.float32))
     y = np.array([range(0,output_shape[0]+1,stepy)],dtype=np.float32)
     # define range of x and y values to be filled in output array

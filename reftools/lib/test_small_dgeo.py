@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+from __future__ import division # confidence high
+
 import  pyfits, pywcs
 from pywcs import WCS, DistortionLookupTable
 import numpy as np
@@ -24,8 +27,8 @@ def build_grid_arrays(nx,ny,step):
     print 'grid of : ',nx,'x',ny,' by ',step
         
     #grid=[4096,2048,1]
-    xpts = np.array(range(0,grid[0],grid[2]),np.float32)
-    ypts = np.array(range(0,grid[1],grid[2]),np.float32)
+    xpts = np.array(range(1,grid[0]+1,grid[2]),np.float32)
+    ypts = np.array(range(1,grid[1]+1,grid[2]),np.float32)
     xygrid = np.meshgrid(xpts,ypts)
     xarr = xygrid[0].flatten()
     yarr = xygrid[1].flatten()
@@ -37,13 +40,13 @@ def transform_d2im_dgeo(img,extver,xarr,yarr,verbose=False):
     print 'setting up WCS object for ',img,'[sci,',str(extver),']'
 
     w = wcsutil.HSTWCS(img, ext=('sci',extver))
-    d2imx,d2imy = w.det2im(xarr,yarr,0)
+    d2imx,d2imy = w.det2im(xarr,yarr,1)
     if verbose:
         print 'Det2im results span: '
         print d2imx.min(),d2imx.max(),d2imx.shape
         print d2imy.min(),d2imy.max(),d2imy.shape
     
-    xout, yout = w.p4_pix2foc(d2imx,d2imy,0)
+    xout, yout = w.p4_pix2foc(d2imx,d2imy,1)
     if verbose:
         print 'pix2foc results span: '
         print xout.min(),xout.max(),xout.shape

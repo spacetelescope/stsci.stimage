@@ -1,3 +1,5 @@
+from __future__ import division # confidence high
+
 import pyfits
 import string
 import os
@@ -5,8 +7,8 @@ import os
 from pytools import fileutil,parseinput
 import numpy as np
 
-__version__ = '0.3'
-__vdate__ = '2010-03-15'
+__version__ = '0.2.1'
+__vdate__ = '2010-02-19'
     
 def dxy(dgeofile, filter=None, colcorr=None,corrext='DX',minsize=32,debug=False):
     ''' Build subsampled CDBS _dxy files from full-frame(Jay's) DXM and DYM images. 
@@ -72,18 +74,23 @@ def dxy(dgeofile, filter=None, colcorr=None,corrext='DX',minsize=32,debug=False)
     # Get the shape of each chip from the first DGEOFILE array
     dxy_shape = dxyfile[1].data.shape
         
+    #grid=[4095,2047,64,64]
     # compute step size needed to create DXY file no smaller than 32x32
-    stepsize = min(dxy_shape[1]/minsize, dxy_shape[0]/minsize)
-    # create the grid in such a way that it contains the idices of the 
-    # first and last element of the full size array (0-4096) inclusive
-    grid=[dxy_shape[1],dxy_shape[0],stepsize,stepsize] 
-    xpts = np.array(range(0,grid[0]+1,grid[2]),np.float32)
-    ypts = np.array(range(0,grid[1]+1,grid[3]),np.float32)
+    stepsize = min(dxy_shape[1]//insize, dxy_shape[0]//minsize)
+    grid=[dxy_shape[1]+1,dxy_shape[0]+1,stepsize,stepsize]
+    xpts = np.array(range(0,grid[0],grid[2]),np.float32)
+    #xpts -= 1
+    #xpts[0] = 0
+    xpts[-1] -= 1
+    ypts = np.array(range(0,grid[1],grid[3]),np.float32)
+    #ypts -= 1
+    #ypts[0] = 0
+    ypts[-1] -= 1
+    print '\n XPTS: \n'
+    print xpts
+    print '\n YPTS: \n'
+    print ypts
     xygrid = np.meshgrid(xpts,ypts)
-    # this padding is necessary so that the end points in the small npol file
-    # match the end point of the large dgeo file. 
-    if xygrid[0][:,-1][-1] >= dxy_shape[1]: xygrid[0][:,-1] = [dxy_shape[1]-1]*len(xygrid[0][:,-1])
-    if xygrid[1][-1][-1] >= dxy_shape[0]: xygrid[1][-1] = [dxy_shape[0]-1]*len(xygrid[1][-1])
     
     # count the number of chips in DGEOFILE 
     numchips = 0
@@ -104,8 +111,6 @@ def dxy(dgeofile, filter=None, colcorr=None,corrext='DX',minsize=32,debug=False)
                 ccdchip = 1
             else:
                 ccdchip = dxyfile[xy,chip].header['CCDCHIP']
-            cdelt1 = grid[2]
-            cdelt2 = grid[3]
             
             dxy = dxyfile[xy,chip].data.copy()
             if colcorr is not None and xy == corrext:
@@ -118,26 +123,21 @@ def dxy(dgeofile, filter=None, colcorr=None,corrext='DX',minsize=32,debug=False)
             cname = None
             if debug:
                 cname = 'full_68corr_'+xy+str(chip)+'_dxy.fits'
-            
-            # CDELT1/2 are the stepsize used to create the npl files.
-            # It's best to write cdelt in the headers of the npl files instead of try 
-            # to calculate cdelt from naxis and onaxis. Keep onaxis for reference.
+
             dxyfile[xy,chip].data = resample_chip(dxy,xygrid,corrxy=xycorr,chipname=cname)
             dxyfile[xy,chip].header.update('ONAXIS1', onaxis1, "NAXIS1 of full size dgeo file")
             dxyfile[xy,chip].header.update('ONAXIS2', onaxis2, "NAXIS2 of full size dgeo file")
             dxyfile[xy,chip].header.update('CCDCHIP', ccdchip, "CCDCHIP from full size dgeo file")
-            dxyfile[xy,chip].header.update('CDELT1',  cdelt1,  "Coordinate increment along axis")
-            dxyfile[xy,chip].header.update('CDELT2',  cdelt2,  "Coordinate increment along axis")
     # Get filter info ready for use in updating output image header
 
     if filter1 is None:
         if filter in wheel1:
-            filter1 = filter
-            filter2 = 'CLEAR2L'
+           filter1 = filter
+           filter2 = 'CLEAR2L'
            
         if filter in wheel2:
-            filter2 = filter
-            filter1 = 'CLEAR1L'    
+           filter2 = filter
+           filter1 = 'CLEAR1L'    
 
     print filter1, filter2
     
