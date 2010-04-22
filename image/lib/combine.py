@@ -1,3 +1,5 @@
+from __future__ import division
+
 import numpy as num
 from _combine import combine as _comb
 import operator as _operator

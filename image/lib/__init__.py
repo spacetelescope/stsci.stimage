@@ -1,3 +1,5 @@
+from __future__ import division
+
 import os,sys
 from _image import *
 from combine import *
