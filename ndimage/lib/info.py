@@ -1,3 +1,5 @@
+
+from __future__ import division
 __doc__ = """
 n-dimensional image package
 ===========================
