@@ -1,3 +1,5 @@
+from __future__ import division
+
 import numpy as num
 import _correlate
 import numpy.fft as dft

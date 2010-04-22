@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import division
 import numpy as np
 import nose
 from convolve.iraf_frame import *
