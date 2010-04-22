@@ -52,6 +52,8 @@ The syntax for running this task on a WFPC2 file named 'u40x0102m.c0h':
 The command to print out this help file:
     wfpc2cte.help() 
 """
+from __future__ import division # confidence medium
+
 import numpy as np
 import pyfits
 import pytools
@@ -115,7 +117,7 @@ def compute_YCTE(chip_values,yr,xcte):
     return ycte
     
     
-def update_CTE_keywords(hdr, cte,quiet=False):
+def update_CTE_keywords(hdr, cte,quiet=False,update=True):
     # Start by checking to see if the keywords to be updated already exist
     # If not, print a warning and insure quiet=False so the results get
     # reported to STDOUT at the very least.
@@ -125,16 +127,17 @@ def update_CTE_keywords(hdr, cte,quiet=False):
         print "         the FITS file's extension header."
         quiet = False
 
-    hdr.update('CTE_1E2',cte[0])
-    hdr.update('CTE_1E3',cte[1],after='CTE_1E2')
-    hdr.update('CTE_1E4',cte[2],after='CTE_1E3')
+    if update:
+        hdr.update('CTE_1E2',cte[0])
+        hdr.update('CTE_1E3',cte[1],after='CTE_1E2')
+        hdr.update('CTE_1E4',cte[2],after='CTE_1E3')
 
     if not quiet:
         print 'CTE_1E2   = ',cte[0]
         print 'CTE_1E3  = ',cte[1]
         print 'CTE_1E4 = ',cte[2]
     
-def compute_CTE(filename,quiet=True,nclip=3):
+def compute_CTE(filename,quiet=True,nclip=3,update=True):
 
     newname = None
     if filename.find('.fits') < 0:
@@ -175,9 +178,9 @@ def compute_CTE(filename,quiet=True,nclip=3):
             # Based on Workshop 2002 paper, after equation 8...
             total_cte = xcte + ycte
 
-            update_CTE_keywords(extn.header, total_cte,quiet=quiet)
+            update_CTE_keywords(extn.header, total_cte,quiet=quiet,update=update)
 
-    if not quiet:
+    if not quiet and update:
         print 'Updating keywords in: ',newname
         
     fimg.flush()
