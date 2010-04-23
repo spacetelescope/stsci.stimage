@@ -7,6 +7,7 @@
 # 01/20/05  52348  Sherbert Remove "MSG_DEGUG" to obviate its use
 # 12/15/05  54226  Sontag   Added UsingLvl() and __all_valid_levels
 #---------------------------------------------------------------------------
+from __future__ import division # confidence high
 import os
 import sys
 import string
