@@ -2,6 +2,7 @@
 #   Authors: Christopher Hanley
 #   Program: wfc3_input.py
 #   Purpose: Class used to model WFC3 specific instrument data.
+from __future__ import division # confidence high
 
 from pytools import fileutil
 import numpy as np
@@ -175,6 +176,7 @@ class WFC3IRInputImage(InputImage):
 
         # Set the BUNIT keyword to 'electrons'
         _sciext.header.update('BUNIT','ELECTRONS')
+        self.header.update('BUNIT','ELECTRONS')
 
         # Counts case 
         np.multiply(_sciext.data,self.getExpTime(),_sciext.data)

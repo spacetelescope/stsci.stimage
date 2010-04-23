@@ -3,6 +3,8 @@
 #   Program: manager.py
 #   Purpose: Class Used to drive all algorithmic operations within Multidrizzle.
 
+from __future__ import division # confidence medium
+
 # Import numpy functionality
 import numpy as np
 
@@ -396,6 +398,9 @@ class ImageManager(object):
             print 'Updating mask file: ',p['image'].maskname,' with static mask.'
 
             if static_array != None:
+                # Account for case that no mask has been created yet
+                if handle[0].data is None:
+                    handle[0].data = np.ones(p['image'].image_shape,dtype=np.uint8)
                 handle[0].data = np.bitwise_and(handle[0].data,static_array)
 
             handle.close()
@@ -414,6 +419,9 @@ class ImageManager(object):
                 print 'Updating mask file: ',p['image'].singlemaskname,' with static mask.'
 
                 if static_array != None:
+                    # Account for case that no mask has been created yet
+                    if handle[0].data is None:
+                        handle[0].data = np.ones(p['image'].image_shape,dtype=np.uint8)
                     handle[0].data = np.bitwise_and(handle[0].data,static_array)
 
                 handle.close()

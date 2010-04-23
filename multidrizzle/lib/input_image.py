@@ -3,6 +3,8 @@
 #   Program: input_image.py
 #   Purpose: Super class used to model astronomical data from observatory instruments.
 
+from __future__ import division # confidence high
+
 import pyfits
 from pytools import fileutil
 
@@ -153,7 +155,7 @@ class InputImage(object):
         return _result
 
     def getreferencesky(self):
-        return (self._subtractedsky * (self.refplatescale / self.platescale)**2 )
+        return (self._subtractedsky * (self.refplatescale / self.platescale)**2)
 
     def getComputedSky(self):
         return self._computedsky

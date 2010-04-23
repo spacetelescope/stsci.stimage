@@ -21,6 +21,7 @@ Further help can be obtained interactively using:
 :author: Warren Hack, Christopher Hanley, Ivo Busko, and David Grumm
 
 """
+from __future__ import division # confidence high
 
 
 __docformat__ = 'restructuredtext'

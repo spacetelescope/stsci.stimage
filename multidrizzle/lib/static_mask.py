@@ -5,6 +5,8 @@
 #               mask which is used to mask pixels that are some
 #               sigma BELOW the mode computed for the image.
 
+from __future__ import division # confidence high
+
 import numpy as np
 
 import imagestats

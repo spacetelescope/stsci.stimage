@@ -12,10 +12,11 @@
 #       convolution step fails.  --CJH -- 10/13/04
 #      Version 0.2.0: The creation of the median image will now more closesly replicate
 #       the IRAF IMCOMBINE behavior of nkeep = 1 and nhigh = 1. -- CJH -- 03/29/05
+from __future__ import division # confidence high
+
 import numpy as np
 import convolve as NC
 
-import imagestats
 from pytools import numcombine
 from pytools.numcombine import numCombine
 

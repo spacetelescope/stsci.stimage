@@ -2,6 +2,7 @@
 #             with a model image and the derivative of the model image.
 #
 #
+from __future__ import division # confidence high
 
 # Import external packages
 import numpy as np

@@ -1,4 +1,5 @@
 # deriv.py
+from __future__ import division # confidence high
 
 __version__ = '0.1.0'
 
