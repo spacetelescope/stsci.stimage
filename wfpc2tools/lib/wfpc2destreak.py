@@ -146,7 +146,7 @@
 #
 ###########################################################################
 
-from __future__ import division
+from __future__ import division # confidence medium
 import pyfits
 import numpy as N
 from convolve import boxcar 
