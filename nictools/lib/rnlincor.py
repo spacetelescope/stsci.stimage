@@ -24,6 +24,7 @@ Dependencies:
           pyfits v1.1b4 or higher
 
 """
+from __future__ import division
 
 __version__="0.8"
 __vdate__="2007-12-14"

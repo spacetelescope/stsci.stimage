@@ -26,6 +26,8 @@ Dependencies:
 
 """
 
+from __future__ import division
+
 __version__="1.3"
 __vdate__="2009-12-14"
 

@@ -38,6 +38,7 @@ Usage example::
 #from FirstDerivatives import DerivVar
 #from Scientific import IterationCountExceededError
 #------------------------------------------------------
+from __future__ import division
 import SP_numpy as N
 import numpy.oldnumeric.linear_algebra as LA
 from SP_FirstDerivatives import DerivVar

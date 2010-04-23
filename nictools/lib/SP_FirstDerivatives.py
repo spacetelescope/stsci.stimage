@@ -60,6 +60,7 @@ no check for this. I.e.::
 
 but this result is meaningless.
 """
+from __future__ import division
 
 #------------------------------------------------------
 #Original import statements
