@@ -29,7 +29,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import division
-
 import math
 import numpy
 from numpy import fft
@@ -1621,7 +1620,7 @@ class TestNdimage(unittest.TestCase):
         "geometric transform 13"
         data = numpy.ones([2], numpy.float64)
         def mapping(x):
-            return (x[0] / 2,)
+            return (x[0] // 2,)
         for order in range(0, 6):
             out = ndimage.geometric_transform(data, mapping,
                                                         [4], order=order)
@@ -1641,7 +1640,7 @@ class TestNdimage(unittest.TestCase):
         "geometric transform 15"
         data = [1, 2, 3, 4]
         def mapping(x):
-            return (x[0] / 2,)
+            return (x[0] // 2,)
         for order in range(0, 6):
             out = ndimage.geometric_transform(data, mapping,
                                                         [8], order=order)
@@ -1689,7 +1688,7 @@ class TestNdimage(unittest.TestCase):
                 [5, 6, 7, 8],
                 [9, 10, 11, 12]]
         def mapping(x):
-            return (x[0], x[1] / 2)
+            return (x[0], x[1] // 2)
         for order in range(0, 6):
             out = ndimage.geometric_transform(data, mapping,
                                                        (3, 8), order=order)
@@ -1701,7 +1700,7 @@ class TestNdimage(unittest.TestCase):
                 [5, 6, 7, 8],
                 [9, 10, 11, 12]]
         def mapping(x):
-            return (x[0] / 2, x[1])
+            return (x[0] // 2, x[1])
         for order in range(0, 6):
             out = ndimage.geometric_transform(data, mapping,
                                                        (6, 4), order=order)
@@ -1713,7 +1712,7 @@ class TestNdimage(unittest.TestCase):
                 [5, 6, 7, 8],
                 [9, 10, 11, 12]]
         def mapping(x):
-            return (x[0] / 2, x[1] / 2)
+            return (x[0] // 2, x[1] // 2)
         for order in range(0, 6):
             out = ndimage.geometric_transform(data, mapping,
                                                       (6, 8), order=order)
@@ -1726,7 +1725,7 @@ class TestNdimage(unittest.TestCase):
                                [5, 6, 7, 8],
                                [9, 10, 11, 12]], numpy.float64)
         def mapping1(x):
-            return (x[0] / 2, x[1] / 2)
+            return (x[0] // 2, x[1] // 2)
         def mapping2(x):
             return (x[0] * 2, x[1] * 2)
         for order in range(0, 6):
