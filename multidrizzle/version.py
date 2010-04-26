@@ -30,6 +30,8 @@
 #   print yourpackage.svn_version.__svn_version__
 #   print yourpackage.svn_version.__full_svn_info__
 #
+from __future__ import division # confidence high
+
 import os.path
 import re
 
@@ -64,7 +66,7 @@ def __set_svn_version__(path="./", fname='svn_version.py', fullInfo=False):
             return
         revision = 'Unable to determine SVN revision'
     else:
-        if ( rev == 'exported' or rev == 'unknown' ) and os.path.exists(version_file) :
+        if ( rev == 'exported' or rev == 'unknown' ) and os.path.exists(version_file):
             return
         revision = str(rev)
 
