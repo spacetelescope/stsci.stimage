@@ -7,8 +7,8 @@ import os
 from pytools import fileutil,parseinput
 import numpy as np
 
-__version__ = '0.2.1'
-__vdate__ = '2010-02-19'
+__version__ = '0.3.1'
+__vdate__ = '2010-04-26'
     
 def dxy(dgeofile, filter=None, colcorr=None,corrext='DX',minsize=32,debug=False):
     ''' Build subsampled CDBS _dxy files from full-frame(Jay's) DXM and DYM images. 
@@ -76,7 +76,7 @@ def dxy(dgeofile, filter=None, colcorr=None,corrext='DX',minsize=32,debug=False)
         
     #grid=[4095,2047,64,64]
     # compute step size needed to create DXY file no smaller than 32x32
-    stepsize = min(dxy_shape[1]//insize, dxy_shape[0]//minsize)
+    stepsize = min(dxy_shape[1]//minsize, dxy_shape[0]//minsize)
     grid=[dxy_shape[1]+1,dxy_shape[0]+1,stepsize,stepsize]
     xpts = np.array(range(0,grid[0],grid[2]),np.float32)
     #xpts -= 1
@@ -86,10 +86,6 @@ def dxy(dgeofile, filter=None, colcorr=None,corrext='DX',minsize=32,debug=False)
     #ypts -= 1
     #ypts[0] = 0
     ypts[-1] -= 1
-    print '\n XPTS: \n'
-    print xpts
-    print '\n YPTS: \n'
-    print ypts
     xygrid = np.meshgrid(xpts,ypts)
     
     # count the number of chips in DGEOFILE 
