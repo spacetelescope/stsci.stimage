@@ -11,6 +11,7 @@
 */
 
 #include "f2c.h"
+#include <stdio.h>
 
 /* Common Block Declarations */
 
@@ -1547,6 +1548,7 @@ doublereal mgf2_(doublereal *lam)
 	    y = yin[1] - ycen;
 	    yd = yin[2];
 	    i__1 = *n;
+
 	    for (i__ = 1; i__ <= i__1; ++i__) {
 		x += 1.;
 		if (*coty == 3) {
@@ -1587,6 +1589,7 @@ doublereal mgf2_(doublereal *lam)
 		    xcorn = x + xd;
 		    ycorn = y + yd;
 		}
+
 /* If we have a distortion image we add here */
 /* (missing XD,YD offsets corrected, January 2006) */
 /* (Removed the offsets because they cause a segfault, March, 2006) */
@@ -1612,6 +1615,7 @@ doublereal mgf2_(doublereal *lam)
 		    yout[i__] = xs * (xcorn + *xsh) + yc * (ycorn + *ysh) + 
 			    yp;
 		}
+
 	    }
 	}
     } else {
@@ -2993,8 +2997,7 @@ L140:
 	    doublereal *, doublereal *, ftnlen, ftnlen);
     static integer newcon;
     static real lanlut[512];
-
-
+    
 /* This module does the actual mapping of input flux to output images using */
 /* "boxer", a code written by Bill Sparks for FOC geometric */
 /* distortion correction, rather than the "drizzling" approximation. */
@@ -3119,6 +3122,7 @@ L140:
 	*usewcs = TRUE_;
 	*scale = scall / scdis;
     }
+    
 /* Image subset size */
     lx = *xmax - *xmin + 1;
     ly = *ymax - *ymin + 1;
@@ -3128,6 +3132,7 @@ L140:
     ac = 1. / (*pfract * *pfract);
 /* Recalculate the area scaling factor */
     s2 = *scale * *scale;
+
 /* Offsets */
     dx = (doublereal) (*xmin - 1);
     dy = (doublereal) (*ymin - 1);
@@ -3214,6 +3219,7 @@ L140:
 		if (s_cmp(kernel, "square", (ftnlen)6, (ftnlen)6) != 0) {
 		    yib[x1] = y;
 		    yib[x1 + 1] = 0.;
+
 /* Transform onto the output grid */
 		    i__2 = x2 - x1 + 1;
 		    drival_(&xib[x1], &yib[x1], &i__2, dnx, dny, onx, ony, &
@@ -3508,6 +3514,7 @@ L140:
 		    } else if (s_cmp(kernel, "turbo", (ftnlen)5, (ftnlen)5) ==
 			     0) {
 			i__2 = x2;
+                        
 			for (i__ = x1; i__ <= i__2; ++i__) {
 /* Offset within the subset */
 			    xxi = xob[i__] - dx - pfo;
@@ -3525,6 +3532,7 @@ L140:
 /* and inversely by the Jacobian to ensure conservation */
 /* of weight in the output */
 			    w = wei[i__ + j * wei_dim1] * *wtscl;
+
 /* Loop over output pixels which could be affected */
 			    i__3 = nya;
 			    for (jj = nyi; jj <= i__3; ++jj) {
@@ -3591,6 +3599,7 @@ L140:
 		    yi[x1 + 1 + (yi_dim1 << 1)] = dh;
 		    yi[x1 + 1 + yi_dim1 * 3] = -dh;
 		    yi[x1 + 1 + (yi_dim1 << 2)] = -dh;
+
 /* Transform onto the output grid */
 		    i__2 = x2 - x1 + 1;
 		    drival_(&xi[x1 + xi_dim1], &yi[x1 + yi_dim1], &i__2, dnx, 
@@ -3641,6 +3650,7 @@ L140:
 			yout[1] = yo[i__ + (yo_dim1 << 1)] - dy;
 			yout[2] = yo[i__ + yo_dim1 * 3] - dy;
 			yout[3] = yo[i__ + (yo_dim1 << 2)] - dy;
+
 /* Work out the area of the quadrilateral on the output grid */
 /* Note that this expression expects the points to be in */
 /* clockwise order */
@@ -3656,6 +3666,7 @@ L140:
 			    yout[1] = yout[3];
 			    yout[3] = tem;
 			}
+
 			nhit = 0;
 /* Allow for stretching because of scale change */
 			d__ = data[i__ + j * data_dim1] * (real) s2;

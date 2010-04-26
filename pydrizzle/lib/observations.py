@@ -1,3 +1,4 @@
+from __future__ import division # confidence medium
 from pattern import *
 from pytools import fileutil
 from distortion import mutil

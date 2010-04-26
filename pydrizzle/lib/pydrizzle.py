@@ -1,3 +1,4 @@
+from __future__ import division # confidence medium
 from drutil import DEFAULT_IDCDIR
 from pytools import fileutil, wcsutil, asnutil
 

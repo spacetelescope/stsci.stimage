@@ -1,3 +1,4 @@
+from __future__ import division # confidence medium
 import types,string,os,copy
 from math import ceil,floor
 

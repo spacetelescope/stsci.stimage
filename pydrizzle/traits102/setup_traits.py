@@ -15,6 +15,7 @@
 #-------------------------------------------------------------------------------
 #  Imports:
 #-------------------------------------------------------------------------------
+from __future__ import division # confidence high
 
 from scipy_distutils.misc_util import default_config_dict
 

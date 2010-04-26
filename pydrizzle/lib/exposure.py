@@ -16,6 +16,8 @@
 #           0.1.4 -- Implemented support for providing subarray sections
 #                   of DGEOFILEs for subarray exposures.
 #
+from __future__ import division # confidence medium
+
 import os
 import buildmask, drutil, arrdriz
 from obsgeometry import ObsGeometry

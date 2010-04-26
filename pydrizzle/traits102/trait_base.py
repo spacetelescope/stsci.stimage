@@ -20,6 +20,7 @@
 #-------------------------------------------------------------------------------
 #  Imports:
 #-------------------------------------------------------------------------------
+from __future__ import division # confidence high
 
 from types import ListType, TupleType, StringType, UnicodeType, IntType, \
                             LongType, FloatType, ComplexType, BooleanType

@@ -14,6 +14,7 @@
 #--------------------------------------------------------------------------------
 #  Imports:
 #--------------------------------------------------------------------------------
+from __future__ import division # confidence medium
 
 import sys
 import os.path
@@ -608,10 +609,10 @@ class TraitEditorEnum ( tkTraitEditor ):
         values   = self.all_values()
         n        = len( values )
         cols     = self.cols
-        rows     = (n + cols - 1) / cols
+        rows     = (n + cols - 1) // cols
         var      = tk.StringVar()
         delegate = tkDelegate( self.on_click, var = var, panel = panel )
-        incr     = [ n / cols ] * cols
+        incr     = [ n // cols ] * cols
         rem      = n % cols
         for i in range( cols ):
             incr[i] += (rem > i)
@@ -763,7 +764,7 @@ class TraitEditorImageEnum ( TraitEditorEnum ):
                          command = tkDelegate( handler,
                                       parent = parent,
                                       value  = value )() )
-            control.grid( row = i / cols, column = i % cols, sticky = 'w',
+            control.grid( row = i // cols, column = i % cols, sticky = 'w',
                           padx = 2, pady = 2 )
             i += 1
 
@@ -847,8 +848,8 @@ class TraitEditorCheckList ( tkTraitEditor ):
         values   = self.all_values()
         n        = len( values )
         cols     = self.cols
-        rows     = (n + cols - 1) / cols
-        incr     = [ n / cols ] * cols
+        rows     = (n + cols - 1) // cols
+        incr     = [ n // cols ] * cols
         rem      = n % cols
         for i in range( cols ):
             incr[i] += (rem > i)
@@ -1331,7 +1332,7 @@ class TraitEditorColor ( tkTraitEditor ):
                        command = tkDelegate( self.on_click,
                                     panel = panel,
                                     color = color_samples[i] )() ).grid(
-                       row = i / 12, column = i % 12, sticky = 'ew' )
+                       row = i // 12, column = i % 12, sticky = 'ew' )
         for i in range( 12 ):
             panel2.columnconfigure( i, weight = 1 )
 

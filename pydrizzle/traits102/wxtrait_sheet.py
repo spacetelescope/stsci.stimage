@@ -14,6 +14,7 @@
 #-------------------------------------------------------------------------------
 #  Imports:
 #-------------------------------------------------------------------------------
+from __future__ import division # confidence medium
 
 import sys
 import os.path
@@ -248,7 +249,7 @@ class TraitSheetDialog ( wx.wxDialog ):
         if extra is not None:
             sizer.Add( extra, 1, wx.wxEXPAND )
 
-        max_dy = (2 * screen_dy) / 3
+        max_dy = (2 * screen_dy) // 3
         sw.SetAutoLayout( True )
         sw.SetSizer( sizer )
         sw.SetSize( wx.wxSize( tsdx + ((tsdy > max_dy) * scrollbar_dx),
@@ -864,8 +865,8 @@ class TraitEditorEnum ( wxTraitEditor ):
         values = self.all_values()
         n      = len( values )
         cols   = self.cols
-        rows   = (n + cols - 1) / cols
-        incr   = [ n / cols ] * cols
+        rows   = (n + cols - 1) // cols
+        incr   = [ n // cols ] * cols
         rem    = n % cols
         for i in range( cols ):
             incr[i] += (rem > i)
@@ -1141,8 +1142,8 @@ class TraitEditorCheckList ( wxTraitEditor ):
         values = self.all_values()
         n      = len( values )
         cols   = self.cols
-        rows   = (n + cols - 1) / cols
-        incr    = [ n / cols ] * cols
+        rows   = (n + cols - 1) // cols
+        incr    = [ n // cols ] * cols
         rem     = n % cols
         for i in range( cols ):
             incr[i] += (rem > i)
@@ -2069,7 +2070,7 @@ def bitmap_cache ( name, standard_size, path = None ):
         dc1.SetPen( wx.wxTRANSPARENT_PEN )
         dc1.SetBrush( wx.wxWHITE_BRUSH )
         dc1.DrawRectangle( 0, 0, standard_bitmap_width, dy )
-        dc1.Blit( (standard_bitmap_width - dx) / 2, 0, dx, dy, dc2, 0, 0 )
+        dc1.Blit( (standard_bitmap_width - dx) // 2, 0, dx, dy, dc2, 0, 0 )
     _bitmap_cache[ filename + '*' ] = std_bitmap
     if standard_size:
         return std_bitmap
@@ -2157,7 +2158,7 @@ standard_colors = {
 
 def num_to_color ( object, name, value ):
     num = int( value )
-    return wx.wxColour( num / 0x10000, (num / 0x100) & 0xFF, num & 0xFF )
+    return wx.wxColour( num // 0x10000, (num // 0x100) & 0xFF, num & 0xFF )
 
 num_to_color.info = ('a number, which in hex is of the form 0xRRGGBB, where '
                      'RR is red, GG is green, and BB is blue')
@@ -2794,7 +2795,7 @@ class ImageControl ( wx.wxWindow ):
         bitmap   = self._bitmap
         bdx      = bitmap.GetWidth()
         bdy      = bitmap.GetHeight()
-        wdc.DrawBitmap( bitmap, (wdx - bdx) / 2, (wdy - bdy) / 2, True )
+        wdc.DrawBitmap( bitmap, (wdx - bdx) // 2, (wdy - bdy) // 2, True )
 
         pens = [ self._selectedPenLight, self._selectedPenDark ]
         bd   = self._button_down

@@ -1,3 +1,4 @@
+from __future__ import division # confidence medium
 import types
 import pyfits
 from pytools import fileutil, readgeis
@@ -522,16 +523,16 @@ class OutputImage:
 
             OFF=0.5
 
-            hdr.update(_keyprefix+'INXC',float(pl['blotnx']/2)+OFF,
+            hdr.update(_keyprefix+'INXC',float(pl['blotnx']//2)+OFF,
                 comment= 'Drizzle, reference center of input image (X)')
 
-            hdr.update(_keyprefix+'INYC',float(pl['blotny']/2)+OFF,
+            hdr.update(_keyprefix+'INYC',float(pl['blotny']//2)+OFF,
                 comment= 'Drizzle, reference center of input image (Y)')
 
-            hdr.update(_keyprefix+'OUXC',float(pl['outnx']/2)+OFF,
+            hdr.update(_keyprefix+'OUXC',float(pl['outnx']//2)+OFF,
                 comment= 'Drizzle, reference center of output image (X)')
 
-            hdr.update(_keyprefix+'OUYC',float(pl['outny']/2)+OFF,
+            hdr.update(_keyprefix+'OUYC',float(pl['outny']//2)+OFF,
                 comment= 'Drizzle, reference center of output image (Y)')
 
         # Add version information as HISTORY cards to the header

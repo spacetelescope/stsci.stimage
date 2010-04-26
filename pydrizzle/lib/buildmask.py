@@ -8,6 +8,7 @@ Functions to build mask files for PyDrizzle.
         This function builds a weighting image for use with drizzle from
         the WFPC2 shadow mask functions derived from 'wmosaic'.
 """
+from __future__ import division # confidence high
 
 #
 # Revision History:

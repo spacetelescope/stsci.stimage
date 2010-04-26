@@ -32,6 +32,7 @@
 #  (c) Copyright 2002, 2003 by Enthought, Inc.
 #
 #-------------------------------------------------------------------------------
+from __future__ import division # confidence high
 
 try: False
 except NameError: False,True = 0,1

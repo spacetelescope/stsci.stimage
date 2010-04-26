@@ -1,3 +1,4 @@
+from __future__ import division # confidence medium
 from pytools import fileutil, wcsutil
 import imtype, buildmask
 from exposure import Exposure

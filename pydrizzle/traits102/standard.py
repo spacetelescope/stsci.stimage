@@ -15,6 +15,7 @@
 #-------------------------------------------------------------------------------
 #  Imports:
 #-------------------------------------------------------------------------------
+from __future__ import division # confidence high
 
 from traits         import Trait
 from trait_handlers import TraitString, TraitPrefixList, TraitEnum, TraitList

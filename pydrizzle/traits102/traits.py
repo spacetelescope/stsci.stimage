@@ -87,7 +87,7 @@
 #-------------------------------------------------------------------------------
 #  Imports:
 #-------------------------------------------------------------------------------
-
+from __future__ import division # confidence medium
 from __future__ import nested_scopes
 
 from types import NoneType, IntType, LongType, FloatType, ComplexType,    \
@@ -453,8 +453,8 @@ class HasTraits:
             try:
                 value = repr( getattr( self, name ) ).replace( '\n', '\\n' )
                 if len( value ) > maxval:
-                    value = '%s...%s' % ( value[: (maxval - 2) / 2 ],
-                                          value[ -((maxval - 3) / 2): ] )
+                    value = '%s...%s' % ( value[: (maxval - 2) // 2 ],
+                                          value[ -((maxval - 3) // 2): ] )
             except:
                 value = '<undefined>'
             lname = (name + ':').ljust( pad )

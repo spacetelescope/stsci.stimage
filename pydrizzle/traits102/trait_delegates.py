@@ -21,6 +21,7 @@
 #-------------------------------------------------------------------------------
 #  Imports:
 #-------------------------------------------------------------------------------
+from __future__ import division # confidence high
 
 from __future__   import nested_scopes
 from types        import StringType, MethodType, InstanceType, ClassType, \

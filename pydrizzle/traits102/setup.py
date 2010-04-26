@@ -11,6 +11,7 @@
 #  (c) Copyright 2002 by Enthought, Inc.
 #
 #--------------------------------------------------------------------------------
+from __future__ import division # confidence high
 
 from distutils.core import setup
 

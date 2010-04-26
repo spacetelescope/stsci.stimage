@@ -14,6 +14,7 @@
 #  (c) Copyright 2002 by Enthought, Inc.
 #
 #-------------------------------------------------------------------------------
+from __future__ import division # confidence high
 
 from trait_base      import Undefined, Self, trait_editors
 from trait_errors    import TraitError, DelegationError

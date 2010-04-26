@@ -1,3 +1,4 @@
+from __future__ import division # confidence high
 from pytools import numerixenv
 numerixenv.check()
 import string

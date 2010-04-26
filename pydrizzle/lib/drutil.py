@@ -14,6 +14,7 @@ tasks.
 #                   fileutil.getKeyword() to remove dependencies on IRAF.
 #                   Also, replaced 'yes' and 'no' with Python Bool vars.
 #
+from __future__ import division # confidence medium
 
 import string,os,types
 from math import ceil,floor

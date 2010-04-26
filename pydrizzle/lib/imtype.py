@@ -1,3 +1,4 @@
+from __future__ import division # confidence high
 import types
 import pyfits
 from pytools import fileutil

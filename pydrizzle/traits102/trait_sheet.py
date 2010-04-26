@@ -20,6 +20,7 @@
 #-------------------------------------------------------------------------------
 #  Imports:
 #-------------------------------------------------------------------------------
+from __future__ import division # confidence high
 
 from types          import StringType, ListType, TupleType
 from trait_base     import SequenceTypes
