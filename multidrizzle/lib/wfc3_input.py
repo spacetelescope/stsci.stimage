@@ -157,7 +157,7 @@ class WFC3IRInputImage(InputImage):
         self.cr_bits_value = 4096
         
         # Effective gain to be used in the driz_cr step.  Since the
-        # NICMOS images have already been converted to electrons the 
+        # WFC3/IR images have already been converted to electrons the 
         # effective gain is 1.
         self._effGain = 1
  
@@ -256,7 +256,7 @@ class WFC3IRInputImage(InputImage):
         """
 
         # The keyword for WFC3 IR flat fields in the primary header of the flt
-        # file is FLATFILE.  This flat file is not already in the required 
+        # file is PFLTFILE.  This flat file is not already in the required 
         # units of electrons.
         
         filename = self.header['PFLTFILE']
@@ -264,18 +264,18 @@ class WFC3IRInputImage(InputImage):
         try:
             handle = fileutil.openImage(filename,mode='readonly',memmap=0)
             hdu = fileutil.getExtn(handle,extn=self.grp)
-            data = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
+            flat = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
         except:
             try:
                 handle = fileutil.openImage(filename[5:],mode='readonly',memmap=0)
                 hdu = fileutil.getExtn(handle,extn=self.grp)
-                data = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
+                flat = hdu.data[self.ltv2:self.size2,self.ltv1:self.size1]
             except:
-                data = np.ones(self.image_shape,dtype=self.image_dtype)
+                flat = np.ones(self.image_shape,dtype=self.image_dtype)
                 str = "Cannot find file "+filename+".  Treating flatfield constant value of '1'.\n"
                 print str
 
-        flat = (1.0/data) # The flat field is normalized to unity.
+        #flat = (1.0/data) # The flat field is normalized to unity.
 
         return flat
 
