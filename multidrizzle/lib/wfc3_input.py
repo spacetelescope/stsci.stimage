@@ -259,7 +259,7 @@ class WFC3IRInputImage(InputImage):
         # file is FLATFILE.  This flat file is not already in the required 
         # units of electrons.
         
-        filename = self.header['FLATFILE']
+        filename = self.header['PFLTFILE']
         
         try:
             handle = fileutil.openImage(filename,mode='readonly',memmap=0)
