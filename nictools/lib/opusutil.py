@@ -11,6 +11,7 @@ import os
 import sys
 import string
 import time
+from __future__ import division  # confidence high
 
 # Read the environment setting for the PrintMsg report level
 # or default if not defined
