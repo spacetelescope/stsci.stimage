@@ -5,6 +5,7 @@
 # Purpose: utility functions for 'Finesky'
 # History: 03/12/08 - first version
 
+from __future__ import division  # confidence high
 import sys
 
 __version__ = "0.1 (2008 Mar 12)"
