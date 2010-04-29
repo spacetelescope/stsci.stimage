@@ -180,7 +180,8 @@ class DerivVar:
                                   map(lambda x,f=self.value:f*x, other.deriv)))
     __rmul__ = __mul__
 
-    def __div__(self, other):
+    # Support future division
+    def __truediv__(self, other):
         if not other.value:
             raise ZeroDivisionError('DerivVar division')
         inv = 1./other.value
@@ -189,6 +190,15 @@ class DerivVar:
                                   map(lambda x,f=inv: f*x, self.deriv),
                                   map(lambda x,f=self.value*inv*inv: f*x,
                                       other.deriv)))
+    
+    # Support calls without future division defined:
+    # make sure it does the same thing
+    __div__ = __truediv__
+
+    # Don't support integer division (the // operator)
+    def __floordiv__(self, other):
+        raise TypeError("Integer division (//) is not supported for the DerivVar object")
+    
     def __rdiv__(self, other):
         return other/self
 
