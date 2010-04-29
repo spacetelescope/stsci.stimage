@@ -54,7 +54,7 @@ def transform_d2im_dgeo(img,extver,xarr,yarr,verbose=False):
 
     return xout,yout
 
-def run(scifile,dgeofile=None,output=False,match_sci=False,update=True,vmin=None,vmax=None):
+def run(scifile,dgeofile=None,output=False,match_sci=False,update=True,vmin=None,vmax=None,plot_offset=0,plot_samp=32):
     """ 
         This routine compares how well the sub-sampled DGEOFILE (generated 
         using the 'makesmall' module) corrects the input science image as 
@@ -226,12 +226,14 @@ def run(scifile,dgeofile=None,output=False,match_sci=False,update=True,vmin=None
             hdulist.append(fhdulist['dy',1])
             fhdulist.close()
             
-            outname = outroot+'_sci'+str(chip)+'_dgeo_diffxy.match'
+            outname = outroot+'_sci'+str(chip)+'_dgeo_diffxy.match'            
             if os.path.exists(outname): os.remove(outname)
-            wtraxyutils.write_xy_file(outname,[xgarr[::32,::32].flatten(),
-                                                ygarr[::32,::32].flatten(),
-                                                (xgarr+diffx)[::32,::32].flatten(),
-                                                (ygarr+diffy)[::32,::32].flatten()],format="%20.8f",append=True)
+            dxgarr = xgarr+diffx
+            dygarr = ygarr+diffy
+            wtraxyutils.write_xy_file(outname,[xgarr[plot_offset::plot_samp,plot_offset::plot_samp].flatten(),
+                                                ygarr[plot_offset::plot_samp,plot_offset::plot_samp].flatten(),
+                                                dxgarr[plot_offset::plot_samp,plot_offset::plot_samp].flatten(),
+                                                dygarr[plot_offset::plot_samp,plot_offset::plot_samp].flatten()],format="%20.8f",append=True)
             
             outname = outroot+'_sci'+str(chip)+'_newfull_dxy.fits'
             if os.path.exists(outname): os.remove(outname)
