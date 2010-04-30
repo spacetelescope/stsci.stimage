@@ -292,7 +292,15 @@ def run(output,basemode,filters,filtdata,order,clobber=True):
         fvals = []
         pvals = []
         bvals = []
-        for col in range(max_npars+1):
+        if npars == 0:
+            fvals.append(photflam[0])
+            pvals.append(photplam[0])
+            bvals.append(photbw[0])
+        else:
+            fvals.append(0)
+            pvals.append(0)
+            bvals.append(0)
+        for col in range(1,max_npars+1):
             if col == npars:
                 fvals.append(np.array(photflam,np.float64))
                 pvals.append(np.array(photplam,np.float64))
@@ -327,7 +335,10 @@ def run(output,basemode,filters,filtdata,order,clobber=True):
             fvals.append(flam_rows[row][col])
             plvals.append(plam_rows[row][col])
             bvals.append(bw_rows[row][col])
-        
+        if col == 0:
+            fvals = np.array(fvals)
+            plvals = np.array(plvals)
+            bvals = np.array(bvals)
         flam_cols.append(fvals)
         plam_cols.append(plvals)
         bw_cols.append(bvals)
@@ -366,13 +377,13 @@ def run(output,basemode,filters,filtdata,order,clobber=True):
         flam_tabcols.append(Column(name='PHOTFLAM'+pstr,format=format_str,array=flam_cols[p]))
         plam_tabcols.append(Column(name='PHOTPLAM'+pstr,format=format_str,array=plam_cols[p]))
         bw_tabcols.append(Column(name='PHOTBW'+pstr,format=format_str,array=bw_cols[p]))
-    
+        
     # Now create the FITS file with the table in each extension
     phdu = createPrimaryHDU(output,2,order,'acs')
     
     ftab = pyfits.HDUList()
     ftab.append(phdu)
-    ftab.append(pyfits.new_table([obsmode_col,datacol_col['PHOTFLAM']]+nelem_tabcols+[pedigree_col,descrip_col]))
+    ftab.append(pyfits.new_table([obsmode_col,datacol_col['PHOTFLAM']]+nelem_tabcols+[flam_tabcols[0]]+[pedigree_col,descrip_col]))
     #ftab.append(pyfits.new_table([obsmode_col,datacol_col['PHOTFLAM']]+flam_tabcols+parvals_tabcols+nelem_tabcols+[pedigree_col,descrip_col]))
     #ftab.append(pyfits.new_table([obsmode_col,datacol_col['PHOTPLAM']]+plam_tabcols+parvals_tabcols+nelem_tabcols+[pedigree_col,descrip_col]))
     #ftab.append(pyfits.new_table([obsmode_col,datacol_col['PHOTBW']]+bw_tabcols+parvals_tabcols+nelem_tabcols+[pedigree_col,descrip_col]))
