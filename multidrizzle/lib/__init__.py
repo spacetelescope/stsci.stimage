@@ -48,8 +48,8 @@ from pytools.parseinput import parseinput
 
 
 # Begin Version Information -------------------------------------------
-__version__ = '3.3.7dev8495'
-__vdate__ = '16-Dec-2009'
+__version__ = '3.3.8dev9301'
+__vdate__ = '05-May-2010'
 # End Version Information ---------------------------------------------
 # Revision based version info
 try:

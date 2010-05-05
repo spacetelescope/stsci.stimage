@@ -1103,7 +1103,8 @@ class ImageManager(object):
                     sci_ext = 0
                     
                 fhdu = pyfits.open(_output,mode='update')
-                fhdu[sci_ext].data = fhdu[sci_ext].data / _plist['image'].getGain()
+                fhdu[sci_ext].data = fhdu[sci_ext].data / _plist['image'].getGain()                
+                fhdu[sci_ext].header['photflam'] *= _plist['image'].getGain()
                 fhdu[sci_ext].header['bunit'] = fhdu[sci_ext].header['bunit'].upper().replace("ELECTRONS","COUNTS")
                 fhdu.close()
 
