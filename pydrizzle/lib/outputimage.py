@@ -599,14 +599,14 @@ def getTemplates(fname,extlist):
         # Now, extract the headers necessary for output (as copies)
         # 1. Find the SCI extension in the template image
         # 2. Make a COPY of the extension header for use in new output file
-        if fextn is None:
+        if fextn in [None,1]:
             extnum = fileutil.findKeywordExtn(ftemplate,_extkey,extlist[0])
         else:
             extnum = (extlist[0],fnum)
         scihdr = pyfits.Header(cards=ftemplate[extnum].header.ascard.copy())
         scihdr.update('extver',1)
 
-        if fextn is None:
+        if fextn in [None,1]:
             extnum = fileutil.findKeywordExtn(ftemplate,_extkey,extlist[1])
         else:
             # there may or may not be a second type of extension in the template
@@ -621,9 +621,10 @@ def getTemplates(fname,extlist):
                 extnum = (extlist[0],fnum)
         errhdr = pyfits.Header(cards=ftemplate[extnum].header.ascard.copy())
         errhdr.update('extver',1)
+        errhdr.update('bunit','UNITLESS')
         
 
-        if fextn is None:
+        if fextn in [None,1]:
             extnum = fileutil.findKeywordExtn(ftemplate,_extkey,extlist[2])
         else:
             count = 0
@@ -637,6 +638,7 @@ def getTemplates(fname,extlist):
                 extnum = (extlist[0],fnum)
         dqhdr = pyfits.Header(cards=ftemplate[extnum].header.ascard.copy())
         dqhdr.update('extver',1)
+        dqhdr.update('bunit','UNITLESS')
 
     else:
         # Create default headers from scratch
