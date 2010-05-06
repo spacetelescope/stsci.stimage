@@ -249,7 +249,8 @@ class OutputImage:
                         if (k[0][:2] in ['A_','B_']) or (k[0][:3] in ['IDC','SCD'] and k[0] != 'IDCTAB') or \
                         (k[0][:6] in ['SCTYPE','SCRVAL','SNAXIS','SCRPIX']): 
                             del scihdr[k[0]]
-                        
+                self.addPhotKeywords(scihdr,prihdu.header)
+                
 
         ##########
         # Now, build the output file
@@ -333,6 +334,7 @@ class OutputImage:
                         hdu.header.ascard.append(_card)
             del hdu.header['PCOUNT']
             del hdu.header['GCOUNT']
+            self.addPhotKeywords(hdu.header,prihdu.header)
             hdu.header.update('filename',self.outdata)
 
             # Add primary header to output file...
@@ -414,6 +416,28 @@ class OutputImage:
                 fctx.writeto(self.outcontext)
                 del fctx,hdu
 
+
+    def addPhotKeywords(self,hdr,phdr):
+        """ Insure that this header contains all the necessary photometry 
+            keywords, moving them into the extension header if necessary.
+            This only moves keywords from the PRIMARY header if the keywords
+            do not already exist in the SCI header.
+        """
+        PHOTKEYS = ['PHOTFLAM','PHOTPLAM','PHOTBW','PHOTZPT','PHOTMODE']
+        for pkey in PHOTKEYS:
+            if not hdr.has_key(pkey):
+                # Make sure there is a copy PRIMARY header, if so, copy it 
+                if phdr.has_key(pkey):
+                    # Copy keyword from PRIMARY header
+                    hdr.update(pkey,phdr[pkey])
+                    # then delete it from PRIMARY header to avoid duplication
+                    del phdr[pkey]
+                else:
+                    # If there is no such keyword to be found, define a default
+                    if pkey != 'PHOTMODE':
+                        hdr.update(pkey,0.0)
+                    else:
+                        hdr.update(pkey,'')
 
     def addDrizKeywords(self,hdr,versions):
         """ Add drizzle parameter keywords to header. """
