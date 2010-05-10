@@ -620,9 +620,7 @@ def getTemplates(fname,extlist):
                 # Use science header for remaining headers
                 extnum = (extlist[0],fnum)
         errhdr = pyfits.Header(cards=ftemplate[extnum].header.ascard.copy())
-        errhdr.update('extver',1)
-        errhdr.update('bunit','UNITLESS')
-        
+        errhdr.update('extver',1)        
 
         if fextn in [None,1]:
             extnum = fileutil.findKeywordExtn(ftemplate,_extkey,extlist[2])
@@ -638,7 +636,6 @@ def getTemplates(fname,extlist):
                 extnum = (extlist[0],fnum)
         dqhdr = pyfits.Header(cards=ftemplate[extnum].header.ascard.copy())
         dqhdr.update('extver',1)
-        dqhdr.update('bunit','UNITLESS')
 
     else:
         # Create default headers from scratch
