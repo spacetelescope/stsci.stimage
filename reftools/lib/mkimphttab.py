@@ -1,3 +1,4 @@
+from __future__ import division # confidence high
 import os
 import numpy as np
 import pyfits
@@ -6,10 +7,10 @@ from pysynphot import observationmode
 from pyfits import Column
 import time as _time
 
-__version__ = '0.0.1'
-__vdate__ = '29-Apr-2010'
+__version__ = '0.0.2'
+__vdate__ = '12-May-2010'
 
-def computeValues(obsmode):
+def computeValues(obsmode,spec=None):
     """ Compute the 3 photometric values needed for a given obsmode string
         using pysynphot
         This routine will return a dictionary with the photometry keywords and
@@ -17,10 +18,11 @@ def computeValues(obsmode):
     """    
     # Define the bandpass for this obsmode
     bp = S.ObsBandpass(obsmode)
-    # set up the flat spectrum used for the computing the photometry keywords
-    sp = S.FlatSpectrum(1,fluxunits='flam')
+    if spec is None:
+        # set up the flat spectrum used for the computing the photometry keywords
+        spec = S.FlatSpectrum(1,fluxunits='flam')
     # create the observation using these elements
-    obs = S.Observation(sp,bp)
+    obs = S.Observation(spec,bp)
     # compute the photometric values
     valdict = {}
     
@@ -156,7 +158,7 @@ def createPrimaryHDU(filename,numpars,parnames,instrument):
     return phdu
     
     
-def run(output,basemode,filters,filtdata,order,clobber=True):
+def run(output,basemode,filters,filtdata,order,clobber=True,verbose=False):
     """ Create a (sample) IMPHTTAB file for a specified base 
         configuration (basemode) and a set of filter combinations (filters).
         
@@ -283,17 +285,22 @@ def run(output,basemode,filters,filtdata,order,clobber=True):
     flam_rows = []
     plam_rows = []
     bw_rows = []
+    # set up the flat spectrum used for the computing the photometry keywords
+    spec = S.FlatSpectrum(1,fluxunits='flam')
+
     for nr in range(nrows):
         obsmode = obsmode_vals[nr]
         fpars = fpars_vals[nr]
         npars = npar_vals[nr]
-
+        
         # define obsmode specific dictionary of parameterized variables
         # for this row alone
         fdict = {}
+        lenpars = []
         for f in fpars:
             fdict[f] = filtdata[f]
-
+            lenpars.append(len(fdict[f]))
+            
         # Now build up list of all obsmodes with all combinations of 
         # parameterized variables values
         olist = generateObsmodes(obsmode,fdict)
@@ -301,16 +308,24 @@ def run(output,basemode,filters,filtdata,order,clobber=True):
         # Use these obsmodes to generate all the values needed for the row
         nmodes = len(olist)
         nmode_vals.append(nmodes)
-        photflam = np.zeros(nmodes,np.float64)
-        photplam = np.zeros(nmodes,np.float64)
-        photbw = np.zeros(nmodes,np.float64)
-        print 'nmodes: ',nmodes
+        pflam = np.zeros(nmodes,np.float64)
+        pplam = np.zeros(nmodes,np.float64)
+        pbw = np.zeros(nmodes,np.float64)
+        print 'nmodes for ',fpars,' : ',nmodes
         
         for obsmode,n in zip(olist,range(nmodes)):
-            value = computeValues(obsmode)
-            photflam[n] = value['PHOTFLAM']
-            photplam[n] = value['PHOTPLAM']
-            photbw[n] = value['PHOTBW']
+            value = computeValues(obsmode,spec=spec)
+            if verbose:
+                print 'PHOTFLAM(%s) = %g\n'%(obsmode,value['PHOTFLAM'])
+            pflam[n] = value['PHOTFLAM']
+            pplam[n] = value['PHOTPLAM']
+            pbw[n] = value['PHOTBW']
+    
+        # Re-order results so that fastest varying variable is the last index
+        # when accessed as a numpy array later by the C code
+        photflam = ((pflam.reshape(lenpars)).transpose()).ravel()
+        photplam = ((pplam.reshape(lenpars)).transpose()).ravel()
+        photbw = ((pbw.reshape(lenpars)).transpose()).ravel()
         fvals = []
         pvals = []
         bvals = []
