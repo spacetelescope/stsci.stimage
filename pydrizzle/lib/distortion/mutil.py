@@ -1,6 +1,6 @@
 from __future__ import division # confidence high
 from pytools import fileutil,wcsutil
-import numpy as N
+import numpy as np
 import string
 import calendar
 import datetime
@@ -15,8 +15,8 @@ no = False
 #       INPUT: FITS object of open IDC table
 #       OUTPUT: coefficient matrices for Fx and Fy
 #
-#### If 'tabname' == None: This should return a default, undistorted
-####                        solution.
+### If 'tabname' == None: This should return a default, undistorted
+###                        solution.
 #
 
 def readIDCtab (tabname, chip=1, date=None, direction='forward',
@@ -63,15 +63,25 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
         err_str += "the Dither Package (ca. 1995-1998).                                      \n"
         err_str += "------------------------------------------------------------------------ \n"
         raise IOError,err_str
-
-    #First thing we need, is to read in the coefficients from the IDC
+    
+    phdr = ftab['PRIMARY'].header
+    # First, check to see if the TDD coeffs are present, if not, complain and quit
+    skew_coeffs = None    
+    if phdr.has_key('TDD_DATE'):
+        print 'Reading TDD coefficients from ',tabname
+        skew_coeffs = read_tdd_coeffs(phdr)
+        # Using coefficients read in from IDCTAB Primary header
+        #skew_coeffs = {'TDD_A0':phdr['TDD_A0'],'TDD_A1':phdr["TDD_A1"],
+        #            'TDD_B0':phdr['TDD_B0'],'TDD_B1':phdr['TDD_B1'],
+        #            'TDD_D0':phdr['TDD_D0'],'TDD_DATE':phdr['TDD_DATE']}
+    
+    #We need to read in the coefficients from the IDC
     # table and populate the Fx and Fy matrices.
-
-    if ftab['PRIMARY'].header.has_key('DETECTOR'):
-        detector = ftab['PRIMARY'].header['DETECTOR']
+    if phdr.has_key('DETECTOR'):
+        detector = phdr['DETECTOR']
     else:
-        if ftab['PRIMARY'].header.has_key('CAMERA'):
-            detector = str(ftab['PRIMARY'].header['CAMERA'])
+        if phdr.has_key('CAMERA'):
+            detector = str(phdr['CAMERA'])
         else:
             detector = 1
 
@@ -84,14 +94,14 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
             filter2 = 'N/A'
 
     # Read FITS header to determine order of fit, i.e. k
-    norder = ftab['PRIMARY'].header['NORDER']
+    norder = phdr['NORDER']
     if norder < 3:
         order = 3
     else:
         order = norder
 
-    fx = N.zeros(shape=(order+1,order+1),dtype=N.float64)
-    fy = N.zeros(shape=(order+1,order+1),dtype=N.float64)
+    fx = np.zeros(shape=(order+1,order+1),dtype=np.float64)
+    fy = np.zeros(shape=(order+1,order+1),dtype=np.float64)
 
     #Determine row from which to get the coefficients.
     # How many rows do we have in the table...
@@ -227,9 +237,14 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
 
     if tddcorr:
         print " *** Computing ACS Time Dependent Distortion Coefficients *** "
-        fx,fy,alpha,beta = apply_wfc_tdd_coeffs(fx, fy, date)
+        alpha,beta = compute_wfc_tdd_coeffs(date, skew_coeffs)
+        fx,fy = apply_wfc_tdd_coeffs(fx, fy, alpha, beta)
         refpix['TDDALPHA'] = alpha
         refpix['TDDBETA'] = beta
+    else:
+        refpix['TDDALPHA'] = 0.0
+        refpix['TDDBETA'] = 0.0
+        
     # Return arrays and polynomial order read in from table.
     # NOTE: XREF and YREF are stored in Fx,Fy arrays respectively.
     return fx,fy,refpix,order
@@ -347,8 +362,8 @@ def readWCSCoeffs(header):
     _yorder = header['b_order']
     order = max(max(_xorder,_yorder),3)
 
-    fx = N.zeros(shape=(order+1,order+1),dtype=N.float64)
-    fy = N.zeros(shape=(order+1,order+1),dtype=N.float64)    
+    fx = np.zeros(shape=(order+1,order+1),dtype=np.float64)
+    fy = np.zeros(shape=(order+1,order+1),dtype=np.float64)    
    
     # Set up refpix
     refpix = {}
@@ -434,17 +449,17 @@ def readTraugerTable(idcfile,wavelength):
     # Now, convert the coefficients into a Numeric array
     # with the right coefficients in the right place.
     # Populate output values now...
-    fx = N.zeros(shape=(order+1,order+1),dtype=N.float64)
-    fy = N.zeros(shape=(order+1,order+1),dtype=N.float64)
+    fx = np.zeros(shape=(order+1,order+1),dtype=np.float64)
+    fy = np.zeros(shape=(order+1,order+1),dtype=np.float64)
     # Assign the coefficients to their array positions
     fx[0,0] = 0.
-    fx[1] = N.array([a_coeffs[2],a_coeffs[1],0.,0.],dtype=N.float64)
-    fx[2] = N.array([a_coeffs[5],a_coeffs[4],a_coeffs[3],0.],dtype=N.float64)
-    fx[3] = N.array([a_coeffs[9],a_coeffs[8],a_coeffs[7],a_coeffs[6]],dtype=N.float64)
+    fx[1] = np.array([a_coeffs[2],a_coeffs[1],0.,0.],dtype=np.float64)
+    fx[2] = np.array([a_coeffs[5],a_coeffs[4],a_coeffs[3],0.],dtype=np.float64)
+    fx[3] = np.array([a_coeffs[9],a_coeffs[8],a_coeffs[7],a_coeffs[6]],dtype=np.float64)
     fy[0,0] = 0.
-    fy[1] = N.array([b_coeffs[2],b_coeffs[1],0.,0.],dtype=N.float64)
-    fy[2] = N.array([b_coeffs[5],b_coeffs[4],b_coeffs[3],0.],dtype=N.float64)
-    fy[3] = N.array([b_coeffs[9],b_coeffs[8],b_coeffs[7],b_coeffs[6]],dtype=N.float64)
+    fy[1] = np.array([b_coeffs[2],b_coeffs[1],0.,0.],dtype=np.float64)
+    fy[2] = np.array([b_coeffs[5],b_coeffs[4],b_coeffs[3],0.],dtype=np.float64)
+    fy[3] = np.array([b_coeffs[9],b_coeffs[8],b_coeffs[7],b_coeffs[6]],dtype=np.float64)
 
     # Used in Pattern.computeOffsets()
     refpix = {}
@@ -511,17 +526,17 @@ def readCubicTable(idcfile):
     # Now, convert the coefficients into a Numeric array
     # with the right coefficients in the right place.
     # Populate output values now...
-    fx = N.zeros(shape=(order+1,order+1),dtype=N.float64)
-    fy = N.zeros(shape=(order+1,order+1),dtype=N.float64)
+    fx = np.zeros(shape=(order+1,order+1),dtype=np.float64)
+    fy = np.zeros(shape=(order+1,order+1),dtype=np.float64)
     # Assign the coefficients to their array positions
     fx[0,0] = 0.
-    fx[1] = N.array([a_coeffs[2],a_coeffs[1],0.,0.],dtype=N.float64)
-    fx[2] = N.array([a_coeffs[5],a_coeffs[4],a_coeffs[3],0.],dtype=N.float64)
-    fx[3] = N.array([a_coeffs[9],a_coeffs[8],a_coeffs[7],a_coeffs[6]],dtype=N.float64)
+    fx[1] = np.array([a_coeffs[2],a_coeffs[1],0.,0.],dtype=np.float64)
+    fx[2] = np.array([a_coeffs[5],a_coeffs[4],a_coeffs[3],0.],dtype=np.float64)
+    fx[3] = np.array([a_coeffs[9],a_coeffs[8],a_coeffs[7],a_coeffs[6]],dtype=np.float64)
     fy[0,0] = 0.
-    fy[1] = N.array([b_coeffs[2],b_coeffs[1],0.,0.],dtype=N.float64)
-    fy[2] = N.array([b_coeffs[5],b_coeffs[4],b_coeffs[3],0.],dtype=N.float64)
-    fy[3] = N.array([b_coeffs[9],b_coeffs[8],b_coeffs[7],b_coeffs[6]],dtype=N.float64)
+    fy[1] = np.array([b_coeffs[2],b_coeffs[1],0.,0.],dtype=np.float64)
+    fy[2] = np.array([b_coeffs[5],b_coeffs[4],b_coeffs[3],0.],dtype=np.float64)
+    fy[3] = np.array([b_coeffs[9],b_coeffs[8],b_coeffs[7],b_coeffs[6]],dtype=np.float64)
 
     # Used in Pattern.computeOffsets()
     refpix = {}
@@ -555,8 +570,8 @@ def defaultModel():
     """
     order = 3
 
-    fx = N.zeros(shape=(order+1,order+1),dtype=N.float64)
-    fy = N.zeros(shape=(order+1,order+1),dtype=N.float64)
+    fx = np.zeros(shape=(order+1,order+1),dtype=np.float64)
+    fy = np.zeros(shape=(order+1,order+1),dtype=np.float64)
 
     fx[1,1] = 1.
     fy[1,0] = 1.
@@ -582,7 +597,7 @@ def defaultModel():
 # the specified wavelength for use with Trauger coefficients
 def _MgF2(lam):
     _sig = pow((1.0e7/lam),2)
-    return N.sqrt(1.0 + 2.590355e10/(5.312993e10-_sig) +
+    return np.sqrt(1.0 + 2.590355e10/(5.312993e10-_sig) +
         4.4543708e9/(11.17083e9-_sig) + 4.0838897e5/(1.766361e5-_sig))
 
 
@@ -605,17 +620,69 @@ def convertDate(date):
 # Time-dependent skew correction functions
 #
 #
-def compute_wfc_tdd_coeffs(dateobs):
+def read_tdd_coeffs(phdr):
+    ''' Read in the TDD related keywords from the PRIMARY header of the IDCTAB
+    '''
+    skew_coeffs = {}
+    skew_coeffs['TDD_DATE'] = phdr['TDD_DATE']
+    skew_coeffs['TDD_A'] = []
+    skew_coeffs['TDD_B'] = []
+    # keep track of TDD_A and TDD_B keywords found so that they can be sorted
+    # before being read into the coeffs lists
+    a_keys = []
+    b_keys = []
+    for k in phdr.keys():
+        if 'TDD_A' in k: 
+            a_keys.append(k)
+            continue
+        if 'TDD_B' in k:
+            b_keys.append(k)
+    a_keys.sort()
+    b_keys.sort()
+    # Check to make sure the same number of coeffs are specified/found for
+    # both TDD_A and TDD_B
+    if len(a_keys) != len(b_keys): 
+        print "The number of coefficients specified for TDD_A and TDD_B are different!"
+        print "   A new IDCTAB will need to be used. "
+        phdr.close()
+        raise ValueError
+    
+    # Now read in all TDD coefficient keywords
+    for k in range(len(a_keys)):
+        skew_coeffs['TDD_A'].append(phdr[a_keys[k]])
+        skew_coeffs['TDD_B'].append(phdr[b_keys[k]])
+
+    return skew_coeffs
+
+def compute_wfc_tdd_coeffs(dateobs,skew_coeffs):
     ''' Compute the alpha and beta terms for the ACS/WFC 
         time-dependent skew correction as described in
         ACS ISR 07-08 by J. Anderson.
     '''
+    if skew_coeffs is None:
+        err_str =  "------------------------------------------------------------------------  \n"
+        err_str += "WARNING: the IDCTAB geometric distortion file specified in the image      \n"
+        err_str += "         header did not have the time-dependent distortion coefficients.  \n"
+        err_str += "         The pre-SM4 time-dependent skew solution will be used by default.\n"
+        err_str += "         Please update IDCTAB with new reference file from HST archive.   \n"
+        err_str +=  "------------------------------------------------------------------------  \n"
+        print err_str
+        #alpha = 0.095 + 0.090*(rday-dday)/2.5
+        #beta = -0.029 - 0.030*(rday-dday)/2.5
+        # Using default pre-SM4 coefficients
+        skew_coeffs = {'TDD_A':[0.095,0.090/2.5],
+                    'TDD_B':[-0.029,-0.030/2.5],
+                    'TDD_DATE':2004.5}
+
     # default date of 2004.5 = 2004-7-1
     #datedefault = datetime.datetime(2004,7,1)
-    dday = 2004.5
-    year,month,day = dateobs.split('-')
-    rdate = datetime.datetime(int(year),int(month),int(day))
-    rday = float(rdate.strftime("%j"))/365.25 + rdate.year
+    #dday = 2004.5
+    if not isinstance(dateobs,float):
+        year,month,day = dateobs.split('-')
+        rdate = datetime.datetime(int(year),int(month),int(day))
+        rday = float(rdate.strftime("%j"))/365.25 + rdate.year
+    else:
+        rday = dateobs
     # Jay's code only computes the alpha/beta values based on a decimal year
     # with only 3 digits, so this line reproduces that when needed for comparison
     # with his results.
@@ -623,17 +690,21 @@ def compute_wfc_tdd_coeffs(dateobs):
     
     # The zero-point terms account for the skew accumulated between
     # 2002.0 and 2004.5, when the latest IDCTAB was delivered.
-    alpha = 0.095 + 0.090*(rday-dday)/2.5
-    beta = -0.029 - 0.030*(rday-dday)/2.5
+    #alpha = 0.095 + 0.090*(rday-dday)/2.5
+    #beta = -0.029 - 0.030*(rday-dday)/2.5
+    alpha = 0
+    beta = 0
+    # Compute skew terms, allowing for non-linear coefficients as well
+    for c in range(len(skew_coeffs['TDD_A'])):
+        alpha += skew_coeffs['TDD_A'][c]* np.power(rday-skew_coeffs['TDD_DATE'],c)
+        beta += skew_coeffs['TDD_B'][c]*np.power(rday-skew_coeffs['TDD_DATE'],c)
     
     return alpha,beta
 
-def apply_wfc_tdd_coeffs(cx,cy,dateobs):
+def apply_wfc_tdd_coeffs(cx,cy,alpha,beta):
     ''' Apply the WFC TDD coefficients directly to the distortion
         coefficients. 
-    '''
-    alpha,beta = compute_wfc_tdd_coeffs(dateobs)
-    
+    '''    
     # Initialize variables to be used
     theta_v2v3 = 2.234529
     scale_idc = 0.05
@@ -644,25 +715,25 @@ def apply_wfc_tdd_coeffs(cx,cy,dateobs):
     # Pre-compute the entire correction prior to applying it to the coeffs
     mrotp = fileutil.buildRotMatrix(idctheta)
     mrotn = fileutil.buildRotMatrix(-idctheta)
-    abmat = N.array([[beta,alpha],[alpha,beta]])
-    tdd_mat = N.array([[1+(beta/2048.), alpha/2048.],[alpha/2048.,1-(beta/2048.)]],N.float64)
+    abmat = np.array([[beta,alpha],[alpha,beta]])
+    tdd_mat = np.array([[1+(beta/2048.), alpha/2048.],[alpha/2048.,1-(beta/2048.)]],np.float64)
   
-    abmat1 = N.dot(tdd_mat, mrotn)
-    abmat2 = N.dot(mrotp,abmat1)
-    icxy = N.dot(abmat2,[cx.ravel(),cy.ravel()])
+    abmat1 = np.dot(tdd_mat, mrotn)
+    abmat2 = np.dot(mrotp,abmat1)
+    icxy = np.dot(abmat2,[cx.ravel(),cy.ravel()])
     icx = icxy[0]
     icy = icxy[1]
     icx.shape = cx.shape
     icy.shape = cy.shape
     
-    return icx,icy,alpha,beta
+    return icx,icy
     
     
 def rotate_coeffs(cx,cy,rot,scale=1.0):
     ''' Rotate poly coeffs by 'rot' degrees.
     '''
     mrot = fileutil.buildRotMatrix(rot)*scale
-    rcxy = N.dot(mrot,[cx.ravel(),cy.ravel()])
+    rcxy = np.dot(mrot,[cx.ravel(),cy.ravel()])
     rcx = rcxy[0]
     rcy = rcxy[1]
     rcx.shape = cx.shape
