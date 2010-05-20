@@ -22,7 +22,7 @@ _default_pars = {'psize':None,'default_rot':None,'idckey':None}
 
 INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS","WFC3"]
 
-__version__ = "6.3.5 (05-May-2010)"
+__version__ = "6.3.5 (19-May-2010)"
 
 
 class _PyDrizzle:
