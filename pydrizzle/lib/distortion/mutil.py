@@ -235,7 +235,7 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
         fx *= refpix['PSCALE']
         fy *= refpix['PSCALE']
 
-    if skew_coeffs is not None:
+    if tddcorr:
         print " *** Computing ACS Time Dependent Distortion Coefficients *** "
         alpha,beta = compute_wfc_tdd_coeffs(date, skew_coeffs)
         fx,fy = apply_wfc_tdd_coeffs(fx, fy, alpha, beta)
