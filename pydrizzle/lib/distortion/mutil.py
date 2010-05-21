@@ -654,7 +654,7 @@ def compute_wfc_tdd_coeffs(dateobs,skew_coeffs):
         # Using default pre-SM4 coefficients
         skew_coeffs = {'TDD_A':[0.095,0.090/2.5],
                     'TDD_B':[-0.029,-0.030/2.5],
-                    'TDD_DATE':2004.5}
+                    'TDD_DATE':2004.5,'TDDORDER':1}
 
     # default date of 2004.5 = 2004-7-1
     #datedefault = datetime.datetime(2004,7,1)
