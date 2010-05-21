@@ -235,7 +235,7 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
         fx *= refpix['PSCALE']
         fy *= refpix['PSCALE']
 
-    if tddcorr:
+    if skew_coeffs is not None:
         print " *** Computing ACS Time Dependent Distortion Coefficients *** "
         alpha,beta = compute_wfc_tdd_coeffs(date, skew_coeffs)
         fx,fy = apply_wfc_tdd_coeffs(fx, fy, alpha, beta)
@@ -625,32 +625,14 @@ def read_tdd_coeffs(phdr):
     '''
     skew_coeffs = {}
     skew_coeffs['TDD_DATE'] = phdr['TDD_DATE']
+    skew_coeffs['TDDORDER'] = phdr['TDDORDER']
     skew_coeffs['TDD_A'] = []
     skew_coeffs['TDD_B'] = []
-    # keep track of TDD_A and TDD_B keywords found so that they can be sorted
-    # before being read into the coeffs lists
-    a_keys = []
-    b_keys = []
-    for k in phdr.keys():
-        if 'TDD_A' in k: 
-            a_keys.append(k)
-            continue
-        if 'TDD_B' in k:
-            b_keys.append(k)
-    a_keys.sort()
-    b_keys.sort()
-    # Check to make sure the same number of coeffs are specified/found for
-    # both TDD_A and TDD_B
-    if len(a_keys) != len(b_keys): 
-        print "The number of coefficients specified for TDD_A and TDD_B are different!"
-        print "   A new IDCTAB will need to be used. "
-        phdr.close()
-        raise ValueError
     
     # Now read in all TDD coefficient keywords
-    for k in range(len(a_keys)):
-        skew_coeffs['TDD_A'].append(phdr[a_keys[k]])
-        skew_coeffs['TDD_B'].append(phdr[b_keys[k]])
+    for k in range(skew_coeffs['TDDORDER']+1):
+        skew_coeffs['TDD_A'].append(phdr['TDD_A'+str(k)])
+        skew_coeffs['TDD_B'].append(phdr['TDD_B'+str(k)])
 
     return skew_coeffs
 
