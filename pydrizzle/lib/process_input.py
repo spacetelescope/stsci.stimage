@@ -318,7 +318,7 @@ def checkStisFiles(filelist, ivmlist=None):
             newflist.append(t[0])
             newilist.append(t[1])
         else:
-            errormesg = "No valid 'SCI extension in STIS file\n"
+            errormsg = "No valid 'SCI extension in STIS file\n"
             raise ValueError, errormsg
 
     return newflist, newilist
@@ -477,6 +477,7 @@ def splitStis(stisfile, sci_count):
         sptfile = pyfits.open(sptfilename)
     except IOError:
         print 'SPT file not found %s \n' % sptfilename
+        sptfile=None
 
     if sptfile:
         hdu0 = sptfile[0].copy()
