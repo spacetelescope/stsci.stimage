@@ -45,11 +45,10 @@ The routines translate RA and Dec in J2000 to either galactic or ecliptic coordi
   >>> elat,elon = opuscoords.radec2elatlon(ra,dec)
 
 """
+from __future__ import division # confidence high
 
 __version__ = "1.0.0"
 __version_date__ = "20 Jan 2009"
-
-from __future__ import division # confidence high
 
 from GCcoords import radec2elatlon,radec2glatlon
 
