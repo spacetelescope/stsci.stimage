@@ -9,11 +9,10 @@ try:
 except:
     raise ImportError("NUMPY was not found. It may not be installed or it may not be on your PYTHONPATH")
 
-pythoninc = distutils.sysconfig.get_python_inc()
 numpyinc = numpy.get_include()
 
 ext = [ distutils.core.Extension('opuscoords.GCcoords',['src/GCcoords_module.c','src/gc_coords_pkg.c'],
-                 include_dirs = [pythoninc,numpyinc])
+                 include_dirs = [numpyinc])
     ]
 
 pkg = "opuscoords"
