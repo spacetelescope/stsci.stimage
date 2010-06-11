@@ -5,10 +5,6 @@ import shutil
 import distutils.extension
 pkg = "stsci_sphinxext"
 
-# Sphinx > 0.6.x changed how LaTeX classes are loaded, so we need
-# to install the same file with two different file names
-shutil.copyfile('lib/latex/tsr.cls', 'lib/latex/sphinxtsr.cls')
-
 setupargs = {
     'version' :         '0.1',
     'description' :
