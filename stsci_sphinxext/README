@@ -1,0 +1,47 @@
+stsci_sphinxext
+===============
+
+.. author:: Michael Droettboom, 2009
+
+Purpose
+-------
+
+This project contains extensions to Sphinx for internal use at STScI.
+
+Prerequisites
+-------------
+
+- Sphinx 0.6.3 or later, and its dependencies
+
+- numpydoc - provides support for Numpy-style docstring syntax
+
+  - The version shipped with Numpy 1.4.0 or later is required
+
+Usage
+-----
+
+These instructions only cover changes from the standard Sphinx
+instructions.
+
+Create a new tree for your Sphinx documentation, using
+sphinx_quickstart, as described in the `Sphinx introduction
+<http://sphinx.pocoo.org/intro.html#setting-up-the-documentation-sources>`_.
+
+Import the stsci_sphinx customizations into your project's `conf.py`
+by inserting the following line at the top::
+
+  from stsci_sphinxext.conf import *
+
+The "extensions" line in your `conf.py` should also be modified so it
+doesn't override the extensions defined by stsci_sphinxext.  For
+example, change::
+
+  extensions = ['sphinx.ext.autodoc']
+
+to::
+
+  extensions += ['sphinx.ext.autodoc']
+
+Also, comment out the 'html_theme' line, so your project will use the
+stsci_sphinxext one.
+

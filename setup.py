@@ -6,7 +6,7 @@ import sys
 import distutils
 import os.path
 
-# list of packages to be installed - we have to populate this 
+# list of packages to be installed - we have to populate this
 # to know what to look for.
 #
 # Start with a list of the packages that we install everywhere.
@@ -32,12 +32,13 @@ all_packages_input = [
     "wfpc2tools",
     "stwcs",
     "reftools",
-    "betadrizzle"
+    "betadrizzle",
+    "stsci_sphinxext"
 ]
 
 for x in [ "pyfits", "pysynphot", "pywcs" ] :
     if os.path.isdir(x) :
-        all_packages_input.append(x) 
+        all_packages_input.append(x)
     else :
         print "WARNING:",x," not present"
 
@@ -83,7 +84,7 @@ pp = pp.pprint
 # level up from the actual package).  We combine the information from
 # all of the different packages into a single call to setup().
 #
-# Because we have the single call to setup(), we can use 
+# Because we have the single call to setup(), we can use
 # bdist_wininst to make a single Windows distribution.
 #
 
@@ -153,7 +154,7 @@ for lpkg in all_packages_input :
     if not 'package_dir' in setupargs :
         # not specified, use the default
         all_package_dir[pkg[0]] = "%s/%s" % ( pkg[0], 'lib' )
-        
+
     else :
         # there is a list of package dirs to handle
         package_dir = setupargs['package_dir']

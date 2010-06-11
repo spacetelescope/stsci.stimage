@@ -1,0 +1,2 @@
+recursive-include lib/stsci_sphinx_theme theme.conf
+recursive-include lib/stsci_sphinx_theme/static *.png *.css_t
