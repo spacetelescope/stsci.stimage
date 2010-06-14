@@ -1029,7 +1029,7 @@ class ImageManager(object):
         print("drizzle.pixfrac = "+str(self.assoc.parlist[0]['pixfrac']))
         print("drizzle.shft_fr = 'output'")
         print("drizzle.shft_un = 'output'")
-        print("drizzle.in_un = '"+str(self.assoc.parlist[0]['in_units']))
+        print("drizzle.in_un = '"+str(self.assoc.parlist[0]['in_units'])+"'")
         print("drizzle.out_un = '"+self.assoc.parlist[0]['units']+"'")
         print("drizzle.align = 'center'")
         print("drizzle.expkey = 'EXPTIME'")
