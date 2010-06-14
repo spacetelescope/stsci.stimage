@@ -641,7 +641,17 @@ def compute_wfc_tdd_coeffs(dateobs,skew_coeffs):
         time-dependent skew correction as described in
         ACS ISR 07-08 by J. Anderson.
     '''
-    if skew_coeffs is None:
+    # default date of 2004.5 = 2004-7-1
+    #datedefault = datetime.datetime(2004,7,1)
+    #dday = 2004.5
+    if not isinstance(dateobs,float):
+        year,month,day = dateobs.split('-')
+        rdate = datetime.datetime(int(year),int(month),int(day))
+        rday = float(rdate.strftime("%j"))/365.25 + rdate.year
+    else:
+        rday = dateobs
+
+    if skew_coeffs is None and rday > 2009.0:
         err_str =  "------------------------------------------------------------------------  \n"
         err_str += "WARNING: the IDCTAB geometric distortion file specified in the image      \n"
         err_str += "         header did not have the time-dependent distortion coefficients.  \n"
@@ -656,15 +666,6 @@ def compute_wfc_tdd_coeffs(dateobs,skew_coeffs):
                     'TDD_B':[-0.029,-0.030/2.5],
                     'TDD_DATE':2004.5,'TDDORDER':1}
 
-    # default date of 2004.5 = 2004-7-1
-    #datedefault = datetime.datetime(2004,7,1)
-    #dday = 2004.5
-    if not isinstance(dateobs,float):
-        year,month,day = dateobs.split('-')
-        rdate = datetime.datetime(int(year),int(month),int(day))
-        rday = float(rdate.strftime("%j"))/365.25 + rdate.year
-    else:
-        rday = dateobs
     # Jay's code only computes the alpha/beta values based on a decimal year
     # with only 3 digits, so this line reproduces that when needed for comparison
     # with his results.
