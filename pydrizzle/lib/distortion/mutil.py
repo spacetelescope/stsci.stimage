@@ -651,14 +651,15 @@ def compute_wfc_tdd_coeffs(dateobs,skew_coeffs):
     else:
         rday = dateobs
 
-    if skew_coeffs is None and rday > 2009.0:
-        err_str =  "------------------------------------------------------------------------  \n"
-        err_str += "WARNING: the IDCTAB geometric distortion file specified in the image      \n"
-        err_str += "         header did not have the time-dependent distortion coefficients.  \n"
-        err_str += "         The pre-SM4 time-dependent skew solution will be used by default.\n"
-        err_str += "         Please update IDCTAB with new reference file from HST archive.   \n"
-        err_str +=  "------------------------------------------------------------------------  \n"
-        print err_str
+    if skew_coeffs is None:
+        if rday > 2009.0:
+            err_str =  "------------------------------------------------------------------------  \n"
+            err_str += "WARNING: the IDCTAB geometric distortion file specified in the image      \n"
+            err_str += "         header did not have the time-dependent distortion coefficients.  \n"
+            err_str += "         The pre-SM4 time-dependent skew solution will be used by default.\n"
+            err_str += "         Please update IDCTAB with new reference file from HST archive.   \n"
+            err_str +=  "------------------------------------------------------------------------  \n"
+            print err_str
         #alpha = 0.095 + 0.090*(rday-dday)/2.5
         #beta = -0.029 - 0.030*(rday-dday)/2.5
         # Using default pre-SM4 coefficients
