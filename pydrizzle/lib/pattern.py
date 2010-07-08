@@ -236,7 +236,7 @@ class Pattern(object):
 
             self.members.append(Exposure(_sciname, idckey=self.idckey, dqname=_dqname,
                     mask=_masklist, pa_key=self.pa_key, parity=self.PARITY[detector],
-                    idcdir=self.pars['idcdir'], group_indx = group_indx[i],
+                    idcdir=self.pars['idcdir'], group_indx = group_indx[i], binned=self.binned,
                     handle=self.image_handle,extver=i+1,exptime=self.exptime[0], mt_wcs=self.pars['mt_wcs']))
 
     def setBunit(self,value=None):
