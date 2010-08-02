@@ -30,6 +30,7 @@ all_packages_input = [
     "sample_package",
     "stistools",
     "wfpc2tools",
+    "acstools",
     "stwcs",
     "reftools",
     "betadrizzle",
