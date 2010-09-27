@@ -1,0 +1,28 @@
+from os.path import join
+
+def build(bld):
+    bld(
+        features = 'cc cstaticlib',
+        target = 'stimage',
+        source = [
+            'immatch/geomap.c',
+            'immatch/xyxymatch.c',
+            'immatch/lib/tolerance.c',
+            'immatch/lib/triangles.c',
+            'immatch/lib/triangles_vote.c',
+            'lib/error.c',
+            'lib/lintransform.c',
+            'lib/polynomial.c',
+            'lib/util.c',
+            'lib/xybbox.c',
+            'lib/xycoincide.c',
+            'lib/xysort.c',
+            'surface/cholesky.c',
+            'surface/fit.c',
+            'surface/surface.c',
+            'surface/vector.c'
+            ],
+
+        includes = [join(bld.path.abspath(), '../include')],
+        libs = ['m']
+        )

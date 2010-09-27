@@ -34,7 +34,8 @@ all_packages_input = [
     "stwcs",
     "reftools",
     "betadrizzle",
-    "stsci_sphinxext"
+    "stsci_sphinxext",
+    "stimage"
 ]
 
 for x in [ "pyfits", "pysynphot", "pywcs" ] :
