@@ -76,7 +76,7 @@ STIMAGE_Int64
 factorial(
         size_t n) {
 
-    uint64_t fac = 1;
+    STIMAGE_Int64 fac = 1;
 
     while (n > 0)
         fac *= n--;
@@ -290,10 +290,10 @@ compute_mean(
         const size_t n,
         const double* const a) {
 
-    assert(a);
-
     size_t i = 0;
     double sum = 0.0;
+
+    assert(a);
 
     for (i = 0; i < n; ++i) {
         sum += a[i];
@@ -308,10 +308,10 @@ compute_mean_coord(
         const coord_t* const a,
         coord_t* out) {
 
-    assert(a);
-
     size_t i = 0;
     coord_t sum = {0.0, 0.0};
+
+    assert(a);
 
     for (i = 0; i < n; ++i) {
         sum.x += a[i].x;

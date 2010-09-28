@@ -43,12 +43,12 @@ surface_vector(
         double* const zfit,
         stimage_error_t* const error) {
 
+    int status;
+
     assert(s);
     assert(ref);
     assert(zfit);
     assert(error);
-
-    int status;
 
     switch (s->type) {
     case surface_type_polynomial:
