@@ -115,18 +115,19 @@ setupargs = {
     'url': "http://projects.scipy.org/astropy/astrolib/wiki/WikiStart",
     'platforms': ['unix', 'windows'],
     'ext_modules': [
-        Extension('stimage._stimage',
-                  STIMAGE_SOURCES + STIMAGE_WRAP_SOURCES,
-                  include_dirs=[
+        Extension(
+            'stimage._stimage',
+            STIMAGE_SOURCES + STIMAGE_WRAP_SOURCES,
+            include_dirs=[
                 numpy_include,
                 join(ROOT_DIR, "include"),
                 join(ROOT_DIR, "src_wrap")
                 ],
-                  define_macros=define_macros,
-                  undef_macros=undef_macros,
-                  extra_compile_args=extra_compile_args,
-                  libraries=libraries
-                  )
+            define_macros=define_macros,
+            undef_macros=undef_macros,
+            extra_compile_args=extra_compile_args,
+            libraries=libraries
+            )
         ],
     'package_dir' : {pkg[0]: 'lib', pkg[1]: 'lib/test'},
     }

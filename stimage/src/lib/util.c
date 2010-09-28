@@ -72,7 +72,7 @@ calloc_with_error(
     return result;
 }
 
-uint64_t
+STIMAGE_Int64
 factorial(
         size_t n) {
 
