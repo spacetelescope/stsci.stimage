@@ -163,7 +163,7 @@ Compute the factorial of n.
 This function will overflow for n >= 21, and it is up to the caller to
 ensure n is in the proper range.
 */
-uint64_t
+STIMAGE_Int64
 factorial(
         size_t n);
 

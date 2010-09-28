@@ -1450,8 +1450,8 @@ geo_get_results(
                 sx1, sy1, &result->shift, &result->mag, &result->rotation,
                 error)) goto exit;
 
-    result->mean_ref.x = fit->oref.x;
-    result->mean_ref.y = fit->oref.y;
+    result->mean_ref.x   = fit->oref.x;
+    result->mean_ref.y   = fit->oref.y;
     result->mean_input.x = fit->oin.x;
     result->mean_input.y = fit->oin.y;
 
@@ -1480,6 +1480,7 @@ geo_get_results(
 
     } else {
         result->nx2coeff = 0;
+        result->x2coeff = NULL;
     }
 
     if (has_sy2) {
@@ -1492,7 +1493,9 @@ geo_get_results(
         }
     } else {
         result->ny2coeff = 0;
+        result->y2coeff = NULL;
     }
+
     status = 0;
 
  exit:

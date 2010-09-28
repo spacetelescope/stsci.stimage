@@ -111,15 +111,16 @@ eval_1dchebyshev(
         double* const zfit,
         stimage_error_t* const error) {
 
-    size_t        i    = 0;
-    size_t        j    = 0;
-    const double* x    = (double *)ref + axis;
-    double        c1   = 0.0;
-    double        c2   = 0.0;
-    double*       sx   = NULL;
-    double*       pn   = NULL;
-    double*       pnm1 = NULL;
-    double*       pnm2 = NULL;
+    size_t        i      = 0;
+    size_t        j      = 0;
+    const double* x      = (double *)ref + axis;
+    double        c1     = 0.0;
+    double        c2     = 0.0;
+    double*       sx     = NULL;
+    double*       pn     = NULL;
+    double*       pnm1   = NULL;
+    double*       pnm2   = NULL;
+    int           status = 1;
 
     assert(coeff);
     assert(ref);
@@ -145,16 +146,16 @@ eval_1dchebyshev(
     }
 
     sx = malloc_with_error(ncoord * sizeof(double), error);
-    if (sx == NULL) return 1;
+    if (sx == NULL) goto exit;
 
     pn = malloc_with_error(ncoord * sizeof(double), error);
-    if (pn == NULL) return 1;
+    if (pn == NULL) goto exit;
 
     pnm1 = malloc_with_error(ncoord * sizeof(double), error);
-    if (pnm1 == NULL) return 1;
+    if (pnm1 == NULL) goto exit;
 
     pnm2 = malloc_with_error(ncoord * sizeof(double), error);
-    if (pnm2 == NULL) return 1;
+    if (pnm2 == NULL) goto exit;
 
     for (i = 0; i < ncoord; ++i) {
         pnm2[i] = 1.0;
@@ -180,6 +181,10 @@ eval_1dchebyshev(
         }
     }
 
+    status = 0;
+
+ exit:
+
     free(sx);
     free(pn);
     free(pnm1);
@@ -200,16 +205,17 @@ eval_1dlegendre(
         double* const zfit,
         stimage_error_t* const error) {
 
-    size_t        i    = 0;
-    size_t        j    = 0;
-    const double* x    = (double *)ref + axis;
-    double        ri   = 0.0;
-    double        ri1  = 0.0;
-    double        ri2  = 0.0;
-    double*       sx   = NULL;
-    double*       pn   = NULL;
-    double*       pnm1 = NULL;
-    double*       pnm2 = NULL;
+    size_t        i      = 0;
+    size_t        j      = 0;
+    const double* x      = (double *)ref + axis;
+    double        ri     = 0.0;
+    double        ri1    = 0.0;
+    double        ri2    = 0.0;
+    double*       sx     = NULL;
+    double*       pn     = NULL;
+    double*       pnm1   = NULL;
+    double*       pnm2   = NULL;
+    int           status = 1;
 
     assert(coeff);
     assert(ref);
@@ -235,16 +241,16 @@ eval_1dlegendre(
     }
 
     sx = malloc_with_error(ncoord * sizeof(double), error);
-    if (sx == NULL) return 1;
+    if (sx == NULL) goto exit;
 
     pn = malloc_with_error(ncoord * sizeof(double), error);
-    if (pn == NULL) return 1;
+    if (pn == NULL) goto exit;
 
     pnm1 = malloc_with_error(ncoord * sizeof(double), error);
-    if (pnm1 == NULL) return 1;
+    if (pnm1 == NULL) goto exit;
 
     pnm2 = malloc_with_error(ncoord * sizeof(double), error);
-    if (pnm2 == NULL) return 1;
+    if (pnm2 == NULL) goto exit;
 
     for (i = 0; i < ncoord; ++i) {
         pnm2[i] = 1.0;
@@ -274,12 +280,16 @@ eval_1dlegendre(
         }
     }
 
+    status = 0;
+
+ exit:
+
     free(sx);
     free(pn);
     free(pnm1);
     free(pnm2);
 
-    return 0;
+    return status;
 }
 
 int
@@ -497,11 +507,11 @@ eval_poly_generic(
     }
 
     xb = malloc_with_error(xorder * ncoord * sizeof(double), error);
-    if (xb == NULL) return 1;
+    if (xb == NULL) goto exit;
     yb = malloc_with_error(yorder * ncoord * sizeof(double), error);
-    if (yb == NULL) return 1;
+    if (yb == NULL) goto exit;
     accum = malloc_with_error(ncoord * sizeof(double), error);
-    if (accum == NULL) return 1;
+    if (accum == NULL) goto exit;
 
     /* Calculate basis functions */
     if (basis_function(ncoord, 0, ref, xorder, k1x, k2x, xb, error)) goto exit;

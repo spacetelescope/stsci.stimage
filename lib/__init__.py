@@ -195,7 +195,7 @@ def xyxymatch(input,
         between the *x* and *y* axes, and higher order distortion
         terms in the coordinate transformation.
 
-    - *tolerance*: The matching tolerance in pixels.  Default: 1.0
+    - *tolerance*: The matching tolerance in pixels. Default: 1.0
 
     - *separation*: The minimum separation for objects in the input
       and reference coordinate lists.  Objects closer together than
