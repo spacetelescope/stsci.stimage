@@ -100,7 +100,9 @@ extra_compile_args = []
 if DEBUG:
     define_macros.append(('DEBUG', None))
     undef_macros.append('NDEBUG')
-    extra_compile_args.extend(["-Wall", "-fno-inline", "-O0", "-g"])
+    if not sys.platform.startswith('sun') and \
+            not sys.platform == 'win32':
+        extra_compile_args.extend(["-Wall", "-fno-inline", "-O0", "-g"])
 else:
     define_macros.append(('NDEBUG', None))
     undef_macros.append('DEBUG')
