@@ -39,7 +39,6 @@ DAMAGE.
 
 #include <math.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #include "lib/error.h"
 
