@@ -54,7 +54,7 @@ vote_triangle_matches(
 
     typedef size_t vote_t;
 
-    vote_t*           votes;
+    vote_t*           votes        = NULL;
     vote_t            maxvote      = 0;
     vote_t            half_maxvote = 0;
     vote_t            row_maxvote  = 0;
@@ -82,6 +82,8 @@ vote_triangle_matches(
        map from reference coordinates to a map from input coordinates
        to vote counts. */
 
+    #define VOTE(li, ri) votes[(ri) * nleft + (li)]
+
     votes = malloc(nleft * nright * sizeof(size_t));
     if (votes == NULL) {
         goto exit;
@@ -103,7 +105,7 @@ vote_triangle_matches(
             assert(li >= 0 && li < nleft);
             ri = r_coord - right;
             assert(ri >= 0 && ri < nright);
-            vote = ++votes[ri * nleft + li];
+            vote = ++VOTE(li, ri);
             if (maxvote < vote) {
                 maxvote = vote;
             }
@@ -125,7 +127,7 @@ vote_triangle_matches(
         row_2maxvote = 0;
         l_coord = NULL;
         for (li = 0; li < nleft; ++li) {
-            vote = votes[ri * nleft + li];
+            vote = VOTE(li, ri);
             if (vote > row_maxvote) {
                 row_2maxvote = row_maxvote;
                 row_maxvote = vote;
@@ -153,7 +155,7 @@ vote_triangle_matches(
            won't be matched twice. */
         for (ri2 = ri; ri2 < nright; ++ri2) {
             li = l_coord - left;
-            votes[ri * nleft + li] = 0;
+            VOTE(li, ri) = 0;
         }
 
         #ifndef NDEBUG

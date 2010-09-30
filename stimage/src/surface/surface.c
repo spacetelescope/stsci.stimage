@@ -230,8 +230,9 @@ surface_copy(
         surface_copy_vector(
                 s->ncoeff, s->vector, &d->vector, error) ||
         surface_copy_vector(
-                s->ncoeff, s->coeff, &d->coeff, error))
+                s->ncoeff, s->coeff, &d->coeff, error)) {
         goto fail;
+    }
 
     return 0;
 
@@ -262,8 +263,16 @@ surface_zero(
             s->vector[i] = 0.0;
         }
 
+        for (i = 0; i < s->ncoeff; ++i) {
+            s->coeff[i] = 0.0;
+        }
+
         for (i = 0; i < s->ncoeff * s->ncoeff; ++i) {
             s->matrix[i] = 0.0;
+        }
+
+        for (i = 0; i < s->ncoeff * s->ncoeff; ++i) {
+            s->cholesky_fact[i] = 0.0;
         }
 
         break;
