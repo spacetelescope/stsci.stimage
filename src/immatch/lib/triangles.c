@@ -621,8 +621,7 @@ _match_triangles(
     if (max_num_triangles(nref, nmatch, &nref_triangles, error)) goto exit;
 
     ref_triangles = malloc_with_error(
-        nref_triangles * sizeof(triangle_t),
-        error);
+            nref_triangles * sizeof(triangle_t), error);
     if (ref_triangles == NULL) goto exit;
 
     if (find_triangles(nref, ref_sorted, &nref_triangles, ref_triangles,
@@ -639,8 +638,7 @@ _match_triangles(
     if (max_num_triangles(ninput, nmatch, &ninput_triangles, error)) goto exit;
 
     input_triangles = malloc_with_error(
-        ninput_triangles * sizeof(triangle_t),
-        error);
+            ninput_triangles * sizeof(triangle_t), error);
     if (input_triangles == NULL) goto exit;
 
     if (find_triangles(ninput, input_sorted, &ninput_triangles,
@@ -757,10 +755,12 @@ match_triangles(
     size_t          i                  = 0;
     int             status             = 1;
 
-    refcoord_matches = malloc_with_error(ncoord_matches * sizeof(coord_t*), error);
+    refcoord_matches = malloc_with_error(
+            ncoord_matches * sizeof(coord_t*), error);
     if (refcoord_matches == NULL) goto exit;
 
-    inputcoord_matches = malloc_with_error(ncoord_matches * sizeof(coord_t*), error);
+    inputcoord_matches = malloc_with_error(
+            ncoord_matches * sizeof(coord_t*), error);
     if (inputcoord_matches == NULL) goto exit;
 
     if (_match_triangles(

@@ -54,10 +54,11 @@ eval_1dpoly(
         double* const zfit,
         stimage_error_t* const error) {
 
-    size_t        i   = 0;
-    size_t        j   = 0;
-    const double* x   = (double *)ref + axis;
-    double*       tmp = NULL;
+    size_t        i      = 0;
+    size_t        j      = 0;
+    const double* x      = (double *)ref + axis;
+    double*       tmp    = NULL;
+    int           status = 1;
 
     assert(coeff);
     assert(ref);
@@ -81,7 +82,7 @@ eval_1dpoly(
     }
 
     tmp = malloc_with_error(ncoord * sizeof(double), error);
-    if (tmp == NULL) return 1;
+    if (tmp == NULL) goto exit;
 
     for (i = 0; i < ncoord; ++i) {
         tmp[i] = x[i<<1];
@@ -93,6 +94,10 @@ eval_1dpoly(
             zfit[i] += tmp[i] * coeff[j];
         }
     }
+
+    status = 0;
+
+ exit:
 
     free(tmp);
 

@@ -1276,6 +1276,7 @@ geoeval(
 
     if (has_sx2 || has_sy2) {
         tmp = malloc_with_error(ncoord * sizeof(double), error);
+        if (tmp == NULL) goto exit;
     }
 
     if (surface_vector(sx1, ncoord, ref, xfit, error)) goto exit;
