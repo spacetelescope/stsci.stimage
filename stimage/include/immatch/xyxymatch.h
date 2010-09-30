@@ -67,9 +67,6 @@ xyxymatch
        the allocated space is not big enough for all the results, an
        error will be emitted.
 
-@param refpoints The list of tie points used to compute the linear
-       transformation
-
 @param origin The origin of the input coordinate system.  If NULL,
        assume (0.0, 0.0)
 
@@ -147,7 +144,6 @@ xyxymatch(
     const size_t ninput, const coord_t* const input /*[ninput]*/,
     const size_t nref, const coord_t* const ref /*[nref]*/,
     size_t* noutput, xyxymatch_output_t* const output /*[noutput]*/,
-    const void *refpoints,
     const coord_t* const origin, /* good default: 0.0, 0.0 */
     const coord_t* const mag, /* good default: 1.0, 1.0 */
     const coord_t* const rotation, /* good default: 0.0, 0.0 */
