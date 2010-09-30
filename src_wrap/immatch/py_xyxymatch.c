@@ -126,7 +126,6 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
                 PyArray_DIM(input_array, 0), (coord_t*)PyArray_DATA(input_array),
                 PyArray_DIM(ref_array, 0), (coord_t*)PyArray_DATA(ref_array),
                 &noutput, output,
-                NULL,
                 &origin, &mag, &rotation, &ref_origin,
                 algorithm, tolerance, separation, nmatch, maxratio, nreject,
                 &error)) {

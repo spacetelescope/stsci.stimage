@@ -102,7 +102,6 @@ xyxymatch(
         const size_t ninput, const coord_t* const input /*[ninput]*/,
         const size_t nref, const coord_t* const ref /*[nref]*/,
         size_t* noutput, xyxymatch_output_t* const output /*[noutput]*/,
-        const void *refpoints,
         const coord_t* origin, /* good default: 0.0, 0.0 */
         const coord_t* mag, /* good default: 1.0, 1.0 */
         const coord_t* rotation, /* good default: 0.0, 0.0 */
@@ -180,11 +179,7 @@ xyxymatch(
     /****************************************
      DETERMINE INITIAL TRANSFORM
     */
-    if (refpoints == NULL) {
-        compute_lintransform(*origin, *mag, *rotation, *ref_origin, &lintransform);
-    } else {
-        /* TODO: Handle the reference point matches */
-    }
+    compute_lintransform(*origin, *mag, *rotation, *ref_origin, &lintransform);
 
     /****************************************
      PREPARE INPUT COORDINATES
