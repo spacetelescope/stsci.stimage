@@ -119,7 +119,6 @@ cholesky_solve(
         double* const coeff,
         stimage_error_t* const error) {
 
-    /* TODO: This indexing may not be right */
     #define MATFAC(j, i) (matfac[(i)*nbands+(j)])
 
     size_t i, j, jmax, nbands_m1;

@@ -416,13 +416,11 @@ geo_fit_theta(
 
     if (double_approx_equal(num, 0.0) && double_approx_equal(denom, 0.0)) {
         theta = 0.0;
-        /* TODO: Add a warning? */
     } else {
         theta = atan2(num, denom);
         if (theta < 0.0) {
             theta += M_PI * 2.0;
         }
-        /* TODO: Add a warning? */
     }
 
     /* Compute the polynomial coefficients */
@@ -565,13 +563,11 @@ geo_fit_magnify(
 
     if (double_approx_equal(num, 0.0) && double_approx_equal(denom, 0.0)) {
         theta = 0.0;
-        /* TODO: Warning */
     } else {
         theta = atan2(num, denom);
         if (theta < 0.0) {
             theta += 2.0 * M_PI;
         }
-        /* TODO: Warning */
     }
 
     /* Compute the magnification factor */
@@ -581,7 +577,6 @@ geo_fit_magnify(
     denom = sxrxr + syryr;
     if (denom <= 0.0) {
         mag = 1.0;
-        /* TODO: Warn singular fit */
     } else {
         mag = num / denom;
     }
@@ -709,7 +704,6 @@ geo_fit_linear(
         sxrxr * (syrxi + syryi) * (syrxi - syryi);
     if (double_approx_equal(num, 0.0) && double_approx_equal(denom, 0.0)) {
         theta = 0.0;
-        /* TODO: Warn singular fit */
     } else {
         theta = atan2(num, denom) / 2.0;
         if (theta < 0.0) {
@@ -725,7 +719,6 @@ geo_fit_linear(
     denom = sxrxr;
     if (denom <= 0.0) {
         xmag = 1.0;
-        /* TODO: Warn singular fit */
     } else {
         xmag = num / denom;
     }
@@ -735,7 +728,6 @@ geo_fit_linear(
     denom = syryr;
     if (denom <= 0.0) {
         ymag = 1.0;
-        /* TODO: Warn singular fit */
     } else {
         ymag = num / denom;
     }
@@ -803,8 +795,6 @@ _geo_fit_xy_validate_fit_error(
         return 1;
 
     default:
-        /* TODO: In the original code, this prints messages, but we're
-           trying to avoid that here. */
         break;
     }
 
@@ -885,7 +875,6 @@ geo_fit_xy(
                 savefit.coeff[2] = 0.0;
             }
             surface_free(sf1);
-            /* TODO: Is this the right operation? */
             if (surface_copy(&savefit, sf1, error)) goto exit;
             *has_secondary = 0;
             break;
@@ -1790,28 +1779,28 @@ geomap_result_print(
     printf("  mag:          (%f, %f)\n", r->mag.x, r->mag.y);
     printf("  rotation:     (%f, %f)\n", r->rotation.x, r->rotation.y);
 
-    if (r->xcoeff) {
+    if (r->nxcoeff && r->xcoeff) {
         printf("  xcoeff:       ");
         for (i = 0; i < r->nxcoeff; ++i) {
             printf("%f ", r->xcoeff[i]);
         }
         printf("\n");
     }
-    if (r->ycoeff) {
+    if (r->nycoeff && r->ycoeff) {
         printf("  ycoeff:       ");
         for (i = 0; i < r->nycoeff; ++i) {
             printf("%f ", r->ycoeff[i]);
         }
         printf("\n");
     }
-    if (r->x2coeff) {
+    if (r->nx2coeff && r->x2coeff) {
         printf("  x2coeff:       ");
         for (i = 0; i < r->nx2coeff; ++i) {
             printf("%f ", r->x2coeff[i]);
         }
         printf("\n");
     }
-    if (r->y2coeff) {
+    if (r->ny2coeff && r->y2coeff) {
         printf("  y2coeff:       ");
         for (i = 0; i < r->ny2coeff; ++i) {
             printf("%f ", r->y2coeff[i]);
