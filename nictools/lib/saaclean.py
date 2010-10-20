@@ -28,8 +28,8 @@ Dependencies:
 
 from __future__ import division
 
-__version__="1.3"
-__vdate__="2009-12-14"
+__version__="1.4"
+__vdate__="2010-10-20"
 
 # The above text is duplicated in the __init__ file for the package, since
 #that's where it shows up for the user.
@@ -559,9 +559,9 @@ def osfn(filename):
     newfilename=os.environ[symbol]+'/'+rest    
     return newfilename
 
-def writeimage(image, filename, comment=None,clobber=False):
+def writeimage(image, filename, header=None,comment=None,clobber=False):
   hdulist=pyfits.HDUList()
-  hdu=pyfits.PrimaryHDU()
+  hdu=pyfits.PrimaryHDU(header=header)
   hdu.data=image
   if (comment is not None):
     hdu.header.add_comment(comment)
@@ -752,7 +752,10 @@ def getdark(camera,tdkfile,darkpath):
     f.close()
     return ans
 
-def make_saaper(im1,im2,dark,pars,crthresh=1):
+def make_saaper(imgfile,pars,crthresh=1):
+    # Get dark data here
+    im1,im2,dark=get_dark_data(imgfile,pars.darkpath)
+    
     #Process the data
     for im in [im1,im2]:
         im.dark_subtract(dark)
@@ -769,7 +772,9 @@ def make_saaper(im1,im2,dark,pars,crthresh=1):
         u2=N.where(a > pars.crthresh)
         saaper[u2]=im1.data[u2]
     if pars.writesaaper and pars.saaperfile:
-        writeimage(saaper,pars.saaperfile,clobber=pars.clobber)        
+        hdr = create_saaper_header(im1,im2,saaper)
+        hdr['filename'] = pars.saaperfile # update filename for new output
+        writeimage(saaper,pars.saaperfile,clobber=pars.clobber,header=hdr)        
     return saaper
 
 
@@ -779,6 +784,33 @@ def get_dark_data(imgfile,darkpath):
     im2=Exposure(saafiles[1],nickname='postsaa dark #2')
     dark=getdark(im1.camera,im1.tdkfile,darkpath)
     return im1,im2,dark
+
+def create_saaper_header(im1,im2,saaper):
+    # User the header from the first SAA image as the template
+    hdr = pyfits.Header()
+    # Update keywords to make final combined header
+    # By default, use the value from 'im1'
+    pkeys = ['filename','targname','imagetyp','date-obs','time-obs',
+            'exptime','expstart','expend', 'saa_exit','saa_time',
+             'adcgain','camera','saadfile','maskfile']
+
+    # Build up header from list of keywords
+    for k in pkeys:
+        # Find out index of card with this keyword from im1 header
+        kindx = im1.h.ascard.index_of(k)
+        # copy entire card from im1 header to new header for this keyword
+        # this preserves the comment as well as the value
+        hdr.ascard.append(im1.h.ascard[kindx])
+        
+    #Now for those keywords which need special attention...
+    hdr.update('imagetyp','SAAPER')
+    hdr.update('expend',im2.h['expend'])
+    hdr.update('exptime',im1.h['exptime']+im2.h['exptime'])
+    hdr.update('bunit','COUNTS') # based on input value from im1
+    hdr.update('datamin',saaper.min())
+    hdr.update('datamax',saaper.max())
+    
+    return hdr
 
 def flat_saaper(saaper,img):
     #The "midpt" computes a pseudo-median function.
@@ -840,8 +872,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
         saaper=sfile[0].data
         sfile.close()
     else:
-        im1,im2,dark=get_dark_data(imgfile,pars.darkpath)
-        saaper=make_saaper(im1,im2,dark,pars)
+        saaper=make_saaper(imgfile,pars)
         print "Using scale factor of ",pars.scale," to construct persistence image"
 
 
