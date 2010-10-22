@@ -34,6 +34,7 @@ __vdate__="2010-10-20"
 # The above text is duplicated in the __init__ file for the package, since
 #that's where it shows up for the user.
 from pytools import numerixenv #Temporary NUMERIX environment check 
+from pytools import fileutil
 import os 
 import exceptions
 import numpy as N, pyfits
@@ -547,17 +548,7 @@ def osfn(filename):
     """Return a filename with iraf syntax and os environment names substituted out"""
     if filename is None:
         return filename
-    
-    #Baby assumptions: suppose that the env variables will be in front.
-   
-    if filename.startswith('$'):  #we need to translate a logical
-        symbol,rest=filename.split('/',1)
-    elif '$' in filename: #we need to fix the iraf syntax
-        symbol,rest=filename.split('$',1)
-    else:
-        return filename
-    newfilename=os.environ[symbol]+'/'+rest    
-    return newfilename
+    return fileutil.osfn(filename)
 
 def writeimage(image, filename, header=None,comment=None,clobber=False):
   hdulist=pyfits.HDUList()
@@ -809,6 +800,7 @@ def create_saaper_header(im1,im2,saaper):
     hdr.update('bunit','COUNTS') # based on input value from im1
     hdr.update('datamin',saaper.min())
     hdr.update('datamax',saaper.max())
+    hdr.update('date',fileutil.getDate(),comment='Date this file was written')
     
     return hdr
 
