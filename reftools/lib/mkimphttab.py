@@ -247,9 +247,8 @@ def createTable(output,basemode,graphtab,nmodes=None,clobber=True,verbose=False)
     parvals_rows = list()
     filtdata_set = dict()
     parnames_rows = np.chararray([nrows,max_npars],itemsize=fpars_sz) # create columns for PAR*NAMES
-    parnames_rows[:] = '' # initialize with blanks, just to be safe
-    
-    print "Parsing out parameterized variables for each row's obsmode..."
+    parnames_rows[:] = ''*fpars_sz # initialize with blanks, just to be safe
+
     for nr in range(nrows):
         # create path through graphtab for this obsmode, reading in values for
         # all parameterized variables as well
@@ -260,10 +259,11 @@ def createTable(output,basemode,graphtab,nmodes=None,clobber=True,verbose=False)
         for p in filtdata:
             if p.upper() not in filtdata_set.keys():
                 filtdata_set[p] = filtdata[p]
-        
+
         fpars = fpars_vals[nr]
         npars = npar_vals[nr]
         pvals = list()
+
         #extract entries from 'filtdata' for only the values given in 'fpars'
         for i in range(max_npars):
             if len(fpars) == 0:
@@ -272,9 +272,9 @@ def createTable(output,basemode,graphtab,nmodes=None,clobber=True,verbose=False)
                 if i < len(fpars):
                     f = fpars[i].upper()
                     nelem = len(filtdata[f])
-                    nelem_rows[nr][i] = nelem
+                    nelem_rows[nr,i] = nelem
                     pvals.append(np.array(filtdata[f]))
-                    parnames_rows[nr][i] = f
+                    parnames_rows[nr,i] = f
                             
         parvals_rows.append(pvals)
 
@@ -288,14 +288,16 @@ def createTable(output,basemode,graphtab,nmodes=None,clobber=True,verbose=False)
     plam_rows = list()
     bw_rows = list()
     # set up the flat spectrum used for the computing the photometry keywords
-    spec = S.FlatSpectrum(1,fluxunits='flam')
-    
-    print "Computing photmetry values for each row's obsmode..."
-    print 'Row: ',
-    sys.stdout.flush()
-    for nr in range(nrows):
-        print nr+1,' ',  # Provide some indication of which row is being worked
+    flatspec = S.FlatSpectrum(1,fluxunits='flam')
+
+    if verbose:
+        print "Computing photmetry values for each row's obsmode..."
+        print 'Row: ',
         sys.stdout.flush()
+    for nr in range(nrows):
+        if verbose:
+            print nr+1,' ',  # Provide some indication of which row is being worked
+            sys.stdout.flush()
          
         obsmode = obsmodes[nr]
         fpars = fpars_vals[nr]
@@ -318,11 +320,9 @@ def createTable(output,basemode,graphtab,nmodes=None,clobber=True,verbose=False)
         pplam = np.zeros(nmodes,np.float64)
         pbw = np.zeros(nmodes,np.float64)
 
-        if verbose:
-            print 'nmodes for ',fpars,' : ',nmodes
         
         for fullmode,n in zip(olist,range(nmodes)):
-            value = computeValues(fullmode,spec=spec)
+            value = computeValues(fullmode,spec=flatspec)
             if verbose:
                 print 'PHOTFLAM(%s) = %g\n'%(fullmode,value['PHOTFLAM'])
             pflam[n] = value['PHOTFLAM']
@@ -407,13 +407,14 @@ def createTable(output,basemode,graphtab,nmodes=None,clobber=True,verbose=False)
     parvals_tabcols = list()
     nelem_tabcols = list()
     parnames_tabcols = list()
+    parnames_format = str(fpars_sz)+"A[]"
     # for each parameterized element, create a set of columns specifying the
     # range of values for that parameter and the number of elements covering that range
     # namely, the PAR<n>VALUES and NELEM<n> columns
     for p in range(max_npars):
         nelem_tabcols.append(Column(name="NELEM"+str(p+1),format="I",array=np.array(nelem_cols[p],np.int16)))
         parvals_tabcols.append(Column(name="PAR"+str(p+1)+"VALUES",format="PD[]",array=np.array((parvals_cols[p]),'O')))
-        parnames_tabcols.append(Column(name="PAR"+str(p+1)+"NAMES",format="PD[]",array=np.array((parnames_cols[p]),'O')))
+        parnames_tabcols.append(Column(name="PAR"+str(p+1)+"NAMES",format=parnames_format,array=np.array((parnames_cols[p]),'O')))
         
     # create the set of results columns
     flam_tabcols = list()
@@ -440,13 +441,13 @@ def createTable(output,basemode,graphtab,nmodes=None,clobber=True,verbose=False)
     # Now create the FITS file with the table in each extension
     
     phdu = makePrimaryHDU(output,max_npars,basemode.split(',')[0])
-    flam_tab = pyfits.new_table([obsmode_col,datacol_col['PHOTFLAM']]+flam_tabcols+parvals_tabcols+nelem_tabcols+[pedigree_col,descrip_col])
+    flam_tab = pyfits.new_table([obsmode_col,datacol_col['PHOTFLAM']]+flam_tabcols+parnames_tabcols+parvals_tabcols+nelem_tabcols+[pedigree_col,descrip_col])
     flam_tab.header.update('extname','PHOTFLAM')
     flam_tab.header.update('extver',1)
-    plam_tab = pyfits.new_table([obsmode_col,datacol_col['PHOTPLAM']]+plam_tabcols+parvals_tabcols+nelem_tabcols+[pedigree_col,descrip_col])
+    plam_tab = pyfits.new_table([obsmode_col,datacol_col['PHOTPLAM']]+plam_tabcols+parnames_tabcols+parvals_tabcols+nelem_tabcols+[pedigree_col,descrip_col])
     plam_tab.header.update('extname','PHOTPLAM')
     plam_tab.header.update('extver',1)
-    bw_tab = pyfits.new_table([obsmode_col,datacol_col['PHOTBW']]+bw_tabcols+parvals_tabcols+nelem_tabcols+[pedigree_col,descrip_col])    
+    bw_tab = pyfits.new_table([obsmode_col,datacol_col['PHOTBW']]+bw_tabcols+parnames_tabcols+parvals_tabcols+nelem_tabcols+[pedigree_col,descrip_col])    
     bw_tab.header.update('extname','PHOTBW')
     bw_tab.header.update('extver',1)
     
