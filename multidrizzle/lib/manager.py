@@ -949,7 +949,7 @@ class ImageManager(object):
             mask_handle.close()
             del mask_handle, blot_handle
 
-    def doFinalDriz(self, drizpars, runfile):
+    def doFinalDriz(self, drizpars):
         """ Performs the final drizzle step. """
 
         if drizpars['outnx'] != None or drizpars['outny'] != None:
@@ -1037,9 +1037,12 @@ class ImageManager(object):
         print("drizzle.outcont = '"+self.assoc.parlist[0]['outcontext']+"'")
         print("drizzle.kernel = '"+self.assoc.parlist[0]['kernel']+"'")
         print("\n")
-
+    
+        runfile = drizpars['runfile']
         if runfile == '':
             runfile = self.output[:self.output.find('_drz.fits')]+'.run'
+            drizpars['runfile'] = runfile
+        
         runlog = open(runfile,'w')
 
         runlog.write("drizzle.outnx = "+str(self.assoc.parlist[0]['outnx'])+"\n")

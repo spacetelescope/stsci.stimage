@@ -48,7 +48,7 @@ from pytools.parseinput import parseinput
 
 
 # Begin Version Information -------------------------------------------
-__version__ = '3.3.7dev9802'
+__version__ = '3.3.8dev11021'
 __vdate__ = '08-Jul-2010'
 # End Version Information ---------------------------------------------
 # Revision based version info
@@ -714,7 +714,9 @@ help file.
         self._postMedian(self.blotpars, self.drizcrpars, self.skypars)
 
         if self.steps.doStep(ProcSteps.doFinalDriz):
-            self.image_manager.doFinalDriz(self.driz_final_pars, self.runfile)
+            self.driz_final_pars['runfile'] = self.runfile
+            self.image_manager.doFinalDriz(self.driz_final_pars)
+            self.runfile = self.driz_final_pars['runfile']
             self.image_manager.updateMdrizVerHistory(self.driz_final_pars['build'],self.versions)
             self.steps.markStepDone(ProcSteps.doFinalDriz)
 
