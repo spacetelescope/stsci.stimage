@@ -15,6 +15,9 @@ import os.path
 # already listed pydrizzle.)
 
 all_packages_input = [
+
+    "acstools",
+    "betadrizzle",
     "calcos",
     "convolve",
     "image",
@@ -27,15 +30,14 @@ all_packages_input = [
     "opuscoords",
     "pydrizzle",
     "pytools",
-    "sample_package",
-    "stistools",
-    "wfpc2tools",
-    "acstools",
-    "stwcs",
     "reftools",
-    "betadrizzle",
+    "sample_package",
+    "stimage",
+    "stistools",
     "stsci_sphinxext",
-    "stimage"
+    "stwcs",
+    "wfpc2tools",
+
 ]
 
 for x in [ "pyfits", "pysynphot", "pywcs" ] :
@@ -69,6 +71,10 @@ e_dict = { }
 f = open("pytools/lib/stsci_distutils_hack.py","r")
 exec f in e_dict
 f.close()
+
+# Check that numpy is present, numpy include files are present,
+# python include files are present
+e_dict['check_requirements']()
 
 set_svn_version = e_dict['__set_svn_version__']
 set_setup_date = e_dict['__set_setup_date__']

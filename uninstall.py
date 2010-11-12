@@ -14,6 +14,9 @@ never = False
 if "-n" in sys.argv :
     never = True
 
+
+make_old = False
+
 # make_old is an undocumented features that is not intended for users.
 if "-old" in sys.argv :
     make_old = True
@@ -101,13 +104,11 @@ to contact the distributors of Scisoft if you have problems.
 #
 
 all_package = [
-# packages in developmenbt
+
+# package from the list in setup.py
+
+    "acstools",
     "betadrizzle",
-    "opuscoords",
-    "stwcs",
-    "pywcs",
-    "reftools",
-# packages in 2.7
     "calcos",
     "convolve",
     "image",
@@ -117,15 +118,25 @@ all_package = [
     "ndimage",
     "nictools",
     "numdisplay",
+    "opuscoords",
     "pydrizzle",
+    "pytools",
+    "reftools",
+    "sample_package",
+    "stimage",
+    "stistools",
+    "stsci_sphinxext",
+    "stwcs",
+    "wfpc2tools",
+
+# others
+
     "pyfits",
     "pyraf",
     "pysynphot",
     "pytools",
-    "sample_package",
-    "stistools",
-    "wfpc2tools",
     "stscidocs",
+    "pywcs",
 
 # old from stsci_python 2.5
     "puftcorr",
