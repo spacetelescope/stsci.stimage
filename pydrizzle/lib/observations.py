@@ -283,7 +283,7 @@ class WFC3Observation(Pattern):
         self.exptime = self.getExptime()
         
         # Set binned factor for exposure
-        self.binned = fileutil.getKeyword(filename+'[sci,1]', 'BINAXIS1')
+        #self.binned = fileutil.getKeyword(filename+'[sci,1]', 'BINAXIS1')
 
         # Build up list of chips in observation
         self.addMembers(filename)
