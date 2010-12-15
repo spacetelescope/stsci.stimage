@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 from __future__ import division # confidence high
 
-
 # $Id: $
 
-import sys, os
+import sys
+import os
 import string
 
+# suppress all the text that comes out when you import pysynphot
+# ( not good enough... I guess we still won't check pysynphot )
+os.environ['PYSYN_CDBS'] = '.' 
 
 #
 # required versions shows the exact version number of some
@@ -92,29 +95,24 @@ def pkg_info(p) :
                         return [ ver.split(' ')[0], loc ]
                 except :
                         return [ "???", loc ]
-        except ImportError:
-            return [ "not found", "???" ]
+        except ImportError, e:
+            return [ "not found", str(e) ]
         # not reached
 
 
-def testpk( ):
+def testpk( verbose ):
+
+    if verbose :
+        print "sys.path :"
+        for x in sys.path :
+            print "       ",x
+
     print ""
     print "Checking installed versions"
     print ""
 
-    pyraf_message = ""
-    
-
     if string.split(sys.version)[0] < '2.3':
         print "Python version 2.3 is required to run multidrizzle."
-
-    try:
-        import pyraf
-        if pyraf.__version__ < "1.4" :
-            pyraf_message = "The latest public release of PyRAF is v 1.4.\n Pyraf v. %s was found.\n" % pyraf.__version__
-    except ImportError:
-        print "PyRAF is not installed or not on your PYTHONPATH.\nPlease correct this if you intend to use it, before you attempt to run multidrizzle.\n"
-
 
     try:
         import Pmw
@@ -155,9 +153,9 @@ def testpk( ):
         messages.sort()
         for m in messages:
             print m
-        print pyraf_message
+        if not verbose :
+            print "If you will be sending email to help@stsci.edu, please re-run with 'python testpk.py -v'"
     else:
-        print pyraf_message
         print "All packages were successfully installed.\n"
     
 
@@ -221,7 +219,9 @@ if __name__ == '__main__':
             if sys.argv[1] == '-o' :
                 report_pk(1)
             if sys.argv[1] == '-t' :
-                testpk()
+                testpk(0)
+            if sys.argv[1] == '-v' :
+                testpk(1)
         else :
-            testpk()
+            testpk(0)
 
