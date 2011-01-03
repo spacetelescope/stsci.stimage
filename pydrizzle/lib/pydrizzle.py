@@ -22,7 +22,7 @@ _default_pars = {'psize':None,'default_rot':None,'idckey':None}
 
 INSTRUMENT = ["ACS","WFPC2","STIS","NICMOS","WFC3"]
 
-__version__ = "6.3.6 (8-July-2010)"
+__version__ = "6.3.7 (3-Jan-2011)"
 
 
 class _PyDrizzle:
@@ -578,7 +578,7 @@ More help on SkyField objects and their parameters can be obtained using:
                 if (_sciext.data.dtype > np.float32):
                     #WARNING: Input array recast as a float32 array
                     _sciext.data = _sciext.data.astype(np.float32)
-                    
+                                    
                 _vers,nmiss,nskip = arrdriz.tdriz(_sciext.data,_inwht, _outsci, _outwht,
                             _outctx[_planeid], _uniqid, ystart, 1, 1, _dny,
                             plist['xsh'],plist['ysh'], 'output','output',
@@ -993,6 +993,7 @@ class DitherProduct(Pattern):
         # Setup a default exposure to contain the results
         Pattern.__init__(self, None, output=output, pars=pars)
         self.pars = prodlist['members']
+        
         self.nmembers = self.nimages = len(prodlist['members']) 
         self.offsets = None
 
@@ -1113,7 +1114,8 @@ class DitherProduct(Pattern):
         mtflag = fileutil.getKeyword(filename, 'MTFLAG')
 
         if mtflag == 'T':
-            mt_member = selectInstrument(filename,output, pars=pars)
+            mtpars = pars.copy() # necessary in order to avoid problems with use of pars in next loop
+            mt_member = selectInstrument(filename,output, pars=mtpars)
             mt_wcs = {}
             for member in mt_member.members:
                 mt_wcs[member.chip] = member.geometry.wcs
