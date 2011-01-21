@@ -1376,14 +1376,14 @@ doublereal mgf2_(doublereal *lam)
     xg_dim1 = *xgdim;
     xg_offset = 1 + xg_dim1;
     xg -= xg_offset;
-
+    
     /* Function Body */
     if (s_cmp(align, "corner", (ftnlen)8, (ftnlen)6) == 0) {
 	xcen = (doublereal) (*dnx / 2.f) + .5f;
 	ycen = (doublereal) (*dny / 2.f) + .5f;
     } else {
-	xcen = (doublereal) (*dnx / 2.f) + 1.f;
-	ycen = (doublereal) (*dny / 2.f) + 1.f;
+	xcen = (doublereal) (*dnx / 2.f);
+	ycen = (doublereal) (*dny / 2.f);
     }
 /* Calculate some numbers to simplify things later */
     sinth = sin(*rot);
@@ -1411,8 +1411,8 @@ doublereal mgf2_(doublereal *lam)
 	xp = (doublereal) (*onx / 2.f) + .5;
 	yp = (doublereal) (*ony / 2.f) + .5;
     } else {
-	xp = (doublereal) (*onx / 2.f) + 1.;
-	yp = (doublereal) (*ony / 2.f) + 1.;
+	xp = (doublereal) (*onx / 2.f);
+	yp = (doublereal) (*ony / 2.f);
     }
     xt = xoff + xp;
     yt = yoff + yp;
@@ -1551,6 +1551,7 @@ doublereal mgf2_(doublereal *lam)
 
 	    for (i__ = 1; i__ <= i__1; ++i__) {
 		x += 1.;
+
 		if (*coty == 3) {
 		    d__1 = x + xd + xdoff;
 		    d__2 = y + yd + ydoff;
@@ -3551,6 +3552,7 @@ L140:
 					    ++nhit;
 					    vc = ncou[ii + jj * ncou_dim1];
 					    dow = (real) (dover * w);
+
 /* If we are creating or modifying the context image we */
 /* do so here */
 					    if (*con && dow > 0.f) {
@@ -3572,6 +3574,7 @@ L140:
 			  ndat[ii + jj * ndat_dim1] = (ndat[ii + jj * 
 				  ndat_dim1] * vc + dow * d__) / (vc + dow);
 					    }
+                        
 					    ncou[ii + jj * ncou_dim1] = vc + 
 						    dow;
 					}
