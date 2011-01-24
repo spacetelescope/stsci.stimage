@@ -31,26 +31,49 @@ def loadImtoolrc(imtoolrc=None):
         dictionary for reference. 
         
     """    
-    # Find the IMTOOLRC file
+    # Find the IMTOOLRC file.  Except as noted below, this order
+    # matches what ximtool and ds9 use.
     _home = os.getenv("HOME")
-    
+
     # Look for path to directory where this module is installed
     # This will be last-resort location for IMTOOLRC that was
     # distributed with this module.
     _module_path = os.path.split(__file__)[0]
 
+    ####
+    # list of file names to look for; ok to have None to skip an entry
     _name_list = []
+
+    # There are two environment variables that might set the location
+    # of imtoolrc:
+
+    # getenv('imtoolrc')
     _name_list.append(os.getenv(_default_imtoolrc_env[0]))
+
+    # getenv('IMTOOLRC')
     _name_list.append(os.getenv(_default_imtoolrc_env[1]))
+
+    # ~/.imtoolrc
+    if 'HOME' in os.environ :
+        _name_list.append( os.path.join(os.environ['HOME'], ".imtoolrc") )
+    _name_list.append(sys.prefix+os.sep+_default_local_imtoolrc)
+
+    # /usr/local/lib/imtoolrc
     _name_list.append(_default_system_imtoolrc)
     
-    # Add entry for 'imtoolrc' file that comes with module
+    # $iraf/dev/imtoolrc - this is not in ds9 or NOAO's ximtool,
+    # but it is in the AURA Unified Release ximtool.  This is the
+    # one place on your system where you can be certain that 
+    # imtoolrc is really there.  Eventually, we will make a patch
+    # to add this to ds9 and to IRAF.
+    if 'iraf' in os.environ :
+        _name_list.append( os.path.join( os.environ['iraf'], 'dev', 'imtoolrc') )
+
+    # special to numdisplay: use imtoolrc that is in the package directory.
+    # Basically, this is our way of having a built-in default table.
     _name_list.append(_module_path+os.sep+'imtoolrc')
 
-    if _home:
-        _name_list.append(_home+os.sep+".imtoolrc")
-    _name_list.append(sys.prefix+os.sep+_default_local_imtoolrc)
-    
+    ####
     # Search all possible IMTOOLRC names in list
     # and open the first one found...
     for name in _name_list:
