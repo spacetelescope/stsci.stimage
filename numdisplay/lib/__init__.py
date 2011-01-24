@@ -476,3 +476,40 @@ display = view.display
 readcursor = view.readcursor
 getHandle = view.getHandle
 checkDisplay = view.checkDisplay
+
+def sample() :
+    '''stuff a sample image into the display
+
+    use this to see that numdisplay is able to speak to the display program
+    (ds9 or ximtool)
+'''
+    #
+    numpy = n
+
+    # an array of values 0..99
+    a1 = numpy.arange(100)
+
+    # an array going from 200..0 by 2
+    a2 = numpy.arange(200,0,-2)
+
+    # an empty array the size of the image I want
+    b = numpy.zeros( 100 * 100 )
+
+    # make the array square
+    b.shape = ( 100, 100 )
+
+    # copy a1 into the first 50 rows
+    for x in range(0, 50) :
+        b[x] = a1
+
+    # copy a2 into the second 50 rows
+    for x in range( 50, 100 ) :
+        b[x] = a2
+
+    # numdisplay.display(b)
+    display(b)
+
+    print "The first 50 rows are ascending brightness left  to right"
+    print "The next  50 rows are ascending brightness right to left, but st"
+    print "REMEMBER THAT 0,0 IS BOTTOM LEFT"
+
