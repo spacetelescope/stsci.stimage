@@ -1,0 +1,12 @@
+_task_name_ = string_kw(default="tdspysyn")
+input = string_kw(default="", comment="Input TDS file")
+outroot = string_kw(default="",
+                    comment="Root name for constructing output file names")
+min_wl = float_kw(default=1100., comment="Minimum wavelength (Angstroms)")
+max_wl = float_kw(default=11000., comment="Maximum wavelength (Angstroms)")
+dwl = float_kw(default=100., comment="Wavelength increment (Angstroms)")
+thru_mjd = float_kw(default=55927., comment="Time (MJD) for throughput column")
+last_mjd = float_or_none_kw(default=None, comment="A time (MJD) in the future")
+row = integer_or_none_kw(default=None, comment="Row number in TDS table")
+mode = string_kw(default="all")
+[ _RULES_ ]

@@ -1,0 +1,57 @@
+This program reads a time-dependent sensitivity (TDS) file for either
+COS or STIS and writes one throughput table in pysynphot format for each
+input row.
+
+:Author: Phil Hodge, STScI, February 2011.
+
+Notes
+-----
+A row number may be specified in order to create just a single throughput
+table for that row in the input TDS table.
+
+Parameters
+----------
+input: str
+    The name of the input TDS table.
+
+outroot: str
+    A root name for constructing the name(s) of the output pysynphot
+    file(s).  For COS data the full file name will be `outroot` plus the
+    grating name, the segment or stripe name, the aperture name, and
+    ".fits".  The grating, segment and aperture names will be in lower
+    case, and each will be preceded by "_".  For STIS data, the full file
+    name will be `outroot` plus "_", the grating name (lower case), and
+    ".fits".
+
+min_wl: float
+    The minimum wavelength (Angstroms) for the WAVELENGTH column in the
+    output pysynphot table.
+
+max_wl: float
+    The maximum wavelength (Angstroms) for the WAVELENGTH column in the
+    output pysynphot table.
+
+dwl: float
+    The increment (Angstroms) from row to row in the WAVELENGTH column in
+    the output pysynphot table.
+
+thru_mjd: float
+    The time (MJD) to use for the THROUGHPUT column.  This column contains
+    the default throughput values that pysynphot will use if no date was
+    specified.  This is the one time value that will not be rounded to an
+    int.
+
+last_mjd: float or None
+    A time (MJD) in the future.  If `last_mjd` is None, no MJD# column will
+    be created for this value.  This would be appropriate, for example, if
+    the input TDS table already has a time value that is far enough in the
+    future.
+
+row: int or None
+    If a row number (zero indexed) was specified, a pysynphot table will be
+    written for just that one row of the input TDS table.  If `row` is None
+    (the default), a pysynphot table will be written for each row of the
+    input TDS table.
+
+Examples
+--------
