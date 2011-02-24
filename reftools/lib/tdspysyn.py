@@ -814,7 +814,6 @@ def getHelpAsString(fulldoc=True):
     helpString = basedoc + "\n"
     helpString += "Version " + __version__ + "\n"
 
-    print "debug:  __file__ =", __file__
     helpString += teal.getHelpFileAsString(__taskname__, __file__)
 
     helpString += __usage__
