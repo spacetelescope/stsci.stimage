@@ -12,5 +12,4 @@ setupargs = {
     'data_files' :      [( pkg+"/pars", ['lib/pars/*']), (pkg, ['lib/*.help']), (pkg, ['lib/LICENSE.txt'])],
     'scripts' :         ['lib/tdspysyn'],
     'platforms' :       ["Linux", "Solaris", "Mac OS X", "Win"],
-    'ext_modules' :     ext,
     }
