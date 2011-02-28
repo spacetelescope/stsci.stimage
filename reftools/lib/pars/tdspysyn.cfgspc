@@ -1,7 +1,6 @@
 _task_name_ = string_kw(default="tdspysyn")
 input = string_kw(default="", comment="Input TDS file")
-outroot = string_kw(default="",
-                    comment="Root name for constructing output file names")
+outroot = string_kw(default="", comment="Root name for constructing output file names")
 min_wl = float_kw(default=1100., comment="Minimum wavelength (Angstroms)")
 max_wl = float_kw(default=11000., comment="Maximum wavelength (Angstroms)")
 dwl = float_kw(default=100., comment="Wavelength increment (Angstroms)")
