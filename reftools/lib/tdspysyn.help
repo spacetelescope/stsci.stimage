@@ -2,7 +2,7 @@ This program reads a time-dependent sensitivity (TDS) file for either
 COS or STIS and writes one throughput table in pysynphot format for each
 input row.
 
-:Author: Phil Hodge, STScI, February 2011.
+:Author: Phil Hodge, STScI, March 2011.
 
 Notes
 -----
@@ -48,7 +48,7 @@ last_mjd: float or None
     future.
 
 row: int or None
-    If a row number (zero indexed) was specified, a pysynphot table will be
+    If a row number (one indexed) was specified, a pysynphot table will be
     written for just that one row of the input TDS table.  If `row` is None
     (the default), a pysynphot table will be written for each row of the
     input TDS table.
