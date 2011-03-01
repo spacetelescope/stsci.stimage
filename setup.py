@@ -15,7 +15,6 @@ import os.path
 # already listed pydrizzle.)
 
 all_packages_input = [
-
     "acstools",
     "betadrizzle",
     "calcos",
@@ -34,23 +33,26 @@ all_packages_input = [
     "sample_package",
     "stimage",
     "stistools",
-    "stsci_sphinxext",
     "stwcs",
     "wfpc2tools",
 
 ]
 
-for x in [ "pyfits", "pysynphot", "pywcs" ] :
+opt_packages_input = [
+    "coords", 
+    "pyfits", 
+    "pyraf", 
+    "pysynphot", 
+    "pywcs", 
+    "stsci_sphinxext" 
+
+]
+
+for x in opt_packages_input :
     if os.path.isdir(x) :
         all_packages_input.append(x)
     else :
         print "WARNING:",x," not present"
-
-if ( sys.platform != 'win32' ) :
-    if os.path.isdir("pyraf") :
-        all_packages_input.append("pyraf")
-    else :
-        print "WARNING: pyraf not present"
 
 
 ## If you are just adding a new package, you don't need to edit anything
