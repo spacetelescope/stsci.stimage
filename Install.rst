@@ -10,6 +10,12 @@
 .. H3 ~~~
 ..
 
+.. These are things that appear in the custom style sheet
+.. role:: red
+.. role:: blue
+.. role:: green
+.. role:: orange
+
 ================================================================================
 STSCI_PYTHON Version 2.8
 ================================================================================
