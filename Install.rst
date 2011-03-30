@@ -10,208 +10,27 @@
 .. H3 ~~~
 ..
 
-.. These are things that appear in the custom style sheet
 .. role:: red
-.. role:: blue
 .. role:: green
+.. role:: blue
 .. role:: orange
 
 ================================================================================
-STSCI_PYTHON Version 2.8
+STSCI_PYTHON Version 2.11
 ================================================================================
 
 :abstract: 
 
-        STSCI_PYTHON is a collection of Python packages (with C
-        extensions) that has been developed to provide a general
-        astronomical data analysis infrastructure. They can be used
-        standalone from within Python or as Python tasks that are
-        accessible from within STSDAS whens running under PyRAF.
+	STSCI_PYTHON is a collection of Python packages (with C
+	extensions) that has been developed to provide a general
+	astronomical data analysis infrastructure. They can be used
+	standalone from within Python or as Python tasks that are
+	accessible from within STSDAS whens running under PyRAF.
 
-        STSCI_PYTHON is developed by the Science Software Branch
-        at the Space Telescope Science Institute.
-
+	STSCI_PYTHON is developed by the Science Software Branch
+	at the Space Telescope Science Institute.
 
 .. contents::
-
-Installing From Source 
---------------------------------------------------------------------------------
-
-Required Supporting Packages
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you need to install the supporting packages, we suggest that you follow the order in which they are listed below:
-
-
-  =============  ================================================  ================================================================================    
-  Package        Tested with                                       Web Site                                                                            
-  IRAF           2.12.2a on Solaris,  2.14 on Linux and Macintosh  http://iraf.noao.edu/                                                               
-  STSDAS/TABLES  3.10                                              http://www.stsci.edu/resources/software_hardware/stsdas/download                    
-  Python         2.5.1, 2.5.4                                      http://python.org/download/                                                         
-  Tcl/TK         8.4.13                                            http://www.tcl.tk/ http://www.tcl.tk/software/tcltk/download.html                   
-  Pmw            1.3.2                                             http://pmw.sourceforge.net/                                                         
-  urwid          0.9.7.1 (optional)                                http://excess.org/urwid/                                                            
-  ipython        0.8.1 (optional)                                  http://ipython.scipy.org/ http://ipython.scipy.org/moin/Download                    
-  NumPy          1.3.0                                             http://numpy.org/                                                                   
-  GNU readline   5.2                                               http://tiswww.case.edu/php/chet/readline/rltop.html ftp://ftp.cwru.edu/pub/bash/    
-  =============  ================================================  ================================================================================    
-
-Many of the supporting packages are available for download from http://www.stsci.edu/resources/software_hardware/pyraf/support_stsci_python 
-
-Some platforms have most of these packages already installed in their system directories. To test whether your Python installation has all modules needed, start Python and try to import them:
-
- ::
-
-    % python
-    >>> import readline
-    >>> import Tkinter
-    >>> Tkinter._test()
-    >>> import Pmw
-
-
-If you don't get an ImportError, this means that Tcl, Tk, Readline, Python and Pmw are already installed on the system.
-
-The X11 windowing system and a C compiler are needed as well.
-
-Follow the directions on http://iraf.noao.edu/ to get IRAF working on your system.
-
-To facilitate installations, Numpy is included in the stsci_python distribution. Some NumPy documentation is available at http://www.scipy.org/Documentation
-
-
-Remove Any Old STSCI_PYTHON 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you have an earlier version of STSCI_PYTHON installed, you should
-either remove it or ensure that it is not present on your PYTHONPATH.
-
-
-Python does not have a facility to uninstall packages, but you can
-use the uninstall.py script to assist you.  It attempts to locate
-things that look like they might be part of a previous stsci_python
-installation.  For each thing that uninstall.py locates, it will
-describe it and then offer to delete it for you.  If you want to
-delete it, type "y" and press enter.  If you want to skip it, just
-press enter.
-
- ::
-
-    python uninstall.py
-
-
-Personal Install 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For a personal install, the files are installed in a directory that
-you choose, instead of in the system directories. For example, if
-you install in /home/user/stuff, the package files will be under
-/home/user/stuff/lib/python and the pyraf program will be in
-/home/user/stuff/bin.
-
-You will need this set of commands to set up the environment.  Other
-users can also run from your copy of the software by setting the
-environment variables to point to the same directories.
-
-Enter these commands now, and also place them in your .login or .cshrc file:
-
- ::
-
-    set d=$HOME/stuff
-    setenv PYTHONPATH $d/lib/python
-    set path = ( $d/bin $path )
-
-
-Extract the tar file:
-
- ::
-
-    % gunzip stsci_python_2.9.tar.gz
-    % tar -xvf stsci_python_2.9.tar
-        use gtar (gnu tar) on Solaris
-    % cd stsci_python_2.9
-
-If you need numpy, install it:
-
- ::
-
-    % cd numpy-1.3.0
-    % unsetenv F77
-    % unsetenv F2C
-    % python setup.py install --home=$d
-    % cd ..
-
-Install the stsci_python package:
-
- ::
-
-    % python setup.py install --home=$d
-
-(optional) Install the stsci_python documentation:
-
- ::
-
-    % cd stscidocs
-    % python setup.py install --home=$d
-
-
-System-wide Install 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you are root, you can install stsci_python in the system python
-directories, where it will be available to all users. The commands
-are almost the same as for a personal install, but you do not need
-to specify the directory to install.
-
-To install stsci_python, you must unset these environment variables that were set by IRAF:
-
-Extract the tar file:
-
- ::
-
-    % gunzip stsci_python_2.7.tar.gz
-    % tar -xvf stsci_python_2.7.tar
-        use gtar (gnu tar) on Solaris
-    % cd stsci_python_2.7
-
-If you need numpy, install it:
-
- ::
-
-    % cd numpy-1.3.0
-    % unsetenv F77
-    % unsetenv F2C
-    % python setup.py install
-    % cd ..
-
-Install the stsci_python package:
-
- ::
-
-    % python setup.py install
-
-(optional) Install the stsci_python documentation:
-
- ::
-
-    % cd stscidocs
-    % python setup.py install
-
-
-Testing the Installation 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The script testpk.py can be used to check the integrity and version
-compatibility of the installation.
-
-Note: This script must be run from a directory other than stsci_python,
-for example your home directory. Make sure that $PYTHONPATH is
-correct.
-
- ::
-
-    % cp testpk.py ~
-    % cd
-    % python testpk.py
-
 
 Installing Binaries 
 --------------------------------------------------------------------------------
@@ -233,7 +52,7 @@ Installing
 
 The Macintosh binaries are distributed as a Macintosh package. This package includes all of
 
-    - IRAF
+    - IRAF 2.14
     - STSDAS/TABLES
     - Python and supporting code
     - STSCI_PYTHON
@@ -243,14 +62,13 @@ in a single package. This is the same package that we use internally at the Inst
 You must be an administrator to install this package.
 
 Download the appropriate DMG file from
-http://www.stsci.edu/resources/software_hardware/pyraf/stsci_python/current/download
-. Pick the PPC file if you have a PowerPC based Macintosh, or the
-Intel file if you have an Intel based Macintosh.
+http://www.stsci.edu/resources/software_hardware/pyraf/stsci_python/current/download .
+Be sure to choose the correct package for OSX Leopard or OSX Snow
+Leopard.  
 
-( Note to PPC users: The Science Software Branch has a limited
-number of PowerPC machines to build and test on.  Those machines
-are getting old; when the last one breaks, we will no longer support
-PPC Macintosh machines. )
+:red:`This package contains binaries only for 64-bit capable Intel
+processors.`  That includes a processor type of Xeon, but not
+Core Duo or any variant of PowerPC.
 
 Double-click on the .DMG file, then double-click on the .pkg file
 in the window that appears. This runs the standard Macintosh
@@ -319,7 +137,189 @@ To run PyRAF, enter the command
 
 A PyRAF tutorial is available at http://stsdas.stsci.edu/pyraf/doc.old/pyraf_tutorial/
 
-Note: In STSCI_PYTHON 2.9, pyraf is is not tested on MS Windows, but the latest version of pyraf does provide partial support for Windows.  See http://www.stsci.edu/resources/software_hardware/pyraf/current/download for details.
+Note: Pyraf is is not tested on MS Windows, but the latest version
+of pyraf does provide partial support for Windows.  See
+http://www.stsci.edu/resources/software_hardware/pyraf/current/download for
+details.
+
+
+Installing From Source 
+--------------------------------------------------------------------------------
+
+Required Supporting Packages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you need to install the supporting packages, we suggest that you follow the order in which they are listed below:
+
+
+  =============  ================================================  ================================================================================    
+  Package        Tested with                                       Web Site                                                                            
+  IRAF           2.12.2a on Solaris,  2.14 on Linux and Macintosh  http://iraf.noao.edu/                                                               
+  STSDAS/TABLES  3.10                                              http://www.stsci.edu/resources/software_hardware/stsdas/download                    
+  Python         2.5.4, 2.7.1                                      http://python.org/download/                                                         
+  Tcl/TK         8.5.7                                             http://www.tcl.tk/ http://www.tcl.tk/software/tcltk/download.html                   
+  Pmw            1.3.2                                             http://pmw.sourceforge.net/                                                         
+  urwid          0.9.9.1 (optional)                                http://excess.org/urwid/                                                            
+  ipython        0.10.1 (optional)                                 http://ipython.scipy.org/ http://ipython.scipy.org/moin/Download                    
+  NumPy          1.5.1                                             http://numpy.org/                                                                   
+  GNU readline   6.1                                               http://tiswww.case.edu/php/chet/readline/rltop.html ftp://ftp.cwru.edu/pub/bash/    
+  =============  ================================================  ================================================================================    
+
+
+Some platforms have most of these packages already installed in their system directories. To test whether your Python installation has all modules needed, start Python and try to import them:
+
+ ::
+
+    % python
+    >>> import readline
+    >>> import Tkinter
+    >>> Tkinter._test()
+    >>> import Pmw
+
+
+If you don't get an ImportError, this means that Tcl, Tk, Readline, Python and Pmw are already installed on the system.
+
+The X11 windowing system and a C compiler are needed as well.
+
+Follow the directions on http://iraf.noao.edu/ to get IRAF working on your system.
+
+To facilitate installations, Numpy is included in the stsci_python distribution. Some NumPy documentation is available at http://www.scipy.org/Documentation
+
+
+Remove Any Old STSCI_PYTHON 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have an earlier version of STSCI_PYTHON installed, you should
+either remove it or ensure that it is not present on your PYTHONPATH.
+
+
+Python does not have a facility to uninstall packages, but you can
+use the uninstall.py script to assist you.  It attempts to locate
+things that look like they might be part of a previous stsci_python
+installation.  For each thing that uninstall.py locates, it will
+describe it and then offer to delete it for you.  If you want to
+delete it, type "y" and press enter.  If you want to skip it, just
+press enter.
+
+ ::
+
+    python uninstall.py
+
+
+Personal Install 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For a personal install, the files are installed in a directory that
+you choose, instead of in the system directories. For example, if
+you install in /home/user/stuff, the package files will be under
+/home/user/stuff/lib/python and the pyraf program will be in
+/home/user/stuff/bin.
+
+You will need this set of commands to set up the environment.  Other
+users can also run from your copy of the software by setting the
+environment variables to point to the same directories.
+
+Enter these commands now, and also place them in your .login or .cshrc file:
+
+ ::
+
+    set d=$HOME/stuff
+    setenv PYTHONPATH $d/lib/python
+    set path = ( $d/bin $path )
+
+
+Extract the tar file:
+
+ ::
+
+    % gunzip stsci_python_2.11.tar.gz
+    % tar -xvf stsci_python_2.11.tar
+        use gtar (gnu tar) on Solaris
+    % cd stsci_python_2.11
+
+If you need numpy, install it:
+
+ ::
+
+    % cd numpy-1.5.1
+    % unsetenv F77
+    % unsetenv F2C
+    % python setup.py install --home=$d
+    % cd ..
+
+Install the stsci_python package:
+
+ ::
+
+    % python setup.py install --home=$d
+
+(optional) Install the stsci_python documentation:
+
+ ::
+
+    % cd stscidocs
+    % python setup.py install --home=$d
+
+
+System-wide Install 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are root, you can install stsci_python in the system python
+directories, where it will be available to all users. The commands
+are almost the same as for a personal install, but you do not need
+to specify the directory to install.
+
+To install stsci_python, you must unset these environment variables that were set by IRAF:
+
+Extract the tar file:
+
+ ::
+
+    % gunzip stsci_python_2.11.tar.gz
+    % tar -xvf stsci_python_2.11.tar
+        use gtar (gnu tar) on Solaris
+    % cd stsci_python_2.11
+
+If you need numpy, install it:
+
+ ::
+
+    % cd numpy-1.5.1
+    % unsetenv F77
+    % unsetenv F2C
+    % python setup.py install
+    % cd ..
+
+Install the stsci_python package:
+
+ ::
+
+    % python setup.py install
+
+(optional) Install the stsci_python documentation:
+
+ ::
+
+    % cd stscidocs
+    % python setup.py install
+
+
+Testing the Installation 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The script testpk.py can be used to check the integrity and version
+compatibility of the installation.
+
+Note: This script must be run from a directory other than stsci_python,
+for example your home directory. Make sure that $PYTHONPATH is
+correct.
+
+ ::
+
+    % cp testpk.py ~
+    % cd
+    % python testpk.py
+
 
 
 Assistance 
@@ -333,34 +333,47 @@ We hope that people can contribute tips to the platform specific
 part of this document.
 
 
-Appendix 1:  Platform Specific Notes 
+Appendix 1:  Other software versions
+--------------------------------------------------------------------------------
+
+Python 3
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We have not converted our software for Python 3.  Python 3 is very
+similar to Python 2, but it takes some care to convert existing
+software, even with automated tools such as 2to3.  It is likely
+that only expert python programmers would be able to perform the
+conversion.
+
+
+IRAF 2.15 (32 or 64 bit)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We have reports of some problems using our software with IRAF 2.15.  Usually,
+the first problem discovered is this question in the Pyraf FAQ:
+http://www.stsci.edu/resources/software_hardware/pyraf/pyraf_faq#1.5
+
+
+
+Appendix 2:  Platform Specific Notes 
 --------------------------------------------------------------------------------
 
 Macintosh 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Iraf and stsci_python need X11 and will NOT work with the version
-of python distributed with the operating system (/usr/bin/python)
-or with macpython. X11 based versions of Tcl/Tk and Python are
-required.  You can build them yourself, or you can use our binary
-distribution.
+Pyraf now works with native Macintosh graphics.  You no longer need a special
+X-windows capable Python.
 
-On MacOSX the installation was tested with the supporting packages
-installed from sources on the Unix command line, but installations
-of the supporting packages can be done using fink (
-http://fink.sourceforge.net/ ).
-
-Some of the packages don't have binaries available from fink.  Python
-MUST be installed from source using fink, in order to get Tkinter
-working. If fink was used for installations of supporting packages
-on MacOSX, make sure you are running python in /sw/bin when you
-attempt to install stsci_python.
-
-Compilers can be installed with the Developer's tools.
+If you install from source, compilers can be installed with the Developer's tools.
 
 
 Linux 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some linux distributions have separate developer packages for Python
+and Numpy, If you are installing from source, you may need to install
+those developer packages, especially if you get an error message
+about a file name that ends with ".h"
 
 The packaging systems for the various flavors of Linux can be
 used to install the supporting packages. For example, on Redhat,
@@ -387,7 +400,9 @@ solution is to start pyraf by running:
 
     env LC_ALL=C pyraf
 
-Appendix 2: Installing the Supporting Packages 
+
+
+Appendix 3: Installing the Supporting Packages 
 --------------------------------------------------------------------------------
 
 Some of the packages require IRAF to be present on the system. IRAF
@@ -444,9 +459,13 @@ and change LD_LIBRARY_PATH with one of these commands:
 Tcl/Tk 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It is very likely that Tcl and Tk are already installed on your system. Look in the system directories for files like libtcl.* and libtk.*.
+It is very likely that Tcl and Tk are already installed on your
+system. Look in the system directories for files like libtcl.* and
+libtk.*.
 
-If you have to build these packages from source, build them as shared libraries. On most systems the following set of commands will work for Tcl and Tk:
+If you have to build these packages from source, build them as
+shared libraries. On most systems the following set of commands
+will work for Tcl and Tk:
 
  ::
 
@@ -458,7 +477,11 @@ If you have to build these packages from source, build them as shared libraries.
 Readline 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Readline is probably already installed on your system. Make sure the header files are installed as well. A possible location to look for them is /usr/include/readline. In case you need to install Readline in your personal directories, the following commands will install it on most systems:
+Readline is probably already installed on your system. Make sure
+the header files are installed as well. A possible location to look
+for them is /usr/include/readline. In case you need to install
+Readline in your personal directories, the following commands will
+install it on most systems:
 
  ::
 
@@ -470,16 +493,24 @@ Readline is probably already installed on your system. Make sure the header file
 Python 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Source Installation: Python is available from the python web site at http://www.python.org/ . If Tcl/Tk and Readline libraries are on LD_LIBRARY_PATH or in a system directory, the next three commands are usually sufficient to install Python from source:
+Source Installation: Python is available from the python web site
+at http://www.python.org/ . If Tcl/Tk and Readline libraries are
+on LD_LIBRARY_PATH or in a system directory, the next three commands
+are usually sufficient to install Python from source:
 
     % cd python
     % ./configure --prefix=/installation-directory
     % make
     % make install
 
-To test whether your Python installation has all required modules enabled, try to import the modules as described in Section 1.0.
+To test whether your Python installation has all required modules
+enabled, try to import the modules as described in Section 1.0.
 
-To build Tkinter as part of Python, you may need to edit the file Modules/Setup in the Python source distribution, to let Python know where Tcl/Tk and X11 libraries are. Below is an example of this section of the Setup file on Solaris. Note, that some lines are uncommented and the paths on your system may be different.
+To build Tkinter as part of Python, you may need to edit the file
+Modules/Setup in the Python source distribution, to let Python know
+where Tcl/Tk and X11 libraries are. Below is an example of this
+section of the Setup file on Solaris. Note, that some lines are
+uncommented and the paths on your system may be different.
 
  ::
   
@@ -534,7 +565,9 @@ As of stsci_python 2.7, it is no longer necessary to provide libf2c.
 Urwid 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Urwid ( http://excess.org/urwid/ ) can be installed optionally. It is needed for support of tpar (a text based epar) in PyRAF. It can be installed by :
+Urwid ( http://excess.org/urwid/ ) can be installed optionally. It
+is needed for support of tpar (a text based epar) in PyRAF. It can
+be installed by :
 
 % python setup.py install
 
@@ -542,7 +575,9 @@ Urwid ( http://excess.org/urwid/ ) can be installed optionally. It is needed for
 Ipython 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Ipython ( http://ipython.scipy.org/moin/ ) can be installed optionally as well. If available PyRAF can run in the Ipython interpreter (pyraf --ipython). To install Ipython, execute the command:
+Ipython ( http://ipython.scipy.org/moin/ ) can be installed optionally
+as well. If available PyRAF can run in the Ipython interpreter
+(pyraf --ipython). To install Ipython, execute the command:
 
 % python setup.py install
 
