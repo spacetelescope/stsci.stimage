@@ -21,14 +21,14 @@ STSCI_PYTHON Version 2.11
 
 :abstract: 
 
-	STSCI_PYTHON is a collection of Python packages (with C
-	extensions) that has been developed to provide a general
-	astronomical data analysis infrastructure. They can be used
-	standalone from within Python or as Python tasks that are
-	accessible from within STSDAS whens running under PyRAF.
+    STSCI_PYTHON is a collection of Python packages (with C
+    extensions) that has been developed to provide a general
+    astronomical data analysis infrastructure. They can be used
+    standalone from within Python or as Python tasks that are
+    accessible from within STSDAS whens running under PyRAF.
 
-	STSCI_PYTHON is developed by the Science Software Branch
-	at the Space Telescope Science Institute.
+    STSCI_PYTHON is developed by the Science Software Branch
+    at the Space Telescope Science Institute.
 
 .. contents::
 
