@@ -8,7 +8,7 @@ from pyfits import Column
 import time as _time
 import re
 
-from seggraph import graphfile as sgf 
+import graphfile as sgf 
 
 __version__ = '0.1.0'
 __vdate__ = '28-Oct-2010'
@@ -161,7 +161,7 @@ def makePrimaryHDU(filename,numpars,instrument):
 
     return phdu
     
-def createTable(output,basemode,graphtab,nmodes=None,clobber=True,verbose=False):
+def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,verbose=False):
     """ Create a (sample) IMPHTTAB file for a specified base 
         configuration (basemode) and a set of filter combinations (filters).
         
@@ -194,8 +194,8 @@ def createTable(output,basemode,graphtab,nmodes=None,clobber=True,verbose=False)
     
     # start by getting the full list of obsmodes before 
     # expanding the parameterized elements
-    x = sgf.read_graphtable(graphtab)
-    obsmodes = x.get_obsmodes(offset=basemode,prefix=True)
+    x = sgf.read_graphtable(tmgtab,tmctab,tmttab)
+    obsmodes = x.get_obsmodes(basemode,prefix=True)
     
     # start building obsmodes for each row
     if nmodes is not None:
@@ -205,7 +205,7 @@ def createTable(output,basemode,graphtab,nmodes=None,clobber=True,verbose=False)
         nrows = len(obsmodes)
     nmode_vals = list()
     ped_vals =['Version %s data'%__version__]*nrows
-    descrip_vals = ['Generated %s from %s'%(getDate(),graphtab)]*nrows
+    descrip_vals = ['Generated %s from %s'%(getDate(),tmgtab)]*nrows
     
     fpars_vals = list() # list of parameterized variable names for each obsmode/row
     npar_vals = list() # number of parameterized variables for each obsmode/row
@@ -275,6 +275,8 @@ def createTable(output,basemode,graphtab,nmodes=None,clobber=True,verbose=False)
                     nelem_rows[nr,i] = nelem
                     pvals.append(np.array(filtdata[f]))
                     parnames_rows[nr,i] = f
+                else:
+                    pvals.append(np.array([0]))
                             
         parvals_rows.append(pvals)
 
