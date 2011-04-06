@@ -178,6 +178,34 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
         will be specified in the external file or dictionary 'filtdata'.
         If 'filtdata' is the name of a file, the data must be formatted as
         a Python list of dictionaries, one dictionary per filter.
+        
+        Inputs:
+        
+        output: string
+          Prefix for output reference file.
+          
+        basemode: string
+          Base obsmode for which to generate a reference file. (e.g. acs,hrc)
+          
+        tmgtab: string
+          File name of _tmg.fits reference file to be used.
+          
+        tmctab: string
+          File name of _tmc.fits reference file to be used.
+          
+        tmttab: string
+          File name of _tmt.fits reference file to be used.
+          
+        nmodes: integer, optional
+          Set to limit the number of modes to calculate, useful for testing.
+          Defaults to None.
+          
+        clobber: boolean, optional
+          True to overwrite an existing reference file, False to raise an error
+          if file already exists. Defaults to True.
+          
+        verbose: boolean, optional
+          True to print out extra information. Defaults to False.
     """
     if output.find('_imp.fits') < 0:
         output = output+'_imp.fits'
