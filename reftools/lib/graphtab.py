@@ -297,8 +297,8 @@ class Graph(object):
     Remove 'default' strings and put on the prefix, if supplied.
     """
     
-    # convert to a numpy char array so we can use fast vectorized functions
-    self.obsmodes = numpy.char.array(self.obsmodes)
+    # convert to a numpy array so we can use fast vectorized functions
+    self.obsmodes = numpy.array(self.obsmodes, dtype=numpy.str)
     
     # remove junk
     for junk in self.obsrules_junk:
