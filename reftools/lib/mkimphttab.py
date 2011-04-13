@@ -2,8 +2,8 @@ from __future__ import division # confidence high
 import os,sys
 import numpy as np
 import pyfits
-import pysynphot as S
-from pysynphot import observationmode
+import pysynphotdev as S
+from pysynphotdev import observationmode
 from pyfits import Column
 import time as _time
 import re
@@ -162,27 +162,12 @@ def makePrimaryHDU(filename,numpars,instrument):
     return phdu
     
 def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,verbose=False):
-    """ Create a (sample) IMPHTTAB file for a specified base 
-        configuration (basemode) and a set of filter combinations (filters).
-        
-        The input 'filters' will be a list of strings, with parameterized 
-        filters ending in '#', for all the combinations of filters to be 
-        computed for the table with one row per combination.  
-        
-        The parameter 'order' specifies the order of the parameterized
-        variables specified in this set of filters so that keywords can 
-        be assigned consistently. For example, MJD will always be variable 1,
-        and FR will be variable 2 as used in NELEM[1,2] or PAR[1,2]VALUES.
-        
-        The range of values spanned by each of the parameterized filters 
-        will be specified in the external file or dictionary 'filtdata'.
-        If 'filtdata' is the name of a file, the data must be formatted as
-        a Python list of dictionaries, one dictionary per filter.
+    """ Create an IMPHTTAB file for a specified base configuration (basemode).
         
         Inputs:
         
         output: string
-          Prefix for output reference file.
+          Prefix for output reference file. ("_imp.fits" will be appended)
           
         basemode: string
           Base obsmode for which to generate a reference file. (e.g. acs,hrc)
@@ -223,7 +208,8 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
     # start by getting the full list of obsmodes before 
     # expanding the parameterized elements
     x = sgf.read_graphtable(tmgtab,tmctab,tmttab)
-    obsmodes = x.get_obsmodes(basemode,prefix=True)
+    x.get_obsmodes(basemode,prefix=True)
+    obsmodes = x.obsmodes
     
     # start building obsmodes for each row
     if nmodes is not None:
@@ -324,6 +310,7 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
         print "Computing photmetry values for each row's obsmode..."
         print 'Row: ',
         sys.stdout.flush()
+    
     for nr in range(nrows):
         if verbose:
             print nr+1,' ',  # Provide some indication of which row is being worked
