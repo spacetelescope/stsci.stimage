@@ -1,6 +1,6 @@
 from __future__ import division # confidence high
 
-pkg = "reftools2"
+pkg = "reftools"
 
 setupargs = {
 
