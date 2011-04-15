@@ -67,8 +67,8 @@ Be sure to choose the correct package for OSX Leopard or OSX Snow
 Leopard.  
 
 :red:`This package contains binaries only for 64-bit capable Intel
-processors.`  That includes a processor type of Xeon, but not
-Core Duo or any variant of PowerPC.
+processors.`  That includes a processor type of "Xeon" or "Core 2 Duo", but not
+"Core Duo" or any variant of PowerPC.
 
 Double-click on the .DMG file, then double-click on the .pkg file
 in the window that appears. This runs the standard Macintosh
