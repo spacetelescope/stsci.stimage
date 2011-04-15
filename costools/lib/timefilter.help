@@ -1,0 +1,111 @@
+This program reads a COS corrtag file and sets flags in the DQ column
+of the EVENTS extension depending on the filter that was specified.
+
+:Author: Phil Hodge, STScI, April 2011.
+
+Notes
+-----
+longitude is measured eastward from Greenwich.
+
+Filtering on longitude presents a problem because of the discontinuity
+at 360, so a filter such as "longitude > l1 and longitude < l2" would not
+work for a region extending from longitude 300 to 20 degrees, for example.
+
+Parameters
+----------
+input: str
+    The name of the input corrtag table.
+
+output: str
+    The name of an optional output file.  If `output` is "", the input
+    file will be modified in-place (but see `filter` for an exception).
+
+filter: str
+    One or more conditions using columns in the TIMELINE extension of
+    the input file.  Within time intervals for which the filter is True,
+    the DQ column in the EVENTS extension of the output file (or the
+    input file, if an output file was not specified) will be modified by
+    including the bad time interval flag (via bitwise logical OR with
+    2048).
+
+    If filter = "clear" or "reset", however, the bad time interval flag
+    will be cleared from the DQ column.  If filter = "info", or if both
+    `output` and `filter` are "", information about the input file will be
+    printed to the standard output; this is the exception mentioned above,
+    where the input file will not be modified even if output = "".
+
+    Each condition consists of three "words" (except for SAA, see below):
+    the name (case insensitive) of a column in the TIMELINE extension, a
+    relation symbol (one of '>', '>=', '<', '<=', '==', '!='), and a
+    numerical value.  For flagging times when HST was within one of the
+    SAA model contours, the condition is just two words, "saa" and an
+    integer model number (0 - 32, inclusive).  The SAA contours are
+    defined by the latitudes and longitudes of the vertices, and these
+    are given in saamodel.py.  This file may be edited to change the
+    contours or to add other models.
+
+    More than one condition may be given, joined by "and", "or", or "xor"
+    (parentheses are currently not supported).  "and" has higher precedence
+    than "or" or "xor".  That is, contiguous conditions joined by "and"
+    will first be combined, then the results will be combined if those
+    groups of conditions were joined by "or" or "xor".  For example, let
+    a, b, c, d be column names in the TIMELINE extension, and w, x, y, z
+    be numerical values.  Suppose the filter was:
+
+        "a > w and b < x or c > y and d < z"
+
+    This would be evaluated as if grouped as follows:
+
+        (a > w and b < x) or (c > y and d < z)
+
+verbose: bool
+    If `verbose` is True, messages will be printed to the standard output.
+
+Examples
+--------
+When the sun was above the horizon as seen by HST ("orbital day"), flag
+events as bad.  Write the output to temp.fits (and do not modify the input
+file):
+
+% timefilter -v xyz_corrtag.fits temp.fits "sun_alt > 0."
+
+Input file /disk/scratch1/cos/xyz_corrtag.fits
+sun_alt > 0. flagged as bad
+New GTI extension appended
+EXPTIME changed from 170.976 to 146.944
+Writing to /disk/scratch1/cos/temp.fits
+
+If HST was within the SAA (model 31) during the exposure, flag that
+time interval as bad.  Modify temp.fits in-place:
+
+% timefilter temp.fits "" "saa 31"
+
+Combine several conditions, modifying temp.fits in-place:
+
+% timefilter temp.fits "" "saa 31 or sun_alt > -10 or ly_alpha > 2.5"
+
+% timefilter temp.fits "" "sun_alt > -10 and ly_alpha > 2.5 or saa 31"
+
+Print information about the input file:
+
+% timefilter xyz_corrtag.fits
+
+input = /disk/scratch1/cos/xyz_corrtag.fits
+GTI:  start     stop
+      0.000  112.992
+    302.016  360.000
+52.3 % of DQ column flagged with 2048
+
+361 rows in TIMELINE
+column   beginning    middle       end
+time          0.00    180.00    360.00
+sun_alt     -32.05    -33.80    -32.20
+target_alt   16.58     23.69     30.80
+longitude   283.85    293.63    303.04
+latitude     16.37     11.61      6.48
+shift1       37.92     36.99     36.52
+
+column           min          max       median
+shift1         36.52        37.92        36.99
+Ly_alpha           0            0            0
+darkrate           0   3.1789e-08   1.5895e-08

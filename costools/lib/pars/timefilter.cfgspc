@@ -1,0 +1,6 @@
+_task_name_ = string_kw(default="timefilter")
+input = string_kw(default="", comment="Input corrtag file")
+output = string_kw(default="", comment="Output file, or '' to operate in-place")
+filter = string_kw(default="", comment="Condition(s) to be flagged as bad")
+mode = string_kw(default="all")
+[ _RULES_ ]
