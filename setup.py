@@ -19,6 +19,7 @@ all_packages_input = [
     "betadrizzle",
     "calcos",
     "convolve",
+    "costools",
     "image",
     "imagemanip",
     "imagestats",
