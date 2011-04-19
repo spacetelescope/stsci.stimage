@@ -11,6 +11,91 @@ import numpy
 import pyfits
 #from pysynphot import locations
 
+_stis_spec_modes = \
+['0.05x29','0.05x31nda','0.05x31ndb','0.09x29','0.1x0.03','0.1x0.06','0.1x0.09','0.1x0.2','0.2x0.05nd',
+'0.2x0.05nd','0.2x0.06','0.2x0.06fpa','0.2x0.06fpb','0.2x0.06fpc','0.2x0.06fpd','0.2x0.06fpe','0.2x0.09','0.2x0.2',
+'0.2x0.2','0.2x0.2fpa','0.2x0.2fpb','0.2x0.2fpc','0.2x0.2fpd','0.2x0.2fpe','0.2x0.5','0.2x29','0.3x0.05nd',
+'0.3x0.05nd','0.3x0.06','0.3x0.09','0.3x0.2','0.5x0.5','1x0.06','1x0.2','2x2','31x0.05nda',
+'31x0.05nda','31x0.05ndb','31x0.05ndc','36x0.05n45','36x0.05p45','36x0.6n45','36x0.6p45','52x0.05','52x0.1',
+'52x0.1','52x0.2','52x0.5','52x2','6x0.06','6x0.2','6x0.5','6x6','s005x29',
+'s005x29','s005x31nda','s005x31ndb','s009x29','s01x003','s01x006','s01x009','s01x02','s02x005nd',
+'s02x005nd','s02x006','s02x006fpa','s02x006fpb','s02x006fpc','s02x006fpd','s02x006fpe','s02x009','s02x02',
+'s02x02','s02x02fpa','s02x02fpb','s02x02fpc','s02x02fpd','s02x02fpe','s02x05','s02x29','s03x005nd',
+'s03x005nd','s03x006','s03x009','s03x02','s05x05','s10x006','s10x02','s2x2','s31x005nda',
+'s31x005nda','s31x005ndb','s31x005ndc','s36x005n45','s36x005p45','s36x06n45','s36x06p45','s52x005','s52x01',
+'s52x01','s52x02','s52x05','s52x2','s6x006','s6x02','s6x05','s6x6','e140h',
+'e140h','e140hb','e140m','e140mb','e230h','e230m','g140l','g140lb','g140m',
+'g140m','g140mb','g230l','g230lb','g230m','g230mb','g430l','g430m','g750l',
+'g750l','g750m','prism','x140','x140m','x230','x230h','acq','1687',
+'1687','1769','1851','1884','1933','2014','2095','2176','2257',
+'2257','2338','2419','2499','2579','2600','2659','2739','2800',
+'2800','2818','2828','2898','2977','3055','3134','all','c1687',
+'c1687','c1769','c1851','c1933','c2014','c2095','c2176','c2257','c2338',
+'c2338','c2419','c2499','c2579','c2659','c2739','c2818','c2898','c2977',
+'c2977','c3055','c3134','i1884','i2600','i2800','i2828','1713','1854',
+'1854','1995','2135','2276','2416','2557','2697','2794','2836',
+'2836','2976','3115','c1713','c1854','c1995','c2135','c2276','c2416',
+'c2416','c2557','c2697','c2836','c2976','c3115','i2794','1978','2124',
+'2124','2269','2415','2561','2707','c1978','c2707','ech','i2124',
+'i2124','i2269','i2415','i2561','100','101','102','103','104',
+'104','105','106','107','108','109','110','111','112',
+'112','113','114','115','116','117','118','119','120',
+'120','121','122','123','65','66','67','68','69',
+'69','70','71','72','73','74','75','76','77',
+'77','78','79','80','81','82','83','84','85',
+'85','86','87','88','89','90','91','92','93',
+'93','94','95','96','97','98','99','1763','1813',
+'1813','1863','1913','1963','2013','2063','2113','2163','2213',
+'2213','2263','2313','2363','2413','2463','2513','2563','2613',
+'2613','2663','2713','2762','2812','2862','2912','2962','3012',
+'3012','c1763','c2013','c2263','c2513','c2762','c3012','i1813','i1863',
+'i1863','i1913','i1963','i2063','i2113','i2163','i2213','i2313','i2363',
+'i2363','i2413','i2463','i2563','i2613','i2663','i2713','i2812','i2862',
+'i2862','i2912','i2962','248','249','250','251','252','253',
+'253','254','255','256','257','258','259','260','261',
+'261','262','263','264','265','266','267','268','269',
+'269','270','271','272','273','274','275','276','277',
+'277','278','279','280','281','282','283','284','285',
+'285','286','287','288','289','290','291','292','293',
+'293','294','295','296','297','298','299','300','301',
+'301','302','303','304','305','306','307','308','309',
+'309','310','311','312','313','314','315','316','317',
+'317','318','319','320','321','322','323','324','325',
+'325','326','327','328','329','330','331','332','333',
+'333','334','335','336','337','338','339','340','341',
+'341','342','343','344','345','346','347','348','349',
+'349','350','351','352','353','354','355','356','357',
+'357','358','359','360','361','362','363','364','365',
+'365','366','367','368','369','370','371','372','373',
+'373','374','375','376','377','378','379','380','381',
+'381','382','383','384','385','386','387','388','389',
+'389','390','391','392','393','394','395','396','397',
+'397','398','399','400','401','402','403','404','405',
+'405','406','407','408','409','410','411','412','413',
+'413','414','415','416','417','418','419','420','421',
+'421','422','423','424','425','426','427','428','429',
+'429','430','431','432','433','434','435','436','437',
+'437','438','439','440','441','442','443','444','445',
+'445','446','447','448','449','450','451','452','453',
+'453','454','455','456','457','458','459','460','461',
+'461','462','463','464','465','466','3165','3305','3423',
+'3423','3680','3843','3936','4194','4451','4706','4781','4961',
+'4961','5093','5216','5471','c3165','c3423','c3680','c3936','c4194',
+'c4194','c4451','c4706','c4961','c5216','c5471','i3305','i3843','i4781',
+'i4781','i5093','1173','1218','1222','1272','1321','1371','1387',
+'1387','1400','1420','1470','1518','1540','1550','1567','1616',
+'1616','1640','1665','1714','c1173','c1222','c1272','c1321','c1371',
+'c1371','c1420','c1470','c1518','c1567','c1616','c1665','c1714','i1218',
+'i1218','i1387','i1400','i1540','i1550','i1640','1425','c1425','1234',
+'1234','1271','1307','1343','1380','1416','1453','1489','1526',
+'1526','1562','1598','c1234','c1416','c1598','i1271','i1307','i1343',
+'i1343','i1380','i1453','i1489','i1526','i1562','247','7751','8975',
+'8975','c7751','c8975','10363','10871','5734','6094','6252','6581',
+'6581','6768','7283','7795','8311','8561','8825','9286','9336',
+'9336','9806','9851','c10363','c10871','c5734','c6252','c6768','c7283',
+'c7283','c7795','c8311','c8825','c9336','c9851','i6094','i6581','i8561',
+'i8561','i9286','i9806']
+
 rules_dict = {
   'default': {'junk': ['', 'None', 'default'], 'exclude': ['aper#']},
   'acs,hrc': {'junk': [], 'exclude': []},
@@ -18,8 +103,8 @@ rules_dict = {
   'acs,sbc': {'junk': [], 'exclude': []},
   'acs,wfc1': {'junk': ['wfc1'], 'exclude': ['wfc2']},
   'acs,wfc2': {'junk': ['wfc2'], 'exclude': ['wfc1']},
-  'wfc3,uvis1': {'junk': ['uvis1'], 'exclude': ['uvis2']},
-  'wfc3,uvis2': {'junk': ['uvis2'], 'exclude': ['uvis1']},
+  'wfc3,uvis1': {'junk': ['uvis1'], 'exclude': ['uvis2','noota','ota']},
+  'wfc3,uvis2': {'junk': ['uvis2'], 'exclude': ['uvis1','noota','ota']},
   'wfc3,ir': {'junk': [], 'exclude': []},
   'nicmos,1': {'junk': [], 'exclude': []},
   'nicmos,2': {'junk': [], 'exclude': []},
@@ -27,7 +112,7 @@ rules_dict = {
   'cos,boa': {'junk': [], 'exclude': []},
   'cos,psa': {'junk': [], 'exclude': []},
   'wfpc2,*': {'junk': [], 'exclude': []},
-  'stis,*': {'junk': [], 'exclude': []}
+  'stis,*': {'junk': [], 'exclude': _stis_spec_modes}
 }
 
 class ObsmodeError(BaseException):
@@ -220,12 +305,21 @@ class Graph(object):
                          str(edge.kwd),
                          str(edge.destination)])
       
-      # Count up the number of obsmode elements accounted for in the Path
-      if edge.kwd in kwdset and edge.kwd not in set(edge_list) and edge.kwd != 'default': 
-        kwdcount += 1
-        # Keep track of the offset to this node 
-        if edge.destination is not None:
-          ans.offset = edge.destination.name
+      if 'acs' in obsmode:
+        # Count up the number of obsmode elements accounted for in the Path
+        if edge.kwd in kwdset and edge.kwd not in set(edge_list) and edge.kwd != 'default': 
+          kwdcount += 1
+          # Keep track of the offset to this node 
+          if edge.destination is not None:
+            ans.offset = edge.destination.name
+      else:
+        # Count up the number of obsmode elements accounted for in the Path
+        if edge.kwd in kwdset and edge.kwd != 'default': 
+          if edge.kwd not in set(edge_list):
+            kwdcount += 1
+          # Keep track of the offset to this node 
+          if edge.destination is not None:
+            ans.offset = edge.destination.name
       
       edge_list.append(edge.kwd)
       
@@ -278,13 +372,13 @@ class Graph(object):
     if isinstance(obsmode, str):
       if prefix: 
         instrmode=obsmode
-      offset = self.traverse(obsmode,verbose=False,partial=True).offset
+      offset = self.traverse(obsmode,verbose=False,partial=False).offset
       
-#    print 'Start at offset: ',offset
+    print 'Start at offset: ',offset
       
     startnode = self[offset]
     # build up raw list of all possible obsmodes
-    self.recurse(startnode)
+    self.obsmodes = self.recurse(startnode)
     
     # remove junk from obsmode strings
     self.process(prefix=instrmode)
@@ -305,19 +399,29 @@ class Graph(object):
       if junk == '':
         j = ',,'
         r = ','
+        self.obsmodes = numpy.char.replace(self.obsmodes, j, r)
       else:
-        j = junk + ','
+        j1 = ',' + junk
+        j2 = junk + ','
+        j3 = junk
         r = ''
 
-      self.obsmodes = numpy.char.replace(self.obsmodes, j, r)
+        self.obsmodes = numpy.char.replace(self.obsmodes, j1, r)
+        self.obsmodes = numpy.char.replace(self.obsmodes, j2, r)
+        self.obsmodes = numpy.char.replace(self.obsmodes, j3, r)
+        
+    self.obsmodes = numpy.unique(self.obsmodes)
     
     # add prefix (or not) and convert back to list
     if prefix is not None:
-      self.obsmodes = numpy.char.add(prefix,self.obsmodes)
-      self.obsmodes = [prefix] + self.obsmodes.tolist()
+      self.obsmodes = numpy.char.add(prefix,self.obsmodes).tolist()
+      
+      # remove trailing comma if necessary
+      if self.obsmodes[0][:-1] == prefix:
+        self.obsmodes[0] = prefix
     
     else:
-      self.obsmodes = self.obsmodes.tolist()
+      self.obsmodes = numpy.char.replace(self.obsmodes,',','',1).tolist()
   
   def read_rules(self, fname):
     """
@@ -346,25 +450,37 @@ class Graph(object):
     generate all possible obsmodes from a table
     (starting either from the root or from a
     specified node).
-    
+
     This version returns a list of strings that
     must be processed to remove junk.
     """
-    
+    result = list()
+    r=list()
+
+    #This is syntactic sugar
     if so_far is None:
       so_far = ''            
-    
-    if node is not None:
-      #print "Entering node ",node.name
+
+    #This terminates the recursion
+    if node is None:
+#       print "Terminating at ",so_far
+      result.extend([so_far])
+
+    else:
+#       print "Entering node ",node.name
       #Recurse through all the edges of this node
       for edge in node:
         if edge.kwd in self.obsrules_excl:
           continue
-          
+      
         #print "Processing node ",node.name, ", edge ",edge.kwd
         further = so_far + "," + edge.kwd
-        
-        if edge.kwd not in self.obsrules_junk:
-          self.obsmodes.append(further)
-        
-        self.recurse(edge.destination,further)
+        #print "Further is ",further
+        #result.append(further)
+        ans = self.recurse(edge.destination,further)
+        #print "ans is ",ans
+
+        #Collect the answers for each edge
+        result.extend(ans)
+
+    return result

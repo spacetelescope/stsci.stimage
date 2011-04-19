@@ -13,7 +13,7 @@ import graphfile as sgf
 __version__ = '0.1.0'
 __vdate__ = '28-Oct-2010'
 
-def computeValues(obsmode,spec=None):
+def computeValues(obsmode,component_dict,spec=None):
     """ Compute the 3 photometric values needed for a given obsmode string
         using pysynphot
         This routine will return a dictionary with the photometry keywords and
@@ -24,7 +24,7 @@ def computeValues(obsmode,spec=None):
         spec = S.FlatSpectrum(1,fluxunits='flam')
 
     # Define the bandpass for this obsmode
-    bp = S.ObsBandpass(obsmode)
+    bp = S.ObsBandpass(obsmode,component_dict=component_dict)
     # create the observation using these elements
     obs = S.Observation(spec,bp)
     # compute the photometric values
@@ -226,7 +226,7 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
     flam_datacol_vals = list()
     plam_datacol_vals = list()
     bw_datacol_vals = list()
-    fpars_sz = 0
+    fpars_sz = 1
 
     # Compute 'globally' required values: max number of parameterized variables,...
     for filt in obsmodes:
@@ -237,12 +237,20 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
         npar_vals.append(npars)
         fpars_vals.append(fpars)
         fpars_len = [len(f) for f in fpars]
-        if len(fpars_len) == 0: fpars_max = 0
-        else: fpars_max = max(fpars_len)
-        if fpars_max > fpars_sz: fpars_sz = fpars_max
         
-        if npars == 0: nstr = ''
-        else: nstr = str(npars)
+        if len(fpars_len) == 0: 
+          fpars_max = 0
+        else: 
+          fpars_max = max(fpars_len)
+        
+        if fpars_max > fpars_sz: 
+          fpars_sz = fpars_max
+        
+        if npars == 0: 
+          nstr = ''
+        else: 
+          nstr = str(npars)
+        
         flam_datacol_vals.append('PHOTFLAM'+nstr)
         plam_datacol_vals.append('PHOTPLAM'+nstr)
         bw_datacol_vals.append('PHOTBW'+nstr)
@@ -306,6 +314,9 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
     # set up the flat spectrum used for the computing the photometry keywords
     flatspec = S.FlatSpectrum(1,fluxunits='flam')
 
+    #dictionary to hold optical components
+    component_dict = {}
+
     if verbose:
         print "Computing photmetry values for each row's obsmode..."
         print 'Row: ',
@@ -339,7 +350,7 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
 
         
         for fullmode,n in zip(olist,range(nmodes)):
-            value = computeValues(fullmode,spec=flatspec)
+            value = computeValues(fullmode,component_dict,spec=flatspec)
             if verbose:
                 print 'PHOTFLAM(%s) = %g\n'%(fullmode,value['PHOTFLAM'])
             pflam[n] = value['PHOTFLAM']
@@ -376,6 +387,8 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
         bw_rows.append(bvals)
         
         del photflam,photplam,photbw,filtdict,lenpars
+        
+    del flatspec, component_dict
 
     print "Creating table columns from photometry values..."
     
