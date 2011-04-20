@@ -111,6 +111,7 @@ all_package = [
     "betadrizzle",
     "calcos",
     "convolve",
+    "costools",
     "image",
     "imagemanip",
     "imagestats",
