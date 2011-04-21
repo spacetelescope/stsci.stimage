@@ -160,6 +160,21 @@ def makePrimaryHDU(filename,numpars,instrument):
     phdu.header.update('descrip','photometry keywords reference file')
 
     return phdu
+
+def saveSkippedObsmodes(output, obsmodes):
+    ind = output.find('_imp.fits')
+    
+    if ind != -1:
+      output = output[:ind] + '_skipped.txt'
+    else:
+      output = output + '_skipped.txt' 
+    
+    f = open(output,'w')
+    
+    for skipped in obsmodes:
+      f.write(skipped + '\n')
+      
+    f.close()
     
 def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,verbose=False):
     """ Create an IMPHTTAB file for a specified base configuration (basemode).
@@ -217,9 +232,6 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
         obsmodes = obsmodes[:nmodes]
     else:
         nrows = len(obsmodes)
-    nmode_vals = list()
-    ped_vals =['Version %s data'%__version__]*nrows
-    descrip_vals = ['Generated %s from %s'%(getDate(),tmgtab)]*nrows
     
     fpars_vals = list() # list of parameterized variable names for each obsmode/row
     npar_vals = list() # number of parameterized variables for each obsmode/row
@@ -311,22 +323,31 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
     flam_rows = list()
     plam_rows = list()
     bw_rows = list()
+    
+    nmode_vals = list()
+    ped_vals =['Version %s data'%__version__]*nrows
+    descrip_vals = ['Generated %s from %s'%(getDate(),tmgtab)]*nrows
+    
     # set up the flat spectrum used for the computing the photometry keywords
     flatspec = S.FlatSpectrum(1,fluxunits='flam')
 
-    #dictionary to hold optical components
+    # dictionary to hold optical components 
+    # (pysynphot.observationmode._Component objects)
     component_dict = {}
+    
+    # list to hold skipped obsmodes
+    skipped_obs = []
 
     if verbose:
         print "Computing photmetry values for each row's obsmode..."
         print 'Row: ',
         sys.stdout.flush()
     
-    for nr in range(nrows):
+    for nr in xrange(nrows):
         if verbose:
             print nr+1,' ',  # Provide some indication of which row is being worked
             sys.stdout.flush()
-         
+        
         obsmode = obsmodes[nr]
         fpars = fpars_vals[nr]
         npars = npar_vals[nr]
@@ -343,19 +364,48 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
         
         # Use these obsmodes to generate all the values needed for the row
         nmodes = len(olist)
-        nmode_vals.append(nmodes)
+        
         pflam = np.zeros(nmodes,np.float64)
         pplam = np.zeros(nmodes,np.float64)
         pbw = np.zeros(nmodes,np.float64)
 
+        skip = False
         
-        for fullmode,n in zip(olist,range(nmodes)):
-            value = computeValues(fullmode,component_dict,spec=flatspec)
+        for n,fullmode in enumerate(olist):
+            try:
+              value = computeValues(fullmode,component_dict,spec=flatspec)
+            except ValueError,e:
+              if e.message == 'Integrated flux is <= 0':
+                # integrated flux is zero, skip this obsmode
+                skip = True
+                skipped_obs.append(obsmode)
+                
+                if verbose:
+                  print 'Skipping ' + obsmode + '\n'
+                
+                break
+              elif e.message == 'math domain error':
+                skip = True
+                skipped_obs.append(obsmode)
+                
+                if verbose:
+                  print 'Skipping ' + obsmode + '\n'
+                  
+                break
+              else:
+                raise
+                
             if verbose:
                 print 'PHOTFLAM(%s) = %g\n'%(fullmode,value['PHOTFLAM'])
+            
             pflam[n] = value['PHOTFLAM']
             pplam[n] = value['PHOTPLAM']
             pbw[n] = value['PHOTBW']
+            
+        if skip is True:
+          continue
+          
+        nmode_vals.append(nmodes)
     
         # Re-order results so that fastest varying variable is the last index
         # when accessed as a numpy array later by the C code
@@ -389,6 +439,16 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
         del photflam,photplam,photbw,filtdict,lenpars
         
     del flatspec, component_dict
+    
+    # remove any skipped obsmodes from the obsmodes list
+    for sk in skipped_obs:
+      obsmodes.remove(sk)
+      
+    # save skipped obs to a file
+    if len(skipped_obs) > 0:
+      saveSkippedObsmodes(output, skipped_obs)
+    
+    del skipped_obs
 
     print "Creating table columns from photometry values..."
     

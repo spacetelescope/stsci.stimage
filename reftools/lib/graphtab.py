@@ -26,7 +26,7 @@ _stis_spec_modes = \
 's52x01','s52x02','s52x05','s52x2','s6x006','s6x02','s6x05','s6x6','e140h',
 'e140h','e140hb','e140m','e140mb','e230h','e230m','g140l','g140lb','g140m',
 'g140m','g140mb','g230l','g230lb','g230m','g230mb','g430l','g430m','g750l',
-'g750l','g750m','prism','x140','x140m','x230','x230h','acq','1687',
+'g750l','g750m','prism','x140','x140m','x230','x230h','1687',
 '1687','1769','1851','1884','1933','2014','2095','2176','2257',
 '2257','2338','2419','2499','2579','2600','2659','2739','2800',
 '2800','2818','2828','2898','2977','3055','3134','all','c1687',
@@ -96,22 +96,43 @@ _stis_spec_modes = \
 'c7283','c7795','c8311','c8825','c9336','c9851','i6094','i6581','i8561',
 'i8561','i9286','i9806']
 
+_cos_spec_modes = \
+['g130m','g140l','g160m','c1055','c1096','c1291','c1300','c1309','c1318',
+'c1318','c1327','c1577','c1589','c1600','c1611','c1623','c1105','c1230',
+'c1230','c1280','g185m','g225m','g230l','g285m','c1786','c1817','c1835',
+'c1835','c1850','c1864','c1882','c1890','c1900','c1913','c1921','c1941',
+'c1941','c1953','c1971','c1986','c2010','c2186','c2217','c2233','c2250',
+'c2250','c2268','c2283','c2306','c2325','c2339','c2357','c2373','c2390',
+'c2390','c2410','c2617','c2637','c2657','c2676','c2695','c2709','c2719',
+'c2719','c2739','c2850','c2952','c2979','c2996','c3018','c3035','c3057',
+'c3057','c3074','c3094','c2635','c2950','c3000','c3360']
+
 rules_dict = {
-  'default': {'junk': ['', 'None', 'default'], 'exclude': ['aper#']},
-  'acs,hrc': {'junk': [], 'exclude': []},
+  'default': {'junk': ['None', 'default', ''], 'exclude': ['aper#','aper','mjd']},
+  'acs,hrc': {'junk': [], 'exclude': ['g800l','fr388n','fr459n','fr505n',
+                                      'fr656n','fr914m','aper#']},
   'acs,hrc,f555w': {'junk': [], 'exclude': []},
   'acs,sbc': {'junk': [], 'exclude': []},
-  'acs,wfc1': {'junk': ['wfc1'], 'exclude': ['wfc2']},
-  'acs,wfc2': {'junk': ['wfc2'], 'exclude': ['wfc1']},
-  'wfc3,uvis1': {'junk': ['uvis1'], 'exclude': ['uvis2','noota','ota']},
-  'wfc3,uvis2': {'junk': ['uvis2'], 'exclude': ['uvis1','noota','ota']},
-  'wfc3,ir': {'junk': [], 'exclude': []},
+  'acs,wfc1': {'junk': ['wfc1'], 'exclude': ['wfc2','g800l','fr1016n','fr388n',
+                                              'fr423n','fr459m','fr505n','fr656n',
+                                              'fr551n','fr601n','fr647m','fr716n',
+                                              'fr782n','fr853n','fr914m','fr931n',
+                                              'aper#']},
+  'acs,wfc2': {'junk': ['wfc2'], 'exclude': ['wfc1','g800l','fr1016n','fr388n',
+                                              'fr423n','fr459m','fr505n','fr656n',
+                                              'fr551n','fr601n','fr647m','fr716n',
+                                              'fr782n','fr853n','fr914m','fr931n',
+                                              'aper#']},
+  'wfc3,uvis1': {'junk': ['uvis1'], 'exclude': ['uvis2','noota','ota','dn',
+                                                'qyc','g280','cal','aper#']},
+  'wfc3,uvis2': {'junk': ['uvis2'], 'exclude': ['uvis1','noota','ota','dn',
+                                                'qyc','g280','cal','aper#']},
+  'wfc3,ir': {'junk': [], 'exclude': ['g102','g141','aper#']},
   'nicmos,1': {'junk': [], 'exclude': []},
   'nicmos,2': {'junk': [], 'exclude': []},
   'nicmos,3': {'junk': [], 'exclude': []},
-  'cos,boa': {'junk': [], 'exclude': []},
-  'cos,psa': {'junk': [], 'exclude': []},
-  'wfpc2,*': {'junk': [], 'exclude': []},
+  'cos,*': {'junk': [], 'exclude': _cos_spec_modes},
+  'wfpc2,*': {'junk': [], 'exclude': ['lrf','cont','dn']},
   'stis,*': {'junk': [], 'exclude': _stis_spec_modes}
 }
 
@@ -234,6 +255,7 @@ class Graph(object):
         self.add_node(k)
       self.top = nodes[0]
     
+    self.obsmode = None
     self.obsmodes = []
   
   def __len__(self):
@@ -305,7 +327,7 @@ class Graph(object):
                          str(edge.kwd),
                          str(edge.destination)])
       
-      if 'acs' in obsmode:
+      if 'acs' in obsmode or 'wfc3' in obsmode:
         # Count up the number of obsmode elements accounted for in the Path
         if edge.kwd in kwdset and edge.kwd not in set(edge_list) and edge.kwd != 'default': 
           kwdcount += 1
@@ -346,6 +368,8 @@ class Graph(object):
     and `prefix`=True.
     
     """
+    self.obsmode = obsmode
+    
     if self.obsmodes != []:
       self.obsmodes = []
     
@@ -395,22 +419,31 @@ class Graph(object):
     self.obsmodes = numpy.array(self.obsmodes, dtype=numpy.str)
     
     # remove junk
-    for junk in self.obsrules_junk:
-      if junk == '':
-        j = ',,'
-        r = ','
-        self.obsmodes = numpy.char.replace(self.obsmodes, j, r)
-      else:
-        j1 = ',' + junk
-        j2 = junk + ','
-        j3 = junk
-        r = ''
+#    for junk in self.obsrules_junk:
+#      if junk == '':
+#        j = ',,'
+#        r = ','
+#        self.obsmodes = numpy.char.replace(self.obsmodes, j, r)
+#      else:
+#        j1 = ',' + junk
+#        j2 = junk + ','
+#        j3 = junk
+#        r = ''
+#
+#        self.obsmodes = numpy.char.replace(self.obsmodes, j1, r)
+#        self.obsmodes = numpy.char.replace(self.obsmodes, j2, r)
+#        self.obsmodes = numpy.char.replace(self.obsmodes, j3, r)
+#        
+#    self.obsmodes = numpy.unique(self.obsmodes)
 
-        self.obsmodes = numpy.char.replace(self.obsmodes, j1, r)
-        self.obsmodes = numpy.char.replace(self.obsmodes, j2, r)
-        self.obsmodes = numpy.char.replace(self.obsmodes, j3, r)
-        
-    self.obsmodes = numpy.unique(self.obsmodes)
+    # SPECIAL FOR WFC3,UVIS
+    # because of graph table shenanigans it easiest to generate a list of obsmodes
+    # that don't include the cal keyword and then duplicate that list and append
+    # "cal" to the duplicates
+    if 'wfc3,uvis' in self.obsmode.lower():
+      calmodes = self.obsmodes.copy()
+      calmodes = numpy.char.add(calmodes,',cal')
+      self.obsmodes = numpy.array(self.obsmodes.tolist() + calmodes.tolist(),dtype=numpy.str)
     
     # add prefix (or not) and convert back to list
     if prefix is not None:
@@ -464,19 +497,35 @@ class Graph(object):
     #This terminates the recursion
     if node is None:
 #       print "Terminating at ",so_far
-      result.extend([so_far])
+      result.append(so_far)
 
     else:
 #       print "Entering node ",node.name
       #Recurse through all the edges of this node
       for edge in node:
-        if edge.kwd in self.obsrules_excl:
+        if edge.kwd.lower() in self.obsrules_excl:
           continue
+            
+        # wfpc2 obsmodes may have at most 2 filters, including polarized filters
+        if 'wfpc2' in self.obsmode.lower() and \
+           (edge.kwd.lower()[0] == 'f' or \
+            edge.kwd.lower()[:3] == 'pol'):
+          num_filt = 0
+          for mode in so_far.split(','):
+            if mode not in ['','default'] and \
+               (mode.lower()[0] == 'f' or mode.lower()[:3] == 'pol'):
+              num_filt += 1
+          if num_filt >= 2:
+            continue
       
         #print "Processing node ",node.name, ", edge ",edge.kwd
-        further = so_far + "," + edge.kwd
+        if edge.kwd not in self.obsrules_junk:
+          further = so_far + "," + edge.kwd
+        else:
+          further = so_far
         #print "Further is ",further
         #result.append(further)
+        
         ans = self.recurse(edge.destination,further)
         #print "ans is ",ans
 
