@@ -47,8 +47,8 @@ from calcos import calcosparam, cosutil
 import saamodel
 
 __taskname__ = "timefilter"
-__version__ = "0.2"
-__vdate__ = "2011 Apr 8"
+__version__ = "0.3"
+__vdate__ = "2011 Apr 25"
 
 DEGtoRAD = math.pi / 180.
 TWOPI = 2. * math.pi
@@ -143,6 +143,9 @@ def expandFilename (filename):
     str
         The real file name.
     """
+
+    if not filename or filename.strip() == "":
+        return None
 
     fname = filename
     done = False
@@ -291,7 +294,7 @@ class TimelineFilter (object):
     Attributes
     ----------
     input: str
-        Name of input file.
+        Name of input corrtag file.
 
     output: str
         Name of output file (may be None).
@@ -351,7 +354,7 @@ class TimelineFilter (object):
         Parameters
         ----------
         input: str
-            Name of input file.
+            Name of input corrtag file.
 
         output: str or None
             Optional name of output file.  If an output file was specified,
@@ -400,7 +403,12 @@ class TimelineFilter (object):
 
         # events_time will be gotten later if we need it.
         self.events_time = None
-        self.dq = self.fd[self.events_hdunum].data.field ("dq")
+        try:
+            self.dq = self.fd[self.events_hdunum].data.field ("dq")
+        except (KeyError, AttributeError):
+            self.fd.close()
+            raise RuntimeError, \
+                "The input %s does not appear to be a corrtag file." % input
 
         # Assign self.first_gti from the first GTI table in the input file.
         self.getFirstGTI()
