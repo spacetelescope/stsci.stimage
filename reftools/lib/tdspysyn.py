@@ -48,7 +48,7 @@ def main():
     except Exception, error:
         print str (error)
         prtOptions()
-        sys.exit()
+        return
 
     help = False
     for i in range (len (options)):
@@ -62,12 +62,12 @@ def main():
         # print __doc__
         # print __usage__
         # print "\t", __version__ + " (" + __vdate__ + ")"
-        sys.exit()
+        return
 
     nargs = len (pargs)
     if nargs < 6 or nargs > 8:
         prtOptions()
-        sys.exit()
+        return
 
     last_mjd = None
     row = None
