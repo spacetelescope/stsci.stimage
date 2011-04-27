@@ -48,7 +48,7 @@ import saamodel
 
 __taskname__ = "timefilter"
 __version__ = "0.3"
-__vdate__ = "2011 Apr 25"
+__vdate__ = "2011 Apr 27"
 
 DEGtoRAD = math.pi / 180.
 TWOPI = 2. * math.pi
@@ -74,7 +74,7 @@ def main():
     except Exception, error:
         print str (error)
         prtOptions()
-        sys.exit()
+        return
 
     help = False
     verbose = False
@@ -91,14 +91,14 @@ def main():
         # print __doc__
         # print __usage__
         # print "\t", __version__ + " (" + __vdate__ + ")"
-        sys.exit()
+        return
 
     # timefilter.py input                       # to just print info
     # timefilter.py input output filter
     nargs = len (pargs)
     if nargs < 1 or nargs > 3:
         prtOptions()
-        sys.exit()
+        return
 
     input = pargs[0]
     output = None
