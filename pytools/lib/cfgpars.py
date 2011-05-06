@@ -784,7 +784,7 @@ class ConfigObjPars(taskpars.TaskPars, configobj.ConfigObj):
 
 
 def flattened2str(flattened):
-    """ Return a pretty-printed multi-line string version of the output of 
+    """ Return a pretty-printed multi-line string version of the output of
     flatten_errors. Know that flattened comes in the form of a list
     of keys that failed. Each member of the list is a tuple::
 
@@ -806,5 +806,5 @@ def flattened2str(flattened):
             retval += ' has an invalid value'
         else:
             retval += ' is invalid, '+result.message
-        retval += '\n'
+        retval += '\n\n'
     return retval.rstrip()

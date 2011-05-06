@@ -153,7 +153,7 @@ the "Execute" button.
 
 # Starts a GUI session
 def teal(theTask, parent=None, loadOnly=False, returnDict=True,
-         canExecute=True):
+         canExecute=True, errorsToTerm=False):
 #        overrides=None):
     """ Start the GUI session, or simply load a task's ConfigObj. """
     if loadOnly:
@@ -161,13 +161,28 @@ def teal(theTask, parent=None, loadOnly=False, returnDict=True,
 #       obj.strictUpdate(overrides) # !! does this skip verify step?? need it!
         return obj
     else:
-        dlg = ConfigObjEparDialog(theTask, parent=parent,
-                                  returnDict=returnDict, canExecute=canExecute)
-#                                 overrides=overrides)
+        dlg = None
+        try:
+            dlg = ConfigObjEparDialog(theTask, parent=parent,
+                                      returnDict=returnDict,
+                                      canExecute=canExecute)
+#                                     overrides=overrides)
+        except RuntimeError, re:
+            if errorsToTerm:
+                print(str(re).replace('\n\n','\n'))
+            else:
+                # withdraw root, could standardize w/ EditParDialog.__init__()
+                if parent == None:
+                    import Tkinter
+                    Tkinter.Tk().withdraw()
+                # show error
+                tkMessageBox.showerror(message=str(re),
+                                       title="Parameter Errors")
+
         # Return, depending on the mode in which we are operating
         if not returnDict:
             return
-        if dlg.canceled():
+        if dlg is None or dlg.canceled():
             return None
         else:
             return dlg.getTaskParsObj()
