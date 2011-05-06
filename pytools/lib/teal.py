@@ -367,6 +367,7 @@ class ConfigObjEparDialog(editpar.EditParDialog):
         self._showExecuteButton = self._canExecute
 
         # check on the help string - just to see if it is HTML
+        # (could use HTMLParser here if need be, be quick and simple tho)
         hhh = self.getHelpString(self.pkgName+'.'+self.taskName)
         if hhh:
             hhh = hhh.lower()
