@@ -331,6 +331,7 @@ class ConfigObjEparDialog(editpar.EditParDialog):
         self._canExecute = canExecute
 
         # Init base - calls _setTaskParsObj(), sets self.taskName, etc
+        # Note that this calls _overrideMasterSettings()
         editpar.EditParDialog.__init__(self, theTask, parent, isChild,
                                        title, childList,
                                        resourceDir=cfgpars.getAppDir())
@@ -364,6 +365,19 @@ class ConfigObjEparDialog(editpar.EditParDialog):
         self._entsColor = cod.get('entriesColor', ltblu)
 
         self._showExecuteButton = self._canExecute
+
+        # check on the help string - just to see if it is HTML
+        hhh = self.getHelpString(self.pkgName+'.'+self.taskName)
+        if hhh:
+            hhh = hhh.lower()
+            if hhh.find('<html') >= 0 or hhh.find('</html>') > 0:
+                self._knowTaskHelpIsHtml = True
+            elif hhh.startswith('http:') or hhh.startswith('https:'):
+                self._knowTaskHelpIsHtml = True
+            elif hhh.startswith('file:') and \
+                 (hhh.endswith('.htm') or hhh.endswith('.html')):
+                self._knowTaskHelpIsHtml = True
+
 
     def _preMainLoop(self):
         """ Override so that we can do some things right before activating. """
@@ -709,7 +723,7 @@ class ConfigObjEparDialog(editpar.EditParDialog):
 
     def _handleParListMismatch(self):
         """ Override to include ConfigObj filename. """
-            
+
         errmsg = 'ERROR: mismatch between default and current par lists ' + \
                  'for task "'+self.taskName+'".\nTry editing/deleting: "' + \
                  self._taskParsObj.filename+'" (or, if in PyRAF: "unlearn ' + \
