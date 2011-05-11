@@ -560,9 +560,11 @@ class ConfigObjPars(taskpars.TaskPars, configobj.ConfigObj):
                     # rm spaces, extra quotes; rm kywd arg pairs
                     x = [i.strip("' ") for i in x if i.find('=')<0]
                     choicesOrMin = '|'+'|'.join(x)+'|' # IRAF format for enums
-                elif chk_func_name.find('boolean') >= 0: dtype = 'b'
-                elif chk_func_name.find('float') >= 0:   dtype = 'r'
-                elif chk_func_name.find('integer') >= 0: dtype = 'i'
+                elif chk_func_name.find('boolean') >= 0:     dtype = 'b'
+                elif chk_func_name.find('float_or_') >= 0:   dtype = 'r'
+                elif chk_func_name.find('float') >= 0:       dtype = 'R'
+                elif chk_func_name.find('integer_or_') >= 0: dtype = 'i'
+                elif chk_func_name.find('integer') >= 0:     dtype = 'I'
                 fields.append(dtype)
                 fields.append('a')
                 if type(val)==bool:

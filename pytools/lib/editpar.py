@@ -527,10 +527,14 @@ class EditParDialog(object):
             eparOpt = self._nonStandardEparOptionFor(self.paramList[i].type)
             cbo = self._defineEditedCallbackObjectFor(scope,
                                                       self.paramList[i].name)
+            hcbo = None
+            if self._knowTaskHelpIsHtml:
+                hcbo = self
             self.entryNo[i] = eparoption.eparOptionFactory(master, statusBar,
                                   self.paramList[i], self.defaultParamList[i],
                                   self.doScroll, self.fieldWidths,
                                   plugIn=eparOpt, editedCallbackObj=cbo,
+                                  helpCallbackObj=hcbo,
                                   defaultsVerb=dfltsVerb, bg=self._entsColor,
                                   indent = scope not in (None, '', '.') )
 
@@ -555,7 +559,7 @@ class EditParDialog(object):
 
 
     def _toggleSectionActiveState(self, sectionName, state, skipList):
-        """ Make an entire section (minus skipList items) either active or 
+        """ Make an entire section (minus skipList items) either active or
             inactive.  sectionName is the same as the param's scope. """
         for i in range(self.numParams):
             if self.paramList[i].scope == sectionName:
@@ -842,11 +846,15 @@ class EditParDialog(object):
         self._showHelpInBrowser = bool(self._helpChoice.get() == "BROWSER")
 
 
-    def showTaskHelp(self, event=None):
+    def showTaskHelp(self, tag=None, event=None):
         if self._showHelpInBrowser or self._knowTaskHelpIsHtml:
-            self.htmlHelp(istask=True)
+            self.htmlHelp(istask=True, tag=tag)
         else:
             self.help()
+
+
+    def showParamHelp(self, parName):
+        self.showTaskHelp(tag=parName)
 
 
     #
@@ -1157,7 +1165,7 @@ class EditParDialog(object):
 
 
     # HTMLHELP: invoke the HTML help
-    def htmlHelp(self, helpString=None, title=None, istask=False):
+    def htmlHelp(self, helpString=None, title=None, istask=False, tag=None):
         """ Pop up the help in a browser window.  By default, this tries to
         show the help for the current task.  With the option arguments, it can
         be used to show any help string. """
@@ -1171,7 +1179,10 @@ class EditParDialog(object):
         lwr = helpString.lower()
         if lwr.startswith("http:") or lwr.startswith("https:") or \
            lwr.startswith("file:"):
-            irafutils.launchBrowser(helpString, subj=title)
+            url = helpString
+            if tag and url.find('#') < 0:
+                url += '#'+tag
+            irafutils.launchBrowser(url, subj=title)
         else:
             # Write it to a temp HTML file to display
             (fd, fname) = tempfile.mkstemp(suffix='.html', prefix='editpar_')
