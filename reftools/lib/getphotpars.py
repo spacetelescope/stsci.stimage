@@ -137,7 +137,7 @@ class GetPhotPars(object):
       
     photzpt = self.imphttab_fits[0].header['photzpt']
     
-    return (photzpt, result_dict['photflam'], 
+    return (photzpt, result_dict['photflam'],
             result_dict['photplam'], result_dict['photbw'])
     
   def close(self):
@@ -214,7 +214,7 @@ class GetPhotPars(object):
       Row matching input obsmode
     
     """
-    o = np.char.lower(self.imphttab_fits[ext].data['obsmode'])
+    o = np.char.strip(np.char.lower(self.imphttab_fits[ext].data['obsmode']))
     w = np.where(o == obsmode.lower())
     
     if len(w[0]) == 0:
