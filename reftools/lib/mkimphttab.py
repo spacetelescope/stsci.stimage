@@ -336,8 +336,6 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab, mode_list = [],
     bw_rows = list()
     
     nmode_vals = list()
-    ped_vals =['Version %s data'%__version__]*nrows
-    descrip_vals = ['Generated %s from %s'%(getDate(),tmgtab)]*nrows
     
     # set up the flat spectrum used for the computing the photometry keywords
     flatspec = S.FlatSpectrum(1,fluxunits='flam')
@@ -384,27 +382,35 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab, mode_list = [],
         
         for n,fullmode in enumerate(olist):
             try:
-              value = computeValues(fullmode,component_dict,spec=flatspec)
+                value = computeValues(fullmode,component_dict,spec=flatspec)
             except ValueError,e:
-              if e.message == 'Integrated flux is <= 0':
-                # integrated flux is zero, skip this obsmode
-                skip = True
-                skipped_obs.append(obsmode)
-                
-                if verbose:
-                  print 'Skipping ' + obsmode + '\n'
-                
-                break
-              elif e.message == 'math domain error':
-                skip = True
-                skipped_obs.append(obsmode)
-                
-                if verbose:
-                  print 'Skipping ' + obsmode + '\n'
-                  
-                break
-              else:
-                raise
+                if e.message == 'Integrated flux is <= 0':
+                    # integrated flux is zero, skip this obsmode
+                    skip = True
+                    skipped_obs.append(obsmode)
+                    
+                    flam_datacol_vals.pop(nr)
+                    plam_datacol_vals.pop(nr)
+                    bw_datacol_vals.pop(nr)
+                    
+                    if verbose:
+                      print 'Skipping ' + obsmode + '\n'
+                    
+                    break
+                elif e.message == 'math domain error':
+                    skip = True
+                    skipped_obs.append(obsmode)
+                    
+                    if verbose:
+                      print 'Skipping ' + obsmode + '\n'
+                    
+                    flam_datacol_vals.pop(nr)
+                    plam_datacol_vals.pop(nr)
+                    bw_datacol_vals.pop(nr)
+                          
+                    break
+                else:
+                  raise
                 
             if verbose:
                 print 'PHOTFLAM(%s) = %g\n'%(fullmode,value['PHOTFLAM'])
@@ -492,6 +498,9 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab, mode_list = [],
         flam_cols.append(fvals)
         plam_cols.append(plvals)
         bw_cols.append(bvals)
+    
+    ped_vals =['Version %s data'%__version__]*len(nmode_vals)
+    descrip_vals = ['Generated %s from %s'%(getDate(),tmgtab)]*len(nmode_vals)
     
     # Finally, create the structures needed to define this row in the FITS table
         
