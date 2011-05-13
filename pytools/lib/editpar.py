@@ -1182,6 +1182,7 @@ class EditParDialog(object):
             url = helpString
             if tag and url.find('#') < 0:
                 url += '#'+tag
+#           print('LAUNCHING:', url) # DBG
             irafutils.launchBrowser(url, subj=title)
         else:
             # Write it to a temp HTML file to display
