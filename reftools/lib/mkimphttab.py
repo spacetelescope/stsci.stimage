@@ -176,7 +176,8 @@ def saveSkippedObsmodes(output, obsmodes):
       
     f.close()
     
-def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,verbose=False):
+def createTable(output,basemode,tmgtab,tmctab,tmttab, mode_list = [],
+                nmodes=None,clobber=True,verbose=False):
     """ Create an IMPHTTAB file for a specified base configuration (basemode).
         
         Inputs:
@@ -186,6 +187,7 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
           
         basemode: string
           Base obsmode for which to generate a reference file. (e.g. acs,hrc)
+          This is ignored if the mode_list keyword is a non-empty list.
           
         tmgtab: string
           File name of _tmg.fits reference file to be used.
@@ -195,7 +197,12 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
           
         tmttab: string
           File name of _tmt.fits reference file to be used.
-          
+        
+        mode_list: list, optional
+          A list of obsmodes which should be used to make an IMPHTTAB
+          reference file. If this keyword is set to something other than 
+          an empty list the basemode argument is ignored.
+        
         nmodes: integer, optional
           Set to limit the number of modes to calculate, useful for testing.
           Defaults to None.
@@ -220,11 +227,15 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
     #if isinstance(filtdata,str):
     #    filtdata = read_dict(filtdata)    
     
-    # start by getting the full list of obsmodes before 
-    # expanding the parameterized elements
     x = sgf.read_graphtable(tmgtab,tmctab,tmttab)
-    x.get_obsmodes(basemode,prefix=True)
-    obsmodes = x.obsmodes
+    
+    if len(mode_list) == 0:
+      # start by getting the full list of obsmodes before 
+      # expanding the parameterized elements
+      x.get_obsmodes(basemode,prefix=True)
+      obsmodes = x.obsmodes
+    else:
+      obsmodes = mode_list
     
     # start building obsmodes for each row
     if nmodes is not None:
@@ -547,4 +558,43 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab,nmodes=None,clobber=True,ve
     ftab.append(plam_tab)
     ftab.append(bw_tab)
     ftab.writeto(output)
+
+def createNicmosTable(output,pht_table,tmgtab,tmctab,tmttab,
+                      clobber=True,verbose=False):
+    """
+    Use a NICMOS _pht.fits table to generate an IMPHTTAB table for obsmodes
+    listed in the _pht table.
     
+    Input
+    -----
+    output: string
+      Prefix for output reference file. ("_imp.fits" will be appended)
+      
+    pht_table: string
+      File name of _pht.fits table from which to take obsmodes.
+      
+    tmgtab: string
+      File name of _tmg.fits reference file to be used.
+      
+    tmctab: string
+      File name of _tmc.fits reference file to be used.
+      
+    tmttab: string
+      File name of _tmt.fits reference file to be used.
+      
+    clobber: boolean, optional
+      True to overwrite an existing reference file, False to raise an error
+      if file already exists. Defaults to True.
+      
+    verbose: boolean, optional
+      True to print out extra information. Defaults to False.
+            
+    """
+    
+    pht = pyfits.open(pht_table, 'readonly')
+  
+    modes = np.char.strip(pht[1].data['photmode']).tolist()
+    
+    createTable(output,'junk',tmgtab,tmctab,tmttab,mode_list=modes,
+                clobber=clobber,verbose=verbose)
+  
