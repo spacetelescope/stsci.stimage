@@ -604,6 +604,51 @@ def createNicmosTable(output,pht_table,tmgtab,tmctab,tmttab,
   
     modes = np.char.strip(pht[1].data['photmode']).tolist()
     
-    createTable(output,'junk',tmgtab,tmctab,tmttab,mode_list=modes,
+    pht.close()
+    
+    createTable(output,'nicmos',tmgtab,tmctab,tmttab,mode_list=modes,
                 clobber=clobber,verbose=verbose)
+                
+def createTableFromTable(output, imphttab, tmgtab, tmctab, tmttab,
+                          clobber=True, verbose=False):
+    """
+    Use a previously created IMPHTTAB reference file to generate a new
+    IMPHTTAB reference file based on input graph and comp tables.
+    
+    Input
+    -----
+    output: string
+      Prefix for output reference file. ("_imp.fits" will be appended)
+      
+    imphttab: string
+      File name of _imp.fits IMPHTTAB table from which to take obsmodes.
+      
+    tmgtab: string
+      File name of _tmg.fits reference file to be used.
+      
+    tmctab: string
+      File name of _tmc.fits reference file to be used.
+      
+    tmttab: string
+      File name of _tmt.fits reference file to be used.
+      
+    clobber: boolean, optional
+      True to overwrite an existing reference file, False to raise an error
+      if file already exists. Defaults to True.
+      
+    verbose: boolean, optional
+      True to print out extra information. Defaults to False.
+      
+    """
+    imp = pyfits.open(imphttab, 'readonly')
+    
+    inst = imp[0].header['instrume']
+    
+    modes = np.char.strip(imp[1].data['obsmode']).tolist()
+    
+    imp.close()
+    
+    createTable(output,inst,tmgtab,tmctab,tmttab,mode_list=modes,
+                clobber=clobber,verbose=verbose)
+    
   
