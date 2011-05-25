@@ -250,7 +250,7 @@ def byteswap(input,output=None,clobber=True):
        a FITS file.
     """
 
-    global dat
+#   global dat  # !!! (looks like this is a function missing its head)
     cardLen = pyfits.Card.length
 
     # input file(s) must be of the form *.??h and *.??d
