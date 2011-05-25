@@ -17,14 +17,14 @@ The original WCS are first copied to MCD1_1 etc before being updated.
 :UPINCD History:
 First try, Richard Hook, ST-ECF/STScI, August 2002.
 Version 0.0.1 (WJH) - Obtain IDCTAB using PyDrizzle function.
-Version 0.1 (WJH) - Added support for processing image lists.  
+Version 0.1 (WJH) - Added support for processing image lists.
                     Revised to base CD matrix on ORIENTAT, instead of PA_V3
                     Supports subarrays by shifting coefficients as needed.
 Version 0.2 (WJH) - Implemented orientation computation based on PA_V3 using
                     Troll function from Colin to compute new ORIENTAT value.
 Version 0.3 (WJH) - Supported filter dependent distortion models in IDCTAB
                     fixed bugs in applying Troll function to WCS.
-Version 0.4 (WJH) - Updated to support use of 'defaultModel' for generic 
+Version 0.4 (WJH) - Updated to support use of 'defaultModel' for generic
                     cases: XREF/YREF defaults to image center and idctab
                     name defaults to None.
 Version 0.5 (WJH) - Added support for WFPC2 OFFTAB updates, which updates
@@ -75,7 +75,7 @@ no = False
 PARITY = {'WFC':[[1.0,0.0],[0.0,-1.0]],'HRC':[[-1.0,0.0],[0.0,1.0]],
           'SBC':[[-1.0,0.0],[0.0,1.0]],'default':[[1.0,0.0],[0.0,1.0]],
           'WFPC2':[[-1.0,0.],[0.,1.0]],'STIS':[[-1.0,0.],[0.,1.0]],
-          'NICMOS':[[-1.0,0.],[0.,1.0]], 'UVIS':[[-1.0,0.0],[0.0,1.0]], 
+          'NICMOS':[[-1.0,0.],[0.,1.0]], 'UVIS':[[-1.0,0.0],[0.0,1.0]],
           'IR':[[-1.0,0.0],[0.0,1.0]]  }
 
 NUM_PER_EXTN = {'ACS':3,'WFPC2':1,'STIS':3,'NICMOS':5, 'WFC3':3}
@@ -111,7 +111,7 @@ def run(input,quiet=yes,restore=no,prepend='O', tddcorr=True):
             # Work with new file
             image = newfilename
             newfiles.append(image)
-        # If a GEIS image is provided as input, create a new MEF file with 
+        # If a GEIS image is provided as input, create a new MEF file with
         # a name generated using 'buildFITSName()' and update that new MEF file.
         if not imgfits:
             # Create standardized name for MEF file
@@ -125,7 +125,7 @@ def run(input,quiet=yes,restore=no,prepend='O', tddcorr=True):
 
         if not quiet:
             print "Input files: ",files
-       
+
         # First get the name of the IDC table
         #idctab = drutil.getIDCFile(_files[0][0],keyword='idctab')[0]
         idctab = drutil.getIDCFile(image,keyword='idctab')[0]
@@ -137,7 +137,7 @@ def run(input,quiet=yes,restore=no,prepend='O', tddcorr=True):
         elif not _found:
             print '#\n IDCTAB: ',idctab,' could not be found. \n'
             print 'WCS keywords for file %s will not be updated.\n' %image
-            #raise IOError 
+            #raise IOError
             continue
 
         _phdu = image + '[0]'
@@ -149,39 +149,40 @@ def run(input,quiet=yes,restore=no,prepend='O', tddcorr=True):
             Nrefext = None
         if not NUM_PER_EXTN.has_key(_instrument):
 
-            raise "Instrument %s not supported yet. Exiting..."%_instrument
+            raise ValueError("Instrument %s not supported yet. Exiting..." \
+                             %_instrument)
 
-        _detector = fileutil.getKeyword(_phdu, keyword='DETECTOR')                          
+        _detector = fileutil.getKeyword(_phdu, keyword='DETECTOR')
         _nimsets = get_numsci(image)
-  
+
         for i in xrange(_nimsets):
             if image.find('.fits') > 0:
                 _img = image+'[sci,'+repr(i+1)+']'
             else:
                 _img = image+'['+repr(i+1)+']'
             if not restore:
-                if not quiet: 
+                if not quiet:
                     print 'Updating image: ', _img
 
                 _update(_img,idctab, _nimsets, apply_tdd=False,
-                        quiet=quiet,instrument=_instrument,prepend=_prepend, 
+                        quiet=quiet,instrument=_instrument,prepend=_prepend,
                         nrchip=Nrefchip, nrext = Nrefext)
                 if _instrument == 'ACS' and _detector == 'WFC':
                     tddswitch = fileutil.getKeyword(_phdu,keyword='TDDCORR')
-                    # This logic requires that TDDCORR be in the primary header 
+                    # This logic requires that TDDCORR be in the primary header
                     # and set to PERFORM in order to turn this on at all. It can
                     # be turned off by setting either tddcorr=False or setting
-                    # the keyword to anything but PERFORM or by deleting the 
-                    # keyword altogether. PyDrizzle will rely simply on the 
-                    # values of alpha and beta as computed here to apply the 
+                    # the keyword to anything but PERFORM or by deleting the
+                    # keyword altogether. PyDrizzle will rely simply on the
+                    # values of alpha and beta as computed here to apply the
                     # correction to the coefficients.
                     if (tddcorr and tddswitch != 'OMIT'):
                         print 'Applying time-dependent distortion corrections...'
                         _update(_img,idctab, _nimsets, apply_tdd=True, \
                                 quiet=quiet,instrument=_instrument,prepend=_prepend, nrchip=Nrefchip, nrext = Nrefext)
-            else:                    
+            else:
                 if not quiet:
-                    print 'Restoring original WCS values for',_img  
+                    print 'Restoring original WCS values for',_img
                 restoreCD(_img,_prepend)
 
         #fimg = fileutil.openImage(image,mode='update')
@@ -201,7 +202,7 @@ def restoreCD(image,prepend):
         _wcs = wcsutil.WCSObject(image)
         _wcs.restoreWCS(prepend=_prepend)
         del _wcs
-    except: 
+    except:
         print 'ERROR: Could not restore WCS keywords for %s.'%image
 
 def _update(image,idctab,nimsets,apply_tdd=False,
@@ -209,9 +210,9 @@ def _update(image,idctab,nimsets,apply_tdd=False,
 
     tdd_xyref = {1: [2048, 3072], 2:[2048, 1024]}
     _prepend = prepend
-    _dqname = None        
+    _dqname = None
     # Make a copy of the header for keyword access
-    # This copy includes both Primary header and 
+    # This copy includes both Primary header and
     # extension header
     hdr = fileutil.getHeader(image)
 
@@ -285,17 +286,18 @@ def _update(image,idctab,nimsets,apply_tdd=False,
     elif PARITY.has_key(detector):
         parity = PARITY[detector]
     else:
-        raise 'Detector ',detector,' Not supported at this time. Exiting...'
+        raise ValueError('Detector ',detector,
+                         ' Not supported at this time. Exiting...')
 
     # Get the VAFACTOR keyword if it exists, otherwise set to 1.0
     # we also need the reference pointing position of the target
     # as this is where
     _va_key = readKeyword(hdr,'VAFACTOR')
-    if _va_key != None: 
+    if _va_key != None:
         VA_fac = float(_va_key)
     else:
         VA_fac=1.0
-        
+
     if not quiet:
         print 'VA factor: ',VA_fac
 
@@ -407,13 +409,13 @@ def _update(image,idctab,nimsets,apply_tdd=False,
     rorder = ridcmodel.norder
     """
     rfx,rfy,rrefpix,rorder=mutil.readIDCtab(idctab,chip=Nrefchip,
-        direction='forward', filter1=filter1,filter2=filter2,offtab=offtab, 
+        direction='forward', filter1=filter1,filter2=filter2,offtab=offtab,
         date=dateobs,tddcorr=apply_tdd)
     """
     # Create the reference image name
     rimage = image.split('[')[0]+"[sci,%d]" % nr
     if not quiet:
-        print "Reference image: ",rimage       
+        print "Reference image: ",rimage
 
     # Create the tangent plane WCS on which the images are defined
     # This is close to that of the reference chip
@@ -452,7 +454,7 @@ def _update(image,idctab,nimsets,apply_tdd=False,
     v2ref = rrefpix['V2REF'] +  rv23_corr[0][0]*0.05
     v3ref = rrefpix['V3REF'] - rv23_corr[1][0]*0.05
     v2 = refpix['V2REF'] + v23_corr[0][0]*0.05
-    v3 = refpix['V3REF'] - v23_corr[1][0] *0.05    
+    v3 = refpix['V3REF'] - v23_corr[1][0] *0.05
 
     pv = wcsutil.troll(pvt,dec,v2ref,v3ref)
 
@@ -499,7 +501,7 @@ def _update(image,idctab,nimsets,apply_tdd=False,
     _fname,_iextn = fileutil.parseFilename(image)
 
     if _fname.find('.fits') < 0:
-        # Input image is NOT a FITS file, so 
+        # Input image is NOT a FITS file, so
         #     build a FITS name for it's copy.
         _fitsname = fileutil.buildFITSName(_fname)
     else:
@@ -556,8 +558,8 @@ def _update(image,idctab,nimsets,apply_tdd=False,
     if VA_fac != 1.0:
 
         # First shift the CRVALs apart
-#       New.crval1 = ra_targ + VA_fac*(New.crval1 - ra_targ) 
-#       New.crval2 = dec_targ + VA_fac*(New.crval2 - dec_targ) 
+#       New.crval1 = ra_targ + VA_fac*(New.crval1 - ra_targ)
+#       New.crval2 = dec_targ + VA_fac*(New.crval2 - dec_targ)
         # First shift the CRVALs apart
         # This is now relative to the reference chip, not the
         # target position.
@@ -568,7 +570,7 @@ def _update(image,idctab,nimsets,apply_tdd=False,
         New.cd11 = New.cd11*VA_fac
         New.cd12 = New.cd12*VA_fac
         New.cd21 = New.cd21*VA_fac
-        New.cd22 = New.cd22*VA_fac        
+        New.cd22 = New.cd22*VA_fac
 
     New_cdmat = N.array([[New.cd11,New.cd12],[New.cd21,New.cd22]])
 
@@ -584,8 +586,8 @@ def _update(image,idctab,nimsets,apply_tdd=False,
         dqwcs.write(fitsname=_new_dqname, wcs=New,overwrite=no,quiet=quiet, archive=yes)
 
     """ Convert distortion coefficients into SIP style
-        values and write out to image (assumed to be FITS). 
-    """  
+        values and write out to image (assumed to be FITS).
+    """
     #First the CD matrix:
     f = refpix['PSCALE']/3600.0
     a = fx[1,1]/3600.0
@@ -700,10 +702,10 @@ def readKeyword(hdr,keyword):
 def get_numsci(image):
     """ Find the number of SCI extensions in the image.
         Input:
-            image - name of single input image 
-    """ 
+            image - name of single input image
+    """
     handle = fileutil.openImage(image)
-    num_sci = 0    
+    num_sci = 0
     for extn in handle:
         if extn.header.has_key('extname'):
             if extn.header['extname'].lower() == 'sci':
@@ -713,9 +715,9 @@ def get_numsci(image):
 
 def shift_coeffs(cx,cy,xs,ys,norder):
     """
-    Shift reference position of coefficients to new center 
+    Shift reference position of coefficients to new center
     where (xs,ys) = old-reference-position - subarray/image center.
-    This will support creating coeffs files for drizzle which will 
+    This will support creating coeffs files for drizzle which will
     be applied relative to the center of the image, rather than relative
     to the reference position of the chip.
 
@@ -770,17 +772,17 @@ def getNrefchip(image,instrument='WFPC2'):
 
 
 _help_str = """ makewcs - a task for updating an image header WCS to make
-      it consistent with the distortion model and velocity aberration.  
+      it consistent with the distortion model and velocity aberration.
 
-This task will read in a distortion model from the IDCTAB and generate 
+This task will read in a distortion model from the IDCTAB and generate
 a new WCS matrix based on the value of ORIENTAT.  It will support subarrays
 by shifting the distortion coefficients to image reference position before
-applying them to create the new WCS, including velocity aberration. 
+applying them to create the new WCS, including velocity aberration.
 Original WCS values will be moved to an O* keywords (OCD1_1,...).
 Currently, this task will only support ACS and WFPC2 observations.
 
 Parameters
----------- 
+----------
 input: str
     The filename(s) of image(s) to be updated given either as:
       * a single image with extension specified,
@@ -792,15 +794,15 @@ quiet: bool
     turns off ALL reporting messages: 'yes' or 'no'(default)
 
 prepend: char
-    This parameter specifies what prefix letter should be used to 
+    This parameter specifies what prefix letter should be used to
     create a new set of WCS keywords for recording the original values
     [Default: 'O']
 
 restore: bool
     restore WCS for all input images to defaults if possible:
-    'yes' or 'no'(default) 
+    'yes' or 'no'(default)
 
-tddcorr: bool 
+tddcorr: bool
     applies the time-dependent skew terms to the SIP coefficients
     written out to the header: 'yes' or True or, 'no' or False (default).
 

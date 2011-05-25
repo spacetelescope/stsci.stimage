@@ -141,13 +141,12 @@ class st_File(core._File):
             elif lstr == 3:
                 naxisVal_RE = self.naxisVal_len3_RE
             else:
-                raise \
-                   "More than 999 NPIXn keywords in constant data value header"
+                raise RuntimeError("More than 999 NPIXn keywords in constant data value header")
 
             tmpRaw, nSub = naxisVal_RE.subn(numAxisS,hdu._raw[naxis_sidx+10:],1)
 
             if nSub != 1:
-                raise "Unable to substitute NAXISn for NPIXn in the header"
+                raise RuntimeError("Unable to substitute NAXISn for NPIXn in the header")
 
             hdu._raw = hdu._raw[:naxis_sidx+10] + tmpRaw
         elif (pixvalue_mo):
@@ -387,7 +386,7 @@ def _assignSt_pyfitsClassExtensions(classExtensions):
 
     Parameters
     ----------
-    classExtensions: A dictionary 
+    classExtensions: A dictionary
         This dictionary maps pyfits classes to extensions of
         those classes.  When present in the dictionary, the
         extension class will be constructed in place of the
@@ -420,7 +419,7 @@ def _assignSt_pyfitsClassExtensionsKeywordDict(keywords):
 
     Parameters
     ----------
-    keywords: dictionary 
+    keywords: dictionary
         A dictionary that maps keyword arguments to their values.
 
     Returns
