@@ -73,6 +73,7 @@ __version__ = "1.0 (25 Feb, 2011), \xa9 AURA"
 import os, sys, string, shutil
 import pyfits
 import numpy
+dat = None
 
 def byteswap(input,output=None,clobber=True):
 
