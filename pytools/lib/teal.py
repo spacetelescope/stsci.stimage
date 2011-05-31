@@ -153,7 +153,7 @@ the "Execute" button.
 
 # Starts a GUI session
 def teal(theTask, parent=None, loadOnly=False, returnDict=True,
-         canExecute=True, errorsToTerm=False):
+         canExecute=True, raiseUnfound=False, errorsToTerm=False):
 #        overrides=None):
     """ Start the GUI session, or simply load a task's ConfigObj. """
     if loadOnly:
@@ -167,15 +167,20 @@ def teal(theTask, parent=None, loadOnly=False, returnDict=True,
                                       returnDict=returnDict,
                                       canExecute=canExecute)
 #                                     overrides=overrides)
+        except cfgpars.NoCfgFileError, ncf:
+            if raiseUnfound:
+                raise
+            elif errorsToTerm:
+                print(str(ncf).replace('\n\n','\n'))
+            else:
+                if parent == None: withdrawRoot()
+                tkMessageBox.showerror(message=str(ncf),
+                                       title="Unfound Task")
         except RuntimeError, re:
             if errorsToTerm:
                 print(str(re).replace('\n\n','\n'))
             else:
-                # withdraw root, could standardize w/ EditParDialog.__init__()
-                if parent == None:
-                    import Tkinter
-                    Tkinter.Tk().withdraw()
-                # show error
+                if parent == None: withdrawRoot()
                 tkMessageBox.showerror(message=str(re),
                                        title="Parameter Errors")
 
@@ -186,6 +191,12 @@ def teal(theTask, parent=None, loadOnly=False, returnDict=True,
             return None
         else:
             return dlg.getTaskParsObj()
+
+
+def withdrawRoot():
+    # withdraw root, could standardize w/ EditParDialog.__init__()
+    import Tkinter
+    Tkinter.Tk().withdraw()
 
 
 def execTriggerCode(SCOPE, NAME, VAL, codeStr):
