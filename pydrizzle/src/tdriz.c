@@ -267,7 +267,7 @@ doublereal tdriz_(real *data, real *wei, real *ndat, real *ncou, integer *
 
     /* Function Body */
 /* Define Version ID */
-    s_copy(vers, "Callable DRIZZLE Version 0.7 (20 Jan 2011) ", (ftnlen)50, (
+    s_copy(vers, "Callable DRIZZLE Version 0.7 (4th Apr 2005) ", (ftnlen)50, (
 	    ftnlen)43);
 /* Announce */
     umsput_(vers, &c__1, &c__0, &istat, (ftnlen)50);

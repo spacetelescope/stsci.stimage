@@ -1382,8 +1382,8 @@ doublereal mgf2_(doublereal *lam)
 	xcen = (doublereal) (*dnx / 2.f) + .5f;
 	ycen = (doublereal) (*dny / 2.f) + .5f;
     } else {
-	xcen = (doublereal) (*dnx / 2.f);
-	ycen = (doublereal) (*dny / 2.f);
+	xcen = (doublereal) (*dnx / 2.f) + 1.f;
+	ycen = (doublereal) (*dny / 2.f) + 1.f;
     }
 /* Calculate some numbers to simplify things later */
     sinth = sin(*rot);
@@ -1411,8 +1411,8 @@ doublereal mgf2_(doublereal *lam)
 	xp = (doublereal) (*onx / 2.f) + .5;
 	yp = (doublereal) (*ony / 2.f) + .5;
     } else {
-	xp = (doublereal) (*onx / 2.f);
-	yp = (doublereal) (*ony / 2.f);
+	xp = (doublereal) (*onx / 2.f) + 1.f;
+	yp = (doublereal) (*ony / 2.f) + 1.f;
     }
     xt = xoff + xp;
     yt = yoff + yp;
