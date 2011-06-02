@@ -1028,6 +1028,9 @@ class EditParDialog(object):
         changes here must be coordinated with the corresponding tpar save_as
         function. """
 
+        # On Linux Pers..Dlg causes the cwd to change, so get a copy of current
+        curdir = os.getcwd()
+
         # The user wishes to save to a different name
         # (could use Tkinter's FileDialog, but this one is prettier)
         # initWProtState is only used in the 1st call of a session
@@ -1036,6 +1039,7 @@ class EditParDialog(object):
                      initWProtState=self._writeProtectOnSaveAs)
         if fd.Show() != 1:
             fd.DialogCleanup()
+            os.chdir(curdir) # in case file dlg moved us
             return
         fname = fd.GetFileName()
         self._writeProtectOnSaveAs = fd.GetWriteProtectChoice()
@@ -1044,6 +1048,7 @@ class EditParDialog(object):
         # First check the child parameters, aborting save if
         # invalid entries were encountered
         if self.checkSetSaveChildren():
+            os.chdir(curdir) # in case file dlg moved us
             return
 
         # Run any subclass-specific steps right before the save
@@ -1057,7 +1062,9 @@ class EditParDialog(object):
         if self.badEntriesList:
             ansOKCANCEL = self.processBadEntries(self.badEntriesList,
                           self.taskName)
-            if not ansOKCANCEL: return
+            if not ansOKCANCEL:
+                os.chdir(curdir) # in case file dlg moved us
+                return
 
         # If there were no invalid entries or the user says OK, finally
         # save to their stated file.  Since we have already processed the
@@ -1065,10 +1072,13 @@ class EditParDialog(object):
         mstr = "TASKMETA: task="+self.taskName+" package="+self.pkgName
         if self.checkSetSaveEntries(doSave=True, filename=fname, comment=mstr,
                                     set_ro=self._writeProtectOnSaveAs):
+            os.chdir(curdir) # in case file dlg moved us
             raise Exception("Unexpected bad entries for: "+self.taskName)
 
         # Run any subclass-specific steps right after the save
         self._saveAsPostSave_Hook(fname)
+
+        os.chdir(curdir) # in case file dlg moved us
 
 
     # EXECUTE: save the parameter settings and run the task
