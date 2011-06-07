@@ -173,16 +173,12 @@ def teal(theTask, parent=None, loadOnly=False, returnDict=True,
             elif errorsToTerm:
                 print(str(ncf).replace('\n\n','\n'))
             else:
-                if parent == None: withdrawRoot()
-                tkMessageBox.showerror(message=str(ncf),
-                                       title="Unfound Task")
+                popUpErr(parent=parent,message=str(ncf),title="Unfound Task")
         except RuntimeError, re:
             if errorsToTerm:
                 print(str(re).replace('\n\n','\n'))
             else:
-                if parent == None: withdrawRoot()
-                tkMessageBox.showerror(message=str(re),
-                                       title="Parameter Errors")
+                popUpErr(parent=parent,message=str(re),title="Bad Parameters")
 
         # Return, depending on the mode in which we are operating
         if not returnDict:
@@ -193,10 +189,21 @@ def teal(theTask, parent=None, loadOnly=False, returnDict=True,
             return dlg.getTaskParsObj()
 
 
-def withdrawRoot():
+def popUpErr(parent=None, message="", title="Error"):
     # withdraw root, could standardize w/ EditParDialog.__init__()
-    import Tkinter
-    Tkinter.Tk().withdraw()
+    if parent == None:
+        import Tkinter
+        root = Tkinter.Tk()
+#       root.lift()
+        root.after_idle(root.withdraw)
+    tkMessageBox.showerror(message=message, title=title, parent=parent)
+
+# We'd love to somehow force the dialog to the front here in popUpErr (on OSX)
+# butt cannot since the Python process started from the Terminal is not an
+# Aqua app (unless it became so within PyRAF).  This thread
+#    http://objectmix.com/python/350288-tkinter-osx-lift.html
+# describes it well.
+
 
 
 def execTriggerCode(SCOPE, NAME, VAL, codeStr):
