@@ -206,7 +206,7 @@ def popUpErr(parent=None, message="", title="Error"):
 
 
 
-def execTriggerCode(SCOPE, NAME, VAL, codeStr):
+def execTriggerCode(SCOPE, NAME, VAL, PARENT, codeStr):
     """ .cfgspc embedded code execution is done here, in a relatively confined
         space.  The variables available to the code to be executed are:
               SCOPE, NAME, VAL
@@ -558,7 +558,7 @@ class ConfigObjEparDialog(editpar.EditParDialog):
                     self.showStatus("Evaluating "+triggerName+' ...') #dont keep
                     self.top.update_idletasks() #allow msg to draw prior to exec
                     # execute it and retrieve the outcome
-                    outval = execTriggerCode(scope, name, newVal, codeStr)
+                    outval = execTriggerCode(scope, name, newVal, self.top, codeStr)
                     # Leave this debug line in until it annoys someone
                     msg = 'Value of "'+name+'" triggered "'+triggerName+'"'
                     stroutval = str(outval)
