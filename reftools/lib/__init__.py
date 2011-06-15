@@ -1,7 +1,7 @@
 # from __future__ import absolute_import
 from __future__ import division # confidence high
 
-__version__ = "1.0"
+__version__ = "1.3"
 
 #revision based svn info
 try:

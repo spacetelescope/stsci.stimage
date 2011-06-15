@@ -14,7 +14,7 @@ ext = [distutils.core.Extension(pkg + '._computephotpars',
 
 setupargs = {
 
-    'version' :         '1.2',
+    'version' :         '1.3',
     'description' :     "Reference File Python Tools",
     'author' :          "Warren Hack, Nadezhda Dencheva, Vicki Laidler, Matt Davis",
     'author_email' :    "help@stsci.edu",

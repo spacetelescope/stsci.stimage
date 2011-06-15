@@ -7,10 +7,16 @@ from pysynphotdev import observationmode
 from pyfits import Column
 import time as _time
 import re
+from collections import OrderedDict
 
-import graphfile as sgf 
+import graphfile as sgf
 
-__version__ = '0.1.0'
+# some things for doing compute values with synphot
+import tempfile
+from pyraf import iraf
+from iraf import stsdas, hst_calib, synphot
+
+__version__ = '0.1.1'
 __vdate__ = '28-Oct-2010'
 
 def computeValues(obsmode,component_dict,spec=None):
@@ -31,11 +37,41 @@ def computeValues(obsmode,component_dict,spec=None):
     valdict = {}
     
     valdict['PHOTFLAM'] = obs.effstim('flam')/obs.effstim('counts')
-    valdict['PHOTPLAM'] = obs.pivot()
+    valdict['PHOTPLAM'] = bp.pivot()
     valdict['PHOTBW'] = bp.rmswidth()
     
     return valdict
     
+def computeSynphotValues(obsmode):
+    """
+    Compute the 3 photometric values needed for a given obsmode string
+    using synphot's bandpar function.
+    This routine will return a dictionary with the photometry keywords and
+    the computed value of the keyword.
+    
+    """
+    tmpfits = os.path.join(tempfile.gettempdir(),'temp.fits')
+    
+    synphot.bandpar(obsmode,output=tmpfits,Stdout=1)
+    
+    fits = pyfits.open(tmpfits)
+    d = fits[1].data
+    
+    photflam = d['uresp'][0]
+    pivot = d['pivwv'][0]
+    rmswidth = d['bandw'][0]
+    
+    fits.close()
+    os.remove(tmpfits)
+    
+    valdict = {}
+      
+    valdict['PHOTFLAM'] = photflam
+    valdict['PHOTPLAM'] = pivot
+    valdict['PHOTBW'] = rmswidth
+    
+    return valdict
+  
 def expandObsmodes(basemode, pardict):
     """ Generate a set of obsmode strings spanning all the combinations of the 
         parameter as specified in the input dictionary
@@ -360,7 +396,8 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab, mode_list = [],
         obsmode = obsmodes[nr]
         fpars = fpars_vals[nr]
         npars = npar_vals[nr]
-        filtdict = dict()
+#        filtdict = dict()
+        filtdict = OrderedDict()
         lenpars = list()
         for f in fpars:
             f = f.upper()
@@ -383,6 +420,7 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab, mode_list = [],
         for n,fullmode in enumerate(olist):
             try:
                 value = computeValues(fullmode,component_dict,spec=flatspec)
+#                value = computeSynphotValues(fullmode)
             except ValueError,e:
                 if e.message == 'Integrated flux is <= 0':
                     # integrated flux is zero, skip this obsmode
@@ -418,7 +456,7 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab, mode_list = [],
             pflam[n] = value['PHOTFLAM']
             pplam[n] = value['PHOTPLAM']
             pbw[n] = value['PHOTBW']
-            
+        
         if skip is True:
           continue
           
@@ -452,7 +490,7 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab, mode_list = [],
         flam_rows.append(fvals)
         plam_rows.append(pvals)
         bw_rows.append(bvals)
-        
+         
         del photflam,photplam,photbw,filtdict,lenpars
         
     del flatspec, component_dict
@@ -543,7 +581,7 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab, mode_list = [],
             fcols = np.array(flam_cols[p],'O')
             pcols = np.array(plam_cols[p],'O')
             bcols = np.array(bw_cols[p],'O')
-            
+          
         flam_tabcols.append(Column(name='PHOTFLAM'+pstr,format=format_str,array=fcols))
         plam_tabcols.append(Column(name='PHOTPLAM'+pstr,format=format_str,array=pcols))
         bw_tabcols.append(Column(name='PHOTBW'+pstr,format=format_str,array=bcols))
