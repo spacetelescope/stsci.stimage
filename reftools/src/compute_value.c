@@ -123,7 +123,7 @@ double ComputeValue(PhtRow *tabrow, PhotPar *obs) {
     out = (double *)calloc(nx, sizeof(double));
     for (n=0; n<nx;n++) out[n] = n;
     value = linterp(tabrow->parvals[p], nx, out, obsvals[p]);
-    if (value == '\0') {
+    if (value == -99) {
       return('\0');
     }
     obsindx[p] = value;  /* Index into dimension p */
@@ -149,13 +149,12 @@ double ComputeValue(PhtRow *tabrow, PhotPar *obs) {
    (2.2, 4,1)vs(2.2, 5, 1) and (2.2, 4, 2)vs(2.2, 5, 2)
    Iteration 3: interpolate between pairs from iteration 2 in z
    (2.2, 4.7, 1) vs (2.2, 4.7, 2) ==> final answer
-   */ 
+   */
   for (iter=ndim; iter >0; iter--) {
     iterpow = pow(2,iter);
     for (p=0;p < iterpow;p++){
       pdim = floor(p/2);
       ppos = p%2;
-      
       if (iter == ndim) {
         /* Initialize all intermediate products and perform first 
          set of interpolations over the first dimension 
@@ -194,7 +193,8 @@ double ComputeValue(PhtRow *tabrow, PhotPar *obs) {
         bindx[0] = points[pdim][0].pos[deltadim];
         bindx[1] = points[pdim][1].pos[deltadim];
         bvals[0] = points[pdim][0].value;
-        bvals[1] = points[pdim][1].value;      
+        bvals[1] = points[pdim][1].value;
+        
         /*Perform interpolation now and record the results */
         rinterp = linterp(bindx, 2, bvals,obsvals[deltadim]);
         
@@ -202,7 +202,7 @@ double ComputeValue(PhtRow *tabrow, PhotPar *obs) {
          Update intermediate arrays with results in 
          preparation for the next iteration 
          */
-        if (rinterp == '\0') return(rinterp);
+        if (rinterp == -99) return('\0');
         /* Determine where the result of this interpolation should go */
         x = floor((p-1)/2);
         xdim = floor(x/2);
@@ -259,11 +259,10 @@ double linterp(double *x, int nx, double *fx, double xpos) {
   computebounds(x, nx, xpos, &i0, &i1);
   if ((x[i1] - x[i0]) == 0){
     printf("==>ERROR: Linear interpolation reached singularity...\n");
-    return('\0');
+    return(-99);
   }
   /* Now, compute interpolated value */
   value = fx[i0] + (xpos - x[i0])*(fx[i1] - fx[i0])/(x[i1]-x[i0]);
-  
   return(value);
 } 
 

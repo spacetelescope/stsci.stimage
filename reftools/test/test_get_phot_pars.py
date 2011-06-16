@@ -333,3 +333,16 @@ class TestGetPhotParsFunc(TestCase):
     tools.assert_almost_equals(flam,5.99660350e-14,21)
     tools.assert_almost_equals(plam,5737.95131007,8)
     tools.assert_almost_equals(bw,643.42528984,8)
+    
+
+class TestEdgeCase(TestCase):
+  def test1(self):
+    obsmode = 'acs,wfc1,fr931n#8905'
+    imphttab = 'test_data/test_acs_wfc1_dev_imp.fits'
+    
+    zpt, flam, plam, bw = getphotpars.get_phot_pars(obsmode, imphttab)
+    
+    self.assertEqual(zpt,-21.1)
+    tools.assert_almost_equals(flam,1.4852052585262792e-18,21)
+    tools.assert_almost_equals(plam,8903.8757202468823,8)
+    tools.assert_almost_equals(bw,64.255181883310669,8)
