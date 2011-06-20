@@ -648,6 +648,12 @@ class ConfigObjPars(taskpars.TaskPars, configobj.ConfigObj):
                         depType = 'is_set_by'
                         depName = chk_args_dict.get(depType)
                     if not depName:
+                        depType = 'set_yes_if'
+                        depName = chk_args_dict.get(depType)
+                    if not depName:
+                        depType = 'set_no_if'
+                        depName = chk_args_dict.get(depType)
+                    if not depName:
                         depType = 'is_disabled_by'
                         depName = chk_args_dict.get(depType)
                     # NOTE - the above few lines stops at the first dependency
