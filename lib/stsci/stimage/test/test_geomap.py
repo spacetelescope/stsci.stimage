@@ -28,46 +28,19 @@
 # DAMAGE.
 
 import numpy as np
-import stimage
+import stsci.stimage as stimage
 
-def test_same():
-    np.random.seed(0)
-    x = np.random.random((512, 2))
-    y = x[:]
+# def test_same():
+#     np.random.seed(0)
+#     x = np.random.random((512, 2))
+#     y = x[:]
 
-    r = stimage.xyxymatch(x, y, algorithm='tolerance',
-                          tolerance=0.01,
-                          separation=0.0, nmatch=0, maxratio=0, nreject=0)
+#     r = stimage.geomap(x, y, fit_geometry='general', function='polynomial')
 
-    print r.dtype
-    print r.shape
+#     print r
+#     print r[0].fit_geometry
 
-    assert len(r) == 512
+#     assert False
 
-    for i in range(512):
-        assert r['input_x'][i] == r['ref_x'][i]
-        assert r['input_y'][i] == r['ref_y'][i]
-        assert r['input_idx'][i] == r['ref_idx'][i]
-        assert r['input_idx'][i] < 512
-
-def test_different():
-    np.random.seed(0)
-    x = np.random.random((512, 2))
-    y = np.random.random((512, 2))
-
-    r = stimage.xyxymatch(x, y, algorithm='tolerance', tolerance=0.01,
-                          separation=0.0)
-
-
-    assert len(r) < 512 and len(r) > 0
-    for i in range(len(r)):
-        x0, y0 = r['input_x'][i], r['input_y'][i]
-        x1, y1 = r['ref_x'][i], r['ref_y'][i]
-        dx = x1 - x0
-        dy = y1 - y0
-        distance = dx*dx + dy*dy
-        assert distance < 0.01 * 0.01
-        assert r['input_idx'][i] < 512
-        assert r['ref_idx'][i] < 512
-
-
+if __name__ == '__main__':
+    test_same()
