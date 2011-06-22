@@ -322,7 +322,8 @@ class ConfigObjPars(taskpars.TaskPars, configobj.ConfigObj):
         # get the initial param list out of the ConfigObj dict
         self.syncParamList(True)
 
-#       print(self.triggerLogicToStr()) # DBG: for debugging
+        if 'TEAL_DEBUG' in os.environ:
+            print(self.triggerLogicToStr())
 
         # see if we are using a package with it's own run() function
         self._runFunc = None
