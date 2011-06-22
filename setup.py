@@ -1,261 +1,173 @@
 #!/usr/bin/env python
-from __future__ import division # confidence high
 
+try:
+    from setuptools import setup
+except ImportError:
+    from distribute_setup import use_setuptools
+    use_setuptools()
+    from setuptools import setup
 
+import os
 import sys
-import distutils
-import os.path
 
-# list of packages to be installed - we have to populate this
-# to know what to look for.
-#
-# Start with a list of the packages that we install everywhere.
-# Note that you only need to list top-level packages.  (e.g.
-# you don't need to list pydrizzle.traits102 because you have
-# already listed pydrizzle.)
+from ConfigParser import ConfigParser
 
-all_packages_input = [
-    "acstools",
-    "betadrizzle",
-    "calcos",
-    "convolve",
-    "costools",
-    "image",
-    "imagemanip",
-    "imagestats",
-    "multidrizzle",
-    "ndimage",
-    "nictools",
-    "numdisplay",
-    "opuscoords",
-    "pydrizzle",
-    "pytools",
-    "reftools",
-    "sample_package",
-    "stimage",
-    "stistools",
-    "stwcs",
-    "wfpc2tools",
+from pkg_resources import parse_requirements
+from distutils import log
+from distutils.command.build import build as _build
+from distutils.command.clean import clean as _clean
+from setuptools.command.develop import develop as _develop
+from setuptools.command.install import install as _install
 
-]
-
-opt_packages_input = [
-    "coords", 
-    "pyfits", 
-    "pyraf", 
-    "pysynphot", 
-    "pywcs", 
-    "stsci_sphinxext" 
-
-]
-
-for x in opt_packages_input :
-    if os.path.isdir(x) :
-        all_packages_input.append(x)
-    else :
-        print "WARNING:",x," not present"
+try:
+    from nose.commands import nosetests as _nosetests
+except ImportError:
+    _nosetests = None
 
 
-## If you are just adding a new package, you don't need to edit anything
-## after this line.
+SUBDIST_DIRS = None
 
 
-####
-#
-# Fix distutils to work the way we want it to.
-#
-# we can't just import this because it isn't installed.  python
-# won't find the module.  So, we just read the file and exec it.
-#
-# When we exec this file, it modifies distutils.  It also defines
-# some functions we will want to use later, so we save them.
-
-e_dict = { }
-f = open("pytools/lib/stsci_distutils_hack.py","r")
-exec f in e_dict
-f.close()
-
-# Check that numpy is present, numpy include files are present,
-# python include files are present
-e_dict['check_requirements']()
-
-set_svn_version = e_dict['__set_svn_version__']
-set_setup_date = e_dict['__set_setup_date__']
+SUBDISTS = None
 
 
-# pretty printer for debugging
-import pprint
-pp = pprint.PrettyPrinter(indent=8)
-pp = pp.pprint
-
-####
-#
-# We collect information from defsetup.py in each of the packages,
-# then modify it to account for the directory we are in (i.e. one
-# level up from the actual package).  We combine the information from
-# all of the different packages into a single call to setup().
-#
-# Because we have the single call to setup(), we can use
-# bdist_wininst to make a single Windows distribution.
-#
+# TODO: Move most of this stuff into stsci.distutils; have it imported from
+# there (have to add stsci.distutils to sys.path first, but that can be
+# hard-coded and if it doesn't work nothing else will anyways)
 
 
-# python files in each package
-all_package_dir = { }
-
-# native C code modules
-all_ext_modules = [ ]
-
-# scripts to go in a bin/ directory somewhere
-all_scripts = [ ]
-
-# data files to be installed
-all_data_files = [ ]
-
-# the list of all packages found.  all_packages_input only lists
-# things at the top level, but if one of them has nested packages,
-# all_packages will be the complete list.
-all_packages = [ ]
+def get_subdist_dirs():
+    global SUBDIST_DIRS
+    if SUBDIST_DIRS is None:
+        SUBDIST_DIRS = [p for p in os.listdir('.')
+                        if os.path.isdir(p) and
+                        os.path.exists(os.path.join(p, 'setup.cfg'))]
+    return SUBDIST_DIRS
 
 
-# For each package we want to use, fetch the config data.
-# We have to fix various things because each package description
-# thinks it is only talking about itself, but now we are in the
-# parent directory.
+def get_subdists():
+    global SUBDISTS
+    if SUBDISTS is None:
+        SUBDISTS = {}
+        for subdist_dir in get_subdist_dirs():
+            setup_cfg = ConfigParser()
+            setup_cfg.read(os.path.join(subdist_dir, 'setup.cfg'))
+            if not setup_cfg.has_section('metadata'):
+                continue
+            elif not setup_cfg.has_option('metadata', 'name'):
+                continue
 
-for lpkg in all_packages_input :
+            name = setup_cfg.get('metadata', 'name')
 
-    all_packages.append(lpkg)
+            if setup_cfg.has_option('metadata', 'version'):
+                version = setup_cfg.get('metadata', 'version')
+                subdist = (name, version)
+            else:
+                subdist = (name, None)
 
-    # forget anything about previous packages that we processed
-    pkg = None
-    setupargs = None
-
-    # "import" the defsetup file.  We can't use import because
-    # none of these are in modules, but we can read/exec.
-    #
-    # We want to protect our current environment from contamination
-    # by the exec'ed code, so we give it a private symbol table
-
-    e_dict = { }
-
-    fname = lpkg+"/defsetup.py"
-    f = open(fname,"r")
-    exec f in e_dict
-    f.close()
-
-    # Pick out the two interesting variables from the exec'ed code
-
-    if "pkg" in e_dict :
-        pkg = e_dict["pkg"]
-    if "setupargs" in e_dict :
-        setupargs = e_dict["setupargs"]
-
-    if isinstance(pkg,str) :
-        pkg = [ pkg ]
-
-    # if the package doesn't report the same name that we asked
-    # for, there is a major problem.
-
-    if lpkg != pkg[0] :
-        raise Exception("yow! package name doesn't match")
-
-    # pick out the "lib" directory, where the pure python comes from
-
-    if not 'package_dir' in setupargs :
-        # not specified, use the default
-        all_package_dir[pkg[0]] = "%s/%s" % ( pkg[0], 'lib' )
-
-    else :
-        # there is a list of package dirs to handle
-        package_dir = setupargs['package_dir']
-        for x in package_dir :
-            if not x in all_packages :
-                all_packages.append(x)
-            all_package_dir[x] = "%s/%s" % (pkg[0], package_dir[x])
-
-    # insert our subversion information and setup date into the
-    # packages lib/ directory.
-
-    set_svn_version(pkg[0])
-    set_setup_date(pkg[0])
-
-    # If there are scripts, we have to correct the file names where
-    # the installer can find them.  Each is under the package directory.
-
-    if 'scripts' in setupargs :
-        for x in setupargs['scripts'] :
-            all_scripts.append("%s/%s" % ( pkg[0], x ))
-
-    # If there are external modules, we need to correct the file names
-    # of source files.
-
-    if 'ext_modules' in setupargs :
-        for x in setupargs['ext_modules'] :
-            l = [ ]
-            for y in x.sources :
-                l.append("%s/%s"%(pkg[0],y))
-            x.sources = l
-            all_ext_modules.append(x)
-
-    # If there are data files, we need to correct the file names.
-
-    if 'data_files' in setupargs :
-        for x in setupargs['data_files'] :
-            ( instdir, files ) = x
-            t = [ ]
-            for y in files :
-                if y.startswith("/") :
-                    t.append( y ) # better only happen in development environment
-                else :
-                    t.append( pkg[0] + "/" + y )
-            all_data_files.append( ( instdir, t ) )
+            SUBDISTS[subdist] = subdist_dir
+    return SUBDISTS
 
 
-####
-#
-# now we have read in the in the information from every package,
-# and we have also created $pkg/lib/svn_version.py
-#
-# If the user is asking _only_ to create the version information,
-# we can stop now.  (This can happen when we are creating a
-# release, or when working with a copy checked out directly
-# from subversion.  The "version" command is not useful to
-# an end-user.)
+# TODO: Whenever we switch to pure distutils2 this will have to be modified
+def run_subdists_command(command, execsetup=None):
+    requirements = parse_requirements(command.distribution.install_requires)
+    for requirement in requirements:
+        for subdist, subdist_dir in get_subdists().iteritems():
+            subdist_name, subdist_version = subdist
+            if subdist_name != requirement.project_name:
+                continue
+            if subdist_version not in requirement:
+                # This checks that the minimum required version is met (or the
+                # exact version, if the requirement is exact)
+                continue
+            # Okay, we have a matching subdistribution
+            old_cwd = os.getcwd()
+            os.chdir(subdist_dir)
+            # Run the sub-distribution's setup.py with the same arguments that
+            # were given the main dist's setup.py.
+            try:
+                log.info("running %s command in %s"
+                         % (command.get_command_name(),
+                            os.path.join(os.path.curdir, subdist_dir)))
+                if '' not in sys.path:
+                    sys.path.insert(0, '')
+                if execsetup is None:
+                    execfile(os.path.abspath('setup.py'))
+                else:
+                    execsetup()
+            finally:
+                os.chdir(old_cwd)
+            break
+        else:
+            log.info('%s not found in sub-package distributions; skipping '
+                     '%s...' % (requirement, command.get_command_name()))
 
-if "version" in sys.argv :
-    sys.exit(0)
 
-####
-# leave a tombstone file with list of scripts in it
-# used by opus tools
-f=open(".script_tombstone","w")
-for x in all_scripts :
-    x = x.split("/")
-    f.write(x[0]+" "+x[-1]+"\n")
-f.close()
+# TODO: It might be nice to be able to wrap several command classes in a loop;
+# in almost all cases except install this is doable.
+class build(_build):
+    def run(self):
+        run_subdists_command(self)
+        _build.run(self)
 
-####
-#
-# We have accumulated all the information - now all we need is
-# to run the setup.
-#
 
-distutils.core.setup(
+class clean(_clean):
+    def run(self):
+        run_subdists_command(self)
+        _clean.run(self)
 
-    # This name is used in various file names to identify this item.
-    name="stsci_python",
 
-    # This version is expected to be compared to other version numbers.
-    # It will also appear in some file names.
-    version="2.9dev",
+class develop(_develop):
+    def run(self):
+        # Here too it works best to call setup.py develop in a separate process
+        def execsetup():
+            try:
+                os.system(' '.join(sys.argv))
+            except SystemExit:
+                pass
+        run_subdists_command(self, execsetup=execsetup)
+        # Don't run develop for the stsci_python package itself; there's
+        # nothing really to develop *on*.  And it gets confused here when
+        # processing dependencies, because none of the develop mode
+        # distributions have been added to the default working set
+        # TODO: Find a way to fix the working set problem.
+        #_develop.run(self)
 
-    # Apparently, description is not used anywhere.
-    description="",
 
-    packages = all_packages,
-    package_dir = all_package_dir,
-    ext_modules = all_ext_modules,
-    scripts = all_scripts,
-    data_files = all_data_files,
+class install(_install):
+    def run(self):
+        run_subdists_command(self)
+        if self.old_and_unmanageable or self.single_version_externally_managed:
+            _install.run(self)
+        else:
+            self.do_egg_install()
+
+
+if _nosetests:
+    class nosetests(_nosetests):
+        def run(self):
+            def execsetup():
+                try:
+                    # It's necessary to call os.system to run each project's tests
+                    # in its own process; otherwise the tests interfere with each
+                    # other too much, even if --with-isolation is used
+                    os.system(' '.join(sys.argv))
+                except SystemExit:
+                    pass
+            run_subdists_command(self, execsetup=execsetup)
+            _nosetests.run(self)
+
+
+CUSTOM_COMMANDS = {'build': build, 'clean': clean, 'develop': develop,
+                   'install': install}
+if 'nosetests' in globals():
+    CUSTOM_COMMANDS['nosetests'] = nosetests
+
+
+setup(
+    setup_requires=['d2to1>=0.2.2'],
+    d2to1=True,
+    use_2to3=True,
+    cmdclass=CUSTOM_COMMANDS
 )

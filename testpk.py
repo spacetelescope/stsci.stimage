@@ -7,6 +7,9 @@ import sys
 import os
 import string
 
+print 'This script is disabled for now...'
+sys.exit(1)
+
 # suppress all the text that comes out when you import pysynphot
 # ( not good enough... I guess we still won't check pysynphot )
 os.environ['PYSYN_CDBS'] = '.' 
@@ -32,23 +35,23 @@ required_versions = {
         'numpy':                '1.1.0',
         'pydrizzle':            '6.2.2',
         'pyfits':               '1.4',
-        'pytools' :             '3.0',
-        'pytools.fileutil':     '1.3.1',
-        'pytools.fitsdiff':     '1.4',
-        'pytools.gfit':         '1.0',
-        'pytools.imageiter':    '0.2',
-        'pytools.irafglob':     '1.0',
-        'pytools.iterfile':     '0.2',
-        'pytools.linefit':      '1.0',
-        'pytools.makewcs':      '0.8.5',
-        'pytools.nimageiter':   '0.6',
-        'pytools.nmpfit':       '0.2',
-        'pytools.numcombine':   '0.4.0',
-        'pytools.parseinput':   '0.1.5',
-        'pytools.readgeis':     '2.1',
-        'pytools.versioninfo':  '0.2.0',
-        'pytools.wcsutil':      '1.1.0',
-        'pytools.xyinterp':     '0.1',
+        'stsci.tools' :             '3.0',
+        'stsci.tools.fileutil':     '1.3.1',
+        'stsci.tools.fitsdiff':     '1.4',
+        'stsci.tools.gfit':         '1.0',
+        'stsci.tools.imageiter':    '0.2',
+        'stsci.tools.irafglob':     '1.0',
+        'stsci.tools.iterfile':     '0.2',
+        'stsci.tools.linefit':      '1.0',
+        'stsci.tools.makewcs':      '0.8.5',
+        'stsci.tools.nimageiter':   '0.6',
+        'stsci.tools.nmpfit':       '0.2',
+        'stsci.tools.numcombine':   '0.4.0',
+        'stsci.tools.parseinput':   '0.1.5',
+        'stsci.tools.readgeis':     '2.1',
+        'stsci.tools.versioninfo':  '0.2.0',
+        'stsci.tools.wcsutil':      '1.1.0',
+        'stsci.tools.xyinterp':     '0.1',
         'stistools.mktrace':    '1.1',
         'stistools.sshift':     '1.4',
         'stistools.stisnoise':  '5.4',

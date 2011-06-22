@@ -2,10 +2,8 @@ include LICENSE MANIFEST.in INSTALL README TODO defsetup.py stsci_distutils_hack
 include doc/Makefile
 include doc/source/*.py
 include doc/source/*.rst
-include doc/source/_static
-include doc/source/_templates
-recursive-include include *.h *.c wscript
-recursive-include src *.h *.c wscript
-recursive-include test_c *.h *.c wscript
-recursive-include src_wrap *.h *.c wscript
+recursive-include include *.h
+recursive-include src *.c wscript
+recursive-include test_c *.c wscript
+recursive-include src_wrap *.h *.c
 include test_c/c_tests.py
