@@ -7,7 +7,7 @@ except ImportError:
     use_setuptools()
     from setuptools import setup
 
-from pkg_resources import working_set, require
+from pkg_resources import working_set, get_distribution, Requirement
 
 
 # This is a workaround for http://bugs.python.org/setuptools/issue20; most
@@ -18,11 +18,8 @@ from pkg_resources import working_set, require
 # package_B is stsci.distutils).
 # This issue was fixed in distribute 0.6.17, but leaving in support for older
 # versions for now.
-try:
-    require('distribute>=0.6.19')
-    has_issue205 = False
-except:
-    has_issue205 = True
+requirement = Requirement.parse('distribute<0.6.19')
+has_issue205 = get_distribution('distribute') in requirement
 
 if has_issue205:
     save_entries = working_set.entries[:]

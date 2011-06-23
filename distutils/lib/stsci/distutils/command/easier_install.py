@@ -59,9 +59,16 @@ class LocalSourcesPackageIndex(PackageIndex):
 
     def fetch_distribution(self, requirement, tmpdir, force_scan=False,
             source=False, develop_ok=False, local_index=None):
-        dist = PackageIndex.fetch_distribution(self, requirement, tmpdir,
-                                               force_scan, source, develop_ok,
-                                               local_index)
+        requirement = pkg_resources.Requirement.parse('distribute>=0.6.14')
+        if pkg_resources.get_distribution('distribute') in requirement:
+            # The local_index parameter is only in distribute>=0.6.14
+            dist = PackageIndex.fetch_distribution(self, requirement, tmpdir,
+                                                   force_scan, source,
+                                                   develop_ok, local_index)
+        else:
+            dist = PackageIndex.fetch_distribution(self, requirement, tmpdir,
+                                                   force_scan, source,
+                                                   develop_ok)
         if dist:
             log.info('Using %s from %s' % (dist, dist.location))
         return dist
