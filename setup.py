@@ -12,7 +12,7 @@ import sys
 
 from ConfigParser import ConfigParser
 
-from pkg_resources import parse_requirements
+from pkg_resources import parse_requirements, working_set
 from distutils import log
 from distutils.command.build import build as _build
 from distutils.command.clean import clean as _clean
@@ -137,7 +137,12 @@ class develop(_develop):
 
 class install(_install):
     def run(self):
-        run_subdists_command(self)
+        def execsetup():
+            try:
+                os.system(' '.join(sys.argv))
+            except SystemExit:
+                pass
+        run_subdists_command(self, execsetup=execsetup)
         if self.old_and_unmanageable or self.single_version_externally_managed:
             _install.run(self)
         else:
