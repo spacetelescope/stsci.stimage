@@ -129,24 +129,26 @@ class Uninstaller(object):
                         else:
                             shutil.rmtree(item)
 
-                    # Now we need to remove this dist from the easy-install.pth
-                    # The parent directory, presumably the site-packages, that
-                    # the egg is installed in
-                    pardir = os.path.dirname(item)
-                    easy_install_pth = os.path.join(pardir, 'easy-install.pth')
-                    if not os.path.exists(easy_install_pth):
-                        continue
-                    contents = open(easy_install_pth).readlines()
-                    out = open(easy_install_pth, 'w')
-                    for line in contents:
-                        line = line.strip()
-                        path = os.path.abspath(
-                                os.path.join(pardir, os.path.normpath(line)))
-                        if path == item:
+                        # Now we need to remove this dist from the
+                        # easy-install.pth The parent directory, presumably the
+                        # site-packages, that the egg is installed in
+                        pardir = os.path.dirname(item)
+                        easy_install_pth = os.path.join(pardir,
+                                                        'easy-install.pth')
+                        if not os.path.exists(easy_install_pth):
                             continue
-                        out.write(line + '\n')
-                    out.close()
-                    continue
+                        contents = open(easy_install_pth).readlines()
+                        out = open(easy_install_pth, 'w')
+                        for line in contents:
+                            line = line.strip()
+                            path = os.path.abspath(
+                                    os.path.join(pardir,
+                                                 os.path.normpath(line)))
+                            if path == item:
+                                continue
+                            out.write(line + '\n')
+                        out.close()
+                        continue
 
                 # look for our packages or modules in the named directory
                 for package in self.all_packages:
