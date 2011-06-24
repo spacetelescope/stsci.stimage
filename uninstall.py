@@ -64,6 +64,7 @@ class Uninstaller(object):
     @classmethod
     def main(cls):
         parser = optparse.OptionParser(__doc__)
+        # -y is now spelled -f
         parser.add_option('-f', '--force', action='store_true',
                           help=optparse.SUPPRESS_HELP)
         parser.add_option('-n', '--never', action='store_true',
