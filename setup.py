@@ -12,7 +12,8 @@ import sys
 
 from ConfigParser import ConfigParser
 
-from pkg_resources import parse_requirements, working_set
+from pkg_resources import (parse_requirements, working_set, safe_name,
+                           safe_version)
 from distutils import log
 from distutils.command.build import build as _build
 from distutils.command.clean import clean as _clean
@@ -57,10 +58,12 @@ def get_subdists():
             elif not setup_cfg.has_option('metadata', 'name'):
                 continue
 
-            name = setup_cfg.get('metadata', 'name')
+            # safe_name ensures that the name will appear the same as the
+            # pkg_resources requirement parser's normalization
+            name = safe_name(setup_cfg.get('metadata', 'name'))
 
             if setup_cfg.has_option('metadata', 'version'):
-                version = setup_cfg.get('metadata', 'version')
+                version = safe_version(setup_cfg.get('metadata', 'version'))
                 subdist = (name, version)
             else:
                 subdist = (name, None)
