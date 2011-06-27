@@ -106,7 +106,7 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
     #Determine row from which to get the coefficients.
     # How many rows do we have in the table...
     fshape = ftab[1].data.shape
-    colnames = ftab[1].data._names
+    colnames = ftab[1].data.names
     row = -1
 
     # Loop over all the rows looking for the one which corresponds
@@ -210,7 +210,7 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
     #   numeric arrays we have set up...
     # Setup which column name convention the IDCTAB follows
     # either: A,B or CX,CY
-    if 'CX10' in ftab[1].data._names:
+    if 'CX10' in ftab[1].data.names:
         cxstr = 'CX'
         cystr = 'CY'
     else:
@@ -274,7 +274,7 @@ def readOfftab(offtab, date, chip=None):
     #Determine row from which to get the coefficients.
     # How many rows do we have in the table...
     fshape = ftab[1].data.shape
-    colnames = ftab[1].data._names
+    colnames = ftab[1].data.names
     row = -1
 
     row_start = None
