@@ -140,9 +140,49 @@ class develop(_develop):
 
 class install(_install):
     def run(self):
-        def execsetup():
+        install_lib = self.distribution.get_command_obj('install_lib')
+        install_scripts = self.distribution.get_command_obj('install_scripts')
+        install_cmd = self.distribution.get_command_obj('install')
+        for cmd in (install_lib, install_scripts, install_cmd):
+            cmd.ensure_finalized()
+
+        # These are some options that will probably end up being passed to
+        # easy_install in execsetup; ensure that the paths are absolute so we
+        # don't get lost
+        opts = {'prefix': install_cmd.prefix,
+                'install-dir': install_lib.install_dir,
+                'script-dir': install_scripts.install_dir,
+                'record': install_cmd.record}
+        for optname, value in opts.items():
+            if value is not None:
+                opts[optname] = os.path.abspath(value)
+        opts['optimize'] = install_lib.optimize
+
+
+        def execsetup(opts=opts):
             try:
-                os.system(' '.join(sys.argv))
+                argv = sys.argv[:]
+                if ('--root' not in sys.argv and
+                    '--old-and-unmanageable' not in sys.argv and
+                    '--single-version-externally-managed' not in sys.argv):
+                    # Use easy_install to install instead; that way we can have
+                    # more control over things like disabling dependency
+                    # checking
+                    # 'build' is inserted before 'easy_install' since the
+                    # easy_install command by itself seems to squelch much of
+                    # the build output
+                    argv = [argv[0], 'build', 'easy_install', '--no-deps']
+                    # Now, set the install-dir option from the install_lib
+                    # command which, according to comments in the distribute
+                    # source code "takes into account --prefix and --home and
+                    # all that other crud"; set some other options as well
+                    for optname, value in opts.iteritems():
+                        if value is not None:
+                            argv.append('--%s=%s' % (optname, value))
+
+                    argv.append('.')
+
+                os.system(' '.join(argv))
             except SystemExit:
                 pass
         run_subdists_command(self, execsetup=execsetup)

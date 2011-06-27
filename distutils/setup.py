@@ -30,7 +30,8 @@ try:
     setup(
         setup_requires=['d2to1>=0.2.3'],
         d2to1=True,
-        use_2to3=True
+        use_2to3=True,
+        zip_safe=False,
     )
 finally:
     if has_issue205:
