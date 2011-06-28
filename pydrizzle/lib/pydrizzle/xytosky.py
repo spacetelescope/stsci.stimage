@@ -121,7 +121,7 @@ def XYtoSky_pars(input,x=None,y=None,coords=None,colnames=None,linear=yes,
                 # We need to touch the data so that it can be in memory for
                 # creating the col_defs object
                 _fout[1].data
-                _tcol = _fout[1].get_coldefs()
+                _tcol = _fout[1].columns
                 raname = 'RA'
                 decname = 'Dec'
                 # create columns for RA and Dec arrays
