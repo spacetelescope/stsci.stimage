@@ -202,11 +202,10 @@ class OutputImage:
 
         # Update DITHCORR calibration keyword if present
         # Remove when we can modify FITS headers in place...
-        if prihdu.header.has_key('DRIZCORR') > 0:
-            prihdu.header['DRIZCORR'] = 'COMPLETE'
-        if prihdu.header.has_key('DITHCORR') > 0:
-            prihdu.header['DITHCORR'] = 'COMPLETE'
-
+        if 'DRIZCORR' in prihdu.header:
+            prihdu.header.update('DRIZCORR','COMPLETE')
+        if 'DITHCORR' in prihdu.header:
+            prihdu.header.update('DITHCORR','COMPLETE')
 
         prihdu.header.update('NDRIZIM',len(self.parlist),
             comment='Drizzle, No. images drizzled onto output')
