@@ -2,8 +2,8 @@ from __future__ import division # confidence high
 import os,sys
 import numpy as np
 import pyfits
-import pysynphotdev as S
-from pysynphotdev import observationmode
+import pysynphot as S
+from pysynphot import observationmode
 from pyfits import Column
 import time as _time
 import re
@@ -16,8 +16,8 @@ import tempfile
 from pyraf import iraf
 from iraf import stsdas, hst_calib, synphot
 
-__version__ = '0.1.1'
-__vdate__ = '28-Oct-2010'
+__version__ = '0.2.0'
+__vdate__ = '28-Jun-2011'
 
 def computeValues(obsmode,component_dict,spec=None):
     """ Compute the 3 photometric values needed for a given obsmode string
