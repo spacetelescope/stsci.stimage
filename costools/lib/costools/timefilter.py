@@ -3,20 +3,20 @@
 
 from __future__ import division         # confidence high
 
-__author__ = "Phil Hodge, STScI, April 2011."
+__author__ = "Phil Hodge, STScI, June 2011."
 __usage__ = """
 1. To run this task from within Python::
 
-    >>> from hstcos import timefilter
+    >>> from costools import timefilter
     >>> timefilter.Timelinefilter ("xyz_corrtag.fits", "temp_corrtag.fits",
                                    "sun_alt > 0.")
 
-.. note:: make sure the `hstcos` package is on your Python path
+.. note:: make sure the `costools` package is on your Python path
 
 2. To run this task using the TEAL GUI to set the parameters under PyRAF::
 
-    >>> import hstcos
-    >>> epar timefilter   # or "teal timefilter"
+    >>> import costools
+    >>> epar costools.timefilter   # or "teal timefilter"
 
 3. To run this task from the operating system command line::
 
@@ -41,14 +41,14 @@ import os
 import sys
 import numpy as np
 import pyfits
-from stsci.tools import parseinput, teal
+from pytools import parseinput, teal
 from calcos import ccos
 from calcos import calcosparam, cosutil
 import saamodel
 
 __taskname__ = "timefilter"
-__version__ = "0.3"
-__vdate__ = "2011 Apr 27"
+__version__ = "0.4"
+__vdate__ = "2011 June 29"
 
 DEGtoRAD = math.pi / 180.
 TWOPI = 2. * math.pi
@@ -969,9 +969,17 @@ class TimelineFilter (object):
         for (t0, t1) in gti:
             exptime += (t1 - t0)
 
-        # Update the EXPTIME keyword.
-        old_exptime = self.fd[self.events_hdunum].header.get ("exptime", 0.)
-        self.fd[self.events_hdunum].header.update ("exptime", exptime)
+        # Update the EXPTIME keyword, and also EXPTIMEA or EXPTIMEB for FUV.
+        detector = self.fd[0].header.get ("detector", default="missing")
+        if detector == "FUV":
+            segment = self.fd[0].header.get ("segment", default="missing")
+            exptime_key = "exptime" + segment[-1].lower()
+        else:
+            exptime_key = "exptime"
+        old_exptime = self.fd[self.events_hdunum].header.get (exptime_key, 0.)
+        self.fd[self.events_hdunum].header.update (exptime_key, exptime)
+        if detector == "FUV":
+            self.fd[self.events_hdunum].header.update ("exptime", exptime)
         if self.verbose and abs (exptime - old_exptime) > 0.032:
             print "EXPTIME changed from %.8g to %.8g" % (old_exptime, exptime)
 
@@ -1199,7 +1207,7 @@ class TimelineFilter (object):
 #
 def run(configobj=None):
     """TEAL interface for running this code."""
-    ### version 2011 Apr 7
+    ### version 2011 June 29
 
     tlf = TimelineFilter (configobj["input"], configobj["output"],
                           filter=configobj["filter"],
