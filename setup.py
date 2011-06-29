@@ -72,6 +72,28 @@ def get_subdists():
     return SUBDISTS
 
 
+# Try to bootstrap stsci.distutils, and in particular the easier_install
+# command.  Unfortunately we have to patch setuptools.command.easy_install
+# because of the way setuptools uses it to fetch setup_requires
+try:
+    from stsci.distutils.command.easier_install import easier_install
+except ImportError:
+    for subdist, location in get_subdists().iteritems():
+        if subdist[0] != 'stsci.distutils':
+            continue
+        libdir = os.path.join(location, 'lib')
+        try:
+            sys.path.insert(0, libdir)
+            from stsci.distutils.command.easier_install import easier_install
+        except ImportError:
+            from setuptools.command.easy_install import easy_install
+            easier_install = easy_install
+        finally:
+            sys.path.pop(0)
+import setuptools
+setuptools.command.easy_install.easy_install = easier_install
+
+
 # TODO: Whenever we switch to pure distutils2 this will have to be modified
 def run_subdists_command(command, execsetup=None):
     requirements = parse_requirements(command.distribution.install_requires)
@@ -214,7 +236,7 @@ if 'nosetests' in globals():
 
 
 setup(
-    setup_requires=['d2to1>=0.2.2'],
+    setup_requires=['d2to1>=0.2.3'],
     d2to1=True,
     use_2to3=True,
     cmdclass=CUSTOM_COMMANDS
