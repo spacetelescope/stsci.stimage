@@ -201,19 +201,19 @@ def saveSkippedObsmodes(output, obsmodes):
     ind = output.find('_imp.fits')
     
     if ind != -1:
-      output = output[:ind] + '_skipped.txt'
+        output = output[:ind] + '_skipped.txt'
     else:
-      output = output + '_skipped.txt' 
+        output = output + '_skipped.txt' 
     
     f = open(output,'w')
     
     for skipped in obsmodes:
-      f.write(skipped + '\n')
+        f.write(skipped + '\n')
       
     f.close()
     
-def createTable(output,basemode,tmgtab,tmctab,tmttab, mode_list = [],
-                nmodes=None,clobber=True,verbose=False):
+def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None, 
+                mode_list = [],nmodes=None,clobber=True,verbose=False):
     """ Create an IMPHTTAB file for a specified base configuration (basemode).
         
         Inputs:
@@ -225,14 +225,20 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab, mode_list = [],
           Base obsmode for which to generate a reference file. (e.g. acs,hrc)
           This is ignored if the mode_list keyword is a non-empty list.
           
-        tmgtab: string
+        tmgtab: string, optional
           File name of _tmg.fits reference file to be used.
+          If not specified or set to None the most recent version on
+          CDBS is used.
           
-        tmctab: string
+        tmctab: string, optional
           File name of _tmc.fits reference file to be used.
+          If not specified or set to None the most recent version on
+          CDBS is used.
           
-        tmttab: string
+        tmttab: string, optional
           File name of _tmt.fits reference file to be used.
+          If not specified or set to None the most recent version on
+          CDBS is used.
         
         mode_list: list, optional
           A list of obsmodes which should be used to make an IMPHTTAB
@@ -255,23 +261,30 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab, mode_list = [],
         
     # check status of output file
     if os.path.exists(output):
-        if clobber: os.remove(output)
-        else: raise IOError,'Output file already exists. Please delete/rename before restarting.'
-    # interpret input data
-    # The 'filtdata' dict contains the values for ALL the parameterized variables
-    # used in the obsmodes supported by this table
-    #if isinstance(filtdata,str):
-    #    filtdata = read_dict(filtdata)    
+        if clobber: 
+            os.remove(output)
+        else:
+            raise IOError('Output file already exists. Please delete/rename before restarting.')
+    
+    # get graph and component tables straightened out
+    if not tmgtab:
+        tmgtab = observationmode.GRAPHTABLE
+    if not tmctab:
+        tmctab = observationmode.COMPTABLE
+    if not tmttab:
+        tmttab = observationmode.THERMTABLE
+    
+    S.setref(graphtable=tmgtab,comptable=tmctab,thermtable=tmttab)
     
     x = sgf.read_graphtable(tmgtab,tmctab,tmttab)
     
     if len(mode_list) == 0:
-      # start by getting the full list of obsmodes before 
-      # expanding the parameterized elements
-      x.get_obsmodes(basemode,prefix=True)
-      obsmodes = x.obsmodes
+        # start by getting the full list of obsmodes before 
+        # expanding the parameterized elements
+        x.get_obsmodes(basemode,prefix=True)
+        obsmodes = x.obsmodes
     else:
-      obsmodes = mode_list
+        obsmodes = mode_list
     
     # start building obsmodes for each row
     if nmodes is not None:
@@ -606,7 +619,7 @@ def createTable(output,basemode,tmgtab,tmctab,tmttab, mode_list = [],
     ftab.append(bw_tab)
     ftab.writeto(output)
 
-def createNicmosTable(output,pht_table,tmgtab,tmctab,tmttab,
+def createNicmosTable(output,pht_table,tmgtab=None,tmctab=None,tmttab=None,
                       clobber=True,verbose=False):
     """
     Use a NICMOS _pht.fits table to generate an IMPHTTAB table for obsmodes
@@ -620,14 +633,20 @@ def createNicmosTable(output,pht_table,tmgtab,tmctab,tmttab,
     pht_table: string
       File name of _pht.fits table from which to take obsmodes.
       
-    tmgtab: string
+    tmgtab: string, optional
       File name of _tmg.fits reference file to be used.
+      If not specified or set to None the most recent version on
+      CDBS is used.
       
-    tmctab: string
+    tmctab: string, optional
       File name of _tmc.fits reference file to be used.
+      If not specified or set to None the most recent version on
+      CDBS is used.
       
-    tmttab: string
+    tmttab: string, optional
       File name of _tmt.fits reference file to be used.
+      If not specified or set to None the most recent version on
+      CDBS is used.
       
     clobber: boolean, optional
       True to overwrite an existing reference file, False to raise an error
@@ -647,7 +666,7 @@ def createNicmosTable(output,pht_table,tmgtab,tmctab,tmttab,
     createTable(output,'nicmos',tmgtab,tmctab,tmttab,mode_list=modes,
                 clobber=clobber,verbose=verbose)
                 
-def createTableFromTable(output, imphttab, tmgtab, tmctab, tmttab,
+def createTableFromTable(output, imphttab, tmgtab=None, tmctab=None, tmttab=None,
                           clobber=True, verbose=False):
     """
     Use a previously created IMPHTTAB reference file to generate a new
@@ -661,15 +680,20 @@ def createTableFromTable(output, imphttab, tmgtab, tmctab, tmttab,
     imphttab: string
       File name of _imp.fits IMPHTTAB table from which to take obsmodes.
       
-    tmgtab: string
+    tmgtab: string, optional
       File name of _tmg.fits reference file to be used.
+      If not specified or set to None the most recent version on
+      CDBS is used.
       
-    tmctab: string
+    tmctab: string, optional
       File name of _tmc.fits reference file to be used.
+      If not specified or set to None the most recent version on
+      CDBS is used.
       
-    tmttab: string
+    tmttab: string, optional
       File name of _tmt.fits reference file to be used.
-      
+      If not specified or set to None the most recent version on
+      CDBS is used.
     clobber: boolean, optional
       True to overwrite an existing reference file, False to raise an error
       if file already exists. Defaults to True.
