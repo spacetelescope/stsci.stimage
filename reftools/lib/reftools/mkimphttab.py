@@ -16,7 +16,7 @@ import tempfile
 from pyraf import iraf
 from iraf import stsdas, hst_calib, synphot
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 __vdate__ = '28-Jun-2011'
 
 def computeValues(obsmode,component_dict,spec=None):
@@ -176,7 +176,7 @@ def getDate():
 
     return date_str
     
-def makePrimaryHDU(filename,numpars,instrument):
+def makePrimaryHDU(filename,numpars,instrument,pedigree):
     """ Create a Primary Header for the multi-extension FITS reference table
     """
     d = observationmode.getref()
@@ -189,10 +189,11 @@ def makePrimaryHDU(filename,numpars,instrument):
     phdu.header.update('dbtable','IMPHTTAB')
     phdu.header.update('instrume',instrument)
     phdu.header.update('synswver',S.__version__,comment='Version of synthetic photometry software')
-    phdu.header.update('graphtab',d['graphtable'],comment='HST Graph table')
-    phdu.header.update('comptab',d['comptable'],comment='HST Components table')
+    phdu.header.update('mktabver',__version__,comment='Version of reftools.mkimphttab')
+    phdu.header.update('graphtab',os.path.basename(d['graphtable']),comment='HST Graph table')
+    phdu.header.update('comptab',os.path.basename(d['comptable']),comment='HST Components table')
     phdu.header.update('useafter','')
-    phdu.header.update('pedigree','Test data')
+    phdu.header.update('pedigree',pedigree)
     phdu.header.update('descrip','photometry keywords reference file')
 
     return phdu
@@ -550,8 +551,11 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
         plam_cols.append(plvals)
         bw_cols.append(bvals)
     
-    ped_vals =['Version %s data'%__version__]*len(nmode_vals)
-    descrip_vals = ['Generated %s from %s'%(getDate(),tmgtab)]*len(nmode_vals)
+    ped_vals = [pyfits.getval(tmctab,'pedigree',0)] * len(nmode_vals)
+    descrip_str = 'Generated %s from %s, mkimphttab version %s, pysynphot version %s'
+    descrip_str = descrip_str % (getDate(),os.path.basename(tmgtab),
+                                  __version__,S.__version__)
+    descrip_vals = [descrip_str] * len(nmode_vals)
     
     # Finally, create the structures needed to define this row in the FITS table
         
@@ -559,7 +563,7 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
     # from one extension to the other
     obsmode_col = Column(name='obsmode',format='40A',array=np.array(obsmodes))
     pedigree_col = Column(name='pedigree',format='30A',array=np.array(ped_vals))
-    descrip_col = Column(name='descrip',format='67A',array=np.array(descrip_vals))
+    descrip_col = Column(name='descrip',format='110A',array=np.array(descrip_vals))
     datacol_col = {}
     datacol_col['PHOTFLAM'] = Column(name='datacol',format='12A',array=np.array(flam_datacol_vals))
     datacol_col['PHOTPLAM'] = Column(name='datacol',format='12A',array=np.array(plam_datacol_vals))
@@ -601,7 +605,7 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
     print 'Creating full table: ',output
     # Now create the FITS file with the table in each extension
     
-    phdu = makePrimaryHDU(output,max_npars,basemode.split(',')[0])
+    phdu = makePrimaryHDU(output,max_npars,basemode.split(',')[0],ped_vals[0])
     flam_tab = pyfits.new_table([obsmode_col,datacol_col['PHOTFLAM']]+flam_tabcols+parnames_tabcols+parvals_tabcols+nelem_tabcols+[pedigree_col,descrip_col])
     flam_tab.header.update('extname','PHOTFLAM')
     flam_tab.header.update('extver',1)
