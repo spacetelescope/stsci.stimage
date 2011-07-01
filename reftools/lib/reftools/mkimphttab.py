@@ -1,3 +1,17 @@
+"""
+Use this module to create an IMPHTTAB for an instrument. Use the createTable
+function and provide the name of your output file and the base obsmode from
+which to build a set obsmodes for which photometry keywords will be calculated.
+
+Examples of a base obsmode include "acs,hrc", "wfc3,uvis1", or "cos".
+
+An example usage of createTable:
+
+from reftools import mkimphttab
+mkimphttab.createTable('acs_hrc_imp.fits','acs,hrc')
+
+"""
+
 from __future__ import division # confidence high
 import os,sys
 import numpy as np
@@ -602,6 +616,7 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
         flam_tabcols.append(Column(name='PHOTFLAM'+pstr,format=format_str,array=fcols))
         plam_tabcols.append(Column(name='PHOTPLAM'+pstr,format=format_str,array=pcols))
         bw_tabcols.append(Column(name='PHOTBW'+pstr,format=format_str,array=bcols))
+    
     print 'Creating full table: ',output
     # Now create the FITS file with the table in each extension
     
