@@ -126,7 +126,10 @@ class Uninstaller(object):
                     if self._ask('delete distribution %s' % item):
                         if self.old:
                             print 'renaming %s to %s.old' % (item, item)
-                            os.rename(item, item + '.old')
+                            old = item + '.old'
+                            if os.path.exists(old):
+                                shutil.rmtree(old)
+                            os.rename(item, old)
                         else:
                             shutil.rmtree(item)
 
@@ -160,7 +163,10 @@ class Uninstaller(object):
                             if self.old:
                                 print ('renaming %s to %s.old' %
                                        (package_dir, package_dir))
-                                os.rename(package_dir, package_dir + '.old')
+                                old = package_dir + '.old'
+                                if os.path.exists(old):
+                                    shutil.rmtree(old)
+                                os.rename(package_dir, old)
                             else:
                                 shutil.rmtree(package_dir)
 
@@ -176,8 +182,10 @@ class Uninstaller(object):
                                     # saves the py file only
                                     print ('renaming %s to %s.old' %
                                            (module_file, module_file))
-                                    os.rename(module_file,
-                                              module_file + '.old')
+                                    old = module_file + '.old'
+                                    if os.path.exsts(old):
+                                        os.remove(old)
+                                    os.rename(module_file, old)
                                 else:
                                     try:
                                         os.remove(module_file)
