@@ -578,8 +578,8 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
     # namely, the PAR<n>VALUES and NELEM<n> columns
     for p in range(max_npars):
         nelem_tabcols.append(Column(name="NELEM"+str(p+1),format="I",array=np.array(nelem_cols[p],np.int16)))
-        parvals_tabcols.append(Column(name="PAR"+str(p+1)+"VALUES",format="PD[]",array=np.array((parvals_cols[p]),'O')))
-        parnames_tabcols.append(Column(name="PAR"+str(p+1)+"NAMES",format=parnames_format,array=np.array((parnames_cols[p]),'O')))
+        parvals_tabcols.append(Column(name="PAR"+str(p+1)+"VALUES",format="PD[]",array=np.array((parvals_cols[p]))))
+        parnames_tabcols.append(Column(name="PAR"+str(p+1)+"NAMES",format=parnames_format,array=np.array((parnames_cols[p]))))
         
     # create the set of results columns
     flam_tabcols = list()
@@ -595,9 +595,9 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
         else:
             format_str = 'PD[]'
             pstr = str(p)
-            fcols = np.array(flam_cols[p],'O')
-            pcols = np.array(plam_cols[p],'O')
-            bcols = np.array(bw_cols[p],'O')
+            fcols = np.array(flam_cols[p])
+            pcols = np.array(plam_cols[p])
+            bcols = np.array(bw_cols[p])
           
         flam_tabcols.append(Column(name='PHOTFLAM'+pstr,format=format_str,array=fcols))
         plam_tabcols.append(Column(name='PHOTPLAM'+pstr,format=format_str,array=pcols))
