@@ -11,6 +11,12 @@ except ImportError:
         from d2to1.util import split_multiline
 
 
+try:
+    reload
+except NameError:
+    from imp import reload
+
+
 def is_display_option():
     """A hack to test if one of the arguments passed to setup.py is a display
     argument that should just display a value and exit.  If so, don't bother
