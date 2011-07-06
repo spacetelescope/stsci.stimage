@@ -41,7 +41,7 @@ import os
 import sys
 import numpy as np
 import pyfits
-from pytools import parseinput, teal
+from stsci.pytools import parseinput, teal
 from calcos import ccos
 from calcos import calcosparam, cosutil
 import saamodel
