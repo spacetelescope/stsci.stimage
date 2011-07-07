@@ -38,18 +38,27 @@ from morphology import *
 from io import *
 
 from info import __doc__
-__version__ = '2.0'
+
+__version__ = ''
+__svn_version__ = 'Unable to determine SVN revision'
+__full_svn_info__ = ''
+__setup_datetime__ = None
 
 try:
-    from svn_version import __svn_version__, __full_svn_info__
+    __version__ = __import__('pkg_resources').\
+                      get_distribution('stsci.ndimage').version
 except:
-    __svn_version__ = 'Unable to determine SVN revision'
-    __full_svn_info__ = __svn_version__
+    pass
+
+try:
+    from stsci.ndimage.svninfo import (__svn_version__, __full_svn_info__,
+                                       __setup_datetime__)
+except ImportError:
+    pass
 
 
 try:
     import stsci.tools.tester
-
     def test(*args,**kwds):
         stsci.tools.tester.test(modname=__name__, *args, **kwds)
 except ImportError:

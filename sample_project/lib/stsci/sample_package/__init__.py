@@ -2,14 +2,23 @@
 
 from __future__ import division # confidence high
 
-__version__ = "1.0"
+__version__ = ''
+__svn_version__ = 'Unable to determine SVN revision'
+__full_svn_info__ = ''
+__setup_datetime__ = None
 
 try:
-    # from .svn_version import __svn_version__, __full_svn_info__
-    from svn_version import __svn_version__, __full_svn_info__
+    __version__ = __import__('pkg_resources').\
+                        get_distribution('sample_project').version
 except:
-    __svn_version__ = 'Unable to determine SVN revision'
-    __full_svn_info__ = __svn_version__
+    pass
+
+try:
+    from stsci.sample_package.svninfo import (__svn_version__,
+                                              __full_svn_info__,
+                                              __setup_datetime__)
+except ImportError:
+    pass
 
 # If you import stsci.tools.tests _inside_ the test() function, then we don't
 # need to worry about whether it exists or not.  We also don't increase

@@ -48,15 +48,26 @@ from stsci.tools.parseinput import parseinput
 
 
 # Begin Version Information -------------------------------------------
-__version__ = '3.3.8dev11021'
+__version__ = ''
+__svn_version__ = 'Unable to determine SVN revision'
+__full_svn_info__ = ''
+__setup_datetime__ = None
+
+try:
+    __version__ = __import__('pkg_resources').\
+                        get_distribution('multidrizzle').version
+except:
+    pass
+
 __vdate__ = '08-Jul-2010'
 # End Version Information ---------------------------------------------
 # Revision based version info
 try:
-    import svn_version
-    __svn_version__ = svn_version.__svn_version__
+    from multidrizzle.svninfo import (__svn_version__, __full_svn_info__,
+                                      __setup_datetime__)
 except ImportError:
-    __svn_version__ = 'Unable to determine SVN revision'
+    pass
+
 
 class Multidrizzle:
     """

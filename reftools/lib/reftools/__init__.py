@@ -1,12 +1,19 @@
 # from __future__ import absolute_import
 from __future__ import division # confidence high
 
-__version__ = "1.3"
+__version__ = ''
+__svn_version__ = 'Unable to determine SVN revision'
+__full_svn_info__ = ''
+__setup_datetime__ = None
 
-#revision based svn info
 try:
-    # from .svn_version import __svn_version__, __full_svn_info__
-    from svn_version import __svn_version__, __full_svn_info__
+    __version__ = __import__('pkg_resources').\
+                        get_distribution('reftools').version
 except:
-    __svn_version__ = 'Unable to determine SVN revision'
-    __full_svn_info__ = __svn_version__
+    pass
+
+try:
+    from reftools.svninfo import (__svn_version__, __full_svn_info__,
+                                  __setup_datetime__)
+except ImportError:
+    pass

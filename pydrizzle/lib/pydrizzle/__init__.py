@@ -7,13 +7,22 @@ no = False  # 0
 from drutil import DEFAULT_IDCDIR
 from math import *
 
-__version__ = "6.3.7 (03-Jan-2011)"
-# rvision based version string
+__version__ = ''
+__svn_version__ = 'Unable to determine SVN revision'
+__full_svn_info__ = ''
+__setup_datetime__ = None
+
 try:
-    import svn_version
-    __svn_version__ = svn_version.__svn_version__
+    __version__ = __import__('pkg_resources').\
+                        get_distribution('pydrizzle').version
 except:
-    __svn_version__ = 'Unable to determine SVN revision'
+    pass
+
+try:
+    from svninfo import (__svn_version__, __full_svn_info__,
+                         __setup_datetime__)
+except ImportError:
+    pass
 
 
 def PyDrizzle(input, output=None, field=None, units=None, section=None,

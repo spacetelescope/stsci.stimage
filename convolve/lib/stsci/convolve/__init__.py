@@ -2,16 +2,29 @@ from __future__ import division
 from Convolve import *
 import iraf_frame
 import os
-import stsci.tools.tester
 
-__version__ = '2.0'
-
-def test(*args,**kwds):
-    stsci.tools.tester.test(modname=__name__, *args, **kwds)
+__version__ = ''
+__svn_version__ = 'Unable to determine SVN revision'
+__full_svn_info__ = ''
+__setup_datetime__ = None
 
 try:
-    from svn_version import __svn_version__, __full_svn_info__
+    __version__ = __import__('pkg_resources').\
+                      get_distribution('stsci.convolve').version
 except:
-    __svn_version__ = 'Unable to determine SVN revision'
-    __full_svn_info__ = __svn_version__
+    pass
+
+try:
+    from stsci.convolve.svninfo import (__svn_version__, __full_svn_info__,
+                                        __setup_datetime__)
+except ImportError:
+    pass
+
+
+try:
+    import stsci.tools.tester
+    def test(*args,**kwds):
+        stsci.tools.tester.test(modname=__name__, *args, **kwds)
+except ImportError:
+    pass
 
