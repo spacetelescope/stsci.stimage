@@ -1,4 +1,9 @@
+from __future__ import with_statement
+
 import glob
+import os
+import re
+import subprocess
 import sys
 
 
@@ -15,6 +20,10 @@ try:
     reload
 except NameError:
     from imp import reload
+
+
+from stsci.distutils.astutils import ImportVisitor, walk
+from stsci.distutils.svnutils import write_svn_info, set_setup_date
 
 
 def is_display_option():
@@ -94,6 +103,90 @@ def glob_data_files(config):
         data_files[idx] = '%s = %s' % (dest, ' '.join(filenames))
 
     config['files']['data_files'] = '\n'.join(data_files)
+
+
+def svn_info_pre_hook(command_obj):
+    """This command hook creates an svninfo.py file in each package that
+    requires SVN info.  This is by determining if the package's __init__ tries
+    to set either __svn_version__ or __full_svn_info__.  That is, it contains
+    an import of or from the svninfo module.  svninfo.py will not be created
+    in packages that don't use it.  It should really only be used in the main
+    package of the project.
+    """
+
+    package_dir = command_obj.distribution.package_dir.get('', '.')
+    packages = command_obj.distribution.packages
+
+    for package in packages:
+        pdir = os.path.join(package_dir, *(package.split('.')))
+        init = os.path.join(pdir, '__init__.py')
+        if not os.path.exists(init):
+            # Not a valid package
+            # TODO: Maybe issue a warning here?
+            continue
+
+        try:
+            visitor = ImportVisitor()
+            walk(init, visitor)
+        except SyntaxError:
+            # TODO: Maybe issue a warning?
+            pass
+
+        found = False
+        # Check the import statements parsed from the file for an import of or
+        # from the svninfo module in this package
+        for imp in visitor.imports:
+            if imp[0] in ('svninfo', '.'.join((package, 'svninfo'))):
+                found = True
+                break
+        for imp in visitor.importfroms:
+            mod = imp[0]
+            name = imp[1]
+            if (mod in ('svninfo', '.'.join((package, 'svninfo'))) or
+                (mod == package and name == 'svninfo')):
+                found = True
+                break
+
+        if not found:
+            continue
+
+        # Write the svninfo.py file, or just touch it if it already exists
+        svninfo = os.path.join(pdir, 'svninfo.py')
+        write_svn_info(filename=svninfo)
+        set_setup_date(svninfo)
+
+
+def svn_info_post_hook(command_obj):
+    """Cleans up a previously generated svninfo.py in order to avoid
+    clutter.
+
+    Only removes the file if we're in an SVN working copy and the file is not
+    already under version control.
+    """
+
+    package_dir = command_obj.distribution.package_dir.get('', '.')
+    packages = command_obj.distribution.packages
+
+    for package in packages:
+        pdir = os.path.join(package_dir, *(package.split('.')))
+        svninfo = os.path.join(pdir, 'svninfo.py')
+        if not os.path.exists(svninfo):
+            continue
+
+        try:
+            pipe = subprocess.Popen(['svn', 'status', svninfo],
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
+        except OSError:
+            continue
+
+        if pipe.wait() != 0:
+            continue
+
+        if not pipe.stdout.read().startswith('?'):
+            continue
+
+        os.remove(svninfo)
 
 
 def numpy_extension_hook(command_obj):

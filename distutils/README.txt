@@ -34,6 +34,26 @@ Allows filename wildcards as understood by `glob.glob()` to be used in the
 data_files option.  This hook must be used in order to have this functionality
 since it does not normally exist in distutils.
 
+stsci.distutils.hooks.svn_info_pre_hook
+'''''''''''''''''''''''''''''''''''''''''
+This hook is best used as a pre-hook for the build_py and sdist commands.  It
+creates a Python module called svninfo.py which contains three variables:
+`__svn_version__` (the SVN revision info as returned by the `svnversion`
+command), `__full_svn_info__` (as returned by the `svn info` command), and
+`__setup_datetime__` (the date and time that setup.py was last run).  These
+variables can be imported in the `__init__.py` package for degugging purposes.
+The svninfo.py module will *only* be created in a package that imports from
+svninfo in its `__init__.py`.
+
+stsci.distutils.hooks.svn_info_post_hook
+''''''''''''''''''''''''''''''''''''''''''
+The complement to svn_info_pre_hook.  This will delete any svninfo.py files
+created during a build in order to prevent them from cluttering an SVN working
+copy (note, however, that svninfo.py is *not* deleted from the build/
+directory, so a copy of it is still preserved).  It will also not be deleted
+if the current directory is not an SVN working copy.  For example, if source
+code extracted from a source tarball it will be preserved.
+
 stsci.distutils.hooks.numpy_extension_hook
 ''''''''''''''''''''''''''''''''''''''''''''
 This is a pre-command hook for the build_ext command.  To use it, add a
