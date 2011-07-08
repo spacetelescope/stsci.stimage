@@ -27,11 +27,16 @@ import graphfile as sgf
 
 # some things for doing compute values with synphot
 import tempfile
-from pyraf import iraf
-from iraf import stsdas, hst_calib, synphot
+try:
+    from pyraf import iraf
+    from iraf import stsdas, hst_calib, synphot
+except ImportError:
+    SYNPHOT = False
+else:
+    SYNPHOT = True
 
-__version__ = '0.2.1'
-__vdate__ = '28-Jun-2011'
+__version__ = '0.2.2'
+__vdate__ = '07-Jul-2011'
 
 def computeValues(obsmode,component_dict,spec=None):
     """ Compute the 3 photometric values needed for a given obsmode string
@@ -64,6 +69,9 @@ def computeSynphotValues(obsmode):
     the computed value of the keyword.
     
     """
+    if not SYNPHOT:
+      raise ImportError('IRAF packages are not available.')
+    
     tmpfits = os.path.join(tempfile.gettempdir(),'temp.fits')
     
     synphot.bandpar(obsmode,output=tmpfits,Stdout=1)
@@ -274,7 +282,7 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
         verbose: boolean, optional
           True to print out extra information. Defaults to False.
     """
-    if output.find('_imp.fits') < 0:
+    if not output.endswith('_imp.fits'):
         output = output+'_imp.fits'
         
     # check status of output file
