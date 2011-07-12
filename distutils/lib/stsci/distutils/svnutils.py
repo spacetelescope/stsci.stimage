@@ -20,7 +20,7 @@ def get_svn_rev(path='.'):
     if pipe.wait() != 0:
         return None
 
-    return pipe.stdout.read().strip()
+    return pipe.stdout.read().decode('ascii').strip()
 
 
 def get_svn_info(path='.'):
@@ -47,7 +47,7 @@ def get_svn_info(path='.'):
     if not lines:
         return 'unknown'
 
-    return '\n'.join(lines)
+    return '\n'.join(l.decode('ascii') for l in lines)
 
 
 def write_svn_info(path='.', filename='svninfo.py'):

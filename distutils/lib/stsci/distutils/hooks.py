@@ -183,7 +183,9 @@ def svn_info_post_hook(command_obj):
         if pipe.wait() != 0:
             continue
 
-        if not pipe.stdout.read().startswith('?'):
+        # TODO: Maybe don't assume ASCII here.  Find out the best way to handle
+        # this.
+        if not pipe.stdout.read().decode('ascii').startswith('?'):
             continue
 
         os.remove(svninfo)
