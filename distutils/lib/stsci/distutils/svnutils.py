@@ -7,6 +7,8 @@ import datetime
 import os
 import subprocess
 
+from stsci.distutils.astutils import ImportVisitor, walk
+
 
 def get_svn_rev(path='.'):
     """Uses `svnversion` to get just the latest revision at the given path."""
@@ -42,12 +44,19 @@ def get_svn_info(path='.'):
     if pipe.wait() != 0:
         return 'unknown'
 
-    lines = filter(None, [l.strip() for l in pipe.stdout.readlines()])
+    lines = []
+    for line in pipe.stdout.readlines():
+        line = line.decode('ascii').strip()
+        if not line:
+            continue
+        if line.startswith('Path:'):
+            line = 'Path: %s' % os.path.basename(path)
+        lines.append(line)
 
     if not lines:
         return 'unknown'
 
-    return '\n'.join(l.decode('ascii') for l in lines)
+    return '\n'.join(lines)
 
 
 def write_svn_info(path='.', filename='svninfo.py'):
@@ -90,4 +99,76 @@ def set_setup_date(filename='svninfo.py'):
                 f.write(line)
         f.write('import datetime # setupdatetime\n')
         f.write('__setup_datetime__ = %s # setupdatetime\n' % repr(d))
+
+
+def write_svn_info_for_package(package_root, package):
+    """Conditionally creates an svninfo.py module in package if there are are
+    any imports from svninfo in that package's __init__.py.  See also
+    stsci.distutils.hooks.svn_info_pre_hook where this is used.
+    """
+
+    pdir = os.path.join(package_root, *(package.split('.')))
+    init = os.path.join(pdir, '__init__.py')
+    if not os.path.exists(init):
+        # Not a valid package
+        # TODO: Maybe issue a warning here?
+        return
+
+    try:
+        visitor = ImportVisitor()
+        walk(init, visitor)
+    except SyntaxError:
+        # TODO: Maybe issue a warning?
+        pass
+
+    found = False
+    # Check the import statements parsed from the file for an import of or
+    # from the svninfo module in this package
+    for imp in visitor.imports:
+        if imp[0] in ('svninfo', '.'.join((package, 'svninfo'))):
+            found = True
+            break
+    for imp in visitor.importfroms:
+        mod = imp[0]
+        name = imp[1]
+        if (mod in ('svninfo', '.'.join((package, 'svninfo'))) or
+            (mod == package and name == 'svninfo')):
+            found = True
+            break
+
+    if not found:
+        return
+
+    # Write the svninfo.py file, or just touch it if it already exists
+    svninfo = os.path.join(pdir, 'svninfo.py')
+    write_svn_info(filename=svninfo)
+    set_setup_date(svninfo)
+
+
+def clean_svn_info_for_package(package_root, package):
+    """Removes the generated svninfo.py module from a package, but only if
+    we're in an SVN working copy.
+    """
+
+    pdir = os.path.join(package_root, *(package.split('.')))
+    svninfo = os.path.join(pdir, 'svninfo.py')
+    if not os.path.exists(svninfo):
+        return
+
+    try:
+        pipe = subprocess.Popen(['svn', 'status', svninfo],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+    except OSError:
+        return
+
+    if pipe.wait() != 0:
+        return
+
+    # TODO: Maybe don't assume ASCII here.  Find out the best way to handle
+    # this.
+    if not pipe.stdout.read().decode('ascii').startswith('?'):
+        return
+
+    os.remove(svninfo)
 

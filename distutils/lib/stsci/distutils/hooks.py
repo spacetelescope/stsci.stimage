@@ -1,9 +1,6 @@
 from __future__ import with_statement
 
 import glob
-import os
-import re
-import subprocess
 import sys
 
 
@@ -22,8 +19,8 @@ except NameError:
     from imp import reload
 
 
-from stsci.distutils.astutils import ImportVisitor, walk
-from stsci.distutils.svnutils import write_svn_info, set_setup_date
+from stsci.distutils.svnutils import (write_svn_info_for_package,
+                                      clean_svn_info_for_package)
 
 
 def is_display_option():
@@ -118,42 +115,7 @@ def svn_info_pre_hook(command_obj):
     packages = command_obj.distribution.packages
 
     for package in packages:
-        pdir = os.path.join(package_dir, *(package.split('.')))
-        init = os.path.join(pdir, '__init__.py')
-        if not os.path.exists(init):
-            # Not a valid package
-            # TODO: Maybe issue a warning here?
-            continue
-
-        try:
-            visitor = ImportVisitor()
-            walk(init, visitor)
-        except SyntaxError:
-            # TODO: Maybe issue a warning?
-            pass
-
-        found = False
-        # Check the import statements parsed from the file for an import of or
-        # from the svninfo module in this package
-        for imp in visitor.imports:
-            if imp[0] in ('svninfo', '.'.join((package, 'svninfo'))):
-                found = True
-                break
-        for imp in visitor.importfroms:
-            mod = imp[0]
-            name = imp[1]
-            if (mod in ('svninfo', '.'.join((package, 'svninfo'))) or
-                (mod == package and name == 'svninfo')):
-                found = True
-                break
-
-        if not found:
-            continue
-
-        # Write the svninfo.py file, or just touch it if it already exists
-        svninfo = os.path.join(pdir, 'svninfo.py')
-        write_svn_info(filename=svninfo)
-        set_setup_date(svninfo)
+        write_svn_info_for_package(package_dir, package)
 
 
 def svn_info_post_hook(command_obj):
@@ -168,27 +130,7 @@ def svn_info_post_hook(command_obj):
     packages = command_obj.distribution.packages
 
     for package in packages:
-        pdir = os.path.join(package_dir, *(package.split('.')))
-        svninfo = os.path.join(pdir, 'svninfo.py')
-        if not os.path.exists(svninfo):
-            continue
-
-        try:
-            pipe = subprocess.Popen(['svn', 'status', svninfo],
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE)
-        except OSError:
-            continue
-
-        if pipe.wait() != 0:
-            continue
-
-        # TODO: Maybe don't assume ASCII here.  Find out the best way to handle
-        # this.
-        if not pipe.stdout.read().decode('ascii').startswith('?'):
-            continue
-
-        os.remove(svninfo)
+        clean_svn_info_for_package(package_dir, package)
 
 
 def numpy_extension_hook(command_obj):

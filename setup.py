@@ -18,6 +18,8 @@ from distutils import log
 from distutils.command.build import build as _build
 from distutils.command.clean import clean as _clean
 from setuptools.command.develop import develop as _develop
+from setuptools.command.egg_info import egg_info as _egg_info
+from setuptools.command.sdist import sdist as _sdist
 from setuptools.command.install import install as _install
 
 try:
@@ -160,6 +162,98 @@ class develop(_develop):
         #_develop.run(self)
 
 
+class egg_info(_egg_info):
+    """This subclass of the egg_info command is required to cooperate with the
+    sdist subclass for adding svn infos to the manifest.
+
+    Unfortunately in setuptools/distribute the egg_info and sdist commands are
+    deeply intertwined, so we need to make enhancements to both to support this
+    functionality.
+    """
+
+    def run(self):
+        _egg_info.run(self)
+        sdist_cmd = self.get_finalized_command('sdist')
+        if hasattr(sdist_cmd, '_svninfos'):
+            self.filelist.extend(sdist_cmd._svninfos)
+
+
+class sdist(_sdist):
+    """This custom sdist collects a list of all the packages in each subproject
+    and generates an svninfo module for each of those packages as necessary.
+    This way the source can be distributed with full SVN info for each
+    subproject.
+    """
+
+    def _get_packages(self):
+        all_packages = []
+        for subdist_dir in get_subdists().values():
+            setup_cfg = ConfigParser()
+            setup_cfg.read(os.path.join(subdist_dir, 'setup.cfg'))
+            if not setup_cfg.has_option('files', 'packages'):
+                continue
+
+            packages = setup_cfg.get('files', 'packages')
+            packages = [elem for elem in
+                        (line.strip() for line in packages.split('\n'))
+                        if elem]
+            if not packages:
+                continue
+
+            if setup_cfg.has_option('files', 'packages_root'):
+                packages_root = setup_cfg.get('files', 'packages_root')
+            else:
+                packages_root = '.'
+            packages_root = os.path.join(subdist_dir, packages_root)
+
+            all_packages.append((packages_root, packages))
+        return all_packages
+
+    def initialize_options(self):
+        _sdist.initialize_options(self)
+        self._svninfos = []
+
+    # TODO: Eventually make this more intelligent, so that it builds manifests
+    # for each subproject and then combines those manifests. This would allow
+    # it to take into account each subproject's MANIFEST.in, if one exists.
+    def run(self):
+        try:
+            from stsci.distutils.svnutils import (write_svn_info_for_package,
+                                                  clean_svn_info_for_package)
+        except ImportError:
+            # Old version of stsci.distutils or something--can't write svninfo
+            # modules, so just fall back on normal behavior
+            return _sdist.run(self)
+
+        all_packages = self._get_packages()
+        try:
+            for package_root, packages in all_packages:
+                for package in packages:
+                    try:
+                        write_svn_info_for_package(package_root, package)
+                        package_dir = os.path.join(package_root,
+                                                   *(package.split('.')))
+                        svninfo = os.path.join(package_dir, 'svninfo.py')
+                        if os.path.exists(svninfo):
+                            self._svninfos.append(svninfo)
+                    except:
+                        # This isn't that critical, so if it fails for any
+                        # reason we just won't have the svn info for this
+                        # package.
+                        # TODO: Maybe at least issue a warning?
+                        pass
+
+            _sdist.run(self)
+        finally:
+            for package_root, packages in all_packages:
+                for package in packages:
+                    try:
+                        clean_svn_info_for_package(package_root, package)
+                    except:
+                        # TODO: Again, maybe issue a warning?
+                        pass
+
+
 class install(_install):
     def run(self):
         install_lib = self.distribution.get_command_obj('install_lib')
@@ -207,6 +301,7 @@ class install(_install):
                 os.system(' '.join(argv))
             except SystemExit:
                 pass
+
         run_subdists_command(self, execsetup=execsetup)
         if self.old_and_unmanageable or self.single_version_externally_managed:
             _install.run(self)
@@ -219,9 +314,10 @@ if _nosetests:
         def run(self):
             def execsetup():
                 try:
-                    # It's necessary to call os.system to run each project's tests
-                    # in its own process; otherwise the tests interfere with each
-                    # other too much, even if --with-isolation is used
+                    # It's necessary to call os.system to run each project's
+                    # tests in its own process; otherwise the tests interfere
+                    # with each other too much, even if --with-isolation is
+                    # used
                     os.system(' '.join(sys.argv))
                 except SystemExit:
                     pass
@@ -230,8 +326,8 @@ if _nosetests:
 
 
 CUSTOM_COMMANDS = {'build': build, 'clean': clean, 'develop': develop,
-                   'install': install}
-if 'nosetests' in globals():
+                   'egg_info': egg_info, 'install': install, 'sdist': sdist}
+if _nosetests:
     CUSTOM_COMMANDS['nosetests'] = nosetests
 
 
