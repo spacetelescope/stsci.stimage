@@ -1,0 +1,39 @@
+How to make an stsci_python release
+--
+
+Make a branch of stsc_python in the stsci_python repository.
+
+svn checkout the branch
+
+in the root of the checked out branch, run release_tools/branch_externals
+
+perform the svn commands that it displays
+
+** abandon your checked out copy and get a new one **
+
+edit setup.cfg
+	change [metadata] version= to the version number of this release
+	commit the change
+
+python setup.py sdist
+
+dist/*.tar is the distribution
+
+
+How to test the release
+--
+
+cd to the work directory where you will do the testing
+
+unsetenv PYTHONPATH
+
+irafx
+
+svn checkout release_tools from the release branch 
+
+sh release_tools/testenv
+	paste the appropriate commands from what it displayed
+		set path, pythonpath
+		uninstall
+		install setup.py
+

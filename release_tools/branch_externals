@@ -1,0 +1,94 @@
+#!/bin/sh
+#
+# We now have several svn externals.  When you make a branch, you
+# need to fix the svn externals to also point at the branch.  If you
+# do not, you may have a branch that points back at the trunk.
+#
+# To use this tool:
+#	branch the stsci_python repository
+#	svn checkout the branch
+# 	in the root of the checked out branch, run this script ( release_tools/branch_externals )
+#	do the svn commands that it displays
+#	** abandon your checked out copy and get a new one **
+
+
+
+main_url=`svn info | grep URL: | awk '{ print $2 }' `
+
+case "$main_url"
+in
+*/branches/*)
+	branch=`echo $main_url | sed 's?^.*/branches/??'`
+	;;
+*)
+	echo not on a branch
+	exit 1
+esac
+
+echo ''
+echo 'this branch name is '$branch
+echo ''
+
+dobranch() {
+	# dobranch name
+	#	name is the name of the package that is an svn external
+
+	# arg is the name of the branch
+	name=$1
+
+	# pick the URL out of the svn:externals property
+	url=` svn propget svn:externals | sed -n "/^$name/p" | awk '{ print $2 }' `
+
+	# from= the url of the old trunk
+	# to= the url of the branch
+	# tail= the name after $to where the thing we want is
+	#
+
+	case "$url"
+	in
+	*/trunk)
+		from=`echo $url | sed 's?/trunk??'`/trunk
+		tail=''
+		to=`echo $url | sed "s?/trunk?/branches/$branch?"`
+		;;
+	*/trunk/*)
+		from=`echo $url | sed 's?/trunk/? ?' | awk '{ print $1 }' `/trunk
+		tail=`echo $url | sed 's?/trunk/? ?' | awk '{ print $2 }' `
+		to=`echo $url | sed 's?/trunk/.*$?/'"branches/$branch?"`
+		;;
+	*)
+		echo ERROR: $name is not coming from the trunk
+		return
+		;;
+	esac
+
+	echo $from $to >> tmp.fromto
+
+	printf "%-20s %s\\n" $name $to/$tail >> tmp.new_externals
+
+}
+
+
+
+fix_externals() {
+
+	rm -f tmp.*
+
+	for x in `svn propget svn:externals . | awk '{ print $1 }' `
+	do
+		dobranch $x
+	done
+
+	sort -u < tmp.fromto | ( while read from to
+		do
+		echo svn copy -mbranch $from $to
+		done
+	)
+
+	echo svn propset svn:externals -F tmp.new_externals .
+	echo svn commit -mbranch-externals
+
+}
+
+fix_externals
+
