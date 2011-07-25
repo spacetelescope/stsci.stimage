@@ -1,12 +1,9 @@
 """
-Tools for comparing synphot and pysynphot, or two IMPHTTAB tables from the
-same instrument and detector.
+Tools for comparing  two IMPHTTAB tables from the same instrument and detector.
 
 """
 
 import os
-import csv
-import tempfile
 
 import numpy as np
 
@@ -18,283 +15,13 @@ from matplotlib.ticker import FormatStrFormatter
 import pyfits
 
 import pysynphot as S
-
-try:
-  from pyraf import iraf
-  from iraf import stsdas, hst_calib, synphot
-except ImportError:
-  HAVESYNPHOT = False
-else:
-  HAVESYNPHOT = True
   
-__version__ = '1.0.0'
-__vdate__ = '22-Jul-2011'
+__version__ = '1.0.2'
+__vdate__ = '25-Jul-2011'
 
 # general error class for this module
 class ImphtcompError(StandardError):
   pass
-
-class SynPySynComp(object):
-  """
-  Compare synphot and pysynphot values for obsmodes listed in the input
-  IMPHTTAB. Only obsmodes with three or fewer listed components are compared.
-  For example, acs,wfc1,f555w would be processed but not acs,wfc1,f555w,MJD#.
-  
-  Parameters
-  ----------
-  imphttab : str
-    Filename of IMPHTTAB from which to take obsmodes for comparison.
-  
-  """
-  def __init__(self,imphttab):
-    if not HAVESYNPHOT:
-      raise ImportError('IRAF packages are not available.')
-    
-    self._read_obsmodes(imphttab)
-    
-    self.spec = S.FlatSpectrum(1,fluxunits='flam')
-    self.comp_dict = {}
-    
-    self.tempdir = tempfile.gettempdir()
-  
-  def _read_obsmodes(self,imphttab):
-    """
-    Read obsmodes from IMPHTTAB table. Grabs only obsmodes which are not
-    more than 3 elements long.
-    
-    """
-    self.obsmodes = []
-    
-    f = pyfits.open(imphttab)
-    
-    for row in f[1].data:
-      # no compound obsmodes or too short obsmodes
-      if row['obsmode'].count(',') > 2 or row['obsmode'].count(',') == 0:
-        continue
-    
-      if row['obsmode'].count('#') == 0:
-        self.obsmodes.append(row['obsmode'].lower())
-      else:
-        mode = row['obsmode'].lower()
-        for i in xrange(row['nelem1']):
-          temp_mode1 = mode.replace(row['par1names'].lower(),
-                        row['par1names'].lower() + str(row['par1values'][i]))
-          
-          if 'NELEM2' not in f[1].data.names:
-            self.obsmodes.append(temp_mode1)
-            continue
-          elif row['nelem2'] == 0:
-            self.obsmodes.append(temp_mode1)
-            continue
-            
-          for j in xrange(row['nelem2']):
-            temp_mode2 = temp_mode1.replace(row['par2names'].lower(),
-                          row['par2names'].lower() + str(row['par2values'][j]))
-            self.obsmodes.append(temp_mode2)
-    
-    f.close()
-    
-    return self.obsmodes
-    
-  def _filter_modes(self,modes):
-    """
-    Remove parameterized obsmodes from modes list.
-    
-    """
-    filtered = []
-    
-    for m in modes:
-      if m.count('#') == 0:
-        filtered.append(m)
-        
-    return filtered
-    
-  def get_pysyn_vals(self,mode):
-    """
-    Get comparison values from pysynphot.
-    
-    Parameters
-    ----------
-    mode : str
-      Obsmode string.
-      
-    Return
-    ------
-    ret : dict
-      Dictionary containing calculated values.
-    
-    """
-    bp = S.ObsBandpass(mode,component_dict=self.comp_dict)
-    obs = S.Observation(self.spec,bp)
-    
-    photflam = obs.effstim('flam')/obs.effstim('counts')  # URESP
-    del obs
-    pivot = bp.pivot()          # PIVWV
-    rmswidth = bp.rmswidth()    # BANDW
-    avgwave = bp.avgwave()      # AVGWV
-    recwidth = bp.rectwidth()   # RECTW
-    equwidth = bp.equivwidth()  # EQUVW
-    effic = bp.efficiency()     # QTLAM
-    
-    ret = {}
-    ret['flam'] = photflam
-    ret['pivot'] = pivot
-    ret['rms'] = rmswidth
-    ret['avg'] = avgwave
-    ret['rect'] = recwidth
-    ret['equiv'] = equwidth
-    ret['effic'] = effic
-    
-    return ret
-    
-  def get_syn_vals(self,mode):
-    """
-    Get comparison values from synphot.
-    
-    Parameters
-    ----------
-    mode : str
-      Obsmode string.
-      
-    Return
-    ------
-    ret : dict
-      Dictionary containing calculated values.
-    
-    """
-    tmpfits = os.path.join(self.tempdir,'temp.fits')
-    
-    synphot.bandpar(mode,output=tmpfits,Stdout=1)
-    
-    fits = pyfits.open(tmpfits)
-    d = fits[1].data
-    
-    photflam = d['uresp'][0]
-    pivot = d['pivwv'][0]
-    rmswidth = d['bandw'][0]
-    avgwave = d['avgwv'][0]
-    recwidth = d['rectw'][0]
-    equwidth = d['equvw'][0]
-    effic = d['qtlam'][0]
-    
-    fits.close()
-    os.remove(tmpfits)
-    
-    ret = {}
-    ret['flam'] = photflam
-    ret['pivot'] = pivot
-    ret['rms'] = rmswidth
-    ret['avg'] = avgwave
-    ret['rect'] = recwidth
-    ret['equiv'] = equwidth
-    ret['effic'] = effic
-    
-    return ret
-    
-  def comp_synpysyn(self,mode):
-    """
-    Returns a dictionary of pysynphot and synphot values and their percent
-    differences calculated as (pysynphot - synphot)/synphot.
-    
-    Parameters
-    ----------
-    mode : str
-      Obsmode string.
-      
-    Return
-    ------
-    comp : dict
-      Dictionary containing calculated values.
-    
-    """
-    pysyn = self.get_pysyn_vals(mode)
-    irsyn = self.get_syn_vals(mode)
-    
-    comp = {'obsmode': mode}
-    
-    for k in pysyn.iterkeys():
-      comp['py' + k] = pysyn[k]
-      comp['ir' + k] = irsyn[k]
-      comp[k + '%'] = (pysyn[k] - irsyn[k])/irsyn[k]
-      
-    return comp
-  
-  def calculate_diffs(self,verbose=False):
-    """
-    Calculate diffs for all obsmodes and return.
-    
-    Parameters
-    ----------
-    verbose: bool, optional
-      If True, print obsmodes as they are processed. Defaults to False.
-    
-    Return
-    ------
-    res : dict
-      Dictionary containing lists of all pysynphot and synphot calculated values
-      and their differences calculated as (pysynphot - synphot)/synphot.
-    
-    """
-    # set up return dictionary
-    res = {}
-    
-    if verbose:
-      print('Processing mode ' + self.obsmodes[0])
-      
-    comp = self.comp_synpysyn(self.obsmodes[0])
-    
-    for k in comp.iterkeys():
-      res[k] = [comp[k]]
-    
-    # now fill result
-    for mode in self.obsmodes[1:]:
-      if verbose:
-        print('Processing mode ' + mode)
-      
-      comp = self.comp_synpysyn(mode)
-      
-      for k in comp.iterkeys():
-        res[k].append(comp[k])
-        
-    return res
-  
-  def write_csv(self,outfile,verbose=False):
-    """
-    Write a CSV file containing the pysynphot and synphot values for all
-    obsmodes and their percent differences calculated as 
-    (pysynphot - synphot)/synphot.
-    
-    Parameters
-    ----------
-    outfile : str
-      Name of file to write to.
-      
-    verbose : bool, optional
-      If True, print obsmodes as they are processed. Defaults to False.
-    
-    """
-    f = open(outfile,'w')
-    f.write('obsmode,pyflam,irflam,flam%,pypivot,irpivot,pivot%,')
-    f.write('pyrms,irrms,rms%,pyavg,iravg,avg%,pyrect,irrect,rect%,')
-    f.write('pyequiv,irequiv,equiv%,pyeffic,ireffic,effic%\n')
-    
-    wcsv = csv.DictWriter(f,('obsmode',
-                             'pyflam','irflam','flam%',
-                             'pypivot','irpivot','pivot%',
-                             'pyrms','irrms','rms%',
-                             'pyavg','iravg','avg%',
-                             'pyrect','irrect','rect%',
-                             'pyequiv','irequiv','equiv%',
-                             'pyeffic','ireffic','effic%'))
-                          
-    for mode in self.obsmodes:
-      if verbose:
-        print 'Processing mode ' + mode
-      
-      comp = self.comp_synpysyn(mode)
-      wcsv.writerow(comp)
-      
-    f.close()
 
 
 class _ImphttabData(object):
@@ -334,36 +61,36 @@ class ImphttabComp(object):
   tab2_name : str
     Filename of second IMPHTTAB.
   
-  modes : array
+  modes : ndarray
     Obsmodes present in both input files.
   
-  flams1 : array
+  flams1 : ndarray
     PHOTFLAM values from `tab1` for obsmodes in `modes`.
     
-  plams1 : array
+  plams1 : ndarray
     PHOTPLAM values from `tab1` for obsmodes in `modes`.
 
-  bws1 : array
+  bws1 : ndarray
     PHOTBW values from `tab1` for obsmodes in `modes`.
   
-  flams2 : array
+  flams2 : ndarray
     PHOTFLAM values from `tab2` for obsmodes in `modes`.
     
-  plams2 : array
+  plams2 : ndarray
     PHOTPLAM values from `tab2` for obsmodes in `modes`.
 
-  bws2 : array
+  bws2 : ndarray
     PHOTBW values from `tab2` for obsmodes in `modes`.
   
-  flamdiff : array
+  flamdiff : ndarray
     Percent differences between `flams1` and `flams2` calculated as 
     (`flams1` - `flams2`) / `flams1`.
   
-  plamdiff : array
+  plamdiff : ndarray
     Percent differences between `plams1` and `plams2` calculated as 
     (`plams1` - `plams2`) / `plams1`.
   
-  bwdiff : array
+  bwdiff : ndarray
     Percent differences between `bws1` and `bws2` calculated as 
     (`bws1` - `bws2`) / `bws1`.
   
@@ -518,14 +245,17 @@ class ImphttabComp(object):
         bws1.append(bw1.photbw[i])
         bws2.append(bw2.photbw[w])
         bwdiff.append((bws1[-1] - bws2[-1]) / bws1[-1])
-        
+      
+      # one parameterized variable
       elif mode.count('#') == 1:
         if flam1.nelem1[i] != flam2.nelem1[w]:
           print('''Mode {} does not have matching number of parameterized elements 
                 in each file. File 1: {} File 2: {}'''.format(mode,flam1.nelem1[i],
                                                               flam2.nelem1[w]))
           continue
-                                                            
+        
+        # expand the obsmodes with parameterized variable values and save
+        # the result for each expanded obsmode
         for j,f in enumerate(flam1.par1values[i]):
           temp_mode = mode.replace(flam1.par1names[i].lower(),
                                    flam1.par1names[i].lower() + str(f))
@@ -542,7 +272,8 @@ class ImphttabComp(object):
           bws1.append(bw1.photbw1[i][j])
           bws2.append(bw2.photbw1[w][j])
           bwdiff.append((bws1[-1] - bws2[-1]) / bws1[-1])
-          
+      
+      # two parameterized variables
       elif mode.count('#') == 2:
         if flam1.nelem1[i] != flam2.nelem1[w]:
           print('''Mode {} does not have matching number of first parameterized elements 
@@ -556,6 +287,8 @@ class ImphttabComp(object):
                                                               flam2.nelem2[w]))
           continue
           
+        # expand the obsmodes with parameterized variable values and save
+        # the result for each expanded obsmode  
         for j in xrange(flam1.nelem2[i]):
           for k in xrange(flam1.nelem1[i]):          
             temp_mode = mode.replace(flam1.par1names[i].lower(),
@@ -611,6 +344,11 @@ class ImphttabComp(object):
       
     lines : int, optional
       The number of lines to print. Defaults to 25.
+      
+    Raises
+    ------
+    ImphtcompError
+      If `orderby` does not match a valid option.
     
     """
     modes = self.modes
@@ -701,9 +439,9 @@ def print_table_diffs(table1,table2,orderby='photflam',lines=25):
   Prints any obsmodes which are in either table but not in both.
   
   Also prints the obsmodes and parameters for the modes which most differ
-  in the parameter given in orderby. This is for seeing which obsmodes have the 
+  in the parameter given in `orderby`. This is for seeing which obsmodes have the 
   largest percent difference in the specified  parameter. Prints the number of 
-  modes given in the lines parameter.
+  modes given in the `lines` parameter.
     
   Differences shown are calculated as 100 * (table1 - table2)/table1.
   
@@ -727,6 +465,11 @@ def print_table_diffs(table1,table2,orderby='photflam',lines=25):
     
   lines : int, optional
     Number of lines of differences to print. Defaults to 25.
+    
+  Raises
+  ------
+  ImphtcompError
+    If `orderby` does not match a valid option.
   
   """
   if orderby.lower() not in ('photflam','photplam','photbw','all'):
@@ -742,7 +485,7 @@ def print_table_diffs(table1,table2,orderby='photflam',lines=25):
       comp.print_diffs(par,lines)
       print('')
       
-def make_table_plot(table1,table2,outname='imphttab_comp.pdf'):
+def plot_table_diffs(table1,table2,outname='imphttab_comp.pdf'):
   """
   Make a plot with histograms of the percent differences between
   PHOTFLAM, PHOTPLAM, and PHOTBW for the IMPHTTAB tables.
