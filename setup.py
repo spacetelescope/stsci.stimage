@@ -8,12 +8,12 @@ except ImportError:
     from setuptools import setup
 
 import os
+import subprocess
 import sys
 
 from ConfigParser import ConfigParser
 
-from pkg_resources import (parse_requirements, working_set, safe_name,
-                           safe_version)
+from pkg_resources import parse_requirements, safe_name, safe_version
 from distutils import log
 from distutils.command.build import build as _build
 from distutils.command.clean import clean as _clean
@@ -120,7 +120,7 @@ def run_subdists_command(command, execsetup=None):
                 if '' not in sys.path:
                     sys.path.insert(0, '')
                 if execsetup is None:
-                    execfile(os.path.abspath('setup.py'))
+                    subprocess.call(sys.argv)
                 else:
                     execsetup()
             finally:
@@ -147,12 +147,6 @@ class clean(_clean):
 
 class develop(_develop):
     def run(self):
-        # Here too it works best to call setup.py develop in a separate process
-        def execsetup():
-            try:
-                os.system(' '.join(sys.argv))
-            except SystemExit:
-                pass
         run_subdists_command(self, execsetup=execsetup)
         # Don't run develop for the stsci_python package itself; there's
         # nothing really to develop *on*.  And it gets confused here when
@@ -281,13 +275,22 @@ class install(_install):
                 if ('--root' not in sys.argv and
                     '--old-and-unmanageable' not in sys.argv and
                     '--single-version-externally-managed' not in sys.argv):
+
+                    # If there are any global arguments like --quiet before the
+                    # comamnd name, we want to keep those
+                    args_to_keep = 0
+                    for args_to_keep, arg in enumerate(argv[1:]):
+                        if arg[0] != '-':
+                            break
+                    args_to_keep += 1
                     # Use easy_install to install instead; that way we can have
                     # more control over things like disabling dependency
                     # checking
                     # 'build' is inserted before 'easy_install' since the
                     # easy_install command by itself seems to squelch much of
                     # the build output
-                    argv = [argv[0], 'build', 'easy_install', '--no-deps']
+                    argv = argv[:args_to_keep] + ['build', 'easy_install',
+                                                  '--no-deps']
                     # Now, set the install-dir option from the install_lib
                     # command which, according to comments in the distribute
                     # source code "takes into account --prefix and --home and
@@ -298,11 +301,12 @@ class install(_install):
 
                     argv.append('.')
 
-                os.system(' '.join(argv))
+                subprocess.call(argv)
             except SystemExit:
                 pass
 
         run_subdists_command(self, execsetup=execsetup)
+
         if self.old_and_unmanageable or self.single_version_externally_managed:
             _install.run(self)
         else:
@@ -318,7 +322,7 @@ if _nosetests:
                     # tests in its own process; otherwise the tests interfere
                     # with each other too much, even if --with-isolation is
                     # used
-                    os.system(' '.join(sys.argv))
+                    subprocess.call(sys.argv)
                 except SystemExit:
                     pass
             run_subdists_command(self, execsetup=execsetup)
@@ -332,8 +336,9 @@ if _nosetests:
 
 
 setup(
-    setup_requires=['d2to1>=0.2.3'],
+    setup_requires=['d2to1>=0.2.5'],
     d2to1=True,
     use_2to3=True,
+    zip_safe=False,
     cmdclass=CUSTOM_COMMANDS
 )

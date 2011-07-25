@@ -54,7 +54,8 @@ class Uninstaller(object):
         self.never = never
         self.old = old
 
-        self.all_distributions = set()
+        # Include stsci_python itself by default
+        self.all_distributions = set(['stsci_python'])
         self.all_packages = OLD_PACKAGES
         self.all_modules = OLD_MODULES
         self.all_scripts = OLD_SCRIPTS
