@@ -10,6 +10,11 @@ import tempfile
 
 import numpy as np
 
+import matplotlib.pyplot as plt
+from matplotlib.figure import SubplotParams
+from matplotlib.ticker import MaxNLocator
+from matplotlib.ticker import FormatStrFormatter
+
 import pyfits
 
 import pysynphot as S
@@ -110,12 +115,12 @@ class SynPySynComp(object):
     
     Parameters
     ----------
-    mode : string
+    mode : str
       Obsmode string.
       
     Return
     ------
-    ret : dictionary
+    ret : dict
       Dictionary containing calculated values.
     
     """
@@ -148,12 +153,12 @@ class SynPySynComp(object):
     
     Parameters
     ----------
-    mode : string
+    mode : str
       Obsmode string.
       
     Return
     ------
-    ret : dictionary
+    ret : dict
       Dictionary containing calculated values.
     
     """
@@ -193,12 +198,12 @@ class SynPySynComp(object):
     
     Parameters
     ----------
-    mode : string
+    mode : str
       Obsmode string.
       
     Return
     ------
-    comp : dictionary
+    comp : dict
       Dictionary containing calculated values.
     
     """
@@ -220,12 +225,12 @@ class SynPySynComp(object):
     
     Parameters
     ----------
-    verbose: boolean, optional
+    verbose: bool, optional
       If True, print obsmodes as they are processed. Defaults to False.
     
     Return
     ------
-    res : dictionary
+    res : dict
       Dictionary containing lists of all pysynphot and synphot calculated values
       and their differences calculated as (pysynphot - synphot)/synphot.
     
@@ -261,10 +266,10 @@ class SynPySynComp(object):
     
     Parameters
     ----------
-    outfile : string
+    outfile : str
       Name of file to write to.
       
-    verbose : boolean, optional
+    verbose : bool, optional
       If True, print obsmodes as they are processed. Defaults to False.
     
     """
@@ -315,18 +320,18 @@ class ImphttabComp(object):
   
   Parameters
   ----------
-  tab1 : string
+  tab1 : str
     Filename of first IMPHTTAB for comparison.
   
-  tab2 : string
+  tab2 : str
     Filename of second IMPHTTAB for comparison.
     
   Attributes
   ----------
-  tab1_name : string
+  tab1_name : str
     Filename of first IMPHTTAB.
   
-  tab2_name : string
+  tab2_name : str
     Filename of second IMPHTTAB.
   
   modes : array
@@ -369,10 +374,10 @@ class ImphttabComp(object):
     
     Parameters
     ----------
-    tab1 : string
+    tab1 : str
       Filename of first IMPHTTAB for comparison.
       
-    tab2 : string
+    tab2 : str
       Filename of second IMPHTTAB for comparison.
     
     """
@@ -591,11 +596,11 @@ class ImphttabComp(object):
     seeing which obsmodes have the largest difference in the specified 
     parameter. Prints the number of modes given in the lines parameter.
     
-    Differences shown are calculated as (table1 - table2)/table1.
+    Differences shown are calculated as 100 * (table1 - table2)/table1.
     
     Paramters
     ---------
-    orderby : string, optional
+    orderby : str, optional
       The parameter by which to order the printed results, with modes having
       the largest absolute difference in this parameter printed at the top. 
       
@@ -604,7 +609,7 @@ class ImphttabComp(object):
       
       Defaults to 'photflam'.
       
-    lines : integer, optional
+    lines : int, optional
       The number of lines to print. Defaults to 25.
     
     """
@@ -617,9 +622,9 @@ class ImphttabComp(object):
     plams2 = self.plams2
     bws2 = self.bws2
     
-    flamdiff = self.flamdiff
-    plamdiff = self.plamdiff
-    bwdiff = self.bwdiff
+    flamdiff = self.flamdiff * 100
+    plamdiff = self.plamdiff * 100
+    bwdiff = self.bwdiff * 100
     
     if orderby.lower() == 'photflam':
       order = np.abs(flamdiff).argsort()[::-1]
@@ -644,6 +649,51 @@ class ImphttabComp(object):
                       plams1[i],plams2[i],plamdiff[i],
                       bws1[i],bws2[i],bwdiff[i]))
                       
+  def make_plot(self,outname='imphttab_comp.pdf'):
+    """
+    Make a plot with histograms of the percent differences between
+    PHOTFLAM, PHOTPLAM, and PHOTBW for the IMPHTTAB tables.
+    
+    Differences plotted are 100 * (table1 - table2) / table1.
+    
+    Parameters
+    ----------
+    outname : str, optional
+      Filename of output plot, including extension.
+      Defaults to 'imphttab_comp.pdf'.
+    
+    """
+    spars = SubplotParams(left=0.05,bottom=0.15,right=0.95,top=0.85,
+                          wspace=0.22,hspace=0.3)
+    fig = plt.figure(figsize=(12,4),subplotpars=spars)
+    
+    tab1 = os.path.basename(self.tab1_name)
+    tab2 = os.path.basename(self.tab2_name)
+    fig.suptitle('{}, {}'.format(tab1,tab2))
+    
+    flamax = fig.add_subplot(131)
+    plamax = fig.add_subplot(132)
+    bwax = fig.add_subplot(133)
+    
+    flamax.set_title('PHOTFLAM',size='small')
+    plamax.set_title('PHOTPLAM',size='small')
+    bwax.set_title('PHOTBW',size='small')
+    
+    axlist = (flamax,plamax,bwax)
+    
+    for ax in axlist:
+      ax.set_ylabel('# Obsmodes')
+      ax.set_xlabel('% Diff.')
+      ax.get_xaxis().set_major_locator(MaxNLocator(nbins=4))
+      ax.get_yaxis().set_major_locator(MaxNLocator(integer=True))
+      
+    flamax.hist(self.flamdiff*100,bins=20)
+    plamax.hist(self.plamdiff*100,bins=20)
+    bwax.hist(self.bwdiff*100,bins=20)
+    
+    print('Saving file ' + outname)
+    fig.savefig(outname)
+                      
                       
 def print_table_diffs(table1,table2,orderby='photflam',lines=25):
   """
@@ -655,17 +705,17 @@ def print_table_diffs(table1,table2,orderby='photflam',lines=25):
   largest percent difference in the specified  parameter. Prints the number of 
   modes given in the lines parameter.
     
-  Differences shown are calculated as (table1 - table2)/table1.
+  Differences shown are calculated as 100 * (table1 - table2)/table1.
   
   Parameters
   ----------
-  table1 : string
+  table1 : str
     Filename of first IMPHTTAB for comparison.
     
-  table2 : string
+  table2 : str
     Filename of the second IMPHTTAB for comparison.
     
-  orderby : string, optional
+  orderby : str, optional
     This specifies one of 'photflam', 'photplam', 'photbw', or 'all'.
     The printed results are ordered according to the absolute difference in the
     specified parameter, with the mode with the largest absolute difference at
@@ -675,7 +725,7 @@ def print_table_diffs(table1,table2,orderby='photflam',lines=25):
     
     Defaults to 'photflam'.
     
-  lines : integer, optional
+  lines : int, optional
     Number of lines of differences to print. Defaults to 25.
   
   """
@@ -691,4 +741,28 @@ def print_table_diffs(table1,table2,orderby='photflam',lines=25):
     for par in ('photflam','photplam','photbw'):
       comp.print_diffs(par,lines)
       print('')
+      
+def make_table_plot(table1,table2,outname='imphttab_comp.pdf'):
+  """
+  Make a plot with histograms of the percent differences between
+  PHOTFLAM, PHOTPLAM, and PHOTBW for the IMPHTTAB tables.
+  
+  Differences plotted are 100 * (table1 - table2) / table1.
+  
+  Parameters
+  ----------
+  table1 : str
+    Filename of first IMPHTTAB for comparison.
+    
+  table2 : str
+    Filename of the second IMPHTTAB for comparison.
+    
+  outname : str, optional
+    Filename of output plot, including extension.
+    Defaults to 'imphttab_comp.pdf'.
+  
+  """
+  comp = ImphttabComp(table1,table2)
+  
+  comp.make_plot(outname)
   
