@@ -1,6 +1,12 @@
 import os
 
-from ConfigParser import ConfigParser
+try:
+    from ConfigParser import ConfigParser
+except ImportError:
+    # This is necessary for when stsci.distutils is being bootstrapped by other
+    # setup.pys in stsci_python--otherwise the ConfigParser import would be
+    # converted by d2to1
+    from configparser import ConfigParser
 from distutils import log
 
 import pkg_resources
