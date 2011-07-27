@@ -31,12 +31,12 @@ try:
     from pyraf import iraf
     from iraf import stsdas, hst_calib, synphot
 except ImportError:
-    SYNPHOT = False
+    HAVESYNPHOT = False
 else:
-    SYNPHOT = True
+    HAVESYNPHOT = True
 
-__version__ = '0.2.2'
-__vdate__ = '07-Jul-2011'
+__version__ = '0.2.3'
+__vdate__ = '27-Jul-2011'
 
 def computeValues(obsmode,component_dict,spec=None):
     """ Compute the 3 photometric values needed for a given obsmode string
@@ -69,7 +69,7 @@ def computeSynphotValues(obsmode):
     the computed value of the keyword.
     
     """
-    if not SYNPHOT:
+    if not HAVESYNPHOT:
       raise ImportError('IRAF packages are not available.')
     
     tmpfits = os.path.join(tempfile.gettempdir(),'temp.fits')
@@ -369,7 +369,7 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
     parnames_rows = np.chararray([nrows,max_npars],itemsize=fpars_sz) # create columns for PAR*NAMES
     parnames_rows[:] = ''*fpars_sz # initialize with blanks, just to be safe
 
-    for nr in range(nrows):
+    for nr in xrange(nrows):
         # create path through graphtab for this obsmode, reading in values for
         # all parameterized variables as well
         obspath = x.traverse(obsmodes[nr],verbose=False)
@@ -377,13 +377,13 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
         
         # Create a master set of parameterized variables and their ranges of values
         for p in filtdata:
-            if p.upper() not in filtdata_set.keys():
-                filtdata_set[p] = filtdata[p]
+            if (p.upper(),obsmodes[nr]) not in filtdata_set.keys():
+                filtdata_set[(p.upper(),obsmodes[nr])] = filtdata[p]
 
         fpars = fpars_vals[nr]
         npars = npar_vals[nr]
         pvals = list()
-
+        
         #extract entries from 'filtdata' for only the values given in 'fpars'
         for i in range(max_npars):
             if len(fpars) == 0:
@@ -440,9 +440,9 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
         lenpars = list()
         for f in fpars:
             f = f.upper()
-            filtdict[f] = filtdata_set[f]
+            filtdict[f] = filtdata_set[(f,obsmode)]
             lenpars.append(len(filtdict[f]))
-            
+        
         # Now build up list of all obsmodes with all combinations of 
         # parameterized variables values
         olist = expandObsmodes(obsmode,filtdict)
@@ -586,13 +586,13 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
         
     # Define each column in the table based on max_npars which are not different
     # from one extension to the other
-    obsmode_col = Column(name='obsmode',format='40A',array=np.array(obsmodes))
-    pedigree_col = Column(name='pedigree',format='30A',array=np.array(ped_vals))
-    descrip_col = Column(name='descrip',format='110A',array=np.array(descrip_vals))
+    obsmode_col = Column(name='OBSMODE',format='40A',array=np.array(obsmodes))
+    pedigree_col = Column(name='PEDIGREE',format='30A',array=np.array(ped_vals))
+    descrip_col = Column(name='DESCRIP',format='110A',array=np.array(descrip_vals))
     datacol_col = {}
-    datacol_col['PHOTFLAM'] = Column(name='datacol',format='12A',array=np.array(flam_datacol_vals))
-    datacol_col['PHOTPLAM'] = Column(name='datacol',format='12A',array=np.array(plam_datacol_vals))
-    datacol_col['PHOTBW'] = Column(name='datacol',format='12A',array=np.array(bw_datacol_vals))
+    datacol_col['PHOTFLAM'] = Column(name='DATACOL',format='12A',array=np.array(flam_datacol_vals))
+    datacol_col['PHOTPLAM'] = Column(name='DATACOL',format='12A',array=np.array(plam_datacol_vals))
+    datacol_col['PHOTBW'] = Column(name='DATACOL',format='12A',array=np.array(bw_datacol_vals))
     
     parvals_tabcols = list()
     nelem_tabcols = list()
