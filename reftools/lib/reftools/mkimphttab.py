@@ -469,6 +469,9 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
                     flam_datacol_vals.pop(nr)
                     plam_datacol_vals.pop(nr)
                     bw_datacol_vals.pop(nr)
+                    parvals_rows.pop(nr)
+                    nelem_rows = np.delete(nelem_rows, nr, 0)
+                    parnames_rows = np.delete(parnames_rows, nr, 0)
                     
                     if verbose:
                       print 'Skipping ' + obsmode + '\n'
@@ -484,6 +487,9 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
                     flam_datacol_vals.pop(nr)
                     plam_datacol_vals.pop(nr)
                     bw_datacol_vals.pop(nr)
+                    parvals_rows.pop(nr)
+                    nelem_rows = np.delete(nelem_rows, nr, 0)
+                    parnames_rows = np.delete(parnames_rows, nr, 0)
                           
                     break
                 else:
@@ -529,7 +535,7 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
         flam_rows.append(fvals)
         plam_rows.append(pvals)
         bw_rows.append(bvals)
-         
+        
         del photflam,photplam,photbw,filtdict,lenpars
         
     del flatspec, component_dict
@@ -559,7 +565,7 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
         for row in range(len(parvals_rows)):
             pvals.append(parvals_rows[row][col])
         parvals_cols.append(pvals)
- 
+    
     for col in range(max_npars+1):
         fvals = list()
         plvals = list()
