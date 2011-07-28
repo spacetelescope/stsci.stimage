@@ -5,10 +5,11 @@ which to build a set obsmodes for which photometry keywords will be calculated.
 
 Examples of a base obsmode include "acs,hrc", "wfc3,uvis1", or "cos".
 
-An example usage of createTable:
+Example
+=======
 
-from reftools import mkimphttab
-mkimphttab.createTable('acs_hrc_imp.fits','acs,hrc')
+>>> from reftools import mkimphttab
+>>> mkimphttab.createTable('acs_hrc_imp.fits','acs,hrc')
 
 """
 
@@ -35,14 +36,31 @@ except ImportError:
 else:
     HAVESYNPHOT = True
 
-__version__ = '0.2.3'
-__vdate__ = '27-Jul-2011'
+__version__ = '0.2.4'
+__vdate__ = '28-Jul-2011'
 
 def computeValues(obsmode,component_dict,spec=None):
-    """ Compute the 3 photometric values needed for a given obsmode string
-        using pysynphot
-        This routine will return a dictionary with the photometry keywords and
-        the computed value of the keyword
+    """ 
+    Compute the 3 photometric values needed for a given obsmode string
+    using pysynphot.
+    
+    Parameters
+    ----------
+    obsmode : str
+        Obsmode for which to calculate values.
+        
+    component_dict : dict
+        A dictionary in which to cache opened component objects. May be empty.
+        
+    spec : Spectrum, optional
+        One of the spectrum classes from `pysynphot.spectrum`. Defaults to None.
+        If None a `pysynphot.spectrum.FlatSpectrum` of 1 flam is used.
+        
+    Returns
+    -------
+    
+    valdict : dict
+        Dictionary with photometry keywords as keys.
     """    
     if spec is None:
         # set up the flat spectrum used for the computing the photometry keywords
@@ -65,8 +83,17 @@ def computeSynphotValues(obsmode):
     """
     Compute the 3 photometric values needed for a given obsmode string
     using synphot's bandpar function.
-    This routine will return a dictionary with the photometry keywords and
-    the computed value of the keyword.
+    
+    Parameters
+    ----------
+    obsmode : str
+        Obsmode for which to calculate values.
+        
+    Returns
+    -------
+    
+    valdict : dict
+        Dictionary with photometry keywords as keys.
     
     """
     if not HAVESYNPHOT:
@@ -240,47 +267,49 @@ def saveSkippedObsmodes(output, obsmodes):
     
 def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None, 
                 mode_list = [],nmodes=None,clobber=True,verbose=False):
-    """ Create an IMPHTTAB file for a specified base configuration (basemode).
-        
-        Inputs:
-        
-        output: string
-          Prefix for output reference file. ("_imp.fits" will be appended)
-          
-        basemode: string
-          Base obsmode for which to generate a reference file. (e.g. acs,hrc)
-          This is ignored if the mode_list keyword is a non-empty list.
-          
-        tmgtab: string, optional
-          File name of _tmg.fits reference file to be used.
-          If not specified or set to None the most recent version on
-          CDBS is used.
-          
-        tmctab: string, optional
-          File name of _tmc.fits reference file to be used.
-          If not specified or set to None the most recent version on
-          CDBS is used.
-          
-        tmttab: string, optional
-          File name of _tmt.fits reference file to be used.
-          If not specified or set to None the most recent version on
-          CDBS is used.
-        
-        mode_list: list, optional
-          A list of obsmodes which should be used to make an IMPHTTAB
-          reference file. If this keyword is set to something other than 
-          an empty list the basemode argument is ignored.
-        
-        nmodes: integer, optional
-          Set to limit the number of modes to calculate, useful for testing.
-          Defaults to None.
-          
-        clobber: boolean, optional
-          True to overwrite an existing reference file, False to raise an error
-          if file already exists. Defaults to True.
-          
-        verbose: boolean, optional
-          True to print out extra information. Defaults to False.
+    """ 
+    Create an IMPHTTAB file for a specified base configuration (basemode).
+    
+    Parameters
+    ----------
+    output : str
+      Prefix for output reference file. ("_imp.fits" will be appended)
+      
+    basemode : str
+      Base obsmode for which to generate a reference file. (e.g. acs,hrc)
+      This is ignored if the mode_list keyword is a non-empty list.
+      
+    tmgtab : str, optional
+      File name of _tmg.fits reference file to be used.
+      If not specified or set to None the most recent version on
+      CDBS is used.
+      
+    tmctab : str, optional
+      File name of _tmc.fits reference file to be used.
+      If not specified or set to None the most recent version on
+      CDBS is used.
+      
+    tmttab : str, optional
+      File name of _tmt.fits reference file to be used.
+      If not specified or set to None the most recent version on
+      CDBS is used.
+    
+    mode_list : list, optional
+      A list of obsmodes which should be used to make an IMPHTTAB
+      reference file. If this keyword is set to something other than 
+      an empty list the basemode argument is ignored.
+    
+    nmodes : int, optional
+      Set to limit the number of modes to calculate, useful for testing.
+      Defaults to None.
+      
+    clobber : bool, optional
+      True to overwrite an existing reference file, False to raise an error
+      if file already exists. Defaults to True.
+      
+    verbose : bool, optional
+      True to print out extra information. Defaults to False.
+      
     """
     if not output.endswith('_imp.fits'):
         output = output+'_imp.fits'
@@ -661,34 +690,34 @@ def createNicmosTable(output,pht_table,tmgtab=None,tmctab=None,tmttab=None,
     Use a NICMOS _pht.fits table to generate an IMPHTTAB table for obsmodes
     listed in the _pht table.
     
-    Input
-    -----
-    output: string
+    Parameters
+    ----------
+    output : string
       Prefix for output reference file. ("_imp.fits" will be appended)
       
-    pht_table: string
+    pht_table : string
       File name of _pht.fits table from which to take obsmodes.
       
-    tmgtab: string, optional
+    tmgtab : string, optional
       File name of _tmg.fits reference file to be used.
       If not specified or set to None the most recent version on
       CDBS is used.
       
-    tmctab: string, optional
+    tmctab : string, optional
       File name of _tmc.fits reference file to be used.
       If not specified or set to None the most recent version on
       CDBS is used.
       
-    tmttab: string, optional
+    tmttab : string, optional
       File name of _tmt.fits reference file to be used.
       If not specified or set to None the most recent version on
       CDBS is used.
       
-    clobber: boolean, optional
+    clobber : boolean, optional
       True to overwrite an existing reference file, False to raise an error
       if file already exists. Defaults to True.
       
-    verbose: boolean, optional
+    verbose : boolean, optional
       True to print out extra information. Defaults to False.
             
     """
@@ -708,33 +737,34 @@ def createTableFromTable(output, imphttab, tmgtab=None, tmctab=None, tmttab=None
     Use a previously created IMPHTTAB reference file to generate a new
     IMPHTTAB reference file based on input graph and comp tables.
     
-    Input
-    -----
-    output: string
+    Parameters
+    ----------
+    output : str
       Prefix for output reference file. ("_imp.fits" will be appended)
       
-    imphttab: string
+    imphttab : str
       File name of _imp.fits IMPHTTAB table from which to take obsmodes.
       
-    tmgtab: string, optional
+    tmgtab : str, optional
       File name of _tmg.fits reference file to be used.
       If not specified or set to None the most recent version on
       CDBS is used.
       
-    tmctab: string, optional
+    tmctab : str, optional
       File name of _tmc.fits reference file to be used.
       If not specified or set to None the most recent version on
       CDBS is used.
       
-    tmttab: string, optional
+    tmttab : str, optional
       File name of _tmt.fits reference file to be used.
       If not specified or set to None the most recent version on
       CDBS is used.
-    clobber: boolean, optional
+      
+    clobber : bool, optional
       True to overwrite an existing reference file, False to raise an error
       if file already exists. Defaults to True.
       
-    verbose: boolean, optional
+    verbose : bool, optional
       True to print out extra information. Defaults to False.
       
     """

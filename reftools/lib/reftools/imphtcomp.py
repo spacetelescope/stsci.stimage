@@ -96,18 +96,6 @@ class ImphttabComp(object):
   
   """
   def __init__(self,tab1,tab2):
-    """
-    Make an ImphttabComp object.
-    
-    Parameters
-    ----------
-    tab1 : str
-      Filename of first IMPHTTAB for comparison.
-      
-    tab2 : str
-      Filename of second IMPHTTAB for comparison.
-    
-    """
     self.tab1_name = tab1
     self.tab2_name = tab2
     
@@ -374,13 +362,13 @@ class ImphttabComp(object):
       raise ImphtcompError("Unregnized orderby keyword. " +
                             "Must be one of 'photflam','photplam','photbw'.")
       
-    s = '{:<30}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}'
+    s = '{:<45}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}'
     
     print(s.format('OBSMODE','PHOTFLAM1','PHOTFLAM2','PHOTFLAM DIFF',
                     'PHOTPLAM1','PHOTPLAM2','PHOTPLAM DIFF',
                     'PHOTBW1','PHOTBW2','PHOTBW DIFF'))
                     
-    s = '{:<30}{:<15.5e}{:<15.5e}{:< 15.8f}{:<15.5f}{:<15.5f}{:< 15.8f}{:<15.5f}{:<15.5f}{:< 15.8f}'
+    s = '{:<45}{:<15.5e}{:<15.5e}{:< 15.8f}{:<15.5f}{:<15.5f}{:< 15.8f}{:<15.5f}{:<15.5f}{:< 15.8f}'
                     
     for i in order[:lines]:
       print(s.format(modes[i],flams1[i],flams2[i],flamdiff[i],

@@ -1,5 +1,5 @@
 """
-Tools from comparing pysynphot and synphot.
+Tools for comparing pysynphot and synphot photometry calculations.
 
 """
 
@@ -312,21 +312,12 @@ class SynPysynPlot(object):
     
   Attributes
   ----------
-  fig : Figure
-    matplotlib.figure.Figure instance containing plots. Useful for setting
-    the figure title to something other than the default of `csvfile`.
+  fig : `matplotlib.figure.Figure`
+    Useful for setting manipulating figure properties such as the title, which
+    otherwise defaults to `csvfile`.
   
   """
   def __init__(self,csvfile):
-    """
-    Make SynPysynPlot instance.
-    
-    Parameters
-    ----------
-    csvfile : str
-      Filename of input CSV file containing comparison results.
-    
-    """
     self._load_csv(csvfile)
     
     spars = SubplotParams(left=0.08,bottom=0.05,right=0.98,top=0.93,
@@ -546,13 +537,13 @@ def print_synpysyn_diffs(csvfile,orderby='photflam',lines=25):
   elif orderby.lower() == 'photbw':
     order = np.abs(bwdiff).argsort()[::-1]
     
-  s = '{:<30}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}'
+  s = '{:<45}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}{:<15}'
   
   print(s.format('OBSMODE','PY PHOTFLAM','SYN PHOTFLAM','PHOTFLAM DIFF',
                   'PY PHOTPLAM','SYN PHOTPLAM','PHOTPLAM DIFF',
                   'PY PHOTBW','SYN PHOTBW','PHOTBW DIFF'))
                   
-  s = '{:<30}{:<15.5e}{:<15.5e}{:< 15.8f}{:<15.5f}{:<15.5f}{:< 15.8f}{:<15.5f}{:<15.5f}{:< 15.8f}'
+  s = '{:<45}{:<15.5e}{:<15.5e}{:< 15.8f}{:<15.5f}{:<15.5f}{:< 15.8f}{:<15.5f}{:<15.5f}{:< 15.8f}'
                     
   for i in order[:lines]:
     print(s.format(modes[i],pyflam[i],irflam[i],flamdiff[i],
