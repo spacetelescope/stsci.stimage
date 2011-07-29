@@ -23,6 +23,9 @@ import numpy as np
 
 import _computephotpars
 
+__version__ = '0.1.0'
+__vdate__ = '29-Jul-2011'
+
 class ImphttabError(StandardError):
   """
   Class for errors associated with the imphttab file.
