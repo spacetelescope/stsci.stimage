@@ -17,7 +17,8 @@ import os.path
 # These are really DIRECTORY names, not PACKAGE names
 
 all_packages_input = [
-    "acstools",
+    # acstools does not compile with numpy 1.6.1 - I need to make as much of this work as possible, so turn it off for now
+    # "acstools",
     "betadrizzle",
     "calcos",
     "convolve",
