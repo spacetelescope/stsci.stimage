@@ -14,6 +14,7 @@ Contents:
    mkimphttab
    imphtcomp
    synpysyncomp
+   getphotpars
 
 Indices and tables
 ==================

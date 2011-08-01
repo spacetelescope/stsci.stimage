@@ -1,20 +1,19 @@
 """
 getphotpars includes utilities for calculating the photometry keywords
 PHOTZPT, PHOTFLAM, PHOTPLAM, and PHOTBW for a given obsmode and IMPHTTAB.
+The calculations are performed in the same way here as they are in hstcal
+pipelines.
 
-To calculate a single set of keywords use the function get_phot_pars.
+To calculate a single set of keywords use the function `get_phot_pars`.
 
-If you are calculating several obsmodes from a single IMPHTTAB file it's best
-to use the GetPhotPars class. For example:
+If you are calculating for several obsmodes from a single IMPHTTAB file it's best
+to use the `GetPhotPars` class. For example::
 
-get_phot = GetPhotPars(imphttab)
-  
-for obs in obsmodes:
-  photzpt, photflam, photplam, photbw = get_phot.get_phot_pars(obs)
-  
-  ...
-  
-get_phot.close()
+  get_phot = GetPhotPars(imphttab)
+  for obs in obsmodes:
+    photzpt, photflam, photplam, photbw = get_phot.get_phot_pars(obs)
+    ...
+  get_phot.close()
 
 """
 
@@ -23,8 +22,8 @@ import numpy as np
 
 import _computephotpars
 
-__version__ = '0.1.0'
-__vdate__ = '29-Jul-2011'
+__version__ = '0.1.1'
+__vdate__ = '01-Aug-2011'
 
 class ImphttabError(StandardError):
   """
@@ -38,9 +37,9 @@ def get_phot_pars(obsmode, imphttab):
   Return PHOTZPT, PHOTFLAM, PHOTPLAM, and PHOTBW for specified obsmode
   and imphttab.
   
-  Input
-  -----
-  obsmode: string
+  Parameters
+  ----------
+  obsmode : str
     Complete obsmode string including any parameterized values.
     
     Example obsmodes are:
@@ -48,22 +47,22 @@ def get_phot_pars(obsmode, imphttab):
       'acs,wfc1,f625w,f814w,MJD#55000.0'
       'acs,wfc1,f625w,fr505n#5000.0,MJD#55000.0'
     
-  imphttab: string
+  imphttab : str
     Path and filename of IMPHTTAB reference file.
     
-  Output
-  ------
-  photzpt: float
+  Returns
+  -------
+  photzpt : float
     PHOTZPT from IMPHTTAB header.
     
-  photflam: float
-    Interpolated PHOTFLAM for obsmode.
+  photflam : float
+    Interpolated PHOTFLAM for `obsmode`.
     
-  photplam: float
-    Interpolated PHOTPLAM for obsmode.
+  photplam : float
+    Interpolated PHOTPLAM for `obsmode`.
     
-  photbw: float
-    Interpolated PHOTBW for obsmode.
+  photbw : float
+    Interpolated PHOTBW for `obsmode`.
   
   """
   get_phot = GetPhotPars(imphttab)
@@ -86,16 +85,22 @@ class GetPhotPars(object):
     'acs,wfc1,f625w,f814w,MJD#55000.0'
     'acs,wfc1,f625w,fr505n#5000.0,MJD#55000.0'
   
+  Parameters
+  ----------
+  imphttab : str
+    Filename and path of IMPHTTAB reference file.
+    
+  Attributes
+  ----------
+  imphttab_name : str
+    Filename and path of IMPHTTAB reference file. Same as input `imphttab`.
+    
+  imphttab_fits : `pyfits.HDUList`
+    Open `pyfits.HDUList` object from `imphttab`.
+  
   """
   
   def __init__(self,imphttab):
-    """
-    Inputs
-    ------
-    imphttab: string
-      Filename and path of IMPHTTAB reference file.
-    
-    """
     
     self.imphttab_name = imphttab
     self.imphttab_fits = pyfits.open(imphttab,'readonly')
@@ -104,24 +109,24 @@ class GetPhotPars(object):
     """
     Return PHOTZPT, PHOTFLAM, PHOTPLAM, and PHOTBW for specified obsmode.
     
-    Input
-    -----
-    obsmode: string
+    Parameters
+    ----------
+    obsmode : str
       obsmode string
       
-    Output
-    ------
-    photzpt: float
-      PHOTZPT from IMPHTTAB header.
+    Returns
+    -------
+    photzpt : float
+      PHOTZPT from `imphttab_fits` header.
       
-    photflam: float
-      Interpolated PHOTFLAM for obsmode.
+    photflam : float
+      Interpolated PHOTFLAM for `obsmode`.
       
-    photplam: float
-      Interpolated PHOTPLAM for obsmode.
+    photplam : float
+      Interpolated PHOTPLAM for `obsmode`.
       
-    photbw: float
-      Interpolated PHOTBW for obsmode.
+    photbw : float
+      Interpolated PHOTBW for `obsmode`.
     
     """
     
@@ -145,33 +150,33 @@ class GetPhotPars(object):
     
   def close(self):
     """
-    Close imphttab_fits attribute.
+    Close `imphttab_fits` attribute.
     
     """
     self.imphttab_fits.close() 
     
   def _parse_obsmode(self,obsmode):
     """
-    Return number of parameterized variables in obsmode and obsmode string
+    Return number of parameterized variables in `obsmode` and obsmode string
     with the values of the parameterized variables removed. Also returns 
     a dictionary in which the keys are the names of the parameterized variables
     and the dictionary values are are the values of the parameterized variables.
     
-    Input
-    -----
-    obsmode: string
+    Parameters
+    ----------
+    obsmode : str
       obsmode string
       
-    Output
-    ------
-    npars: integer
-      Number of parameterized variables in obsmode
+    Returns
+    -------
+    npars : int
+      Number of parameterized variables in `obsmode`.
       
-    strp_obsmode: string
+    strp_obsmode : str
       Obsmode with parameterized values removed and converted to lower case.
       Retains order of input.
       
-    pars: dictionary
+    pars : dict
       Keys are parameterized variable names and values are the parameterized
       variable values. Keys are all lower case.
     
@@ -199,22 +204,27 @@ class GetPhotPars(object):
     
   def _get_row(self,obsmode,ext):
     """
-    Return the FITS_rec object corresponding to the table row from extension
-    ext that has matching obsmode. Raises ImphttabError if no matching obsmode
-    is found or multiple matching obsmodes are found.
+    Return the `pyfits.FITS_rec` object corresponding to the table row from extension
+    ext that has matching `obsmode`.
     
-    Input
-    -----
-    obsmode: string
-      obsmode string
+    Parameters
+    ----------
+    obsmode : str
+      obsmode string.
       
-    ext: string or int
-      Specifier of FITS table extension from which to return a row
+    ext : str or int
+      Specifier of FITS table extension from which to return a row.
       
-    Output
+    Returns
+    -------
+    row : `pyfits.FITS_record`
+      Row matching input `obsmode`.
+      
+    Raises
     ------
-    row: FITS_record
-      Row matching input obsmode
+    ImphttabError
+      If `obsmode` does not appear in `imphttab_fits` or it appears multiple
+      times in `imphttab_fits`.
     
     """
     o = np.char.strip(np.char.lower(self.imphttab_fits[ext].data['obsmode']))
@@ -234,19 +244,19 @@ class GetPhotPars(object):
     Construct a dictionary corresponding to the PhtRow C structure used
     in the _computephotpars extension.
     
-    Input
-    -----
-    row: FITS_record
+    Parameters
+    ----------
+    row : `pyfits.FITS_record`
       A single row from an IMPHTTAB extension.
       
-    npars: int
+    npars : int
       Number of parameterized variables for this row.
       
-    Output
-    ------
-    row_struct: dictionary
+    Returns
+    -------
+    row_struct : dict
       Dictionary corresponding to the PhtRow C structure used in the
-      _computephotpars extension. Has the same keys as PhtRow structure
+      `_computephotpars` extension. Has the same keys as PhtRow structure
       members. All keys are lower case.
     
     """
@@ -271,23 +281,23 @@ class GetPhotPars(object):
   def _make_par_struct(self,npars,par_dict):
     """
     Construct a dictionary corresponding to (part of) the PhotPar structure
-    used in the _computephotpars extension. Not all members of the structure
+    used in the `_computephotpars` extension. Not all members of the structure
     are used in the extension so we supply the necessary ones here.
     
-    Inputs
-    ------
-    npars: integer
+    Parameters
+    ----------
+    npars : int
       Number of parameterized variables for this obsmode.
       
-    par_dict: dictionary
+    par_dict : dict
       Keys are parameterized variable names and values are the parameterized
-      variable values. Keys are all lower case. As returned by _parse_obsmode.
+      variable values. Keys are all lower case. As returned by `_parse_obsmode`.
       
-    Outputs
+    Returns
     -------
-    par_struct: dictionary
+    par_struct : dict
       Dictionary with keys corresponding to some of the structure members
-      of the PhotPar structure used in the _computephotpars extension.
+      of the PhotPar structure used in the `_computephotpars` extension.
     
     """
     par_struct = {}
@@ -306,23 +316,23 @@ class GetPhotPars(object):
     Compute a photometry parameter based on an obsmode and a given row from
     the IMPHTTAB reference file.
     
-    Inputs
-    ------
-    row_struct: dictionary
+    Parameters
+    ----------
+    row_struct : dict
       Dictionary corresponding to the PhtRow C structure used in the
-      _computephotpars extension. Has the same keys as PhtRow structure
+      `_computephotpar` extension. Has the same keys as PhtRow structure
       members. All keys are lower case.
-      Should be the same as returned by _make_row_struct.
+      Should be the same as returned by `_make_row_struct`.
       
-    par_struct: dictionary
+    par_struct : dict
       Dictionary with keys corresponding to some of the structure members
-      of the PhotPar structure used in the _computephotpars extension.
-      Should be the same as returned by _make_par_struct.
+      of the PhotPar structure used in the `_computephotpars` extension.
+      Should be the same as returned by `_make_par_struct`.
       
-    Outputs
+    Returns
     -------
-    result: float
-      Result returned by _computephotpars.compute_value.
+    result : float
+      Result returned by `_computephotpars.compute_value`.
     
     """
     return _computephotpars.compute_value(row_struct, par_struct)
