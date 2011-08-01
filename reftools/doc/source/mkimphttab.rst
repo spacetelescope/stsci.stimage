@@ -2,7 +2,7 @@ Making IMPHTTAB Tables
 ======================
 
 Making IMPHTTAB tables requires a connection to CDBS and that the PYSYN_CDBS
-environmental keyword be set.
+environmental keyword point to CDBS.
 
 .. currentmodule:: reftools.mkimphttab
 
