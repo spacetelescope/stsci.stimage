@@ -16,3 +16,5 @@ This release also includes alpha versions of the following tasks:
 Utility and library functions used by these tasks are also included in this
 module. 
 """
+__version__ = '1.0.1'
+

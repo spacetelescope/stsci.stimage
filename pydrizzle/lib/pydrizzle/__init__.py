@@ -7,16 +7,20 @@ no = False  # 0
 from drutil import DEFAULT_IDCDIR
 from math import *
 
-__version__ = ''
-__svn_version__ = 'Unable to determine SVN revision'
-__full_svn_info__ = ''
-__setup_datetime__ = None
+if False :
+    __version__ = ''
+    __svn_version__ = 'Unable to determine SVN revision'
+    __full_svn_info__ = ''
+    __setup_datetime__ = None
 
-try:
-    __version__ = __import__('pkg_resources').\
-                        get_distribution('pydrizzle').version
-except:
-    pass
+    try:
+        __version__ = __import__('pkg_resources').\
+                            get_distribution('pydrizzle').version
+    except:
+        pass
+else :
+    __version__ = '6.3.7'
+
 
 try:
     from svninfo import (__svn_version__, __full_svn_info__,

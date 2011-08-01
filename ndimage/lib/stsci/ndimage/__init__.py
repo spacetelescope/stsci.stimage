@@ -39,16 +39,20 @@ from io import *
 
 from info import __doc__
 
-__version__ = ''
-__svn_version__ = 'Unable to determine SVN revision'
-__full_svn_info__ = ''
-__setup_datetime__ = None
+if False :
+    __version__ = ''
+    __svn_version__ = 'Unable to determine SVN revision'
+    __full_svn_info__ = ''
+    __setup_datetime__ = None
 
-try:
-    __version__ = __import__('pkg_resources').\
-                      get_distribution('stsci.ndimage').version
-except:
-    pass
+    try:
+        __version__ = __import__('pkg_resources').\
+                          get_distribution('stsci.ndimage').version
+    except:
+        pass
+else :
+    __version__ = '0.9.0'
+
 
 try:
     from stsci.ndimage.svninfo import (__svn_version__, __full_svn_info__,

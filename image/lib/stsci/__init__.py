@@ -1,3 +1,4 @@
+if False :
 try:
     # As long as we're using setuptools/distribute, we need to do this the
     # setuptools way or else pkg_resources will throw up unncessary and
@@ -8,3 +9,6 @@ try:
 except ImportError:
     pass
 __path__ = __import__('pkgutil').extend_path(__path__, __name__)
+
+__version__ = '2.1'
+

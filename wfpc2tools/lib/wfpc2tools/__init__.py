@@ -14,3 +14,4 @@ module.
 """
 import wfpc2cte
 import wfpc2destreak
+__version__ = '1.0.0'
