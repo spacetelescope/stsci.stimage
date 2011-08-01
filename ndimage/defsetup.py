@@ -7,6 +7,15 @@ pkg = [ "stsci.ndimage", "stsci.ndimage.tests" ]
 
 setupargs = {
 
+    # how to install your data files:
+    #   [
+    #       ( directory_name_files_go_to, [ file_name_in_source_tree, another_data_file, etc ] )
+    #   ]
+    'data_files' :      [
+                        # data files in the installed package directory
+                        ( 'stsci/ndimage/tests/',  [ 'lib/stsci/ndimage/tests/*.png' ] ),
+                        ],
+
     'package_dir' :     { 'stsci.ndimage':'lib/stsci/ndimage', 'stsci.ndimage.tests':'lib/stsci/ndimage/tests'},
 
     'ext_modules' :     [ 
