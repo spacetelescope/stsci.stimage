@@ -1,25 +1,41 @@
+set repo=https://svn.stsci.edu/svn/ssb/stsci_python/stsci_python
+
+set branch=release_2011_08
+
+set VER=2.12
+
+
 How to make an stsci_python release branch
 --
 
-Make a branch of stsc_python in the stsci_python repository.
+# Make a branch of stsc_python in the stsci_python repository.
 
-svn checkout the branch
+svn copy  $repo/trunk  $repo/branches/$branch
 
-in the root of the checked out branch, run release_tools/branch_externals
+# check it out
+svn checkout  $repo/branches/$branch
 
-perform the svn commands that it displays
+
+# fix up the svn externals
+cd $branch
+release_tools/branch_externals
+
+... perform the svn commands that it displays
+
+vi setup.py
+	# change the version number in the call to setup at the end of the file
+	# commit the change
 
 ** abandon your checked out copy and get a new one **
-
-edit setup.py
-	change the version number in the call to setup at the end of the file
-	commit the change
 
 
 How to make the release tarball
 --
 
-svn checkout the stsci_python branch; this will get everything through the svn:externals
+svn checkout  $repo/branches/$branch stsci_python
+	# this will get everything through the svn:externals
+
+cd stsci_python
 
 find . -name .svn -exec rm -rf {} ';'
 
@@ -27,7 +43,9 @@ cd ..
 
 mv stsci_python stsci_python-$VER
 
-tar cf ....tar.file...  stsci_python
+mkdir -p /eng/ssb/dist/$branch
+
+tar zcf /eng/ssb/dist/$branch/stsci_python-$VER.tar.gz  stsci_python-$VER
 
 
 
@@ -38,9 +56,13 @@ cd to the work directory where you will do the testing
 
 unsetenv PYTHONPATH
 
-irafx
+irafdev
 
-svn checkout release_tools from the release branch 
+echo $PYTHONPATH
+
+setenv PYTHONPATH ...take off the part that has stsci_python in it...
+
+svn checkout $repo/branches/$branch/release_tools 
 
 sh release_tools/testenv
 	paste the appropriate commands from what it displayed
