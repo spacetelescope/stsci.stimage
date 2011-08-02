@@ -22,6 +22,9 @@ in
 	;;
 *)
 	echo not on a branch
+	echo ''
+	echo 'you should have made the stsci_python branch first, then checked it out'
+	echo 'see release_tools/README'
 	exit 1
 esac
 
