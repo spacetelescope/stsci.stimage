@@ -1,4 +1,7 @@
-How to make an stsci_python release branch
+** for future use **
+
+
+How to make an stsci_python release
 --
 
 Make a branch of stsc_python in the stsci_python repository.
@@ -11,24 +14,13 @@ perform the svn commands that it displays
 
 ** abandon your checked out copy and get a new one **
 
-edit setup.py
-	change the version number in the call to setup at the end of the file
+edit setup.cfg
+	change [metadata] version= to the version number of this release
 	commit the change
 
+python setup.py sdist
 
-How to make the release tarball
---
-
-svn checkout the stsci_python branch; this will get everything through the svn:externals
-
-find . -name .svn -exec rm -rf {} ';'
-
-cd ..
-
-mv stsci_python stsci_python-$VER
-
-tar cf ....tar.file...  stsci_python
-
+dist/*.tar is the distribution
 
 
 How to test the release
