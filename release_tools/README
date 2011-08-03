@@ -13,7 +13,7 @@ How to make an stsci_python release branch
 svn copy  $repo/trunk  $repo/branches/$branch
 
 # check it out
-svn checkout  $repo/branches/$branch
+svn checkout  -q $repo/branches/$branch
 
 
 # fix up the svn externals
@@ -32,7 +32,7 @@ vi setup.py
 How to make the release tarball
 --
 
-svn checkout  $repo/branches/$branch stsci_python
+svn checkout  -q $repo/branches/$branch stsci_python
 	# this will get everything through the svn:externals
 
 cd stsci_python
@@ -62,11 +62,24 @@ echo $PYTHONPATH
 
 setenv PYTHONPATH ...take off the part that has stsci_python in it...
 
-svn checkout $repo/branches/$branch/release_tools 
+svn checkout -q $repo/branches/$branch/release_tools 
 
 sh release_tools/testenv
 	paste the appropriate commands from what it displayed
 		set path, pythonpath
 		uninstall
 		install setup.py
+
+tar xf /eng/ssb/dist/$branch/stsci_python-$VER.tar.gz
+
+cd stsci_python-$VER
+
+python setup.py -q install --home $pyhome
+
+cd /arzach/data1/rt
+
+setenv PDK_TESTRUN $branch-`date +%H-%M`.XXXXXX    <- fill in an identifier for XXXX
+
+pdkrun -r --parallel 4 stsci_python/ astrolib/pysynphot >& log
+
 

@@ -1,5 +1,16 @@
 #!/bin/sh
 
+case "$0"
+in 
+release_tools/testenv)
+	:
+	;;
+*)
+	echo 'not invoked correctly - see release_tools/README'
+	exit 1
+	;;
+esac
+
 case "$PYTHONPATH" 
 in 
 *:*)	echo too many dirs on pythonpath - see release_tools/README
@@ -12,15 +23,18 @@ esac
 
 here=`pwd`
 
+pyhome=$here/py
+
 rm -rf $here/py $here/pyssgN
 
-mkdir -p $here/py/lib/python
-mkdir -p $here/py/bin
+mkdir -p $pyhome/lib/python
+mkdir -p $pyhome/bin
 
 mkdir -p $here/pyssgN/lib
 mkdir -p $here/pyssgN/bin
 
-( cd $PYTHONPATH ; tar cf - . ) | ( cd $here/pyssgN/lib ; tar xf - )
+# not needed with new pyssgdev layout
+# ( cd $PYTHONPATH ; tar cf - . ) | ( cd $here/pyssgN/lib ; tar xf - )
 
 d=`which pyraf`
 d=`dirname $d`
@@ -39,12 +53,15 @@ do
 	esac
 done
 
+echo setenv pyhome $pyhome
 echo ''
-echo setenv PYTHONPATH $here/py/lib/python:$here/pyssgN/lib
+echo setenv PYTHONPATH $pyhome/lib/python:$here/pyssgN/lib:$PYTHONPATH
 echo ''
 echo set path = '(' $p ')'
 echo ''
-echo export PYTHONPATH=$here/py/lib/python:$here/pyssgN
+echo export pyhome=$pyhome
+echo ''
+echo export PYTHONPATH=$pyhome/lib/python:$here/pyssgN/lib:$PYTHONPATH
 echo ''
 echo export PATH=`echo $p | sed 's/ /:/g'`
 echo ''
