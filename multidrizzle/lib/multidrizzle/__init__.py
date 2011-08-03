@@ -60,7 +60,7 @@ if False :
     except:
         pass
 else :
-    __version__ = '3.3.5dev'
+    __version__ = '3.3.8'
 
 
 __vdate__ = '08-Jul-2010'
