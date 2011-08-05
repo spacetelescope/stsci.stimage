@@ -1411,8 +1411,8 @@ doublereal mgf2_(doublereal *lam)
 	xp = (doublereal) (*onx / 2.f) + .5;
 	yp = (doublereal) (*ony / 2.f) + .5;
     } else {
-	xp = (doublereal) (*onx / 2.f) + 1.f;
-	yp = (doublereal) (*ony / 2.f) + 1.f;
+	xp = (doublereal) (*onx / 2.f) + 1.f; 
+	yp = (doublereal) (*ony / 2.f) + 1.f; 
     }
     xt = xoff + xp;
     yt = yoff + yp;
