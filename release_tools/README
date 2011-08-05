@@ -29,15 +29,33 @@ vi setup.py
 ** abandon your checked out copy and get a new one **
 
 
+
 How to make the release tarball
 --
+
+nag everybody to fix their version numbers
+
+nag everybody to get their stuff into RELEASE_NOTES
 
 svn checkout  -q $repo/branches/$branch stsci_python
 	# this will get everything through the svn:externals
 
 cd stsci_python
 
+vi `find . -name defsetup.py`
+	# change the version numbers to match the __init__ files
+svn commit -m'fix version numbers'
+
+vi testpk.py
+	# change expected version numbers to be right
+
+release_tools/svnversion
+
 find . -name .svn -exec rm -rf {} ';'
+
+rst2html.py < Install.rst > Install.html
+
+release_tools/svn_notes
 
 cd ..
 
@@ -81,5 +99,12 @@ cd /arzach/data1/rt
 setenv PDK_TESTRUN $branch-`date +%H-%M`.XXXXXX    <- fill in an identifier for XXXX
 
 pdkrun -r --parallel 4 stsci_python/ astrolib/pysynphot >& log
+
+
+How to generate the epydoc web pages
+--
+
+...
+
 
 
