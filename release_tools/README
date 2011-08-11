@@ -50,18 +50,19 @@ vi testpk.py
 	# change expected version numbers to be right
 
 release_tools/svnversion
+	# not in 2011_3
 
 find . -name .svn -exec rm -rf {} ';'
 
-rst2html.py < Install.rst > Install.html
-
-release_tools/svn_notes
+rst2html.py < INSTALL.rst > INSTALL.html
 
 cd ..
 
 mv stsci_python stsci_python-$VER
 
 mkdir -p /eng/ssb/dist/$branch
+
+rm -f  /eng/ssb/dist/$branch/stsci_python-$VER.tar.gz 
 
 tar zcf /eng/ssb/dist/$branch/stsci_python-$VER.tar.gz  stsci_python-$VER
 
@@ -93,6 +94,8 @@ tar xf /eng/ssb/dist/$branch/stsci_python-$VER.tar.gz
 cd stsci_python-$VER
 
 python setup.py -q install --home $pyhome
+
+python testpk.py
 
 cd /arzach/data1/rt
 
