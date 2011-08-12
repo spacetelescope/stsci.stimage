@@ -31,10 +31,48 @@ from ConfigParser import ConfigParser
 
 # List of old packages to remove; some of these have been renamed, others no
 # longer exist
-OLD_PACKAGES = set(['convolve', 'image', 'imagemanip', 'imagestats',
-                    'ndimage', 'numdisplay', 'pytools', 'sample_package',
-                    'stimage', 'stscidocs', 'puftcorr', 'rnlincor',
-                    'saaclean'])
+OLD_PACKAGES = set([
+    'acstools',
+    'astrodrizzle',
+    'calcos',
+    'convolve',
+    'convolve',
+    'coords',
+    'costools',
+    'image',
+    'image',
+    'imagemanip',
+    'imagemanip',
+    'imagestats',
+    'imagestats',
+    'multidrizzle',
+    'ndimage',
+    'ndimage',
+    'nictools',
+    'numdisplay',
+    'numdisplay',
+    'opuscoords',
+    'puftcorr',
+    'pydrizzle',
+    'pyfits',
+    'pyraf',
+    'pysynphot',
+    'pytools',
+    'pywcs',
+    'reftools',
+    'rnlincor',
+    'saaclean',
+    'sample_package',
+    'stimage',
+    'stimage',
+    'stistools',
+    'stsci',
+    'stsci_sphinxext',
+    'stscidocs',
+    'stwcs',
+    'wfpc2tools',
+    ])
+
 
 OLD_SCRIPTS = set(['sample_package'])
 
