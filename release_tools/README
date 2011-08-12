@@ -111,3 +111,32 @@ How to generate the epydoc web pages
 
 
 
+
+Install locally
+--
+
+cd /usr/stsci/pyssg
+	rm -rf 2.7.1.stsci_python 2.7.stsci_python
+	mkdir 2.7.1.stsci_python
+	ln -s  2.7.stsci_python 2.7.1.stsci_python/
+
+cd $workdir
+
+unsetenv PYTHONPATH
+
+iraf
+
+rm -rf stsci_python-$VER
+
+tar zxf /eng/ssb/dist/$branch/stsci_python-$VER.tar.gz 
+
+cd stsci_python-$VER
+
+python uninstall.py -f
+
+set d=`echo $PYTHONPATH | sed 's/:.*$//' `
+
+python setup.py -q install --install-lib $d 
+
+python testpk.py
+
