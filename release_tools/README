@@ -141,6 +141,8 @@ On Windows VM:
 
 	python setup.py bdist_wininst
 
+	./*.exe
+		to install
 
 On Mac:
 	cd ~/Desktop/build/stsci*/dist
