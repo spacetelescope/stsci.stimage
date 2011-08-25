@@ -16,7 +16,7 @@
 .. role:: orange
 
 ================================================================================
-STSCI_PYTHON Version 2.11
+STSCI_PYTHON Version 2.12
 ================================================================================
 
 :abstract: 
@@ -154,14 +154,14 @@ If you need to install the supporting packages, we suggest that you follow the o
 
   =============  ================================================  ================================================================================    
   Package        Tested with                                       Web Site                                                                            
-  IRAF           2.12.2a on Solaris,  2.14 on Linux and Macintosh  http://iraf.noao.edu/                                                               
-  STSDAS/TABLES  3.10                                              http://www.stsci.edu/resources/software_hardware/stsdas/download                    
+  IRAF           2.14                                              http://iraf.noao.edu/                                                               
+  STSDAS/TABLES  3.14                                              http://www.stsci.edu/resources/software_hardware/stsdas/download                    
   Python         2.5.4, 2.7.1                                      http://python.org/download/                                                         
   Tcl/TK         8.5.7                                             http://www.tcl.tk/ http://www.tcl.tk/software/tcltk/download.html                   
   Pmw            1.3.2                                             http://pmw.sourceforge.net/                                                         
   urwid          0.9.9.1 (optional)                                http://excess.org/urwid/                                                            
   ipython        0.10.1 (optional)                                 http://ipython.scipy.org/ http://ipython.scipy.org/moin/Download                    
-  NumPy          1.5.1                                             http://numpy.org/                                                                   
+  NumPy          1.6.1                                             http://numpy.org/                                                                   
   GNU readline   6.1                                               http://tiswww.case.edu/php/chet/readline/rltop.html ftp://ftp.cwru.edu/pub/bash/    
   =============  ================================================  ================================================================================    
 
@@ -183,7 +183,7 @@ The X11 windowing system and a C compiler are needed as well.
 
 Follow the directions on http://iraf.noao.edu/ to get IRAF working on your system.
 
-To facilitate installations, Numpy is included in the stsci_python distribution. Some NumPy documentation is available at http://www.scipy.org/Documentation
+Some NumPy documentation is available at http://www.scipy.org/Documentation
 
 
 Remove Any Old STSCI_PYTHON 
@@ -232,16 +232,16 @@ Extract the tar file:
 
  ::
 
-    % gunzip stsci_python_2.11.tar.gz
-    % tar -xvf stsci_python_2.11.tar
+    % gunzip stsci_python_2.12.tar.gz
+    % tar -xvf stsci_python_2.12.tar
         use gtar (gnu tar) on Solaris
-    % cd stsci_python_2.11
+    % cd stsci_python_2.12
 
 If you need numpy, install it:
 
  ::
 
-    % cd numpy-1.5.1
+    % cd numpy-1.6.1
     % unsetenv F77
     % unsetenv F2C
     % python setup.py install --home=$d
@@ -251,13 +251,6 @@ Install the stsci_python package:
 
  ::
 
-    % python setup.py install --home=$d
-
-(optional) Install the stsci_python documentation:
-
- ::
-
-    % cd stscidocs
     % python setup.py install --home=$d
 
 
@@ -269,22 +262,20 @@ directories, where it will be available to all users. The commands
 are almost the same as for a personal install, but you do not need
 to specify the directory to install.
 
-To install stsci_python, you must unset these environment variables that were set by IRAF:
-
 Extract the tar file:
 
  ::
 
-    % gunzip stsci_python_2.11.tar.gz
-    % tar -xvf stsci_python_2.11.tar
+    % gunzip stsci_python_2.12.tar.gz
+    % tar -xvf stsci_python_2.12.tar
         use gtar (gnu tar) on Solaris
-    % cd stsci_python_2.11
+    % cd stsci_python_2.12
 
 If you need numpy, install it:
 
  ::
 
-    % cd numpy-1.5.1
+    % cd numpy-1.6.1
     % unsetenv F77
     % unsetenv F2C
     % python setup.py install
@@ -296,13 +287,6 @@ Install the stsci_python package:
 
     % python setup.py install
 
-(optional) Install the stsci_python documentation:
-
- ::
-
-    % cd stscidocs
-    % python setup.py install
-
 
 Testing the Installation 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -310,14 +294,10 @@ Testing the Installation
 The script testpk.py can be used to check the integrity and version
 compatibility of the installation.
 
-Note: This script must be run from a directory other than stsci_python,
-for example your home directory. Make sure that $PYTHONPATH is
-correct.
+Make sure that PYTHONPATH is correct.
 
  ::
 
-    % cp testpk.py ~
-    % cd
     % python testpk.py
 
 
@@ -343,16 +323,14 @@ We have not converted our software for Python 3.  Python 3 is very
 similar to Python 2, but it takes some care to convert existing
 software, even with automated tools such as 2to3.  It is likely
 that only expert python programmers would be able to perform the
-conversion.
+conversion, so we do not recommend it for our users.
 
 
 IRAF 2.15 (32 or 64 bit)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We have reports of some problems using our software with IRAF 2.15.  Usually,
-the first problem discovered is this question in the Pyraf FAQ:
-http://www.stsci.edu/resources/software_hardware/pyraf/pyraf_faq#1.5
-
+We have reports of Pyraf working with IRAF 2.15.1a (do not use earlier 
+versions of IRAF 2.15), but we are still using IRAF 2.14 internally. 
 
 
 Appendix 2:  Platform Specific Notes 
@@ -460,8 +438,9 @@ Tcl/Tk
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It is very likely that Tcl and Tk are already installed on your
-system. Look in the system directories for files like libtcl.* and
-libtk.*.
+system.  Type "wish" to start TK; if it creates a new window, TK is 
+installed.  Nearly all Linux distributions provide Tcl/TK packages 
+that you can install if it is not already on your machine. 
 
 If you have to build these packages from source, build them as
 shared libraries. On most systems the following set of commands
@@ -470,7 +449,7 @@ will work for Tcl and Tk:
  ::
 
     % cd tcl8.3.5/unix
-    % ./configure --enable-shared --prefix=«installation-directory»
+    % ./configure --enable-shared --prefix=/installation-directory
     % make
     % make install
 

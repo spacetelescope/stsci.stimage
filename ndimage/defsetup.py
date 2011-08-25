@@ -13,7 +13,7 @@ setupargs = {
     #   ]
     'data_files' :      [
                         # data files in the installed package directory
-                        ( 'stsci/ndimage/tests/',  [ 'lib/stsci/ndimage/tests/*.png' ] ),
+                        ( 'stsci/ndimage/tests',  [ 'lib/stsci/ndimage/tests/*.png' ] ),
                         ],
 
     'package_dir' :     { 'stsci.ndimage':'lib/stsci/ndimage', 'stsci.ndimage.tests':'lib/stsci/ndimage/tests'},

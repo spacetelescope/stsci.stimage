@@ -28,31 +28,31 @@ required_versions = {
         'nictools' :                '1.1',
         'nictools.puftcorr':        '0.17',
         'nictools.rnlincor':        '0.8',
-        'nictools.saaclean':        '1.2',
-        'numpy':                    '1.6',
+        'nictools.saaclean':        '1.4',
+        'numpy':                    '1.6.1',
         'opuscoords' :              '1.0.0',
-        'pydrizzle':                '6.2.2',
-        'pyfits':                   '1.4',
-        'pysynphot' :               '0.9b',
+        'pydrizzle':                '6.3.7',
+        'pyfits':                   '3.0',
+        'pysynphot' :               '0.9',
         'pywcs' :                   '1.10-4.7',
         'reftools' :                '1.5.3',
         'stistools' :               '1.0.0',
         'stistools.mktrace':        '1.1',
-        'stistools.sshift':         '1.4',
-        'stistools.stisnoise':      '5.4',
-        'stistools.wx2d':           '1.1',
+        'stistools.sshift':         '1.7',
+        'stistools.stisnoise':      '5.5',
+        'stistools.wx2d':           '1.2',
         'stsci.convolve':           '2.0',
         'stsci.image':              '2.0',
         'stsci.imagemanip' :        '1.1',
-        'stsci.imagestats':         '1.2',
+        'stsci.imagestats':         '1.3',
         'stsci.ndimage':            '2.0',
-        'stsci.numdisplay':         '1.5',
+        'stsci.numdisplay':         '1.6.1',
         'stsci.stimage' :           '0.1',
         'stsci.tools' :             '3.0',
-        'stsci_sphinxext' :         'unk',
+        'stsci_sphinxext' :         '1.0',
         'stwcs' :                   '0.9',
         'wfpc2tools.wfpc2cte':      '1.2.4',
-        'wfpc2tools.wfpc2destreak': '2.17',
+        'wfpc2tools.wfpc2destreak': '2.2',
 
         }
 
@@ -61,14 +61,15 @@ required_versions = {
 # if the module is missing
 
 optional_versions = {
-        'pyraf' :               '1.7',
+        'pyraf' :               '1.11',
 }
 
 report_list = [
         # do not list "Pmw" - it does not have __version__
         # do not list "PIL" - it does not have __version__
         "pyraf",
-        "IPython",
+        # do not list IPython - it outputs to stdout 
+        # "IPython",
         "matplotlib",
         "nose",
         "urwid",

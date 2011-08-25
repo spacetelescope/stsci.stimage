@@ -13,7 +13,7 @@ if False :
         pass
 
 else :
-    __version__ = 'unk'
+    __version__ = '1.1dev'
 
 try:
     from costools.svninfo import (__svn_version__, __full_svn_info__,

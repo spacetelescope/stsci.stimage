@@ -1,6 +1,6 @@
 from __future__ import division # confidence high
 
-pkg = "numdisplay"
+pkg = "pkg.numdisplay"
 
 setupargs = { 
     'version' :         "1.5",
