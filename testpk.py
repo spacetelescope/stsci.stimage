@@ -49,7 +49,7 @@ required_versions = {
         'stsci.numdisplay':         '1.6.1',
         'stsci.stimage' :           '0.1',
         'stsci.tools' :             '3.0',
-        'stsci_sphinxext' :         '1.0',
+        'stsci.sphinxext' :         '1.0',
         'stwcs' :                   '0.9',
         'wfpc2tools.wfpc2cte':      '1.2.4',
         'wfpc2tools.wfpc2destreak': '2.2',
@@ -68,7 +68,7 @@ report_list = [
         # do not list "Pmw" - it does not have __version__
         # do not list "PIL" - it does not have __version__
         "pyraf",
-        # do not list IPython - it outputs to stdout 
+        # do not list IPython - it outputs to stdout
         # "IPython",
         "matplotlib",
         "nose",
@@ -155,7 +155,7 @@ def testpk( verbose ):
             print "If you will be sending email to help@stsci.edu, please re-run with 'python testpk.py -v'"
     else:
         print "All packages were successfully installed.\n"
-    
+
 
 
 def report_pk(opus_mode) :
@@ -206,7 +206,7 @@ python testpk.py -h
     this help
 
 """
-    
+
 if __name__ == '__main__':
         if len(sys.argv) > 1 :
             if sys.argv[1] == '-h' :
