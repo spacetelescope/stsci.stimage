@@ -36,10 +36,10 @@ except ImportError:
 else:
     HAVESYNPHOT = True
 
-__version__ = '0.2.4'
+__version__ = '0.3.0'
 __vdate__ = '28-Jul-2011'
 
-def computeValues(obsmode,component_dict,spec=None):
+def computeValues(obsmode,component_dict):
     """ 
     Compute the 3 photometric values needed for a given obsmode string
     using pysynphot.
@@ -52,28 +52,19 @@ def computeValues(obsmode,component_dict,spec=None):
     component_dict : dict
         A dictionary in which to cache opened component objects. May be empty.
         
-    spec : Spectrum, optional
-        One of the spectrum classes from `pysynphot.spectrum`. Defaults to None.
-        If None a `pysynphot.spectrum.FlatSpectrum` of 1 flam is used.
-        
     Returns
     -------
-    
     valdict : dict
         Dictionary with photometry keywords as keys.
+        
     """    
-    if spec is None:
-        # set up the flat spectrum used for the computing the photometry keywords
-        spec = S.FlatSpectrum(1,fluxunits='flam')
-
     # Define the bandpass for this obsmode
     bp = S.ObsBandpass(obsmode,component_dict=component_dict)
-    # create the observation using these elements
-    obs = S.Observation(spec,bp)
+    
     # compute the photometric values
     valdict = {}
     
-    valdict['PHOTFLAM'] = obs.effstim('flam')/obs.effstim('counts')
+    valdict['PHOTFLAM'] = bp.unit_response()
     valdict['PHOTPLAM'] = bp.pivot()
     valdict['PHOTBW'] = bp.rmswidth()
     
@@ -440,9 +431,6 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
     bw_rows = list()
     
     nmode_vals = list()
-    
-    # set up the flat spectrum used for the computing the photometry keywords
-    flatspec = S.FlatSpectrum(1,fluxunits='flam')
 
     # dictionary to hold optical components 
     # (pysynphot.observationmode._Component objects)
@@ -487,7 +475,7 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
         
         for n,fullmode in enumerate(olist):
             try:
-                value = computeValues(fullmode,component_dict,spec=flatspec)
+                value = computeValues(fullmode,component_dict)
 #                value = computeSynphotValues(fullmode)
             except ValueError,e:
                 if e.message == 'Integrated flux is <= 0':
@@ -503,7 +491,7 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
                     parnames_rows = np.delete(parnames_rows, nr, 0)
                     
                     if verbose:
-                      print 'Skipping ' + obsmode + '\n'
+                        print 'Skipping ' + obsmode + '\n'
                     
                     break
                 elif e.message == 'math domain error':
@@ -511,7 +499,7 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
                     skipped_obs.append(obsmode)
                     
                     if verbose:
-                      print 'Skipping ' + obsmode + '\n'
+                        print 'Skipping ' + obsmode + '\n'
                     
                     flam_datacol_vals.pop(nr)
                     plam_datacol_vals.pop(nr)
@@ -522,7 +510,7 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
                           
                     break
                 else:
-                  raise
+                    raise
                 
             if verbose:
                 print 'PHOTFLAM(%s) = %g\n'%(fullmode,value['PHOTFLAM'])
@@ -532,7 +520,7 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
             pbw[n] = value['PHOTBW']
         
         if skip is True:
-          continue
+            continue
           
         nmode_vals.append(nmodes)
     
@@ -567,15 +555,15 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
         
         del photflam,photplam,photbw,filtdict,lenpars
         
-    del flatspec, component_dict
+    del component_dict
     
     # remove any skipped obsmodes from the obsmodes list
     for sk in skipped_obs:
-      obsmodes.remove(sk)
+        obsmodes.remove(sk)
       
     # save skipped obs to a file
     if len(skipped_obs) > 0:
-      saveSkippedObsmodes(output, skipped_obs)
+        saveSkippedObsmodes(output, skipped_obs)
     
     del skipped_obs
 
