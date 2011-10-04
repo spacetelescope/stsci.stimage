@@ -1,5 +1,6 @@
 from __future__ import division
 
+import os
 import blkavg
 import pyfits
 import testutil
@@ -7,8 +8,11 @@ import testutil
 class TestBlkavg(testutil.FPTestCase):
 
     def setUp(self):
-        blkavg.blkavg('data/final_drz_sci.fits','py_output_drz.fits',0,5,5)
-        blkavg.blkavg('data/j8ux08ceq_flt.fits','py_output_flt.fits',1,5,5)
+        if not os.path.isfile('py_output_drz.fits'):
+            blkavg.blkavg('data/final_drz_sci.fits','py_output_drz.fits',0,5,5)
+        if not os.path.isfile('py_output_flt.fits'):
+            blkavg.blkavg('data/j8ux08ceq_flt.fits','py_output_flt.fits',1,5,5)
+
         self.flt_testfile = 'py_output_flt.fits'
         self.drz_testfile = 'py_output_drz.fits'
 
