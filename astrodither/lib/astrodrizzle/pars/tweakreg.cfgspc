@@ -1,0 +1,63 @@
+_task_name_ = string_kw(default="tweakreg")
+input = string_kw(default="*flt.fits", comment="Input files (name, suffix, or @list)")
+refimage = string_kw(default="",comment="Filename of reference image")
+findmode = option_kw('imagefind','sextractor',default='imagefind', comment="Generate source catalog with this task")
+_editipars_btn_ = action_kw(default='imagefind Parameters', executes='_rule1_', comment='Edit imagefind parameters')
+_editspars_btn_ = action_kw(default='SExtractor Parameters', executes='_rule2_', comment='Edit Sextractor parameters')
+execname = string_kw(default="",comment="Filename with path for custom SExtractor task")
+writecat = boolean_kw(default=True, comment="Write out source catalogs?")
+clean = boolean_kw(default=True, comment="Remove intermediate files?")
+verbose = boolean_kw(default=False, comment="Print extra messages during processing?")
+
+[UPDATE HEADER]
+updatehdr = boolean_kw(default=False, triggers='_section_switch_', comment="Update headers of input files with shifts?")
+wcsname = string_kw(default='TWEAK', comment="Name of updated WCS")
+
+[OPTIONAL SHIFTFILE OUTPUT]
+shiftfile = boolean_kw(default=False,triggers='_section_switch_',comment="Create output shiftfile?")
+outshifts = string_kw(default='shifts.txt', comment="Filename of generated shiftfile")
+outwcs = string_kw(default='shifts_wcs.fits',comment="Filename of shiftfile reference WCS") 
+
+[COORDINATE FILE DESCRIPTION]
+catfile = string_kw(default="", triggers="_section_switch_", comment="File containing coordinate filenames for input files")
+xcol = string_kw(default="1", comment= "Column name(s) for X positions")
+ycol = string_kw(default="2", comment= "Column name(s) for Y positions")
+fluxcol = string_kw(default="", comment= "Column name for source flux/mag values")
+fluxmax = float_or_none_kw(default=None,comment="Maximum flux value for valid objects")
+fluxmin = float_or_none_kw(default=None,comment="Minimum flux value for valid objects")
+fluxunits = option_kw("counts","mag",default="counts",comment="Units of flux values")
+xyunits = option_kw("pixels","degrees",default="pixels",comment="Units of X/Y positions")
+nbright = integer_or_none_kw(default=None,comment="Number of brightest objects to keep")
+
+[REFERENCE CATALOG DESCRIPTION]
+refcat = string_kw(default="", triggers="_section_switch_", comment="Filename of reference coordinate catalog")
+refxcol = string_kw(default="1", comment= "Column name(s) for RA")
+refycol = string_kw(default="2", comment= "Column name(s) for Dec")
+refxyunits = option_kw("degrees","pixels",default="degrees",comment="Units of sky positions")
+rfluxcol = string_kw(default="", comment= "Column name for source flux/mag values")
+rfluxmax = float_or_none_kw(default=None,comment="Maximum flux value for valid reference objects")
+rfluxmin = float_or_none_kw(default=None,comment="Minimum flux value for valid reference objects")
+rfluxunits = option_kw("counts","mag",default="mag",comment="Units of flux values")
+refnbright = integer_or_none_kw(default=None,comment="Number of brightest reference objects to keep")
+
+[OBJECT MATCHING PARAMETERS]
+minobj = integer_kw(default=15,comment="Minimum number of objects acceptable for matching")
+searchrad = float_kw(default=1.0, comment="The search radius for a match")
+searchunits = option_kw("arcseconds","pixels", default="arcseconds", comment="Units for search radius")
+use2dhist = boolean_kw(default=True, triggers="_rule3_", comment="Use 2d histogram to find initial offset?")
+see2dplot = boolean_kw(default=False, active_if='_rule3_',comment="See 2d histogram for initial offset?")
+tolerance = float_kw(default=1.0, inactive_if='_rule3_', comment="Matching tolerance for xyxymatch(pixels)")
+separation = float_kw(default=0.0, inactive_if='_rule3_', comment="Minimum object separation (pixels)") 
+xoffset = float_kw(default=0.0, inactive_if='_rule3_',comment="Initial guess for X offset(pixels)")
+yoffset = float_kw(default=0.0,inactive_if='_rule3_',comment="Initial guess for Y offset(pixels)")
+
+[CATALOG FITTING PARAMETERS]
+fitgeometry = option_kw("shift","rscale","general",default="rscale",comment="Fitting geometry")
+residplot= option_kw("No plot","vector","residuals",default="No plot",comment="Plot residuals from fit?")
+nclip = integer_kw(default=3,comment="Number of clipping iterations in fit")
+sigma = float_or_none_kw(default=3.0,comment="Clipping limit in sigma units")
+
+[ _RULES_ ]
+_rule1_ = string_kw(default='', code='from astrodrizzle import tweakreg; tweakreg.edit_imagefindpars()')
+_rule2_ = string_kw(default='', code='from astrodrizzle import tweakreg; tweakreg.edit_sextractorpars()')
+_rule3_ = string_kw(default=True, code='tyfn={"yes":True, "no":False}; OUT = tyfn[VAL]')
