@@ -21,7 +21,7 @@ warnings.filterwarnings("ignore")
 required_versions = {
         'acstools' :                '1.4.0',
         'astrolib.coords' :         '0.38',
-        'astrodrizzle' :             '4.2',
+        'astrodither' :             '4.2',
         'calcos':                   '2.15.4',
         'costools' :                '1.1',
         'multidrizzle':             '3.2.1',

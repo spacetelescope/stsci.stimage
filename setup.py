@@ -19,7 +19,7 @@ import os.path
 all_packages_input = [
     # acstools does not compile with numpy 1.6.1 - I need to make as much of this work as possible, so turn it off for now
     "acstools",
-    "astrodrizzle",
+    "astrodither",
     "calcos",
     "convolve",
     "coords",
