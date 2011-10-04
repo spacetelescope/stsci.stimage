@@ -211,7 +211,7 @@ def update_hdr(card_list,b1,b2,b3):
     card_list['ltm2_2'].value = ltm2_2
 
     # Add new header keywords to the end of the header
-    if b3==1:
+    if b3 > 1:
         wcsdim=3
     else:
         wcsdim=2
