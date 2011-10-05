@@ -22,13 +22,13 @@ def blkavg(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
             block averaged image replaces the input image.
 
     b1: int
-        The number of columns to be block averaged (dimension 1, or x).
-    
+        The number of rows to be block averaged (dimension 1, or x).
+
     b2: int
         The number of columns to be block averaged (dimension 2, or y).
 
     b3: int
-        The number of columns to be block averaged (dimension 1, or z).
+        The number of layers to be block averaged (dimension 1, or z).
 
     Returns
     -------
