@@ -609,25 +609,25 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
         
     # Define each column in the table based on max_npars which are not different
     # from one extension to the other
-    obsmode_col = Column(name='OBSMODE',format='40A',array=np.array(obsmodes))
-    pedigree_col = Column(name='PEDIGREE',format='30A',array=np.array(ped_vals))
-    descrip_col = Column(name='DESCRIP',format='110A',array=np.array(descrip_vals))
+    obsmode_col = Column(name='OBSMODE',format='40A',array=obsmodes)
+    pedigree_col = Column(name='PEDIGREE',format='30A',array=ped_vals)
+    descrip_col = Column(name='DESCRIP',format='110A',array=descrip_vals)
     datacol_col = {}
-    datacol_col['PHOTFLAM'] = Column(name='DATACOL',format='12A',array=np.array(flam_datacol_vals))
-    datacol_col['PHOTPLAM'] = Column(name='DATACOL',format='12A',array=np.array(plam_datacol_vals))
-    datacol_col['PHOTBW'] = Column(name='DATACOL',format='12A',array=np.array(bw_datacol_vals))
+    datacol_col['PHOTFLAM'] = Column(name='DATACOL',format='12A',array=flam_datacol_vals)
+    datacol_col['PHOTPLAM'] = Column(name='DATACOL',format='12A',array=plam_datacol_vals)
+    datacol_col['PHOTBW'] = Column(name='DATACOL',format='12A',array=bw_datacol_vals)
     
     parvals_tabcols = list()
     nelem_tabcols = list()
     parnames_tabcols = list()
-    parnames_format = str(fpars_sz)+"A[]"
+    parnames_format = str(fpars_sz)+"A"
     # for each parameterized element, create a set of columns specifying the
     # range of values for that parameter and the number of elements covering that range
     # namely, the PAR<n>VALUES and NELEM<n> columns
     for p in range(max_npars):
-        nelem_tabcols.append(Column(name="NELEM"+str(p+1),format="I",array=np.array(nelem_cols[p],np.int16)))
-        parvals_tabcols.append(Column(name="PAR"+str(p+1)+"VALUES",format="PD[]",array=np.array((parvals_cols[p]),np.object)))
-        parnames_tabcols.append(Column(name="PAR"+str(p+1)+"NAMES",format=parnames_format,array=np.array((parnames_cols[p]),np.str)))
+        nelem_tabcols.append(Column(name="NELEM"+str(p+1),format="I",array=nelem_cols[p]))
+        parvals_tabcols.append(Column(name="PAR"+str(p+1)+"VALUES",format="PD[]",array=parvals_cols[p]))
+        parnames_tabcols.append(Column(name="PAR"+str(p+1)+"NAMES",format=parnames_format,array=parnames_cols[p]))
         
     # create the set of results columns
     flam_tabcols = list()
@@ -643,9 +643,9 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
         else:
             format_str = 'PD[]'
             pstr = str(p)
-            fcols = np.array(flam_cols[p],np.object)
-            pcols = np.array(plam_cols[p],np.object)
-            bcols = np.array(bw_cols[p],np.object)
+            fcols = flam_cols[p]
+            pcols = plam_cols[p]
+            bcols = bw_cols[p]
           
         flam_tabcols.append(Column(name='PHOTFLAM'+pstr,format=format_str,array=fcols))
         plam_tabcols.append(Column(name='PHOTPLAM'+pstr,format=format_str,array=pcols))
