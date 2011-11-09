@@ -627,7 +627,7 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
     for p in range(max_npars):
         nelem_tabcols.append(Column(name="NELEM"+str(p+1),format="I",array=np.array(nelem_cols[p],np.int16)))
         parvals_tabcols.append(Column(name="PAR"+str(p+1)+"VALUES",format="PD[]",array=np.array((parvals_cols[p]),np.object)))
-        parnames_tabcols.append(Column(name="PAR"+str(p+1)+"NAMES",format=parnames_format,array=np.array((parnames_cols[p]),np.object)))
+        parnames_tabcols.append(Column(name="PAR"+str(p+1)+"NAMES",format=parnames_format,array=np.array((parnames_cols[p]),np.str)))
         
     # create the set of results columns
     flam_tabcols = list()
