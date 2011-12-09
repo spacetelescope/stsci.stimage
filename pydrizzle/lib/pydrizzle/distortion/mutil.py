@@ -67,7 +67,7 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
     phdr = ftab['PRIMARY'].header
     # First, check to see if the TDD coeffs are present, if not, complain and quit
     skew_coeffs = None
-    if phdr.has_key('TDD_DATE'):
+    if 'TDD_DATE' in phdr:
         print 'Reading TDD coefficients from ',tabname
         skew_coeffs = read_tdd_coeffs(phdr)
         # Using coefficients read in from IDCTAB Primary header
@@ -77,10 +77,10 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
 
     #We need to read in the coefficients from the IDC
     # table and populate the Fx and Fy matrices.
-    if phdr.has_key('DETECTOR'):
+    if 'DETECTOR' in phdr:
         detector = phdr['DETECTOR']
     else:
-        if phdr.has_key('CAMERA'):
+        if 'CAMERA' in phdr:
             detector = str(phdr['CAMERA'])
         else:
             detector = 1
@@ -401,7 +401,7 @@ def readWCSCoeffs(header):
         for j in xrange(i+1):
             xcname = cxstr+str(j)+'_'+str(i-j)
             ycname = cystr+str(j)+'_'+str(i-j)
-            if header.has_key(xcname):
+            if xcname in header:
                 fx[i,j] = (fx[1][1]*header[xcname] + fx[1][0]*header[ycname])
                 fy[i,j] = (fy[1][1]*header[xcname] + fy[1][0]*header[ycname])
 

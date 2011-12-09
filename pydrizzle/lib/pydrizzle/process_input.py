@@ -364,7 +364,7 @@ def checkNGOODPIX(filelist):
             _file = fileutil.openImage(inputfile)
             _ngood = 0
             for extn in _file:
-                if extn.header.has_key('EXTNAME') and extn.header['EXTNAME'] == 'SCI':
+                if 'EXTNAME' in extn.header and extn.header['EXTNAME'] == 'SCI':
                     _ngood += extn.header['NGOODPIX']
             _file.close()
 
@@ -398,7 +398,7 @@ def stisObsCount(input):
     count = 0
     f = pyfits.open(input)
     for ext in f:
-        if ext.header.has_key('extname'):
+        if 'extname' in ext.header:
             if (ext.header['extname'].upper() == 'SCI'):
                 count += 1
     f.close()

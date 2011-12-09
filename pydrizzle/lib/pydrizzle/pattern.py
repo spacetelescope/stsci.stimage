@@ -137,7 +137,7 @@ class Pattern(object):
         if image_handle:
             image_handle.close()
 
-        if self.header and self.header.has_key(self.DETECTOR_NAME):
+        if self.header and self.DETECTOR_NAME in self.header:
             self.detector = self.header[self.DETECTOR_NAME]
         else:
             self.detector = 'detector'
@@ -157,12 +157,12 @@ class Pattern(object):
             _hdr = _handle['PRIMARY'].header.copy()
             # Count number of SCI extensions
             for _fext in _handle:
-                if _fext.header.has_key('extname') and _fext.header['extname'] == 'SCI':
+                if 'extname' in _fext.header and _fext.header['extname'] == 'SCI':
                     _numsci += 1
 
             if _extn > 0:
                 # Append correct extension/chip/group header to PRIMARY...
-                for _card in fileutil.getExtn(_handle,_extn).header.ascardlist():
+                for _card in fileutil.getExtn(_handle,_extn).header.ascard:
                     _hdr.ascard.append(_card)
         else:
             # Default to None
@@ -853,7 +853,7 @@ class Pattern(object):
 
             ##offset_xy = np.dot(chiprot,xypos-offcen)*scale/ref_scale
             offset_xy = np.dot(chiprot,xypos)*ref_scale/scale - offcen
-            if refp.has_key('empty_model') and refp['empty_model'] == True:
+            if 'empty_model' in refp and refp['empty_model'] == True:
                 offset_xy[0]  += ref_xy[0] * scale/ref_scale
                 offset_xy[1]  += ref_xy[1] * scale/ref_scale
 
@@ -919,7 +919,7 @@ class Pattern(object):
         _exptime = float(self.header['EXPTIME'])
         if _exptime == 0.: _exptime = 1.0
 
-        if self.header.has_key('EXPSTART'):
+        if 'EXPSTART' in self.header:
             _expstart = float(self.header['EXPSTART'])
             _expend = float(self.header['EXPEND'])
         else:

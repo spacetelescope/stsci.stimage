@@ -395,7 +395,7 @@ More help on SkyField objects and their parameters can be obtained using:
             # Determine how many chips make up each single image
             for plist in self.parlist:
                 plsingle = plist['outsingle']
-                if _numctx.has_key(plsingle): _numctx[plsingle] += 1
+                if plsingle in _numctx: _numctx[plsingle] += 1
                 else: _numctx[plsingle] = 1
             #
             # A image buffer needs to be setup for converting the input
@@ -447,7 +447,8 @@ More help on SkyField objects and their parameters can be obtained using:
                 # when possible in order to account for any unit conversions that may
                 # be applied to the input image between initialization of PyDrizzle
                 # and the calling of this run() method.
-                if _sciext.header.has_key('bunit') and _sciext.header['bunit'] not in ['','N/A']:
+                if ('bunit' in _sciext.header and
+                    _sciext.header['bunit'] not in ['', 'N/A']):
                     _bunit = _sciext.header['bunit']
                 else:
                     # default based on instrument-specific logic

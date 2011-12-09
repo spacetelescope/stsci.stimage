@@ -147,7 +147,7 @@ def run(input,quiet=yes,restore=no,prepend='O', tddcorr=True):
         else:
             Nrefchip = None
             Nrefext = None
-        if not NUM_PER_EXTN.has_key(_instrument):
+        if _instrument not in NUM_PER_EXTN:
 
             raise ValueError("Instrument %s not supported yet. Exiting..." \
                              %_instrument)
@@ -186,7 +186,7 @@ def run(input,quiet=yes,restore=no,prepend='O', tddcorr=True):
                 restoreCD(_img,_prepend)
 
         #fimg = fileutil.openImage(image,mode='update')
-        #if fimg[0].header.has_key('TDDCORR') and fimg[0].header['TDDCORR'] == 'PERFORM':
+        #if 'TDDCORR' in fimg[0].header and fimg[0].header['TDDCORR'] == 'PERFORM':
         #    fimg[0].header['TDDCORR'] = 'COMPLETE'
         #fimg.close()
 
@@ -283,7 +283,7 @@ def _update(image,idctab,nimsets,apply_tdd=False,
     # Set up parity matrix for chip
     if instrument == 'WFPC2' or instrument =='STIS' or instrument == 'NICMOS':
         parity = PARITY[instrument]
-    elif PARITY.has_key(detector):
+    elif detector in PARITY:
         parity = PARITY[detector]
     else:
         raise ValueError('Detector ',detector,
@@ -705,7 +705,7 @@ def get_numsci(image):
     handle = fileutil.openImage(image)
     num_sci = 0
     for extn in handle:
-        if extn.header.has_key('extname'):
+        if 'extname' in extn.header:
             if extn.header['extname'].lower() == 'sci':
                 num_sci += 1
     handle.close()

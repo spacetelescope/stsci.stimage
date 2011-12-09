@@ -274,7 +274,7 @@ class IDCModel(GeometryModel):
                         chip=chip,direction=direction,filter1=filter1,filter2=filter2,
                 date=date, offtab=offtab,tddcorr=tddcorr)
 
-        if self.refpix.has_key('empty_model') and self.refpix['empty_model']:
+        if 'empty_model' in self.refpix and self.refpix['empty_model']:
             pass
         else:
             self.refpix['PSCALE'] = self.refpix['PSCALE'] * binned
@@ -296,12 +296,12 @@ class WCSModel(GeometryModel):
     def __init__(self,header,rootname):
         GeometryModel.__init__(self)
 
-        if header.has_key('rootname'):
+        if 'rootname' in header:
             self.name = header['rootname']
         else:
             self.name = rootname
         self.name += '_sip'
-        if header.has_key('wfctdd') and header['wfctdd'] == 'T':
+        if 'wfctdd' in header and header['wfctdd'] == 'T':
             self.name += '_tdd'
 
         # Initialize all necessary distortion arrays with

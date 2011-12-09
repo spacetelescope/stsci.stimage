@@ -50,13 +50,13 @@ class GenericObservation(Pattern):
         Pattern.__init__(self, filename, output=output, pars=pars)
 
         # Determine the instrument...
-        if self.header.has_key('INSTRUME'):
+        if 'INSTRUME' in self.header:
             _instrument = self.header['INSTRUME']
         else:
             _instrument = self.DETECTOR_NAME
         self.instrument = _instrument
 
-        if self.header.has_key('crpix1'):
+        if 'crpix1' in self.header:
             self.REFPIX['x'] = self.header['crpix1']
             self.REFPIX['y'] = self.header['crpix2']
         else:
@@ -143,7 +143,7 @@ class STISObservation(Pattern):
         _exptime = float(header['EXPTIME'])
         if _exptime == 0.: _exptime = 1.0
 
-        if header.has_key('EXPSTART'):
+        if 'EXPSTART' in header:
             _expstart = float(header['EXPSTART'])
             _expend = float(header['EXPEND'])
         else:
@@ -281,7 +281,7 @@ class WFC3Observation(Pattern):
 
         # Set EXPTIME for exposure
         self.exptime = self.getExptime()
-        
+
         # Set binned factor for exposure
         #self.binned = fileutil.getKeyword(filename+'[sci,1]', 'BINAXIS1')
 

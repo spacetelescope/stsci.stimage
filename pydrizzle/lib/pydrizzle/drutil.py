@@ -89,9 +89,9 @@ def getLTVOffsets(rootname,header=None):
     _ltv1 = None
     _ltv2 = None
     if header:
-        if header.has_key('LTV1'):
+        if 'LTV1' in header:
             _ltv1 = header['LTV1']
-        if header.has_key('LTV2'):
+        if 'LTV2' in header:
             _ltv2 = header['LTV2']
     else:
         _ltv1 = fileutil.getKeyword(rootname,'LTV1')
@@ -104,11 +104,11 @@ def getLTVOffsets(rootname,header=None):
 
 def getChipId(header):
 
-    if header.has_key('CCDCHIP'):
+    if 'CCDCHIP' in header:
         chip = int(header['CCDCHIP'])
-    elif header.has_key('DETECTOR') and str(header['DETECTOR']).isdigit():
+    elif 'DETECTOR' in header and str(header['DETECTOR']).isdigit():
         chip = int(header['DETECTOR'])
-    elif header.has_key('CAMERA') and str(header['CAMERA']).isdigit():
+    elif 'CAMERA' in header and str(header['CAMERA']).isdigit():
         chip = int(header['CAMERA'])
     else:
         chip = 1

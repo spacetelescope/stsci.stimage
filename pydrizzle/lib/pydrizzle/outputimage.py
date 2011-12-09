@@ -101,12 +101,12 @@ class OutputImage:
     def set_bunit(self,bunit):
         """ Method used to update the value of the bunit attribute."""
         self.bunit = bunit
-        
+
     def set_units(self,units):
         """ Method used to record what units were specified by the user
         for the output product."""
         self.units = units
-        
+
 
     def writeFITS(self, template, sciarr, whtarr, ctxarr=None, versions=None, extlist=EXTLIST, overwrite=yes):
         """ Generate PyFITS objects for each output extension
@@ -214,11 +214,11 @@ class OutputImage:
 
         if scihdr:
             del scihdr['OBJECT']
-            if scihdr.has_key('CCDCHIP'): scihdr.update('CCDCHIP','-999')
-            if scihdr.has_key('NCOMBINE') > 0:
+            if 'CCDCHIP' in scihdr: scihdr.update('CCDCHIP','-999')
+            if 'NCOMBINE' in scihdr:
                 scihdr.update('NCOMBINE', self.parlist[0]['nimages'])
 
-            # If BUNIT keyword was found and reset, then 
+            # If BUNIT keyword was found and reset, then
             if self.bunit is not None:
                 scihdr.update('BUNIT',self.bunit,comment="Units of science product")
 
@@ -236,7 +236,7 @@ class OutputImage:
                 scihdr.update('CRPIX2',self.wcs.crpix2)
                 scihdr.update('VAFACTOR',1.0)
                 # Remove any reference to TDD correction
-                if scihdr.has_key('TDDALPHA'):
+                if 'TDDALPHA' in scihdr:
                     del scihdr['TDDALPHA']
                     del scihdr['TDDBETA']
                 # Remove '-SIP' from CTYPE for output product
@@ -246,10 +246,10 @@ class OutputImage:
                     # Remove SIP coefficients from DRZ product
                     for k in scihdr.items():
                         if (k[0][:2] in ['A_','B_']) or (k[0][:3] in ['IDC','SCD'] and k[0] != 'IDCTAB') or \
-                        (k[0][:6] in ['SCTYPE','SCRVAL','SNAXIS','SCRPIX']): 
+                        (k[0][:6] in ['SCTYPE','SCRVAL','SNAXIS','SCRPIX']):
                             del scihdr[k[0]]
                 self.addPhotKeywords(scihdr,prihdu.header)
-                
+
 
         ##########
         # Now, build the output file
@@ -311,7 +311,7 @@ class OutputImage:
                 hdu.header.update('CRPIX1',self.wcs.crpix1)
                 hdu.header.update('CRPIX2',self.wcs.crpix2)
                 hdu.header.update('VAFACTOR',1.0)
-                
+
 
             fo.append(hdu)
 
@@ -329,12 +329,13 @@ class OutputImage:
             # header to Primary header...
             if scihdr:
                 for _card in scihdr.ascard:
-                    if _card.key not in RESERVED_KEYS and hdu.header.has_key(_card.key) == 0:
+                    if (_card.key not in RESERVED_KEYS and
+                        _card.key not in hdu.header):
                         hdu.header.ascard.append(_card)
             del hdu.header['PCOUNT']
             del hdu.header['GCOUNT']
-            self.addPhotKeywords(hdu.header,prihdu.header)
-            hdu.header.update('filename',self.outdata)
+            self.addPhotKeywords(hdu.header, prihdu.header)
+            hdu.header.update('filename', self.outdata)
 
             # Add primary header to output file...
             fo.append(hdu)
@@ -354,9 +355,10 @@ class OutputImage:
                 # header to Primary header...
                 if errhdr:
                     for _card in errhdr.ascard:
-                        if _card.key not in RESERVED_KEYS and hdu.header.has_key(_card.key) == 0:
+                        if (_card.key not in RESERVED_KEYS and
+                            _card.key not in hdu.header):
                             hdu.header.ascard.append(_card)
-                hdu.header.update('filename',self.outweight)
+                hdu.header.update('filename', self.outweight)
                 hdu.header.update('CCDCHIP','-999')
                 if self.wcs:
                     # Update WCS Keywords based on PyDrizzle product's value
@@ -394,7 +396,8 @@ class OutputImage:
                 # header to Primary header...
                 if dqhdr:
                     for _card in dqhdr.ascard:
-                        if _card.key not in RESERVED_KEYS and hdu.header.has_key(_card.key) == 0:
+                        if (_card.key not in RESERVED_KEYS and
+                            _card.key not in hdu.header):
                             hdu.header.ascard.append(_card)
                 hdu.header.update('filename', self.outcontext)
                 if self.wcs:
@@ -409,7 +412,7 @@ class OutputImage:
                     hdu.header.update('CRVAL2',self.wcs.crval2)
                     hdu.header.update('CRPIX1',self.wcs.crpix1)
                     hdu.header.update('CRPIX2',self.wcs.crpix2)
-                    hdu.header.update('VAFACTOR',1.0)                        
+                    hdu.header.update('VAFACTOR',1.0)
 
                 fctx.append(hdu)
                 fctx.writeto(self.outcontext)
@@ -417,16 +420,16 @@ class OutputImage:
 
 
     def addPhotKeywords(self,hdr,phdr):
-        """ Insure that this header contains all the necessary photometry 
+        """ Insure that this header contains all the necessary photometry
             keywords, moving them into the extension header if necessary.
             This only moves keywords from the PRIMARY header if the keywords
             do not already exist in the SCI header.
         """
         PHOTKEYS = ['PHOTFLAM','PHOTPLAM','PHOTBW','PHOTZPT','PHOTMODE']
         for pkey in PHOTKEYS:
-            if not hdr.has_key(pkey):
-                # Make sure there is a copy PRIMARY header, if so, copy it 
-                if phdr.has_key(pkey):
+            if pkey not in hdr:
+                # Make sure there is a copy PRIMARY header, if so, copy it
+                if pkey in phdr:
                     # Copy keyword from PRIMARY header
                     hdr.update(pkey,phdr[pkey])
                     # then delete it from PRIMARY header to avoid duplication
@@ -578,7 +581,7 @@ def getTemplates(fname,extlist):
     if fname == None:
         print 'No data files for creating FITS output.'
         raise Exception
-    
+
     froot,fextn = fileutil.parseFilename(fname)
     if fextn is not None:
         fnum = fileutil.parseExtn(fextn)[1]
@@ -611,7 +614,7 @@ def getTemplates(fname,extlist):
             # there may or may not be a second type of extension in the template
             count = 0
             for f in ftemplate:
-                if f.header.has_key('extname') and f.header['extname'] == extlist[1]:
+                if 'extname' in f.header and f.header['extname'] == extlist[1]:
                     count += 1
             if count > 0:
                 extnum = (extlist[1],fnum)
@@ -619,14 +622,14 @@ def getTemplates(fname,extlist):
                 # Use science header for remaining headers
                 extnum = (extlist[0],fnum)
         errhdr = pyfits.Header(cards=ftemplate[extnum].header.ascard.copy())
-        errhdr.update('extver',1)        
+        errhdr.update('extver',1)
 
         if fextn in [None,1]:
             extnum = fileutil.findKeywordExtn(ftemplate,_extkey,extlist[2])
         else:
             count = 0
             for f in ftemplate:
-                if f.header.has_key('extname') and f.header['extname'] == extlist[2]:
+                if 'extname' in f.header and f.header['extname'] == extlist[2]:
                     count += 1
             if count > 0:
                 extnum = (extlist[2],fnum)
@@ -663,9 +666,9 @@ def getTemplates(fname,extlist):
     # Simply copy them from scihdr if they don't exist...
     if errhdr != None and dqhdr != None:
         for keyword in DTH_KEYWORDS:
-            if not errhdr.has_key(keyword):
+            if keyword not in errhdr:
                 errhdr.update(keyword,scihdr[keyword])
-            if not dqhdr.has_key(keyword):
+            if keyword not in dqhdr:
                 dqhdr.update(keyword,scihdr[keyword])
 
     return prihdr,scihdr,errhdr,dqhdr

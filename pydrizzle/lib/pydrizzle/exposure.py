@@ -120,9 +120,9 @@ class Exposure:
 
             # Read in date-obs from primary header
             if _header:
-                if _header.has_key('date-obs'):
+                if 'date-obs' in _header:
                     self.dateobs = _header['date-obs']
-                elif _header.has_key('date_obs'):
+                elif 'date_obs' in _header:
                     self.dateobs = _header['date_obs']
                 else:
                     self.dateobs = None
@@ -131,7 +131,7 @@ class Exposure:
 
             # Initialize the value of BUNIT based on the header information, if
             # the header has the keyword
-            if _header.has_key('BUNIT') and _header['BUNIT'].find('ergs') < 0:
+            if 'BUNIT' in _header and _header['BUNIT'].find('ergs') < 0:
                 self.bunit = _header['BUNIT']
             else:
                 self.bunit = 'ELECTRONS'
@@ -307,7 +307,7 @@ class Exposure:
         #
         # coord for image array reference pixel in full chip coords
         #
-        if not self.geometry.model.refpix.has_key('empty_model'):
+        if 'empty_model' not in self.geometry.model.refpix:
             _xref = self.geometry.wcs.chip_xref
             _yref = self.geometry.wcs.chip_yref
         else:
@@ -340,12 +340,12 @@ class Exposure:
         # We need to identify both a DX and DY EXTNAME extension
         for hdu in fimg:
             hdr = hdu.header
-            if not hdr.has_key('CCDCHIP'):
+            if 'CCDCHIP' not in hdr:
                 _chip = 1
             else:
                 _chip = int(hdr['CCDCHIP'])
 
-            if hdr.has_key('EXTNAME'):
+            if 'EXTNAME' in hdr:
                 _extname = hdr['EXTNAME'].lower()
 
                 if _chip == int(self.chip):

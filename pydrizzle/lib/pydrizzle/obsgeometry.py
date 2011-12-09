@@ -55,7 +55,7 @@ class ObsGeometry:
                 if _filt2.strip() == '': _filt2 = 'CLEAR2'
 
                 # Also check to see if an OFFTAB file has been specified
-                if self.header.has_key('OFFTAB'):
+                if 'OFFTAB' in self.header:
                     _offtab = self.header['offtab']
 
             except:
@@ -147,7 +147,7 @@ class ObsGeometry:
                 self.model = models.TraugerModel(self.idcfile,float(_lam)/10.)
 
             elif ikey == 'wcs':
-                if self.header.has_key('IDCSCALE'):
+                if 'IDCSCALE' in self.header:
                     self.model = models.WCSModel(self.header, rootname)
                 else:
                     print 'WARNING: Not all SIP-related keywords found!'
