@@ -488,9 +488,9 @@ class MDrizPars (HasTraits):
 
             if kw in self.input_list:
                 _instr_dict[_kw] = self.__dict__[kw]
-            elif self.master_pars.has_key(kw):
+            elif kw in self.master_pars:
                 _instr_dict[_kw] = self.master_pars[kw]
-            elif self.switches.has_key(kw):
+            elif kw in self.switches:
                 _instr_dict[_kw] = self.switches[kw]
             else:
                 _instr_dict[_kw] = None

@@ -34,7 +34,7 @@ class StaticMask:
         # the task repeatedly over a set of images, whenever
         # additional images are included in the set each
         # time.
-        
+
         self.static_sig = staticsig
         self.static_badval = badval
         self.static_goodval = goodval
@@ -49,7 +49,7 @@ class StaticMask:
         (instrument/detector, (nx,ny), chip_id)
         """
         # If this is a new signature, create a new Static Mask file
-        if not self.masklist.has_key(signature):
+        if not signature in self.masklist:
             self.masklist[signature] = self._buildMaskArray(signature)
 
         # Operate on input image DQ array to flag 'bad' pixels in the
@@ -61,7 +61,7 @@ class StaticMask:
 
         print('  mode = %9f;   rms = %7f')  %  (mode,rms)
         #
-        # The scale value (3.0) could potentially become a useful 
+        # The scale value (3.0) could potentially become a useful
         # user settable parameter.  Consider for future revisions.
         # 29-April-2004 WJH/CJH/AMK
         #
@@ -75,7 +75,7 @@ class StaticMask:
 
     def getMask(self,signature):
         """ Returns the appropriate StaticMask array for the image. """
-        if self.masklist.has_key(signature):
+        if signature in self.masklist:
             mask =  self.masklist[signature]
         else:
             mask = None

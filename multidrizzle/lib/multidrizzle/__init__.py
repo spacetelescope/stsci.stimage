@@ -146,7 +146,7 @@ help file.
 
         self.shiftfile = shiftfile
         self.updatewcs = updatewcs
-        if input_dict.has_key('proc_unit'):
+        if 'proc_unit' in input_dict:
             self.proc_unit = input_dict['proc_unit']
         else:
             self.proc_unit = "native"
@@ -595,14 +595,14 @@ help file.
                 sciimg = pyfits.open(self.files[0])
                 scicount = 0
                 for extension in sciimg:
-                    if extension.header.has_key('extname'):
+                    if 'extname' in extension.header:
                         if (extension.header['extname'].upper() == 'SCI'):
                             scicount += 1
                 # Count the number of mask extensions
                 maskimg = pyfits.open(static_file)
                 maskcount = 0
                 for extension in maskimg:
-                    if extension.header.has_key('extname'):
+                    if 'extname' in extension.header:
                         if (extension.header['extname'].upper() == 'MASK'):
                             maskcount += 1
 

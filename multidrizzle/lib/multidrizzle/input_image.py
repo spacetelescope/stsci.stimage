@@ -47,27 +47,27 @@ class InputImage(object):
         self._effGain = None
         self.static_badval = 64
         self.static_mask = None
-        self.cte_dir = 1 
-                
+        self.cte_dir = 1
+
         # read amplifier to be used for HRC or STIS/CCD.
-        try:  
+        try:
             self.amp = fileutil.getKeyword(input,'CCDAMP')
         # set default if keyword missing
         except KeyError:
             # STIS default should be 'D' but 'C' and 'D' have the same readout direction so it's okay
-            self.amp = 'C'  
-        
+            self.amp = 'C'
+
         # Define the platescale and reference plate scale for the detector.
         self.platescale = platescale
         self.refplatescale = platescale # Default is to make each chip it's own reference value
-        
+
         # Image information
         handle = fileutil.openImage(self.name,mode='readonly',memmap=self.memmap)
         sciext = fileutil.getExtn(handle,extn=self.extn)
         self.image_shape = sciext.data.shape
         self.image_type = sciext.data.dtype.name
         self.image_dtype= sciext.data.dtype.name
-        
+
         # Retrieve a combined primary and extension header
         self.header = fileutil.getHeader(input,handle=handle)
         del sciext
@@ -87,16 +87,16 @@ class InputImage(object):
             self.ltv2 = 0
         self.size1 = self.header['NAXIS1'] + self.ltv1
         self.size2 = self.header['NAXIS2'] + self.ltv2
-        
+
         # Set Units used for processing.  Options are "native" or "electrons"
         self.proc_unit = proc_unit
 
     def setInstrumentParameters(self, instrpars, pri_header):
-        """ 
+        """
         Sets the instrument parameters.
         """
         pass
-    
+
     def doUnitConversions(self):
         """
         Convert the sci extension pixels to electrons
@@ -116,7 +116,7 @@ class InputImage(object):
                 found, return None.
         """
         if (value != None and value != '')  and (keyword != None and keyword.strip() != ''):
-            exceptionMessage = "ERROR: Your input is ambiguous!  Please specify either a value or a keyword.\n  You specifed both " + str(value) + " and " + str(keyword) 
+            exceptionMessage = "ERROR: Your input is ambiguous!  Please specify either a value or a keyword.\n  You specifed both " + str(value) + " and " + str(keyword)
             raise ValueError, exceptionMessage
         elif value != None and value != '':
             return self._averageFromList(value)
@@ -131,7 +131,7 @@ class InputImage(object):
         """
         _list = ''
         for _kw in keyword.split(','):
-            if header.has_key(_kw):
+            if _kw in header:
                 _list = _list + ',' + str(header[_kw])
             else:
                 return None
@@ -161,13 +161,13 @@ class InputImage(object):
 
     def setComputedSky(self,newValue):
         self._computedsky = newValue
-        
+
     def getSubtractedSky(self):
         return self._subtractedsky
-        
+
     def setSubtractedSky(self,newValue):
         self._subtractedsky = newValue
-        
+
     def getGain(self):
         return self._gain
 
@@ -189,7 +189,7 @@ class InputImage(object):
         pass
 
     def _isNotValid(self, par1, par2):
-        """ Method used to determine if a value or keyword is supplied as 
+        """ Method used to determine if a value or keyword is supplied as
             input for instrument specific parameters.
         """
         if (par1 == None or par1 == '') and (par2 == None or par2 == ''):
@@ -275,12 +275,12 @@ class InputImage(object):
         finally:
             _handle.close()
             del _sciext,_handle
-                
+
     def updateMDRIZSKY(self,filename=None):
-    
+
         if (filename == None):
             filename = self.name
-            
+
         try:
             _handle = fileutil.openImage(filename,mode='update',memmap=self.memmap)
         except:
@@ -293,32 +293,32 @@ class InputImage(object):
             except:
                 print "Cannot find keyword MDRIZSKY in %s to update"%filename
                 print "Adding MDRIZSKY keyword to primary header with value %f"%self.getSubtractedSky()
-                _handle[0].header.update('MDRIZSKY',self.getSubtractedSky(), 
+                _handle[0].header.update('MDRIZSKY',self.getSubtractedSky(),
                     comment="Sky value subtracted by Multidrizzle")
         finally:
             _handle.close()
-        
+
     def runDrizCR(self, blotted_array, mask_array, drizcrpars, skypars, corr_file, cr_file):
         """ Run 'deriv' and 'driz_cr' to create cosmic-ray mask for this image. """
 
         _deriv_array = None
-        
+
         print "Working on image ",self.datafile,"..."
         _deriv_array = quickDeriv.qderiv(blotted_array)
 
         # Open input image and get pointer to SCI data
         handle = fileutil.openImage(self.name,mode='readonly',memmap=self.memmap)
         scihdu = fileutil.getExtn(handle,extn=self.extn)
-        
+
         tmpDriz_cr = driz_cr.DrizCR(scihdu.data,
                         scihdu.header,
                         blotted_array,
                         _deriv_array,
                         mask_array,
                         gain = self.getEffGain(),
-                        grow = drizcrpars['driz_cr_grow'],                                             
+                        grow = drizcrpars['driz_cr_grow'],
                         ctegrow = drizcrpars['driz_cr_ctegrow'],
-                        ctedir = self.cte_dir, 
+                        ctedir = self.cte_dir,
                         amp = self.amp,
                         rn = self.getReadNoise(),
                         SNR = drizcrpars['driz_cr_snr'],
@@ -361,9 +361,9 @@ class InputImage(object):
         Purpose
         =======
         Placeholder method for retrieving a detector's flat field.
-        This is an abstract method since each detector will be 
+        This is an abstract method since each detector will be
         handled differently.
-        
+
         This method will return an array the same shape as the
         image.
         """
@@ -371,85 +371,85 @@ class InputImage(object):
 
     def getEffGain(self):
         """
-        
+
         Purpose
         =======
         Method used to return the effective gain of a instrument's
         detector.
-        
+
         This method returns a single floating point value.
 
         """
 
         return self._effGain
-    
+
     def getReadNoise(self):
         """
-        
+
         Purpose
         =======
         Method for trturning the readnoise of a detector (in electrons).
-        
+
         :units: electrons
-        
+
         """
         return self._rdnoise
-        
+
     def getReadNoiseImage(self):
         """
-        
+
         Purpose
         =======
-        Method for returning the readnoise image of a detector 
-        (in electrons).  
-        
+        Method for returning the readnoise image of a detector
+        (in electrons).
+
         The method will return an array of the same shape as the image.
-        
+
         :units: electrons
-        
+
         """
         return np.ones(self.image_shape,dtype=self.image_dtype) * self._rdnoise
 
     def getdarkcurrent(self):
         """
-        
+
         Purpose
         =======
         Return the dark current for the detector.  This value
         will be contained within an instrument specific keyword.
         The value in the image header will be converted to units
         of electrons.
-        
+
         :units: electrons
-        
+
         """
         pass
 
 
     def getdarkimg(self):
         """
-        
+
         Purpose
         =======
         Return an array representing the dark image for the detector.
-        
+
         :units: electrons
-        
+
         """
         return np.ones(self.image_shape,dtype=self.image_dtype)*self.getdarkcurrent()
-    
+
     def getskyimg(self):
         """
-        
+
         Purpose
         =======
         Return an array representing the sky image for the detector.  The value
         of the sky is what would actually be subtracted from the exposure by
         the skysub step.
-        
+
         :units: electrons
-        
+
         """
         return np.ones(self.image_shape,dtype=self.image_dtype)*self.getSubtractedSky()
 
-    
+

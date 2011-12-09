@@ -19,7 +19,7 @@ def getMultidrizzleParameters(files):
     # consistency checks are performed.
     _fileName = files[0]
     _header = fileutil.getHeader(_fileName)
-    if _header.has_key('MDRIZTAB'):
+    if 'MDRIZTAB' in _header:
         _tableName = _header['MDRIZTAB']
     else:
         raise KeyError, "No MDRIZTAB found in file " + _fileName
@@ -53,7 +53,7 @@ def getMultidrizzleParameters(files):
     print '- MDRIZTAB: MultiDrizzle parameters read from row %s.'%(_row+1)
 
     mpars = _mdriztab[1].data[_row]
-    _mdriztab.close() 
+    _mdriztab.close()
 
     return mpars
 

@@ -24,9 +24,9 @@ class DrizCR:
         blotDerivImg,               # Input blotted image derivative (read only)
         dqMask,                     # Mask to which the generated CR mask is to be combined (read/write mode required)
         gain     = 7,               # Detector gain, e-/ADU
-        grow     = 1,               # Radius around CR pixel to mask [default=1 for 3x3 for non-NICMOS]   
+        grow     = 1,               # Radius around CR pixel to mask [default=1 for 3x3 for non-NICMOS]
         ctegrow  = 0,               # Length of CTE correction to be applied
-        ctedir   = 1,               # ctr correction direction   
+        ctedir   = 1,               # ctr correction direction
         amp      = 'A',             # amplifier (used for HRC)
         rn       = 5,               # Read noise in electrons
         SNR      = "4.0 3.0",       # Signal-to-noise ratio
@@ -38,10 +38,10 @@ class DrizCR:
 
         # Initialize input parameters
         self.__gain = gain
-        self.__grow = grow   
+        self.__grow = grow
         self.__ctegrow = ctegrow
-        self.__ctedir = ctedir  
-        self.__amp = amp   
+        self.__ctedir = ctedir
+        self.__amp = amp
         self.__rn = rn
         self.__inputImage = image
         self.__header = header
@@ -136,22 +136,22 @@ class DrizCR:
         # Part 3 of computation - flag additional cte 'radial' and 'tail' pixels surrounding CR pixels as CRs
 
         # In both the 'radial' and 'length' kernels below, 0->good and 1->bad, so that upon
-        # convolving the kernels with __crMask, the convolution output will have low->bad and high->good 
+        # convolving the kernels with __crMask, the convolution output will have low->bad and high->good
         # from which 2 new arrays are created having 0->bad and 1->good. These 2 new arrays are then 'anded'
         # to create a new __crMask.
 
         # recast __crMask to int for manipulations below; will recast to Bool at end
-        __crMask_orig_bool= __crMask.copy() 
+        __crMask_orig_bool= __crMask.copy()
         __crMask= __crMask_orig_bool.astype( np.int8 )
-        
-        # make radial convolution kernel and convolve it with original __crMask 
+
+        # make radial convolution kernel and convolve it with original __crMask
         cr_grow_kernel = np.ones((grow, grow))     # kernel for radial masking of CR pixel
         cr_grow_kernel_conv = __crMask.copy()   # for output of convolution
         NC.convolve2d( __crMask, cr_grow_kernel, output = cr_grow_kernel_conv)
-        
+
         # make tail convolution kernel and convolve it with original __crMask
         cr_ctegrow_kernel = np.zeros((2*ctegrow+1,2*ctegrow+1))  # kernel for tail masking of CR pixel
-        cr_ctegrow_kernel_conv = __crMask.copy()  # for output convolution 
+        cr_ctegrow_kernel_conv = __crMask.copy()  # for output convolution
 
         # which pixels are masked by tail kernel depends on sign of ctedir (i.e.,readout direction):
         if ( ctedir == 1 ):  # HRC: amp C or D ; WFC: chip = sci,1 ; WFPC2
@@ -160,9 +160,9 @@ class DrizCR:
             cr_ctegrow_kernel[ ctegrow+1:2*ctegrow+1, ctegrow ]=1    #'negative' direction
         if ( ctedir == 0 ):  # NICMOS: no cte tail correction
             pass
-       
+
         # do the convolution
-        NC.convolve2d( __crMask, cr_ctegrow_kernel, output = cr_ctegrow_kernel_conv)    
+        NC.convolve2d( __crMask, cr_ctegrow_kernel, output = cr_ctegrow_kernel_conv)
 
         # select high pixels from both convolution outputs; then 'and' them to create new __crMask
         where_cr_grow_kernel_conv    = np.where( cr_grow_kernel_conv < grow*grow,0,1 )        # radial
@@ -172,12 +172,12 @@ class DrizCR:
         __crMask = __crMask.astype(np.uint8) # cast back to Bool
 
         del __crMask_orig_bool
-        del cr_grow_kernel 
-        del cr_grow_kernel_conv 
-        del cr_ctegrow_kernel 
+        del cr_grow_kernel
+        del cr_grow_kernel_conv
+        del cr_ctegrow_kernel
         del cr_ctegrow_kernel_conv
-        del where_cr_grow_kernel_conv  
-        del where_cr_ctegrow_kernel_conv 
+        del where_cr_grow_kernel_conv
+        del where_cr_ctegrow_kernel_conv
 
         # set up the 'self' objects
         self.crMask = __crMask
@@ -206,7 +206,7 @@ class DrizCR:
             # CREATE THE CORR IMAGE
             __corrFile = np.zeros(self.__inputImage.shape,dtype=self.__inputImage.dtype)
             __corrFile = np.where(np.equal(self.dqMask,0),self.__blotImg,self.__inputImage)
-            
+
             # Remove the existing cor file if it exists
             try:
                 os.remove(corrName)
@@ -219,16 +219,16 @@ class DrizCR:
             if (header != None):
                 del(header['NAXIS1'])
                 del(header['NAXIS2'])
-                if header.has_key('XTENSION'):
+                if 'XTENSION' in header:
                     del(header['XTENSION'])
-                if header.has_key('EXTNAME'):
+                if 'EXTNAME' in header:
                     del(header['EXTNAME'])
-                if header.has_key('EXTVER'):
+                if 'EXTVER' in header:
                     del(header['EXTVER'])
 
-                if header.has_key('NEXTEND'):
+                if 'NEXTEND' in header:
                     header['NEXTEND'] = 0
-                
+
                 hdu = pyfits.PrimaryHDU(data=__corrFile,header=header)
                 del hdu.header['PCOUNT']
                 del hdu.header['GCOUNT']
@@ -237,7 +237,7 @@ class DrizCR:
                 hdu = pyfits.PrimaryHDU(data=__corrFile)
             fitsobj.append(hdu)
             fitsobj.writeto(corrName)
-            
+
         finally:
             # CLOSE THE IMAGE FILES
             fitsobj.close()
@@ -262,7 +262,7 @@ class DrizCR:
         try:
             _cr_file = np.zeros(self.__inputImage.shape,np.uint8)
             _cr_file = np.where(self.crMask,1,0).astype(np.uint8)
-            
+
             # Remove the existing cor file if it exists
             try:
                 os.remove(crName)
@@ -275,14 +275,14 @@ class DrizCR:
             if (header != None):
                 del(header['NAXIS1'])
                 del(header['NAXIS2'])
-                if header.has_key('XTENSION'):
+                if 'XTENSION' in header:
                     del(header['XTENSION'])
-                if header.has_key('EXTNAME'):
+                if 'EXTNAME' in header:
                     del(header['EXTNAME'])
-                if header.has_key('EXTVER'):
+                if 'EXTVER' in header:
                     del(header['EXTVER'])
 
-                if header.has_key('NEXTEND'):
+                if 'NEXTEND' in header:
                     header['NEXTEND'] = 0
 
                 hdu = pyfits.PrimaryHDU(data=_cr_file,header=header)
@@ -292,7 +292,7 @@ class DrizCR:
                 hdu = pyfits.PrimaryHDU(data=_cr_file)
             fitsobj.append(hdu)
             fitsobj.writeto(crName)
-            
+
         finally:
             # CLOSE THE IMAGE FILES
             fitsobj.close()
