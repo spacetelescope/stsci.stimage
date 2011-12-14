@@ -14,7 +14,7 @@ ext = [distutils.core.Extension('reftools._computephotpars',
 
 setupargs = {
 
-    'version' :         '1.5.4',
+    'version' :         '1.6.0',
     'description' :     "Reference File Python Tools",
     'author' :          "Warren Hack, Nadezhda Dencheva, Vicki Laidler, Matt Davis",
     'author_email' :    "help@stsci.edu",

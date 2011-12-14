@@ -11,21 +11,25 @@ Functions for ACS PCTETAB reference file.
       updated documentation.
     * 2011-04-25 MRD updated for new CTE algorithm parameters
     * 2011-07-18 MRD updated to handle time dependence
+    * 2011-11-29 MRD updated with column-by-column CTE scaling
 
 Examples
 --------
 >>> from reftools import pctetab
 >>> pctetab.MakePCTETab('pctetab_pcte.fits','pctetab_dtdel_110425.txt',
-                        'pctetab_chgleak_110425.txt','pctetab_levels_110425.txt',
-                        'pctetab_scaling_110718.txt',history_file='pctetab_history.txt')
+                        'pctetab_chgleak_110425.txt',
+                        'pctetab_levels_110425.txt',
+                        'pctetab_scaling_110718.txt',
+                        'pctetab_column_scaling_111129.txt',
+                        history_file='pctetab_history.txt')
 
 """
 
 # External modules
 import os, glob, numpy, pyfits
 
-__version__ = '1.0.0'
-__vdata__ = '26-Jul-2011'
+__version__ = '1.1.0'
+__vdata__ = '29-Nov-2011'
 
 # generic exception for errors in this module
 class PCTEFileError(StandardError):
@@ -46,6 +50,7 @@ class _Text2Fits(object):
     self.charge_leak = []
     self.levels = None
     self.scale = None
+    self.col_scale = None
     self.out_name = None
     
   def make_header(self, out_name, sim_nit, shft_nit, rn_clip, nchg_leak,
@@ -132,7 +137,7 @@ class _Text2Fits(object):
 
     # number of readnoise smoothing iterations
     self.header.header.update('RN_CLIP',float(rn_clip),
-                              'maximum amplitude of read noise removed')
+                              'Read noise level in electrons.')
                               
   def make_dtde(self,dtde_file):
     """
@@ -349,7 +354,7 @@ class _Text2Fits(object):
     self.levels.header.update('EXTNAME','LEVELS')
     self.levels.header.update('DATAFILE',levels_file,comment='data source file')
     
-  def make_scale(self,scale_file):
+  def make_scale(self, scale_file):
     """
     Make fits extension containing time dependent CTE scaling.
     
@@ -414,6 +419,90 @@ class _Text2Fits(object):
     self.scale.header.update('EXTNAME','CTE_SCALE')
     self.scale.header.update('DATAFILE',scale_file,comment='data source file')
     
+  def make_column_scale(self, column_file):
+    """
+    Make fits extension containing column by column CTE scaling.
+    
+    The input file should have 5 columns with the following format:
+    
+    COLUMN  AMPA    AMPB    AMPC    AMPD
+    int     float   float   float   float
+    ...     ...     ...     ...     ...
+    
+    Lines beginning with # are ignored.
+    
+    Parameters
+    ----------
+    column_file : str
+      Text file containing CTE column-by-column scaling.
+    
+    """
+    if not os.path.isfile(column_file):
+      raise IOError('Invalid column scale file: ' + unicode(column_file))
+    
+    lRange, colName, colData, colForm, colUnit = 0, {}, {}, {}, {}
+    
+    # read in dtde data from text file
+    fin = open(column_file,'r')
+    
+    for line in fin:
+      # skip comments
+      if line[0] == '#':
+        continue
+        
+      row = line.split()
+      
+      # column names
+      if row[0] == 'COLUMN':
+        colRange = range(len(row))
+        for i in colRange:
+          colName[i] = row[i]
+          colData[i] = []
+        continue
+        
+      # data
+      for i in colRange:
+        colData[i].append(row[i])
+        
+    # done reading data
+    fin.close()
+    
+    # convert data to numpy arrays
+    colData[0] = numpy.array(colData[0], dtype=numpy.int32)
+    colForm[0] = 'J'
+    colUnit[0] = 'COLUMN NUMBER'
+    
+    colData[1] = numpy.array(colData[1], dtype=numpy.float32)
+    colForm[1] = 'E'
+    colUnit[1] = 'FRACTION'
+    
+    colData[2] = numpy.array(colData[2], dtype=numpy.float32)
+    colForm[2] = 'E'
+    colUnit[2] = 'FRACTION'
+    
+    colData[3] = numpy.array(colData[3], dtype=numpy.float32)
+    colForm[3] = 'E'
+    colUnit[3] = 'FRACTION'
+    
+    colData[4] = numpy.array(colData[4], dtype=numpy.float32)
+    colForm[4] = 'E'
+    colUnit[4] = 'FRACTION'
+    
+    c0 = pyfits.Column(name=colName[0], format=colForm[0],
+                       unit=colUnit[0], array=colData[0])
+    c1 = pyfits.Column(name=colName[1], format=colForm[1],
+                       unit=colUnit[1], array=colData[1])
+    c2 = pyfits.Column(name=colName[2], format=colForm[2],
+                       unit=colUnit[2], array=colData[2])
+    c3 = pyfits.Column(name=colName[3], format=colForm[3],
+                       unit=colUnit[3], array=colData[3])
+    c4 = pyfits.Column(name=colName[4], format=colForm[4],
+                       unit=colUnit[4], array=colData[4])
+    
+    self.col_scale = pyfits.new_table(pyfits.ColDefs([c0,c1,c2,c3,c4]))
+    self.col_scale.header.update('EXTNAME','COL_SCALE')
+    self.col_scale.header.update('DATAFILE',column_file,comment='data source file')
+    
   def make_fits(self):
     """
     Combine primary and table extensions into an HDU List and save to fits file.
@@ -429,22 +518,33 @@ class _Text2Fits(object):
     """
     
     if not self.header:
-      raise PCTEFileError('Fits header has not been prepared: call make_header method first.')
+      raise PCTEFileError('Fits header has not been prepared: '
+                          'call make_header method first.')
     if not self.dtde:
-      raise PCTEFileError('DTDE extension has not been prepared: call make_dtde method first.')
+      raise PCTEFileError('DTDE extension has not been prepared: '
+                          'call make_dtde method first.')
     if not self.charge_leak:
-      raise PCTEFileError('Charge leak extension has not been prepared: call make_charge_leak method first.')
+      raise PCTEFileError('Charge leak extension has not been prepared: '
+                          'call make_charge_leak method first.')
     if not self.levels:
-      raise PCTEFileError('Levels extension has not been prepared: call make_levels method first.')
+      raise PCTEFileError('Levels extension has not been prepared: '
+                          'call make_levels method first.')
     if not self.scale:
-      raise PCTEFileError('Scale extension has not been prepared: call make_scale method first.')
+      raise PCTEFileError('Scale extension has not been prepared: '
+                          'call make_scale method first.')
+    if not self.col_scale:
+      raise PCTEFileError('Column scaline extension has not been prepared: '
+                          'call make_column_scale method first')
       
-    hduList = pyfits.HDUList([self.header, self.dtde, self.levels, self.scale] + self.charge_leak)
+    hduList = pyfits.HDUList([self.header, self.dtde, self.levels, self.scale,
+                              self.col_scale] + self.charge_leak)
+    
     hduList.writeto(self.out_name, clobber=True)
     
 def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
-                sim_nit=5, shft_nit=5, rn_clip=10, useafter='Mar 01 2002 00:00:00', 
-                pedigree='INFLIGHT 01/03/2002 22/07/2010', 
+                column_file, sim_nit=7, shft_nit=7, rn_clip=4.25,
+                useafter='Mar 01 2002 00:00:00',
+                pedigree='INFLIGHT 01/03/2002 22/07/2010',
                 creatorName='ACS Team', history_file='', detector='WFC'):
   """
   Make the CTE parameters reference file.
@@ -486,7 +586,7 @@ def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
     int
     ...
     
-    Columns beginning with # are ignored.
+    Lines beginning with # are ignored.
     
   scale_file : str
     Text file containing CTE scaling parameters
@@ -497,7 +597,18 @@ def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
     float   float
     ...     ...
     
-    Columns beginning with # are ignored.
+    Lines beginning with # are ignored.
+    
+  column_file : str
+    Text file containing CTE column-by-column scaling.
+    
+    The input file should have 5 columns with the following format:
+    
+    COLUMN  AMPA    AMPB    AMPC    AMPD
+    int     float   float   float   float
+    ...     ...     ...     ...     ...
+    
+    Lines beginning with # are ignored.
     
   sim_nit : int, optional
     Number of iterations of readout simulation per column. 
@@ -539,8 +650,10 @@ def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
   Examples
   --------
   >>>MakePCTETab('pctetab_pcte.fits','pctetab_dtdel_110425.txt',
-              'pctetab_chgleak_110425.txt','pctetab_levels_110425.txt',
-              'pctetab_scaling_110718.txt',history_file='pctetab_history.txt')
+                 'pctetab_chgleak_110425.txt','pctetab_levels_110425.txt',
+                 'pctetab_scaling_110718.txt',
+                 'pctetab_column_scaling_111129.txt',
+                 history_file='pctetab_history.txt')
   Saving file pctetab_pcte.fits
   
   """
@@ -568,6 +681,9 @@ def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
   if not os.path.isfile(scale_file):
     raise IOError('Invalid scale file: ' + unicode(scale_file))
     
+  if not os.path.isfile(column_file):
+    raise IOError('Invalid column scaling file: ' + unicode(column_file))
+    
   # make Text2Fits object and run it's methods to construct fits extensions
   t2f = _Text2Fits()
   t2f.make_header(out_name, sim_nit, shft_nit, rn_clip, nchg_leak,
@@ -580,6 +696,8 @@ def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
   t2f.make_levels(levels_file)
   
   t2f.make_scale(scale_file)
+  
+  t2f.make_column_scale(column_file)
   
   # have t2f save the fits file
   print('Saving file ' + unicode(out_name))
