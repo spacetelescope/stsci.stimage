@@ -181,12 +181,12 @@ for lpkg in all_packages_input :
                 all_packages.append(x)
             all_package_dir[x] = "%s/%s" % (lpkg, package_dir[x])
 
-    # insert our subversion information and setup date into the
-    # packages lib/ directory.
-
-    print "Warning: not tagging svn version or install date"
-    #set_svn_version(pkg[0])
-    #set_setup_date(pkg[0])
+            x = all_package_dir[x]
+            print "tag %s\n"%x
+            # insert our subversion information and setup date
+            set_svn_version(x)
+            set_setup_date(x)
+            sys.stdin.readline()
 
     # If there are scripts, we have to correct the file names where
     # the installer can find them.  Each is under the package directory.
