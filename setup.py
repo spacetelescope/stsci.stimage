@@ -186,7 +186,6 @@ for lpkg in all_packages_input :
             # insert our subversion information and setup date
             set_svn_version(x)
             set_setup_date(x)
-            sys.stdin.readline()
 
     # If there are scripts, we have to correct the file names where
     # the installer can find them.  Each is under the package directory.
