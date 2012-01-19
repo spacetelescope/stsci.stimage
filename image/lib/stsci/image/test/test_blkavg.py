@@ -1,7 +1,7 @@
 from __future__ import division
 
 import os
-import blkavg
+import stsci.image.blkavg as blkavg
 import pyfits
 import testutil
 

@@ -2,7 +2,7 @@ from __future__ import division
 
 import os
 import gc
-import blkrep
+import stsci.image.blkrep as blkrep
 import pyfits
 import testutil
 
