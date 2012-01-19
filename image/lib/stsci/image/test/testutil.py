@@ -3,6 +3,8 @@ from __future__ import division
 import math
 import unittest
 import numpy as N
+from nose.tools import nottest
+
 """
 Copied from stsci_python.pytools so that pysynphot can be tested without
 an extra dependency.
@@ -88,6 +90,7 @@ def debug(module):
     """ Build the test suite, then run in debug mode, which allows for postmortems"""
     buildsuite(module).debug()
 
+@nottest
 def testall(module,verb=0):
     """ Build and run the suite through the testrunner. Verbosity level
     defaults to quiet but can be set to 2 to produce a line as it runs
