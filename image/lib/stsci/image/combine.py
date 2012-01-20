@@ -22,6 +22,57 @@ def _combine_f(funcstr, arrays, output=None, outtype=None, nlow=0, nhigh=0, badm
     if output is None:
         return out
 
+def imedian( arrays, output=None, outtype=None, nlow=0, nhigh=0, badmasks=None):
+    """median() nominally computes the median pixels for a stack of
+    identically shaped images, filling pixels with no weight with the value from
+    the first input array.
+
+    arrays     specifies a sequence of inputs arrays, which are nominally a
+               stack of identically shaped images.
+
+    output     may be used to specify the output array.  If none is specified,
+               either arrays[0] is copied or a new array of type 'outtype'
+               is created.
+
+    outtype    specifies the type of the output array when no 'output' is
+               specified.
+
+    nlow       specifies the number of pixels to be excluded from median
+               on the low end of the pixel stack.
+
+    nhigh      specifies the number of pixels to be excluded from median
+               on the high end of the pixel stack.
+
+    badmasks   specifies boolean arrays corresponding to 'arrays', where true
+               indicates that a particular pixel is not to be included in the
+               median calculation.
+
+    >>> a = num.arange(4)
+    >>> a = a.reshape((2,2))
+    >>> arrays = [a*16, a*4, a*2, a*8]
+    >>> median(arrays)
+    array([[ 0,  6],
+           [12, 18]])
+    >>> median(arrays, nhigh=1)
+    array([[ 0,  4],
+           [ 8, 12]])
+    >>> median(arrays, nlow=1)
+    array([[ 0,  8],
+           [16, 24]])
+    >>> median(arrays, outtype=num.float32)
+    array([[  0.,   6.],
+           [ 12.,  18.]], dtype=float32)
+    >>> bm = num.zeros((4,2,2), dtype=num.bool8)
+    >>> bm[2,...] = 1
+    >>> median(arrays, badmasks=bm)
+    array([[ 0,  8],
+           [16, 24]])
+    >>> median(arrays, badmasks=threshhold(arrays, high=25))
+    array([[ 0,  6],
+           [ 8, 12]])
+    """
+    return _combine_f("imedian", arrays, output, outtype, nlow, nhigh, badmasks)
+
 def median( arrays, output=None, outtype=None, nlow=0, nhigh=0, badmasks=None):
     """median() nominally computes the median pixels for a stack of
     identically shaped images.
@@ -71,6 +122,58 @@ def median( arrays, output=None, outtype=None, nlow=0, nhigh=0, badmasks=None):
            [ 8, 12]])
     """
     return _combine_f("median", arrays, output, outtype, nlow, nhigh, badmasks)
+
+def iaverage( arrays, output=None, outtype=None, nlow=0, nhigh=0, badmasks=None):
+    """average() nominally computes the average pixel value for a stack of
+    identically shaped images, filling pixels with no weight with the value from
+    the first input array.
+
+    arrays     specifies a sequence of inputs arrays, which are nominally a
+               stack of identically shaped images.
+
+    output     may be used to specify the output array.  If none is specified,
+               either arrays[0] is copied or a new array of type 'outtype'
+               is created.
+
+    outtype    specifies the type of the output array when no 'output' is
+               specified.
+
+    nlow       specifies the number of pixels to be excluded from average
+               on the low end of the pixel stack.
+
+    nhigh      specifies the number of pixels to be excluded from average
+               on the high end of the pixel stack.
+
+    badmasks   specifies boolean arrays corresponding to 'arrays', where true
+               indicates that a particular pixel is not to be included in the
+               average calculation.
+
+    >>> a = num.arange(4)
+    >>> a = a.reshape((2,2))
+    >>> arrays = [a*16, a*4, a*2, a*8]
+    >>> average(arrays)
+    array([[ 0,  7],
+           [15, 22]])
+    >>> average(arrays, nhigh=1)
+    array([[ 0,  4],
+           [ 9, 14]])
+    >>> average(arrays, nlow=1)
+    array([[ 0,  9],
+           [18, 28]])
+    >>> average(arrays, outtype=num.float32)
+    array([[  0. ,   7.5],
+           [ 15. ,  22.5]], dtype=float32)
+    >>> bm = num.zeros((4,2,2), dtype=num.bool8)
+    >>> bm[2,...] = 1
+    >>> average(arrays, badmasks=bm)
+    array([[ 0,  9],
+           [18, 28]])
+    >>> average(arrays, badmasks=threshhold(arrays, high=25))
+    array([[ 0,  7],
+           [ 9, 14]])
+
+    """
+    return _combine_f("iaverage", arrays, output, outtype, nlow, nhigh, badmasks)
 
 def average( arrays, output=None, outtype=None, nlow=0, nhigh=0, badmasks=None):
     """average() nominally computes the average pixel value for a stack of
