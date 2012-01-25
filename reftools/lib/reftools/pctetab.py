@@ -28,8 +28,8 @@ Examples
 # External modules
 import os, glob, numpy, pyfits
 
-__version__ = '1.1.0'
-__vdata__ = '29-Nov-2011'
+__version__ = '1.1.1'
+__vdata__ = '25-Jan-2012'
 
 # generic exception for errors in this module
 class PCTEFileError(StandardError):
@@ -53,8 +53,9 @@ class _Text2Fits(object):
     self.col_scale = None
     self.out_name = None
     
-  def make_header(self, out_name, sim_nit, shft_nit, rn_clip, nchg_leak,
-                  useafter, pedigree, creatorName, history_file, detector):
+  def make_header(self, out_name, sim_nit, shft_nit, rn_clip, oversub_thresh,
+                  nchg_leak, useafter, pedigree, creatorName,
+                  history_file, detector):
     """
     Make the primary extension header for the pctetab.
     
@@ -64,19 +65,23 @@ class _Text2Fits(object):
       Name of pcte fits file being created. May include path.
       
     sim_nit : int
-      Value for SIM_NIT keyword in PCTEFILE header.
+      Value for ``SIM_NIT`` keyword in PCTEFILE header.
       Number of iterations of readout simulation per column.
       
     shft_nit : int
-      Value for SHFT_NIT keyword in PCTEFILE header.
+      Value for ``SHFT_NIT`` keyword in PCTEFILE header.
       Number of shifts each readout simulation is broken up into.
       A large number means pixels are shifted a smaller number of rows
       before the CTE is evaluated again.
       
     rn_clip : float
-    Value for ``RN_CLIP`` keyword in PCTEFILE
-    EXT 0. This is the maximum amplitude of read noise
-    used in the read noise mitigation. Unit is in electrons.
+      Value for ``RN_CLIP`` keyword in PCTEFILE
+      EXT 0. This is the maximum amplitude of read noise
+      used in the read noise mitigation. Unit is in electrons.
+    
+    oversub_thresh : float
+      Value for ``SUBTHRSH`` keyword in PCTEFILE header. CTE corrected
+      pixels taken below this value are re-corrected. Unit is in electrons.
         
     useafter : str
         Value for ``USEAFTER`` keyword.
@@ -128,16 +133,20 @@ class _Text2Fits(object):
     # End if
     
     # the number of readout simulations done per column
-    self.header.header.update('SIM_NIT',int(sim_nit),
+    self.header.header.update('SIM_NIT', int(sim_nit),
                               'number of readout simulations done per column')
     
     # the number of shifts each column readout simulation is broken up into
-    self.header.header.update('SHFT_NIT',int(shft_nit),
+    self.header.header.update('SHFT_NIT', int(shft_nit),
                               'the number of shifts each column readout simulation is broken up into')
 
     # number of readnoise smoothing iterations
-    self.header.header.update('RN_CLIP',float(rn_clip),
+    self.header.header.update('RN_CLIP', float(rn_clip),
                               'Read noise level in electrons.')
+    
+    # over-subtraction correction threshold
+    self.header.header.update('SUBTHRSH', float(oversub_thresh),
+                              'Over-subtraction correction threshold.')
                               
   def make_dtde(self,dtde_file):
     """
