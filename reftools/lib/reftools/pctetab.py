@@ -53,8 +53,8 @@ class _Text2Fits(object):
     self.col_scale = None
     self.out_name = None
     
-  def make_header(self, out_name, sim_nit, shft_nit, rn_clip, oversub_thresh,
-                  nchg_leak, useafter, pedigree, creatorName,
+  def make_header(self, out_name, sim_nit, shft_nit, rn_clip, noise_model,
+                  oversub_thresh, nchg_leak, useafter, pedigree, creatorName,
                   history_file, detector):
     """
     Make the primary extension header for the pctetab.
@@ -78,6 +78,13 @@ class _Text2Fits(object):
       Value for ``RN_CLIP`` keyword in PCTEFILE
       EXT 0. This is the maximum amplitude of read noise
       used in the read noise mitigation. Unit is in electrons.
+    
+    noise_model : {0, 1, 2}
+      Select the method to be used for readnoise removal.
+      
+      0: no read noise smoothing
+      1: standard smoothing
+      2: strong smoothing
     
     oversub_thresh : float
       Value for ``SUBTHRSH`` keyword in PCTEFILE header. CTE corrected
@@ -140,9 +147,13 @@ class _Text2Fits(object):
     self.header.header.update('SHFT_NIT', int(shft_nit),
                               'the number of shifts each column readout simulation is broken up into')
 
-    # number of readnoise smoothing iterations
+    # read noise level
     self.header.header.update('RN_CLIP', float(rn_clip),
                               'Read noise level in electrons.')
+    
+    # read noise smoothing algorithm
+    self.header.header.update('NSEMODEL', int(noise_model),
+                              'Read noise smoothing algorithm.')
     
     # over-subtraction correction threshold
     self.header.header.update('SUBTHRSH', float(oversub_thresh),
