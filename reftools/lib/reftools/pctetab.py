@@ -148,7 +148,7 @@ class _Text2Fits(object):
                               'the number of shifts each column readout simulation is broken up into')
 
     # read noise level
-    self.header.header.update('RN_CLIP', float(rn_clip),
+    self.header.header.update('RN_CLIP', float(read_noise),
                               'Read noise level in electrons.')
     
     # read noise smoothing algorithm
