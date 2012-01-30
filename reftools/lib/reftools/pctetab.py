@@ -53,7 +53,7 @@ class _Text2Fits(object):
     self.col_scale = None
     self.out_name = None
     
-  def make_header(self, out_name, sim_nit, shft_nit, rn_clip, noise_model,
+  def make_header(self, out_name, sim_nit, shft_nit, read_noise, noise_model,
                   oversub_thresh, nchg_leak, useafter, pedigree, creatorName,
                   history_file, detector):
     """
@@ -74,7 +74,7 @@ class _Text2Fits(object):
       A large number means pixels are shifted a smaller number of rows
       before the CTE is evaluated again.
       
-    rn_clip : float
+    read_noise : float
       Value for ``RN_CLIP`` keyword in PCTEFILE
       EXT 0. This is the maximum amplitude of read noise
       used in the read noise mitigation. Unit is in electrons.
@@ -89,7 +89,7 @@ class _Text2Fits(object):
     oversub_thresh : float
       Value for ``SUBTHRSH`` keyword in PCTEFILE header. CTE corrected
       pixels taken below this value are re-corrected. Unit is in electrons.
-        
+      
     useafter : str
         Value for ``USEAFTER`` keyword.
 
@@ -562,7 +562,8 @@ class _Text2Fits(object):
     hduList.writeto(self.out_name, clobber=True)
     
 def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
-                column_file, sim_nit=7, shft_nit=7, rn_clip=4.25,
+                column_file, sim_nit=7, shft_nit=7, read_noise=4.25,
+                noise_model=1, oversub_thresh=-15,
                 useafter='Mar 01 2002 00:00:00',
                 pedigree='INFLIGHT 01/03/2002 22/07/2010',
                 creatorName='ACS Team', history_file='', detector='WFC'):
@@ -640,11 +641,23 @@ def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
     before the CTE is evaluated again.
     Defaults to 5.
     
-  rn_clip : float, optional
+  read_noise : float
     Value for ``RN_CLIP`` keyword in PCTEFILE
     EXT 0. This is the maximum amplitude of read noise
     used in the read noise mitigation. Unit is in electrons.
-    Defaults to 10.        
+    Defaults to 4.25.
+  
+  noise_model : {0, 1, 2}
+    Select the method to be used for readnoise removal.
+    
+    0: no read noise smoothing
+    1: standard smoothing (default)
+    2: strong smoothing
+  
+  oversub_thresh : float
+    Value for ``SUBTHRSH`` keyword in PCTEFILE header. CTE corrected
+    pixels taken below this value are re-corrected. Unit is in electrons.
+    Defaults to -15.
       
   useafter : str, optional
     Value for ``USEAFTER`` keyword.
@@ -706,8 +719,9 @@ def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
     
   # make Text2Fits object and run it's methods to construct fits extensions
   t2f = _Text2Fits()
-  t2f.make_header(out_name, sim_nit, shft_nit, rn_clip, nchg_leak,
-                  useafter, pedigree, creatorName, history_file, detector)
+  t2f.make_header(out_name, sim_nit, shft_nit, read_noise, noise_model,
+                  oversub_thresh, nchg_leak, useafter, pedigree,
+                  creatorName, history_file, detector)
   t2f.make_dtde(dtde_file)
   
   for i,f in enumerate(chg_leak_file):

@@ -15,6 +15,7 @@ Contents:
    imphtcomp
    synpysyncomp
    getphotpars
+   pctetab
 
 Indices and tables
 ==================

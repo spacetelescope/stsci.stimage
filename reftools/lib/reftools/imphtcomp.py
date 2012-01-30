@@ -319,8 +319,8 @@ class ImphttabComp(object):
     
     Differences shown are calculated as 100 * (table1 - table2)/table1.
     
-    Paramters
-    ---------
+    Parameters
+    ----------
     orderby : str, optional
       The parameter by which to order the printed results, with modes having
       the largest absolute difference in this parameter printed at the top. 

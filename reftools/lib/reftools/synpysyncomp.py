@@ -116,8 +116,8 @@ class SynPysynComp(object):
     mode : str
       Obsmode string.
       
-    Return
-    ------
+    Returns
+    -------
     ret : dict
       Dictionary containing calculated values.
     
@@ -154,8 +154,8 @@ class SynPysynComp(object):
     mode : str
       Obsmode string.
       
-    Return
-    ------
+    Returns
+    -------
     ret : dict
       Dictionary containing calculated values.
     
@@ -199,8 +199,8 @@ class SynPysynComp(object):
     mode : str
       Obsmode string.
       
-    Return
-    ------
+    Returns
+    -------
     comp : dict
       Dictionary containing calculated values.
     
@@ -226,8 +226,8 @@ class SynPysynComp(object):
     verbose: bool, optional
       If True, print obsmodes as they are processed. Defaults to False.
     
-    Return
-    ------
+    Returns
+    -------
     res : dict
       Dictionary containing lists of all pysynphot and synphot calculated values
       and their differences calculated as (pysynphot - synphot)/synphot.
