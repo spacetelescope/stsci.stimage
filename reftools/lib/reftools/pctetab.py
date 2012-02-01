@@ -563,7 +563,7 @@ class _Text2Fits(object):
     
 def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
                 column_file, sim_nit=7, shft_nit=7, read_noise=4.25,
-                noise_model=1, oversub_thresh=-15,
+                noise_model=1, oversub_thresh=-30,
                 useafter='Mar 01 2002 00:00:00',
                 pedigree='INFLIGHT 01/03/2002 22/07/2010',
                 creatorName='ACS Team', history_file='', detector='WFC'):
