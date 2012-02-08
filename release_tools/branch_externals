@@ -12,6 +12,8 @@
 #	** abandon your checked out copy and get a new one **
 
 
+# in case the user wants to say what branch the copies should come from
+from_branch=$1
 
 main_url=`svn info | grep URL: | awk '{ print $2 }' `
 
@@ -47,20 +49,36 @@ dobranch() {
 	# tail= the name after $to where the thing we want is
 	#
 
+	echo DBG: URL: $url
+	echo DBG: from_branch $from_branch
+
 	case "$url"
 	in
 	*/trunk)
 		from=`echo $url | sed 's?/trunk??'`/trunk
 		tail=''
-		to=`echo $url | sed "s?/trunk?/branches/$branch?"`
+		to=`echo $url   | sed "s?/trunk?/branches/$branch?"`
 		;;
 	*/trunk/*)
 		from=`echo $url | sed 's?/trunk/? ?' | awk '{ print $1 }' `/trunk
 		tail=`echo $url | sed 's?/trunk/? ?' | awk '{ print $2 }' `
 		to=`echo $url | sed 's?/trunk/.*$?/'"branches/$branch?"`
 		;;
+	*/branches/$from_branch)
+		from=`echo $url | sed "s?/branches/$from_branch??"`/trunk
+		tail=''
+		to=`echo $url   | sed "s?/branches/$from_branch?/branches/$branch?"`
+		;;
+
+	*/branches/$from_branch/*)
+		from=`echo $url | sed "s?/branches/$from_branch/? ?" | awk '{ print $1 }' `/branches/$from_branch
+		tail=`echo $url | sed "s?/branches/$from_branch/? ?" | awk '{ print $2 }' `
+		to=`echo $url   | sed "s?/branches/$from_branch"'/.*$?/'"branches/$branch?"`
+		;;
+
 	*)
 		echo ERROR: $name is not coming from the trunk
+		echo use release_tools/branch_externals from_branch
 		return
 		;;
 	esac
@@ -93,5 +111,5 @@ fix_externals() {
 
 }
 
-fix_externals
+fix_externals 
 
