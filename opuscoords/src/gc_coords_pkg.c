@@ -14,6 +14,8 @@
 *
 *****************************************************************************
 */
+
+#define _USE_MATH_DEFINES	/* needed for MS Windows to define M_PI */
 #include <math.h>
 #include "gc_opus_private.h"
 #include "gc_coords_private.h"
