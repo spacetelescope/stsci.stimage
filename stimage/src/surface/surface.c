@@ -31,7 +31,7 @@ DAMAGE.
 
 #include <assert.h>
 #include <stdio.h>
-#include <strings.h>
+#include <string.h>
 
 #include "surface/surface.h"
 
@@ -156,7 +156,7 @@ surface_init(
 int
 surface_new(
         surface_t* const s) {
-    bzero(s, sizeof(surface_t));
+    memset(s, 0, sizeof(surface_t));
 
     surface_free(s);
 
