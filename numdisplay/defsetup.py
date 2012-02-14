@@ -1,6 +1,6 @@
 from __future__ import division # confidence high
 
-pkg = "pkg.numdisplay"
+pkg = "stsci.numdisplay"
 
 setupargs = { 
     'version' :         "1.5",
