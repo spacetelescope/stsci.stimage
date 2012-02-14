@@ -35,6 +35,7 @@ DAMAGE.
 */
 
 #include <assert.h>
+#define _USE_MATH_DEFINES       /* needed for MS Windows to define M_PI */ 
 #include <math.h>
 
 #include "lib/lintransform.h"
