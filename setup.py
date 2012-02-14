@@ -26,6 +26,7 @@ all_packages_input = [
     "costools",
     #"d2to1",    # or maybe not?
     #"distutils",    # or maybe not?
+    "fitsblender",
     "image",
     "imagemanip",
     "imagestats",
