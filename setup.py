@@ -183,7 +183,6 @@ for lpkg in all_packages_input :
             all_package_dir[x] = "%s/%s" % (lpkg, package_dir[x])
 
             x = all_package_dir[x]
-            print "tag %s\n"%x
             # insert our subversion information and setup date
             set_svn_version(x)
             set_setup_date(x)
