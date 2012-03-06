@@ -14,7 +14,7 @@ if False :
     except:
         pass
 else :
-    __version__ = '1.6.1'
+    __version__ = '1.6.2'
 
 try:
     from reftools.svninfo import (__svn_version__, __full_svn_info__,

@@ -18,7 +18,7 @@ import os,sys
 import numpy as np
 import pyfits
 import pysynphot as S
-from pysynphot import observationmode
+from pysynphot import refs
 from pyfits import Column
 import time as _time
 import re
@@ -219,7 +219,7 @@ def getDate():
 def makePrimaryHDU(filename,numpars,instrument,pedigree):
     """ Create a Primary Header for the multi-extension FITS reference table
     """
-    d = observationmode.getref()
+    d = refs.getref()
     phdu = pyfits.PrimaryHDU()
     phdu.header.update('date',getDate(),comment="Date FITS file was generated")
     phdu.header.update('filename',filename,comment='name of file')
@@ -314,13 +314,13 @@ def createTable(output,basemode,tmgtab=None,tmctab=None,tmttab=None,
     
     # get graph and component tables straightened out
     if not tmgtab:
-        tmgtab = observationmode.GRAPHTABLE
+        tmgtab = refs.GRAPHTABLE
     if not tmctab:
-        tmctab = observationmode.COMPTABLE
+        tmctab = refs.COMPTABLE
     if not tmttab:
-        tmttab = observationmode.THERMTABLE
+        tmttab = refs.THERMTABLE
     
-    S.setref(graphtable=tmgtab,comptable=tmctab,thermtable=tmttab)
+    refs.setref(graphtable=tmgtab,comptable=tmctab,thermtable=tmttab)
     
     x = sgf.read_graphtable(tmgtab,tmctab,tmttab)
     
