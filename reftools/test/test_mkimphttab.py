@@ -21,4 +21,5 @@ def test_mkimphttab():
     raise
   
   else:
+    assert os.path.exists(output)
     os.remove(output)
