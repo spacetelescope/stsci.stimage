@@ -128,7 +128,7 @@ class SynPysynComp(object):
     photflam = obs.effstim('flam')/obs.effstim('counts')  # URESP
     del obs
     pivot = bp.pivot()          # PIVWV
-    rmswidth = bp.rmswidth()    # BANDW
+    rmswidth = bp.photbw()      # BANDW
     avgwave = bp.avgwave()      # AVGWV
     recwidth = bp.rectwidth()   # RECTW
     equwidth = bp.equivwidth()  # EQUVW

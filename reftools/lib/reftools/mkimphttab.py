@@ -36,8 +36,8 @@ except ImportError:
 else:
     HAVESYNPHOT = True
 
-__version__ = '0.3.0'
-__vdate__ = '28-Jul-2011'
+__version__ = '0.3.1'
+__vdate__ = '13-Mar-2012'
 
 def computeValues(obsmode,component_dict):
     """ 
@@ -66,7 +66,7 @@ def computeValues(obsmode,component_dict):
     
     valdict['PHOTFLAM'] = bp.unit_response()
     valdict['PHOTPLAM'] = bp.pivot()
-    valdict['PHOTBW'] = bp.rmswidth()
+    valdict['PHOTBW'] = bp.photbw()
     
     return valdict
     
