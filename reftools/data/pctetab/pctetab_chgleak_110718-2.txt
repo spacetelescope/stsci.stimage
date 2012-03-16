@@ -1,0 +1,31 @@
+# Values for chg_leak from J. Anderson (Apr 2011).
+#
+# Epoch limits. This is for July 1, 2006 to a distant future.
+# MJD1 <= epoch < MJD2
+MJD1  53917.0
+MJD2  88068.0
+#
+# Table data for psi(q,n).
+# Jay only has tails extending to 60 pix although 100 pix is defined.
+#
+# NODE    - n assumed in calculations
+# LOG_Q_n - Log q assumed in calculations
+#
+# First row must be column names.
+NODE LOG_Q_1 LOG_Q_2 LOG_Q_3 LOG_Q_4
+001  0.2500  0.1900  0.1900  0.1900
+002  0.1600  0.0975  0.0942  0.0942
+003  0.1100  0.0735  0.0718  0.0718
+005  0.0850  0.0485  0.0495  0.0495
+008  0.0450  0.0315  0.0330  0.0330
+012  0.0200  0.0220  0.0224  0.0224
+016  0.0050  0.0165  0.0165  0.0165
+020  0.0000  0.0118  0.0118  0.0118
+025  0.0000  0.0060  0.0085  0.0085
+030  0.0000  0.0000  0.0065  0.0065
+040  0.0000  0.0000  0.0031  0.0031
+050  0.0000  0.0000  0.0018  0.0018
+060  0.0000  0.0000  0.0006  0.0006
+070  0.0000  0.0000  0.0000  0.0000
+080  0.0000  0.0000  0.0000  0.0000
+090  0.0000  0.0000  0.0000  0.0000

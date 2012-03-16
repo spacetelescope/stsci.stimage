@@ -1,0 +1,10 @@
+JUL 2010 J. Anderson defined original PHI and PSI.
+AUG 2010 P. L. Lim entered original PHI and PSI into FITS.
+NOV 2010 P. L. Lim added RN2_NIT keyword value.
+APR 2011 J. Anderson updated CTE algorithm.
+APR 2011 M. Davis updated reference file code with new parameters.
+MAY 2011 M. Davis changed RN2_NIT parameter to RN_CLIP.
+JUL 2011 M. Davis added time dependent CHG_LEAK# extensions
+JUL 2011 M. Davis added time dependent CTE scaling extension
+NOV 2011 M. Davis updated parameters for CTE algorithm version 3.0
+JAN 2012 M. Davis updated parameters for CTE algorithm version 3.1

@@ -1,0 +1,21 @@
+# Values for dtde_l from J. Anderson (Apr 2011).
+#
+# phi(q)  - dtde_l elements
+# node    - element order in array
+# q(DN/s) - q values assumed in calculations (DN/s)
+#
+# First row must be column names
+#
+# phi(q)  q(DN/s)
+DTDE  Q
+4.250     1
+4.250     6
+3.250     8
+1.750    15
+0.540   100
+0.310   316
+0.128  1000
+0.088  3160
+0.050 10000
+0.034 31600
+0.020 99999

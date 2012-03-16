@@ -1,0 +1,12 @@
+# Values for CTE scaling from J. Anderson (July 2011).
+#
+# Table data for CTE scaling
+#
+# MJD   - date of scaling point
+# SCALE - scaling value
+#
+# First row must be column names
+MJD       SCALE
+52335.0   0.000
+54282.0   0.496
+55411.0   1.000

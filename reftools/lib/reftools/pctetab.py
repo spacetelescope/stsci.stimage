@@ -633,31 +633,27 @@ def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
     
   sim_nit : int, optional
     Number of iterations of readout simulation per column. 
-    Defaults to 5.
     
   shft_nit : int, optional
     Number of shifts each readout simulation is broken up into.
     A large number means pixels are shifted a smaller number of rows
     before the CTE is evaluated again.
-    Defaults to 5.
     
   read_noise : float
     Value for ``RN_CLIP`` keyword in PCTEFILE
     EXT 0. This is the maximum amplitude of read noise
     used in the read noise mitigation. Unit is in electrons.
-    Defaults to 4.25.
   
   noise_model : {0, 1, 2}
     Select the method to be used for readnoise removal.
     
     0: no read noise smoothing
-    1: standard smoothing (default)
+    1: standard smoothing
     2: strong smoothing
   
   oversub_thresh : float
     Value for ``SUBTHRSH`` keyword in PCTEFILE header. CTE corrected
     pixels taken below this value are re-corrected. Unit is in electrons.
-    Defaults to -15.
       
   useafter : str, optional
     Value for ``USEAFTER`` keyword.
