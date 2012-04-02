@@ -97,11 +97,22 @@ def process_input(input, output=None, ivmlist=None, updatewcs=True, prodonly=Fal
     asndict = update_member_names(oldasndict, pydr_input)
 
     # Build output filename
-    if output == None:
-        output = fileutil.buildNewRootname(asndict['output'],extn='_drz.fits')
+    drz_extn = '_drz.fits'
+    for img in newfilelist:
+        # special case logic to automatically recognize when _flc.fits files
+        # are provided as input and produce a _drc.fits file instead
+        if '_flc.fits' in img:
+            drz_extn = '_drc.fits'
+            break
+
+    if output in [None,'']:
+        output = fileutil.buildNewRootname(asndict['output'],
+                                           extn=drz_extn)
     else:
-        if 'drz' not in output:
-            output = fileutil.buildNewRootname(output,extn='_drz.fits')
+        if '.fits' in output.lower():
+            pass
+        elif drz_extn[:4] not in output.lower():
+            output = fileutil.buildNewRootname(output, extn=drz_extn)
 
     print 'Setting up output name: ',output
 
@@ -557,7 +568,10 @@ def buildEmptyDRZ(input, output):
             oname = fu.buildNewRootname(input[0])
         else:
             oname = 'final'
-        output = fileutil.buildNewRootname(oname,extn='_drz.fits')
+        _drzextn = '_drz.fits'
+        if '_flc.fits' in input[0]:
+            _drzextn = '_drc.fits'
+        output = fileutil.buildNewRootname(oname,extn=_drzextn)
     else:
         if 'drz' not in output:
             output = fileutil.buildNewRootname(output,extn='_drz.fits')
@@ -610,7 +624,10 @@ def buildEmptyDRZ(input, output):
     fitsobj[0].header['FILENAME'] = str(output) #+"_drz.fits"
 
     # Change the ROOTNAME keyword to the ROOTNAME of the output PRODUCT
-    fitsobj[0].header['ROOTNAME'] = str(output.split('_drz.fits')[0])
+    _drzsuffix = 'drz'
+    if 'drc' in output:
+        _drzsuffix = 'drc'
+    fitsobj[0].header['ROOTNAME'] = str(output.split('_%s.fits'%_drzsuffix)[0])
     print 'self.output', output
     # Modify the ASN_MTYP keyword to contain "PROD-DTH" so it can be properly
     # ingested into the archive catalog.

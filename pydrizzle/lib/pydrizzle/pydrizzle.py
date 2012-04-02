@@ -145,7 +145,7 @@ More help on SkyField objects and their parameters can be obtained using:
         self.parlist = None
 
         if len(asndict['order']) > 1:
-            self.observation = DitherProduct(asndict,pars=self.pars)
+            self.observation = DitherProduct(asndict,output=output,pars=self.pars)
         else:
             inroot = asndict['order'][0]
             pardict = asndict['members'][inroot]
@@ -447,8 +447,8 @@ More help on SkyField objects and their parameters can be obtained using:
                 # when possible in order to account for any unit conversions that may
                 # be applied to the input image between initialization of PyDrizzle
                 # and the calling of this run() method.
-                if ('bunit' in _sciext.header and
-                    _sciext.header['bunit'] not in ['', 'N/A']):
+                if ('bunit' in _sciext.header and 
+                    _sciext.header['bunit'] not in ['','N/A']):
                     _bunit = _sciext.header['bunit']
                 else:
                     # default based on instrument-specific logic
@@ -983,15 +983,19 @@ class DitherProduct(Pattern):
     Builds an object for a set of dithered inputs, each of which
     will be one of the Observation objects.
     """
-    def __init__(self, prodlist, pars=None):
-        # Build temporary output drizzle product name
-        if prodlist['output'].find('.fits') < 0:
-            if prodlist['output'].rfind('_drz') < 0:
-                output = fileutil.buildNewRootname(prodlist['output'],extn='_drz.fits')
+    def __init__(self, prodlist, output=None, pars=None):
+        if output is None:
+            # Build temporary output drizzle product name
+            if prodlist['output'].find('.fits') < 0:
+                if prodlist['output'].rfind('_drz') < 0:
+                    output = fileutil.buildNewRootname(prodlist['output'],extn='_drz.fits')
+                else:
+                    output = prodlist['output']+'.fits'
             else:
-                output = prodlist['output']+'.fits'
+                output = prodlist['output']
         else:
-            output = prodlist['output']
+            if '.fits' not in output:
+                output += '.fits'
 
         # Setup a default exposure to contain the results
         Pattern.__init__(self, None, output=output, pars=pars)
@@ -1332,7 +1336,6 @@ def selectInstrument(filename,output,pars=_default_pars):
     """
     # Determine the instrument...
     instrument = fileutil.getKeyword(filename+'[0]','INSTRUME')
-
     #try:
     # ... then create an appropriate object.
     if instrument == INSTRUMENT[0]:
