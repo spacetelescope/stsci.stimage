@@ -60,10 +60,10 @@ if False :
     except:
         pass
 else :
-    __version__ = '3.3.8'
+    __version__ = '3.3.9'
 
 
-__vdate__ = '08-Jul-2010'
+__vdate__ = '02-Apr-2012'
 # End Version Information ---------------------------------------------
 # Revision based version info
 try:
@@ -227,10 +227,9 @@ help file.
         # This needs to be done after any input file conversion
         # since it needs to be able to open the file to read the
         # MDRIZTAB keyword, if this parameter is set to TRUE.
-
         self.pars = mdrizpars.MDrizPars(self.input, self.output,
                             dict=input_dict,files=self.files)
-
+        
         # Initialize attributes needed for each processing step
         # These get populated by the 'build' method.
         self.steps = None
@@ -389,8 +388,7 @@ help file.
         # laying around...
         #self.asndict.update(shiftfile=self.shiftfile)
         #asnname = fileutil.buildNewRootname(self.asndict['output'], extn='_asn.fits')
-        #print 'asnname', asnname
-
+        #print 'asnname', asnname        
         assoc = pydrizzle._PyDrizzle(self.asndict, output=self.output,
                                     idckey=self.coeffs,
                                     section=self.driz_sep_pars['group'],
