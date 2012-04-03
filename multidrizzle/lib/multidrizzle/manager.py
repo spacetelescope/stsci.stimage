@@ -1045,7 +1045,7 @@ class ImageManager(object):
         runfile = drizpars['runfile']
         if runfile == '':
             _runextn = '_drz.fits'
-            for extn in [runextn,'_drc.fits']:
+            for extn in [_runextn,'_drc.fits']:
                 if extn in self.output:
                     _runextn = extn
                     break
