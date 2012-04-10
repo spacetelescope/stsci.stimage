@@ -3,8 +3,9 @@
 #
 from __future__ import division # confidence high
 
+from ..main import plus2
 
-from sample_package.main import plus2
+import unittest
 
 # The object contains a list of methods named "test_*" that are all
 # the tests.  For each one, the object gets instatiated, then it calls
@@ -12,16 +13,17 @@ from sample_package.main import plus2
 #
 # In nose, you don't get a test result if the __init__ function raises
 # an exception, but you do if setUp() does.
+#
+# In py.test, the class has to be named TestSomething with a capital T
 
-class test_1(object) :
+class Test_1(object) :
     a = plus2(4)
 
-    def __init__( self ) :
-        self.b = plus2(6)
-
-    def setUp( self ) :
+    @classmethod
+    def setup_class( self ) :
         # called before each test
         print 'test setup'
+        self.b = plus2(6)
         self.c = plus2(8)
 
     # methods named 'test_*' are tests
@@ -41,7 +43,8 @@ class test_1(object) :
     def test_e( self ) :
         assert plus2(10) == 12
 
-    def tearDown( self ) :
+    @classmethod
+    def teardown_class( self ) :
         # called after each test
         print 'test teardown'
 

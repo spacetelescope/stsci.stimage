@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+# hack for as long as we are still using the old setup and can't have setup.cfg around
+import shutil
+shutil.copy("new_setup.cfg","setup.cfg")
+
 try:
     from setuptools import setup
 except ImportError:

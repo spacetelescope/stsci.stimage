@@ -1,6 +1,6 @@
 from __future__ import division # confidence high
 
-from sample_package.main import plus2
+from ..main import plus2
 
 # Just write a function named test_* that asserts whatever it is you are looking for.
 

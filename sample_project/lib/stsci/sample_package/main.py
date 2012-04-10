@@ -1,6 +1,6 @@
 from __future__ import division # confidence high
 
-import sample_package
+from . import __init__ as sample_package
 import os
 
 

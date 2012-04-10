@@ -26,5 +26,5 @@ except ImportError:
 
 def test(*args,**kwds):
     import stsci.tools.tester
-    stsci.tools.tester.test(modname=__name__, *args, **kwds)
+    stsci.tools.tester.test(modname=__name__, mode='pytest', *args, **kwds)
 
