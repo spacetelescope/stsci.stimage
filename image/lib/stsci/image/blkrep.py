@@ -8,10 +8,10 @@ from stsci.tools import fileutil, wcsutil
 
 def blkrep(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
     """Performs a block replication across the input image(s),
-       based on the input block dimensions designated by the 
-       user, and outputs the result to a new FITS file, or files. 
-       The value of each pixel is replicated in x and y pixel 
-       space based on the user-defined block of pixels, and  
+       based on the input block dimensions designated by the
+       user, and outputs the result to a new FITS file, or files.
+       The value of each pixel is replicated in x and y pixel
+       space based on the user-defined block of pixels, and
        assigned to all values within the block for the output image.
 
     Parameters
@@ -20,33 +20,33 @@ def blkrep(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
              List of images to be block replicated.
 
     outfiles: string
-            List of output image names. If the output image 
-            name is the same as the input image name, then the 
+            List of output image names. If the output image
+            name is the same as the input image name, then the
             block averaged image replaces the input image.
 
     b1: int
-        The number of rows to be produced in block replication 
+        The number of rows to be produced in block replication
         (dimension 1, or x).
-    
+
     b2: int
-        The number of columns to be produced in block replication 
+        The number of columns to be produced in block replication
         (dimension 2, or y).
 
     b3: int
-        The number of layers to be produced in block replication 
+        The number of layers to be produced in block replication
         (dimension 1, or z).
 
     Returns
     -------
-    result: FITS files named according to outfiles parameter; 
-            block replicated based on b1(x), b2(y), and b3(z) 
+    result: FITS files named according to outfiles parameter;
+            block replicated based on b1(x), b2(y), and b3(z)
             dimensional parameters.
-    
+
     Example
     -------
     >>> import blkrep
     >>> blkrep.blkrep('imageIn1.fits,imageIn2.fits','imageOut1.fits,imageOut2.fits',1,5,5)
-    
+
     """
 
     infile_split = infiles.split(',')
@@ -60,13 +60,13 @@ def blkrep(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
 
         if numext == 0 and (extension_num == None or extension_num == 0):
             prihdr=pyfits.getheader(infile,numext)
-            pri_cards=prihdr[0:]
+            pri_cards=prihdr.ascard
 
             new_cards=update_hdr(pri_cards,b1,b2,b3)
             outhdr=pyfits.Header(new_cards)
 
             scidata = hdulist[numext].data
-            
+
         elif numext > 0 and extension_num <= numext:
             prihdr=pyfits.getheader(infile,0)
             scihdr=pyfits.getheader(infile,'SCI',extension_num)
@@ -77,7 +77,7 @@ def blkrep(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
             pri_cards1=prihdr[0:pri_loc1[0][0]+1]
             pri_loc2=np.min(np.where(prihdr_keys == 'HISTORY'))
             pri_cards2=prihdr[pri_loc1[0][0]+1:pri_loc2]
-            
+
             scihdr_keys=scihdr[0:].keys()
             scihdr_keys=np.asarray(scihdr_keys)
             sci_loc1=np.where(scihdr_keys == 'NAXIS1')
@@ -127,11 +127,11 @@ def blkrep(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
         # data, as applicable, and bin the pixels based
         # the user designated block size.
         for i,x1 in enumerate(range(0,x_bin,b1)):
-            
+
             x2 = x1 + b1
 
             # If the end of row is reached,
-            # shorten the number of pixels 
+            # shorten the number of pixels
             # used in the x_direction
             if x2 > x_bin:
                 x2 = x_bin
@@ -141,13 +141,13 @@ def blkrep(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
                 y2 = y1 + b2
 
                 # If the end of column is reached,
-                # shorten the number of pixels 
+                # shorten the number of pixels
                 # used in the y_direction
                 if y2 > y_bin:
                     y2 = y_bin
-                
+
                 if b3 == 1:
-                    
+
                     outarr[y1:y2,x1:x2] = scidata[j,i]
 
                 else:
@@ -157,7 +157,7 @@ def blkrep(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
                         z2 = z1 + b3
 
                         # If the end of block is reached,
-                        # shorten the number of pixels 
+                        # shorten the number of pixels
                         # used in the z_direction
                         if z2 > z_bin:
                             z2 = z_bin
@@ -226,5 +226,5 @@ def update_hdr(card_list,b1,b2,b3):
     card_list.append(pyfits.Card('wat0_001', 'system=image'))
     card_list.append(pyfits.Card('wat1_001', 'wtype=tan axtype=ra'))
     card_list.append(pyfits.Card('wat2_001', 'wtype=tan axtype=dec'))
-    
+
     return card_list

@@ -6,9 +6,9 @@ import math
 from stsci.tools import fileutil, wcsutil
 
 def blkavg(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
-    """Perform a block average across the input image(s) and 
-       outputs the result to a new FITS file, or files. The mean 
-       value of the user-defined block of pixels is assigned to 
+    """Perform a block average across the input image(s) and
+       outputs the result to a new FITS file, or files. The mean
+       value of the user-defined block of pixels is assigned to
        all values within the block for the output image.
 
     Parameters
@@ -17,8 +17,8 @@ def blkavg(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
              List of images to be block averaged.
 
     outfiles: string
-            List of output image names. If the output image 
-            name is the same as the input image name then the 
+            List of output image names. If the output image
+            name is the same as the input image name then the
             block averaged image replaces the input image.
 
     b1: int
@@ -32,15 +32,15 @@ def blkavg(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
 
     Returns
     -------
-    result: FITS files named according to outfiles parameter, 
-            block averaged based on b1, b2, and b3 dimensional 
+    result: FITS files named according to outfiles parameter,
+            block averaged based on b1, b2, and b3 dimensional
             parameters.
-    
+
     Example
     -------
     >>> import blkavg
     >>> blkavg.blkavg('imageIn1.fits,imageIn2.fits','imageOut1.fits,imageOut2.fits',1,5,5)
-    
+
     """
 
     infile_split = infiles.split(',')
@@ -54,13 +54,13 @@ def blkavg(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
 
         if numext == 0 and (extension_num == None or extension_num == 0):
             prihdr=pyfits.getheader(infile,numext)
-            pri_cards=prihdr[0:]
+            pri_cards=prihdr.ascard
 
             new_cards=update_hdr(pri_cards,b1,b2,b3)
             outhdr=pyfits.Header(new_cards)
 
             scidata = hdulist[numext].data
-            
+
         elif numext > 0 and extension_num <= numext:
             prihdr=pyfits.getheader(infile,0)
             scihdr=pyfits.getheader(infile,'SCI',extension_num)
@@ -71,7 +71,7 @@ def blkavg(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
             pri_cards1=prihdr[0:pri_loc1[0][0]+1]
             pri_loc2=np.min(np.where(prihdr_keys == 'HISTORY'))
             pri_cards2=prihdr[pri_loc1[0][0]+1:pri_loc2]
-            
+
             scihdr_keys=scihdr[0:].keys()
             scihdr_keys=np.asarray(scihdr_keys)
             sci_loc1=np.where(scihdr_keys == 'NAXIS1')
@@ -122,11 +122,11 @@ def blkavg(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
         # data, as applicable, and bin the pixels based
         # the user designated block size.
         for i,x1 in enumerate(range(0,x_arr_dim,b1)):
-            
+
             x2 = x1 + b1
 
             # If the end of row is reached,
-            # shorten the number of pixels 
+            # shorten the number of pixels
             # used in the x_direction
             if x2 > x_arr_dim:
                 x2 = x_arr_dim
@@ -136,13 +136,13 @@ def blkavg(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
                 y2 = y1 + b2
 
                 # If the end of column is reached,
-                # shorten the number of pixels 
+                # shorten the number of pixels
                 # used in the y_direction
                 if y2 > y_arr_dim:
                     y2 = y_arr_dim
-                
+
                 if b3 == 1:
-                    
+
                     outarr[j,i] = scidata[y1:y2,x1:x2].mean()
 
                 else:
@@ -152,7 +152,7 @@ def blkavg(infiles,outfiles,extension_num=None,b1=1,b2=1,b3=1):
                         z2 = z1 + b3
 
                         # If the end of block is reached,
-                        # shorten the number of pixels 
+                        # shorten the number of pixels
                         # used in the z_direction
                         if z2 > z_arr_dim:
                             z2 = z_arr_dim
@@ -220,5 +220,5 @@ def update_hdr(card_list,b1,b2,b3):
     card_list.append(pyfits.Card('wat0_001', 'system=image'))
     card_list.append(pyfits.Card('wat1_001', 'wtype=tan axtype=ra'))
     card_list.append(pyfits.Card('wat2_001', 'wtype=tan axtype=dec'))
-    
+
     return card_list
