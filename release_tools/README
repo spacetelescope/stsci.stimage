@@ -1,8 +1,8 @@
 set repo=https://svn.stsci.edu/svn/ssb/stsci_python/stsci_python
 
-set branch=release_2011_08
+set branch=release_2012_06
 
-set VER=2.12
+set VER=2.13
 
 
 How to make an stsci_python release branch
@@ -52,6 +52,8 @@ vi testpk.py
 release_tools/svnversion
 	# not in 2011_3
 
+sh checkout_externals
+
 find . -name .svn -exec rm -rf {} ';'
 
 rst2html.py < INSTALL.rst > INSTALL.html
@@ -71,6 +73,9 @@ tar zcf /eng/ssb/dist/$branch/stsci_python-$VER.tar.gz  stsci_python-$VER
 How to test the release
 --
 
+ssh arzach -l iraf
+ssh cadeau -l iraf
+
 cd to the work directory where you will do the testing
 
 unsetenv PYTHONPATH
@@ -86,12 +91,13 @@ svn checkout -q $repo/branches/$branch/release_tools
 sh release_tools/testenv
 	paste the appropriate commands from what it displayed
 		set path, pythonpath
-		uninstall
-		install setup.py
 
 tar xf /eng/ssb/dist/$branch/stsci_python-$VER.tar.gz
 
 cd stsci_python-$VER
+
+python uninstall.py
+	# says there is nothing to uninstall
 
 python setup.py -q install --home $pyhome
 
@@ -99,7 +105,7 @@ python testpk.py
 
 cd /arzach/data1/rt
 
-setenv PDK_TESTRUN $branch-`date +%H-%M`.XXXXXX    <- fill in an identifier for XXXX
+setenv PDK_TESTRUN $branch-XXXXXX    <- fill in an identifier for XXXX
 
 pdkrun -r --parallel 4 stsci_python/ astrolib/pysynphot >& log
 
