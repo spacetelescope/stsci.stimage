@@ -1,0 +1,91 @@
+minimal disruption plan for transition of stsci_python install
+--
+
+1. split stsci_python into packages (installs only)
+
+	- each package in stsci_python is installed separately
+
+	- there is no migration to setup.cfg, d2to1, etc
+
+	- the install does not use dependencies between packages
+	( --single-version-externally-managed )
+
+	- no change to layout of subversion repository
+
+	- the master stsci_python install is a shell script for use
+	in our development environment
+
+	- there are shell scripts that create a source tar file of
+	the entire system, to be used by the nightly builds
+
+2.1. irafdev based on this change (~ first week of august)
+
+	- will have each package installed separately by shell script
+
+2.2. opus delivery based on this change (~ first week of august)
+
+	- same as irafdev
+
+	- updated opus delivery procedure
+
+	- later deliveries can update each package separately with
+	minimal fuss
+
+2.3. developer installs work like the opus installs
+
+	- delete stsci_python/setup.py
+
+2.4. irafx installs based on this change
+
+3. work out how to handle inter-package dependencies
+
+	- how we are going to keep these requires= correct in a
+	development environment and how we are going to get them
+	right in releases
+
+4. migrate individual packages to new install
+
+	- happens one at a time, as we get to them
+
+	- uses d2to1, uses requires to specify dependencies (even
+	though the stsci_python install ignores this information)
+
+5. procedure for constructing individual package source distributions
+
+	- provides packages requires=
+
+	- this is a formal written procedure; if it is not documented,
+	it doesn't exist
+
+6. procedure for assembling individual package source distributions into a single distribution
+
+7. local pypi server
+
+	- not a critical path for nightly builds (pypi is not a helpful
+	tool for me -- it is a thing I am compelled to be compatible
+	with)
+
+	- http://ssb.stsci.edu switched unauthenticated (https remains authenticated)
+
+	- install pypi server on http://ssb.stsci.edu/pypi
+
+	- procedure for installing source distributions on server
+		- development
+		- released
+
+8. master setup.py that installs stsci_python using requires=
+
+	- defaults to our pypi server
+
+	- data driven, by same data used in stsci_python/newinstall
+		- which data is source and which is object is open
+		for discussion
+
+x. figure out what to do on Windows
+
+x. split stsci_python into HST, JWST, and STSCI ?
+
+	- adapt jwst development to this procedure too
+
+x. procedure for installing releases to pypi.python.org
+

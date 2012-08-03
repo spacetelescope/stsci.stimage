@@ -1,0 +1,54 @@
+if [ "$branch" = "" ]
+then
+	branch=trunk
+fi
+# branch=branches/xxx
+
+astrolib=http://svn6.assembla.com/svn/astrolib/
+stsci_python=https://svn.stsci.edu/svn/ssb/stsci_python/
+pyfits=http://svn6.assembla.com/svn/pyfits/
+pyraf=http://svn6.assembla.com/svn/pyraf/
+
+sed -e '/^[ 	]*#/d' -e '/^$/d' << ARF
+
+# needed by installs
+d2to1		    svn		$stsci_python/d2to1/$branch
+stsci.tools	    svn		$stsci_python/stsci_python/$branch/tools
+stsci.distutils	    svn		$stsci_python/stsci.distutils/$branch
+
+# common libraries
+stsci.convolve	    svn		$stsci_python/stsci_python/$branch/convolve
+stsci.image	    svn		$stsci_python/stsci_python/$branch/image
+stsci.imagemanip    svn		$stsci_python/stsci_python/$branch/imagemanip
+stsci.imagestats    svn		$stsci_python/stsci_python/$branch/imagestats
+stsci.ndimage	    svn		$stsci_python/stsci_python/$branch/ndimage
+stsci.numdisplay    svn		$stsci_python/stsci_python/$branch/numdisplay
+stsci.sphinxext	    svn		$astrolib/$branch/stsci_sphinxext
+stsci.stimage	    svn		$stsci_python/stsci_python/$branch/stimage
+astrolib.coords     svn		$astrolib/$branch/coords
+pyfits		    svn		$pyfits/$branch
+pyraf		    svn		$pyraf/$branch
+pywcs		    svn		$astrolib/$branch/pywcs
+stwcs		    svn		$stsci_python/stsci_python/$branch/stwcs
+reftools	    svn		$stsci_python/stsci_python/$branch/reftools
+opuscoords	    svn		$stsci_python/stsci_python/$branch/opuscoords
+fitsblender	    svn		$stsci_python/stsci_python/$branch/fitsblender
+
+# applications
+sample_project	    svn		$stsci_python/sample_project/$branch
+pysynphot	    svn		$astrolib/$branch/pysynphot
+drizzlepac	    svn		$stsci_python/stsci_python/$branch/drizzlepac
+
+# calibration software
+acstools	    svn		$stsci_python/stsci_python/$branch/acstools
+calcos		    svn		$stsci_python/stsci_python/$branch/calcos
+costools	    svn		$stsci_python/stsci_python/$branch/costools
+nictools	    svn		$stsci_python/stsci_python/$branch/nictools
+stistools	    svn		$stsci_python/stsci_python/$branch/stistools
+wfpc2tools	    svn		$stsci_python/stsci_python/$branch/wfpc2tools
+
+# old
+pydrizzle	    svn		$stsci_python/stsci_python/$branch/pydrizzle
+multidrizzle	    svn		$stsci_python/stsci_python/$branch/multidrizzle
+
+ARF

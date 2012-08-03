@@ -1,0 +1,64 @@
+
+Using this to build/install stsci_python
+--
+
+	cd new_install
+
+	export PATH=`pwd`:$PATH
+
+	set path = ( $cwd $path )
+
+check out working directory
+--
+
+	cd $workdir
+	mkdir stsci_python
+	cd stsci_python
+
+	stp_list | stp_checkout
+
+make a tar file of all of stsci_python
+--
+
+	# check out as above, then
+
+	cd ..
+	tar cf file.tar stsci_python
+
+install stsci_python
+--
+
+	tar xf file.tar
+	cd stsci_python
+	
+	cd new_install
+
+	export PATH=`pwd`:$PATH
+
+	set path = ( $cwd $path )
+
+	stp_remove
+		# new name for previous uninstall.py
+
+	stp_list > package_list
+
+	stp_install ...args... < package_list
+
+	cp package_list `python -m stsci.tools.stash`/package_list
+
+
+install from checked out source
+--
+
+	# first time
+	stp_list | stp_checkout
+
+	stp_list | stp_install ...args...
+
+	# later times
+	(
+		cd whatever 
+		svn update 
+		python setup.py install ...args...
+	)
+
