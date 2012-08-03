@@ -29,16 +29,19 @@ install stsci_python
 --
 
 	tar xf file.tar
+
 	cd stsci_python
-	
 	cd new_install
 
 	export PATH=`pwd`:$PATH
 
 	set path = ( $cwd $path )
 
+	cd ..
+
 	stp_remove
 		# new name for previous uninstall.py
+		# doesn't work with egg-based things
 
 	stp_list > package_list
 
