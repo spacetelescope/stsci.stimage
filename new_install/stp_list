@@ -17,6 +17,10 @@ pyraf=http://svn6.assembla.com/svn/pyraf/
 
 sed -e '/^[ 	]*#/d' -e '/^$/d' << ARF
 
+# new install has to be listed so it will get branched and such, but
+# it is not a real package.  it has a dummy setup.py that doesn't do anything.
+new_install	    svn		$stsci_python/new_install/$branch
+
 # needed by installs
 d2to1		    svn		$stsci_python/d2to1/$branch
 stsci.tools	    svn		$stsci_python/stsci_python/$branch/tools
