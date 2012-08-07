@@ -1,0 +1,57 @@
+#!/bin/sh
+
+# tmp.1 is a list of the directory names in the "FROM" branch
+# tmp.2 is a list of the directory names in the "TO" branch
+stp_list $1 > tmp.1
+stp_list $2 > tmp.2
+
+# merg them together
+paste tmp.1 tmp.2 | expand > tmp.3
+
+# the line for each package will match the line from the same package
+# in the other file.  This asserts that is true.
+awk '{ if ( $1 != $4 ) { printf("paste mismatch: %s - %s\n",$1,$4); exit 1; } }' < tmp.3
+if [ $? != 0 ]
+then
+	exit 1
+fi
+
+# a message for all the branch operations we are about to do
+bmsg="making branch"
+
+# for each python package, make the branch
+for x in `awk '{print $1}' < tmp.3`
+do
+	echo XXXXXXXX $x
+	# get the line about just this package
+	l=`grep ^$x' ' < tmp.3`
+
+	# pick out the FROM and TO svn urls
+	from=`echo $l | awk '{print $3}' `
+	to=`echo $l | awk '{print $6}' `
+
+	# get a parent director for the TO url
+	dto=`dirname $to`
+
+	# create the parent directory of the TO if it does not exist
+	if svn info $dto > /dev/null 2>&1
+	then
+		# dto exists - ok
+		:
+	else
+		# error implies (we assume) dto does not exist
+		# make it
+		svn mkdir --parents -m"$bmsg" $dto
+	fi
+
+	# delete the TO directory if it already exists
+	if svn info $to > /dev/null 2>&1
+	then
+		# it worked, so we have to delete it
+		svn del -m"$bmsg" $to
+	fi
+
+	# 
+	# perform the svn copy
+	svn copy -m"$bmsg" $from $to
+done

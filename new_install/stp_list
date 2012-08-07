@@ -1,3 +1,9 @@
+if [ "$1" != "" ]
+then
+	branch=$1
+	export branch
+fi
+
 if [ "$branch" = "" ]
 then
 	branch=trunk
