@@ -19,7 +19,7 @@ sed -e '/^[ 	]*#/d' -e '/^$/d' << ARF
 
 # new install has to be listed so it will get branched and such, but
 # it is not a real package.  it has a dummy setup.py that doesn't do anything.
-new_install	    svn		$stsci_python/new_install/$branch
+new_install	    svn		$stsci_python/$branch/new_install
 
 # needed by installs
 d2to1		    svn		$stsci_python/d2to1/$branch
