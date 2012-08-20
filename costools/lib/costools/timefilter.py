@@ -3,12 +3,12 @@
 
 from __future__ import division         # confidence high
 
-__author__ = "Phil Hodge, STScI, June 2011."
+__author__ = "Phil Hodge, STScI, August 2012."
 __usage__ = """
 1. To run this task from within Python::
 
     >>> from costools import timefilter
-    >>> timefilter.Timelinefilter ("xyz_corrtag.fits", "temp_corrtag.fits",
+    >>> timefilter.TimelineFilter ("xyz_corrtag.fits", "temp_corrtag.fits",
                                    "sun_alt > 0.")
 
 .. note:: make sure the `costools` package is on your Python path
