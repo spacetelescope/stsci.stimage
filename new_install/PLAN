@@ -43,6 +43,11 @@ minimal disruption plan for transition of stsci_python install
 	development environment and how we are going to get them
 	right in releases
 
+        - I'm working on a set of version management tools for this purpose,
+          as well as generating development snapshots where all the
+          versions point to specific SVN revisions trunk trunk (Erik)
+
+
 4. migrate individual packages to new install
 
 	- happens one at a time, as we get to them
