@@ -12,10 +12,28 @@ MAX_ITERATIONS = 5
 
 def zscale (image, nsamples=1000, contrast=0.25, bpmask=None, zmask=None):
     """Implement IRAF zscale algorithm
-    nsamples=1000 and contrast=0.25 are the IRAF display task defaults
-    bpmask and zmask not implemented yet
-    image is a 2-d numpy array
-    returns (z1, z2)
+
+    Parameters
+    ----------
+    image : arr
+        2-d numpy array
+
+    nsamples : int (Default: 1000)
+        Number of points in array to sample for determining scaling factors
+
+    contrast : float (Default: 0.25)
+        Scaling factor for determining min and max. Larger values increase the
+        difference between min and max values used for display.
+
+    bpmask : None
+        Not used at this time
+
+    zmask : None
+        Not used at this time
+
+    Returns
+    -------
+    (z1, z2)
     """
 
     # Sample the image
@@ -48,7 +66,7 @@ def zscale (image, nsamples=1000, contrast=0.25, bpmask=None, zmask=None):
     return z1, z2
 
 def zsc_sample (image, maxpix, bpmask=None, zmask=None):
-    
+
     # Figure out which pixels to use for the zscale algorithm
     # Returns the 1-d array samples
     # Don't worry about the bad pixel mask or zmask for the moment
@@ -59,7 +77,7 @@ def zsc_sample (image, maxpix, bpmask=None, zmask=None):
     stride = int (stride)
     samples = image[::stride,::stride].flatten()
     return samples[:maxpix]
-    
+
 def zsc_fit_line (samples, npix, krej, ngrow, maxiter):
 
     #
@@ -82,7 +100,7 @@ def zsc_fit_line (samples, npix, krej, ngrow, maxiter):
 
         if (ngoodpix >= last_ngoodpix) or (ngoodpix < minpix):
             break
-        
+
         # Accumulate sums to calculate straight line fit
         goodpixels = numpy.where(badpix == GOOD_PIXEL)
         sumx = xnorm[goodpixels].sum()
@@ -95,7 +113,7 @@ def zsc_fit_line (samples, npix, krej, ngrow, maxiter):
         # Slope and intercept
         intercept = (sumxx * sumy - sumx * sumxy) / delta
         slope = (sum * sumxy - sumx * sumy) / delta
-        
+
         # Subtract fitted line from the data array
         fitted = xnorm*slope + intercept
         flat = samples - fitted
@@ -113,13 +131,13 @@ def zsc_fit_line (samples, npix, krej, ngrow, maxiter):
 
         badpix[below] = BAD_PIXEL
         badpix[above] = BAD_PIXEL
-        
+
         # Convolve with a kernel of length ngrow
         kernel = numpy.ones(ngrow,dtype="int32")
         badpix = numpy.convolve(badpix, kernel, mode='same')
 
         ngoodpix = len(numpy.where(badpix == GOOD_PIXEL)[0])
-        
+
         niter += 1
 
     # Transform the line coefficients back to the X range [0:npix-1]

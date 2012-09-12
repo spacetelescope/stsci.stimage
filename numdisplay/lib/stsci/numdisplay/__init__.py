@@ -1,6 +1,32 @@
 """numdisplay: Package for displaying numpy arrays in IRAF-compatible
                 image display tool such as DS9 or XIMTOOL.
 
+    This package provides several methods for controlling the display
+    of the numpy array; namely,
+
+        open(imtdev=None)::
+            Open the default display device or the device specified
+            in 'imtdev', such as 'inet:5137' or 'fifo:/dev/imt1o'.
+
+        close()::
+            Close the display device defined by 'imtdev'. This must
+            be done before resetting the display buffer to a new size.
+
+        display(pix, name=None, bufname=None, z1=None, z2=None, quiet=False, transform=None, scale=None, offset=None, frame=None)::
+            Display the scaled array in display tool (ds9/ximtool/...).
+
+        readcursor(sample=0)::
+            Return a single cursor position from the image display.
+            By default, this operation will wait for a keystroke before
+            returning the cursor position. If 'sample' is set to 1,
+            then it will NOT wait to read the cursor.
+            This will return a string containing: x,y,frame and key.
+
+        help()::
+            print Version ID and this message.
+
+    Notes
+    -----
     Displaying a numpy array object involves:
         1.  Opening the connection to a usable display tool (such as DS9).
 
@@ -22,92 +48,38 @@
             All pixel positions reported back will be relative to the
             full image size.
 
-        This package provides several methods for controlling the display
-        of the numpy array; namely,
+    Examples
+    --------
 
-            open(imtdev=None):
-                Open the default display device or the device specified
-                in 'imtdev', such as 'inet:5137' or 'fifo:/dev/imt1o'.
+    The user starts with a 1024x1024 array in the variable 'fdata'.
+    This array has min pixel value of -157.04 and a max pixel value
+    of 111292.02.  The display tool DS9 has already been started from
+    the host level and awaits the array for display.  Displaying the
+    array requires::
 
-            close():
-                Close the display device defined by 'imtdev'. This must
-                be done before resetting the display buffer to a new size.
+        >>> import numdisplay
+        >>> numdisplay.display(fdata)
 
-            display(pix, name=None, bufname=None, z1=None, z2=None, quiet=False,
-                    transform=None, scale=None, offset=None, frame=None):
-                Display the scaled array in display tool (ds9/ximtool/...).
-                name -- optional name to pass along for identifying array
+    If there is a problem connecting to the DS9 application, the connection
+    can be manually started using::
 
-                bufname -- name of buffer to use for displaying array
-                           (such as 'imt512')
-                            'iraf': look for 'stdimage' and use that buffer or
-                                    default to 'imt1024' [1024x1024 buffer]
-                            None  : ignore 'stdimage' and automatically select
-                                    a buffer matched to the size of the image. 
+        >>> numdisplay.open()
 
-                z1,z2  -- minimum/maximum pixel value to display (float)
-                          Not specifying values will default
-                          to the full range values of the input array.
+    To bring out the fainter features, an offset value of 158 can be added
+    to the array to allow a 'log' scaling can be applied to the array values
+    using::
 
-                transform -- Python function to apply to array (function)
+        >>> numdisplay.display(fdata,transform=numpy.log,offset=158.0)
 
-                zscale -- use an algorithm like that in the IRAF display task.
-                          If zscale=True, any z1 and z2 set in the call to display
-                          are ignored.  Using zscale=True invalidates any transform
-                          specified in the call.
+    To redisplay the image with default full-range scaling::
 
-                contrast -- same as the contrast parameter in the IRAF display
-                            task.  Only applies if zscale=True.  Default value = 0.25.
-                            Higher contrast values make z1 and z2 closer together,
-                            while lower values give a gentler (wider) range.
+        >>> numdisplay.display(fdata)
 
-                scale  -- multiplicative scale factor to apply to array (float/int)
-                          Persistent, so to reset it you must specify scale=1 in the
-                          display call.
+    To redisplay using the IRAF display zscale algorithm, and with a contrast
+    value steeper than the default value of 0.25::
 
-                offset -- additive factor to apply to array before scaling (float/int)
-                          This value is persistent, so to reset it you have to set it
-                          to 0.
+        >>> numdisplay.display(fdata, zscale=True, contrast=0.5)
 
-                frame  -- image buffer frame number in which to display array
-                            (integer)
-                
-                quiet  -- if True (default: False), will turn off 
-                            all status messages (bool)
-
-                The display parameters set here will ONLY apply to the display
-                of the current array.
-
-            readcursor(sample=0):
-                Return a single cursor position from the image display.
-                By default, this operation will wait for a keystroke before
-                returning the cursor position. If 'sample' is set to 1,
-                then it will NOT wait to read the cursor.
-                This will return a string containing: x,y,frame and key.
-
-            help():
-                print Version ID and this message.
-
-    Example:
-        The user starts with a 1024x1024 array in the variable 'fdata'.
-        This array has min pixel value of -157.04 and a max pixel value
-        of 111292.02.  The display tool DS9 has already been started from
-        the host level and awaits the array for display.  Displaying the
-        array requires:
-            >>> import stsci.numdisplay as numdisplay
-            >>> numdisplay.display(fdata)
-        If there is a problem connecting to the DS9 application, the connection
-        can be manually started using:
-            >>> numdisplay.open()
-        To bring out the fainter features, an offset value of 158 can be added
-        to the array to allow a 'log' scaling can be applied to the array values
-        using:
-            >>> numdisplay.display(fdata,transform=numpy.log,offset=158.0)
-        To redisplay the image with default full-range scaling:
-            >>> numdisplay.display(fdata)
-        To redisplay using the IRAF display zscale algorithm, and with a contrast
-        value steeper than the default value of 0.25:
-            >>> numdisplay.display(fdata, zscale=True, contrast=0.5)
 
 """
 from __future__ import division # confidence medium
@@ -217,9 +189,12 @@ class NumDisplay(object):
     def reset(self, names=None):
         """Reset specific attributes, or all by default.
 
-        @param names: names of attributes to be reset, separated by commas
+        Parameters
+        ----------
+        names : string or list of strings
+            names of attributes to be reset, separated by commas
             or spaces; the default is to reset all attributes to None
-        @type names: string or list of strings
+
         """
 
         if names:
@@ -341,11 +316,63 @@ class NumDisplay(object):
              offset=None, frame=None,quiet=False):
 
         """ Displays byte-scaled (UInt8) n to XIMTOOL device.
-            This method uses the IIS protocol for displaying the data
-            to the image display device, which requires the data to be
-            byte-scaled.
-            If input is not byte-scaled, it will perform scaling using
-            set values/defaults.
+        This method uses the IIS protocol for displaying the data
+        to the image display device, which requires the data to be
+        byte-scaled.
+
+        If input is not byte-scaled, it will perform scaling using
+        set values/defaults.
+
+        Parameters
+        ----------
+        name : str
+            optional name to pass along for identifying array
+
+        bufname : str
+            name of buffer to use for displaying array (such as 'imt512').
+            Other valid values include::
+
+                'iraf': look for 'stdimage' and use that buffer or default to 'imt1024' [1024x1024 buffer]
+                None  : ignore 'stdimage' and automatically select a buffer matched to the size of the image.
+
+        z1,z2 : float
+            minimum/maximum pixel value to display. Not specifying values will default
+            to the full range values of the input array.
+
+        transform : function
+            Python function to apply to array (function)
+
+        zscale : bool
+            Specify whether or not to use an algorithm like that in the IRAF
+            display task. If zscale=True, any z1 and z2 set in the call to display
+            are ignored.  Using zscale=True invalidates any transform
+            specified in the call.
+
+        contrast : float (Default=0.25)
+            Same as the *contrast* parameter in the IRAF *display* task.
+            Only applies if zscale=True. Higher contrast values make z1 and
+            z2 closer together, while lower values give a gentler (wider) range.
+
+        scale : float/int
+            multiplicative scale factor to apply to array. The value of this
+            parameter remains persistent, so to reset it you must specify
+            scale=1 in the display call.
+
+        offset : float/int
+            additive factor to apply to array before scaling. This value is
+            persistent, so to reset it you have to set it to 0.
+
+        frame : int
+            image buffer frame number in which to display array
+
+        quiet : bool (Default: False)
+            if True, this parameter will turn off all status messages
+
+        Notes
+        ------
+        The display parameters set here will ONLY apply to the display
+        of the current array.
+
         """
 
         #Ensure that the input array 'pix' is a numpy array
@@ -449,10 +476,10 @@ class NumDisplay(object):
     def readcursor(self,sample=0):
         """ Return the cursor position from the image display. """
         return self.view.readCursor(sample=sample)
-    
+
     def getHandle(self):
         return self.handle
-    
+
     def checkDisplay(self):
         return self.view.checkDisplay()
 
@@ -511,4 +538,3 @@ def sample() :
     print "The first 50 rows are ascending brightness left  to right"
     print "The next  50 rows are ascending brightness right to left, but st"
     print "REMEMBER THAT 0,0 IS BOTTOM LEFT"
-

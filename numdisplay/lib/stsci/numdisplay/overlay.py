@@ -5,27 +5,32 @@ import struct
 
 import numpy as N
 import stsci.numdisplay as numdisplay
-import ichar 
+import ichar
 
 """The public functions are the following.  For point, rectangle, circle
 and polyline, arguments shown on separate lines are alternate ways to
 specify the location and size of the figure to be drawn.
 
-point (x=x0, y=y0,
-       center=(x0,y0))
-rectangle (left=x1, right=x2, lower=y1, upper=y2,
-           center=(x0,y0), width=w, height=h)
-circle (x=x0, y=y0, radius=r,
-        center=(x0,y0), radius=r)
-polyline (points=[(x1,y1), (x2,y2), (x3,y3), ...],
-          vertices=[(x1,y1), (x2,y2), (x3,y3), ...])
-undo()
-set (color, radius)
+::
 
-color is an optional argument to point, rectangle, circle, and polyline.
-The allowed values for color are:
-C_BLACK, C_WHITE, C_RED, C_GREEN, C_BLUE, C_YELLOW, C_CYAN, C_MAGENTA,
-C_CORAL, C_MAROON, C_ORANGE, C_KHAKI, C_ORCHID, C_TURQUOISE, C_VIOLET, C_WHEAT
+    point (x=x0, y=y0,
+       center=(x0,y0))
+    rectangle (left=x1, right=x2, lower=y1, upper=y2,
+           center=(x0,y0), width=w, height=h)
+    circle (x=x0, y=y0, radius=r,
+        center=(x0,y0), radius=r)
+    polyline (points=[(x1,y1), (x2,y2), (x3,y3), ...],
+          vertices=[(x1,y1), (x2,y2), (x3,y3), ...])
+    undo()
+    set (color, radius)
+
+Notes
+-----
+The *color* parameter is an optional argument to point, rectangle, circle, and polyline.
+
+The allowed values for color are::
+    C_BLACK, C_WHITE, C_RED, C_GREEN, C_BLUE, C_YELLOW, C_CYAN, C_MAGENTA,
+    C_CORAL, C_MAROON, C_ORANGE, C_KHAKI, C_ORCHID, C_TURQUOISE, C_VIOLET, C_WHEAT
 """
 
 C_BLACK     = 202
@@ -65,24 +70,28 @@ def _open_display(frame=1):
     fd.setFrame(frame_num=frame)
     (tx, ty, fbwidth, fbheight) = fd.readInfo()
     return (fd, tx, ty, fbwidth, fbheight)
-    
+
 def close_display(frame=1):
     """Close the device."""
     fd = numdisplay.getHandle()
     fd.close()
     numdisplay.close()
-    
+
 def set (color=None, radius=None):
     """Specify the color or the radius.
 
-    @param color: color code to use for graphic overlays; the allowed
-        values (202..217) are:
-        C_BLACK, C_WHITE, C_RED, C_GREEN, C_BLUE, C_YELLOW, C_CYAN, C_MAGENTA,
-        C_CORAL, C_MAROON, C_ORANGE, C_KHAKI, C_ORCHID, C_TURQUOISE, C_VIOLET,
-        C_WHEAT
-    @type color: int
-    @param radius: radius to use when drawing circles
-    @type radius: int
+    Parameters
+    ----------
+    color : int
+        color code to use for graphic overlays; the allowed values (202..217) are::
+
+          C_BLACK, C_WHITE, C_RED, C_GREEN, C_BLUE, C_YELLOW, C_CYAN, C_MAGENTA,
+          C_CORAL, C_MAROON, C_ORANGE, C_KHAKI, C_ORCHID, C_TURQUOISE, C_VIOLET,
+          C_WHEAT
+
+    radius: int
+        radius to use when drawing circles
+
     """
 
     global global_color, global_radius
@@ -98,14 +107,17 @@ def set (color=None, radius=None):
 def _transformPoint (x, y, tx, ty):
     """Convert image pixel coords to frame buffer coords (IIS convention).
 
-    @param x: image X coordinate of point
-    @type x: float
-    @param y: image Y coordinate of point
-    @type y: float
-    @param tx: X offset of frame buffer in image (positive if image is larger)
-    @type tx: float
-    @param ty: image coordinate corresponding to top line of frame buffer
-    @type ty: float
+    Parameters
+    ----------
+    x : float
+        image X coordinate of point
+    y : float
+        image Y coordinate of point
+    tx : float
+        X offset of frame buffer in image (positive if image is larger)
+    ty : float
+        image coordinate corresponding to top line of frame buffer
+
     """
 
     x -= tx
@@ -115,8 +127,11 @@ def _transformPoint (x, y, tx, ty):
 def _checkColor (color=None):
     """Return a valid color.
 
-    @param color: color code to use; if color=None, use default
-    @type color: int
+    Parameters
+    ----------
+    color : int
+        color code to use; if color=None, use default
+
     """
 
     global global_color
@@ -157,21 +172,27 @@ def _update_save (fd, x, y, list_of_points, last_overlay, undo=True):
 def point (**kwargs):
     """Draw a point.
 
-    @param x: image X coordinate of point
-    @type x: int
-    @param y: image Y coordinate of point
-    @type y: int
-    @param center: (x,y) coordinates of point
-    @type center: tuple
-    @param color: color code to use; if not specified, use default
-    @type color: int
-    @param undo: if specified [default=True], keep track of overlays for undo()
-    @type undo: bool
+    Parameters
+    ----------
+    x : int
+        image X coordinate of point
+    y : int
+        image Y coordinate of point
+    center : tuple
+        (x,y) coordinates of point
+    color : int
+        color code to use; if not specified, use default
+    undo : bool
+        if specified [default=True], keep track of overlays for undo()
 
-    syntax:
+    Examples
+    --------
+    Samples illustrating the syntax include::
+
         overlay.point (x=x0, y=y0)
         overlay.point (center=(x0,y0))
         overlay.point (x=x0, y=y0, color=overlay.C_<color>)
+
     """
 
     # These are used for saving what is currently displayed, for use by
@@ -218,27 +239,32 @@ def point (**kwargs):
         fd.writeData (x, y, color)
 
     global_save.append (last_overlay)
-    
+
     # The close() method needs to be called by the calling routine.
     #fd.close()
-    
+
 def marker (**kwargs):
     """Draw a character.
 
-    @param x: image X coordinate of point
-    @type x: int
-    @param y: image Y coordinate of point
-    @type y: int
-    @param mark: character to be drawn
-    @type mark: string
-    @param size: magnification to be used in drawing the character
-    @type size: int
-    @param color: color code to use; if not specified, use default
-    @type color: int
-    @param undo: if specified [default=True], keep track of overlays for undo()
-    @type undo: bool
+    Parameters
+    ----------
+    x : int
+        image X coordinate of point
+    y : int
+        image Y coordinate of point
+    mark : str
+        character to be drawn
+    size : int
+        magnification to be used in drawing the character
+    color : int
+        color code to use; if not specified, use default
+    undo : bool
+        if specified [default=True], keep track of overlays for undo()
 
-    syntax:
+    Examples
+    --------
+    Samples illustrating the syntax include::
+
         overlay.marker (x=x0, y=y0, mark='+')
         overlay.marker (x=x0, y=y0, mark='+', size=2)
         overlay.marker (x=x0, y=y0, mark='+', color=overlay.C_<color>)
@@ -302,41 +328,46 @@ def marker (**kwargs):
             fd.writeData (ix, iy, color)
 
     global_save.append (last_overlay)
-    
+
     # The close() method needs to be called by the calling routine.
     #fd.close()
 
 def rectangle (**kwargs):
     """Draw a rectangle.
 
-    @param left: image X coordinate of left edge
-    @type left: int
-    @param right: image X coordinate of right edge
-    @type right: int
-    @param lower: image Y coordinate of lower edge
-    @type lower: int
-    @param upper: image Y coordinate of upper edge
-    @type upper: int
-    @param center: (x,y) coordinates of middle of rectangle
-    @type center: tuple
-    @param width: width of rectangle (X direction)
-    @type width: int
-    @param height: height of rectangle (Y direction)
-    @type height: int
-    @param color: color code to use; if not specified, use default
-    @type color: int
-    @param undo: if specified [default=True], keep track of overlays for undo()
-    @type undo: bool
+    Parameters
+    ----------
+    left : int
+        image X coordinate of left edge
+    right : int
+        image X coordinate of right edge
+    lower : int
+        image Y coordinate of lower edge
+    upper : int
+        image Y coordinate of upper edge
+    center : tuple
+        (x,y) coordinates of middle of rectangle
+    width : int
+        width of rectangle (X direction)
+    height : int
+        height of rectangle (Y direction)
+    color : int
+        color code to use; if not specified, use default
+    undo : bool
+        if specified [default=True], keep track of overlays for undo()
 
-    syntax:
+    Examples
+    --------
+    Samples illustrating the syntax include::
+
         overlay.rectangle (left=x1, right=x2, lower=y1, upper=y2)
         overlay.rectangle (center=(x0,y0), width=w, height=h)
         overlay.rectangle (left=x1, lower=y1, center=(x0,y0))
         overlay.rectangle (left=x1, lower=y1, width=w, height=h)
         overlay.rectangle (right=x2, upper=y2, width=w, height=h)
         overlay.rectangle (right=x2, upper=y2, center=(x0,y0))
-        overlay.rectangle (left=x1, right=x2, lower=y1, upper=y2,
-                           color=overlay.C_<color>)
+        overlay.rectangle (left=x1, right=x2, lower=y1, upper=y2, color=overlay.C_<color>)
+
     """
 
     # These are used for saving what is currently displayed, for use by
@@ -466,23 +497,29 @@ def rectangle (**kwargs):
 def circle (**kwargs):
     """Draw a circle.
 
-    @param x: image X coordinate of center
-    @type x: int
-    @param y: image Y coordinate of center
-    @type y: int
-    @param center: (x,y) coordinates of center
-    @type center: tuple
-    @param radius: radius of circle
-    @type radius: int
-    @param color: color code to use; if not specified, use default
-    @type color: int
-    @param undo: if specified [default=True], keep track of overlays for undo()
-    @type undo: bool
+    Parameters
+    ----------
+    x : int
+        image X coordinate of center
+    y : int
+        image Y coordinate of center
+    center : tuple
+        (x,y) coordinates of center
+    radius : int
+        radius of circle
+    color : int
+        color code to use; if not specified, use default
+    undo : bool
+        if specified [default=True], keep track of overlays for undo()
 
-    syntax:
+    Examples
+    --------
+    Samples illustrating the syntax include::
+
         overlay.circle (x=x0, y=y0, radius=r)
         overlay.circle (center=(x0,y0), radius=r)
         overlay.circle (x=x0, y=y0, radius=r, color=overlay.C_<color>)
+
     """
 
     # These are used for saving what is currently displayed, for use by
@@ -567,20 +604,26 @@ def circle (**kwargs):
 def polyline (**kwargs):
     """Draw a series of connected line segments.
 
-    @param points: (x,y) points to connect with line segments
-    @type points: list of tuples
-    @param vertices: (x,y) points to connect with line segments
-    @type vertices: list of tuples
-    @param color: color code to use; if not specified, use default
-    @type color: int
-    @param undo: if specified [default=True], keep track of overlays for undo()
-    @type undo: bool
+    Parameters
+    ----------
+    points : list of tuples
+        (x,y) points to connect with line segments
+    vertices : list of tuples
+        (x,y) points to connect with line segments
+    color : int
+        color code to use; if not specified, use default
+    undo : bool
+        if specified [default=True], keep track of overlays for undo()
 
-    syntax:
+    Examples
+    --------
+    Samples illustrating the syntax include::
+
         overlay.polyline (points=[(x1,y1), (x2,y2), (x3,y3)])
         overlay.polyline (vertices=[(x1,y1), (x2,y2), (x3,y3)])
         overlay.polyline (points=[(x1,y1), (x2,y2), (x3,y3)],
                           color=overlay.C_<color>)
+
     """
 
     # These are used for saving what is currently displayed, for use by

@@ -56,7 +56,7 @@ try:
     from stsci.tools import fileutil
 except:
     fileutil=None
-    
+
 try:
     SOCKTYPE = socket.AF_UNIX
 except AttributeError, error:
@@ -66,13 +66,13 @@ SZ_BLOCK = 16384
 
 _default_imtdev = ("unix:/tmp/.IMT%d", "fifo:/dev/imt1i:/dev/imt1o","inet:5137")
 _default_fbconfig = 3
-   
+
 class ImageWCS(object):
     _W_UNITARY = 0
     _W_LINEAR = 1
     _W_LOG = 2
     _W_USER = 3
-    
+
     def __init__(self,pix,name=None,title=None,z1=None,z2=None):
         # pix must be a numpy array...
         self.a = 1.0
@@ -84,20 +84,20 @@ class ImageWCS(object):
         self.ty = int(_shape[0] / 2. + 0.5)
         self.dtx = _shape[1] / 2.
         self.dty = _shape[0] / 2.
-               
+
         # Determine full range of pixel values for image
         if not z1:
             self.z1 = n.minimum.reduce(n.ravel(pix))
         else:
             self.z1 = z1
-            
+
         if not z2:
             self.z2 = n.maximum.reduce(n.ravel(pix))
         else:
             self.z2 = z2
-            
+
         self.zt = self._W_LINEAR
-                
+
         if not name:
             self.name = 'Image'
         else:
@@ -106,7 +106,7 @@ class ImageWCS(object):
 
         self.ny,self.nx = pix.shape
         self.full_ny, self.full_nx = pix.shape
-    
+
     def update(self,wcsstr):
         # This routine will accept output from readWCS and
         # update the WCS attributes with the values
@@ -122,26 +122,26 @@ class ImageWCS(object):
             self.z1 = float(_wcs[7])
             self.z2 = float(_wcs[8])
             self.zt = int(_wcs[9])
-        
-    
+
+
     def __str__(self):
         # This method can be used for obtaining the string
         # necessary for setting the WCS of the frame buffer
         # Start by insuring that the image name if not set is
         # passed as the string 'None' at least
-        
+
         _name = self.name
         if self.title != None:
             _name = _name+'-'+repr(self.title)
         _name =_name+'\n'
-    
+
         _str = _name+str(self.a)+' '+str(self.b)+' '+str(self.c)+' '+str(self.d)
         _str = _str+' '+str(self.tx)+' '+str(self.ty)
         _str = _str+' '+str(self.z1)+' '+str(self.z2)+' '+str(self.zt)+'\n'
-        
+
         return(_str)
 
-    
+
 def _open(imtdev=None):
 
     """Open connection to the image display server
@@ -156,19 +156,20 @@ def _open(imtdev=None):
     is one of "inet" (internet tcp/ip socket), "unix" (unix domain socket)
     or "fifo" (named pipe).  The form of the address depends upon the
     domain, as illustrated in the examples below.
+    ::
 
-    inet:5137                   Server connection to port 5137 on the local
+     inet:5137                  Server connection to port 5137 on the local
                                 host.  For a client, a connection to the
                                 given port on the local host.
 
-    inet:5137:foo.bar.edu       Client connection to port 5137 on internet
+     inet:5137:foo.bar.edu      Client connection to port 5137 on internet
                                 host foo.bar.edu.  The dotted form of address
                                 may also be used.
 
-    unix:/tmp/.IMT212           Unix domain socket with the given pathname
+     unix:/tmp/.IMT212          Unix domain socket with the given pathname
                                 IPC method, local host only.
 
-    fifo:/dev/imt1i:/dev/imt1o  FIFO or named pipe with the given pathname.
+     fifo:/dev/imt1i:/dev/imt1o FIFO or named pipe with the given pathname.
                                 IPC method, local host only.  Two pathnames
                                 are required, one for input and one for
                                 output, since FIFOs are not bidirectional.
@@ -230,16 +231,16 @@ class ImageDisplay(object):
     _COMMAND =    0100000
     _PACKED =     0040000
     _IMC_SAMPLE = 0040000
-    
+
     _MEMORY = 01
     _LUT = 02
     _FEEDBACK = 05
     _IMCURSOR = 020
     _WCS = 021
-    
+
     _SZ_IMCURVAL = 160
     _SZ_WCSBUF = 320
-    
+
     def __init__(self):
         # Flag indicating that readCursor request is active.
         # This is used to handle interruption of readCursor before
@@ -249,38 +250,38 @@ class ImageDisplay(object):
 
         # Add hooks here for managing frame configuration
         self.fbdict = imconfig.loadImtoolrc()
-        
-        self.frame = 1        
-        
+
+        self.frame = 1
+
         self.fbname = None
-            
+
         _fbconfig = self.getDefaultFBConfig()
 
         self.fbconfig = _fbconfig
         self.fbwidth = self.fbdict[self.fbconfig]['width']
         self.fbheight = self.fbdict[self.fbconfig]['height']
-        
-        
+
+
     def getDefaultFBConfig(self):
         try:
             # Try to use the IRAF 'stdimage' value as the default
-            # fbconfig number, if it exists 
+            # fbconfig number, if it exists
             if fileutil is not None:
                 self.fbname = fileutil.envget('stdimage')
             else:
-                if 'stdimage' in os.environ: 
+                if 'stdimage' in os.environ:
                     self.fbname = os.environ['stdimage']
 
             if self.fbname is not None:
-                # Search through all IMTOOLRC entries to find a match 
+                # Search through all IMTOOLRC entries to find a match
                 _fbconfig = self.getConfigno(self.fbname)
             else:
                 _fbconfig = _default_fbconfig
-        except:    
+        except:
             _fbconfig = _default_fbconfig
 
         return _fbconfig
-    
+
     def readCursor(self,sample=0):
 
         """Read image cursor value for this image display
@@ -302,10 +303,10 @@ class ImageDisplay(object):
         return s.split("\n")[0]
 
     def getConfigno(self,stdname):
-    
-        """ Determine which config number matches 
+
+        """ Determine which config number matches
         specified frame buffer name.
-        """ 
+        """
         _fbconfig = None
         # Search through all IMTOOLRC entries to find a match
         for fb in self.fbdict.keys():
@@ -313,10 +314,10 @@ class ImageDisplay(object):
                 _fbconfig = int(fb)
                 break
         if not _fbconfig:
-            # If no matching configuration found, 
+            # If no matching configuration found,
             # default to 'imt1024'
             _fbconfig = _default_fbconfig
-            
+
         return _fbconfig
 
     def selectFB(self,nx,ny,reset=None,useiraf=True):
@@ -344,7 +345,7 @@ class ImageDisplay(object):
                     if _edges < _tmin:
                         _tmin = _edges
                         newfb = fb
-        
+
         # If no new frame buffer was found that matched better than default...
         if not newfb:
             # use the default (probably 'imt512')
@@ -356,66 +357,66 @@ class ImageDisplay(object):
 
         # At the very least, return the config number found.
         return newfb
-                                
-        
+
+
     def setFBconfig(self,fbnum,bufname=None):
-    
+
         """ Set the frame buffer values for the given frame buffer name. """
-    
+
         if bufname:
             self.fbconfig = self.getConfigno(bufname)
         else:
             self.fbconfig = fbnum
-            
+
         self.fbwidth = self.fbdict[self.fbconfig]['width']
         self.fbheight = self.fbdict[self.fbconfig]['height']
-        
+
     def writeData(self,x,y,pix):
-    
+
         """ Writes out image data to x,y position in active frame. """
-    
+
         opcode = self._IIS_WRITE | self._PACKED
         frame = 1 << (self.frame-1)
         nbytes = pix.size * pix.itemsize
         self._writeHeader(opcode,self._MEMORY, -nbytes, x, y, frame, 0)
-               
+
         status = self._write(pix.tostring())
         return status
-    
+
     def readData(self,x,y,pix):
-    
-        """ Reads data from x,y position in active frame.""" 
-    
+
+        """ Reads data from x,y position in active frame."""
+
         opcode = self._IIS_READ | self._PACKED
         nbytes = pix.size * pix.itemsize
         frame = 1 << (self.frame-1)
         self._writeHeader(opcode,self._MEMORY, -nbytes, x, y, frame, 0)
-        
+
         # Get the pixels now
         return self._read(nbytes)
 
     def setCursor(self,x,y,wcs):
-    
+
         """ Moves cursor to specified position in frame. """
-    
+
         self._writeHeader(self._IIS_WRITE, self._IMCURSOR,0,x,y,wcs,0)
 
     def setFrame(self,frame_num=1):
 
         """ Sets the active frame in frame buffer to specified value."""
-        
+
         code = self._LUT | self._COMMAND
         self._writeHeader(self._IIS_WRITE, code, -1, 0, 0, 0, 0)
-        
+
         # Update with user specified frame number
         if frame_num:
             self.frame = frame_num
-        
+
         # Convert to bit-shifted value for IIS stream
         frame = 1 << (self.frame - 1)
         # Write out 2-byte value for frame number
         self._write(struct.pack('H',frame))
-        
+
     def eraseFrame(self):
 
         """ Sends commands to erase active frame."""
@@ -424,29 +425,29 @@ class ImageDisplay(object):
 
         frame = 1 << (self.frame-1)
         self._writeHeader(opcode, self._FEEDBACK, 0,0,0,frame,0)
-    
+
     def writeWCS(self,wcsinfo):
 
         """ Writes out WCS information for frame to display device."""
-        
+
         _str = string.rstrip(str(wcsinfo))
         nbytes = len(_str)
         opcode = self._IIS_WRITE | self._PACKED
         frame = 1 << (self.frame-1)
         fbconfig = self.fbconfig - 1
- 
+
         self._writeHeader(opcode,self._WCS, -nbytes, 0,0, frame, fbconfig)
-        
-        status = self._write(_str) 
+
+        status = self._write(_str)
 
     def readWCS(self,wcsinfo):
 
-        """ Reads WCS information from active frame of display device.""" 
+        """ Reads WCS information from active frame of display device."""
 
-        frame = 1 << (self.frame-1)                
-        
+        frame = 1 << (self.frame-1)
+
         self._writeHeader(self._IIS_READ, self._WCS, 0,0,0,frame,0)
-        
+
         wcsinfo.update(self._read(self._SZ_WCSBUF))
         return wcsinfo
 
@@ -468,14 +469,14 @@ class ImageDisplay(object):
     def syncWCS(self,wcsinfo):
 
         """ Update WCS to match frame buffer being used. """
-        
-        # Update WCS information with offsets into frame buffer for image        
-        wcsinfo.tx = int(((wcsinfo.full_nx + 1.0) / 2.) - ((self.fbwidth) / 2.) + 0.5) 
-        wcsinfo.ty = int((self.fbheight) + ((wcsinfo.full_ny / 2.) - (self.fbheight / 2.)) + 0.5) 
+
+        # Update WCS information with offsets into frame buffer for image
+        wcsinfo.tx = int(((wcsinfo.full_nx + 1.0) / 2.) - ((self.fbwidth) / 2.) + 0.5)
+        wcsinfo.ty = int((self.fbheight) + ((wcsinfo.full_ny / 2.) - (self.fbheight / 2.)) + 0.5)
 
         wcsinfo.nx = min(wcsinfo.full_nx, self.fbwidth)
         wcsinfo.ny = min(wcsinfo.full_ny, self.fbheight)
-        
+
         # Keep track of the origin of the displayed, trimmed image
         # which fits in the buffer.
         wcsinfo.dtx = int((wcsinfo.nx / 2.) - ((self.fbwidth) / 2.) + 0.5)
@@ -494,13 +495,13 @@ class ImageDisplay(object):
 
         _nnx = min(_nx,_fbw)
         _nny = min(_ny,_fbh)
-        
+
         # compute the range in output pixels the input image would cover
         # input image could be smaller than buffer size/output image size.
         _lx = (_fbw // 2) - (_nnx // 2)
-                
+
         _lper_block = SZ_BLOCK // _fbw
-        if _lper_block > 1: _lper_block = 1        
+        if _lper_block > 1: _lper_block = 1
         _nblocks = _nny // _lper_block
 
         # Flip image array so that (0,0) pixel is in upper left
@@ -516,25 +517,25 @@ class ImageDisplay(object):
             # display each line segment separately
             for block in xrange(int(_nblocks)):
                 _y0 = block * _lper_block
-                _ydisp = _fbh - (_ty - _y0)                
+                _ydisp = _fbh - (_ty - _y0)
                 _xper_block = (_nx // (_nx * _lper_block))
                 for xblock in xrange(int(_xper_block)):
                     _x0 = xblock * _xper_block
                     _xend = xblock + 1 * _xper_block
                     if _xend > _nx: _xend = _nx
                     self.writeData(_lx,_ydisp,_fpix[_y0,_x0:_xend])
-                    
+
         #Now pick up last impartial block
         _yend = int(_nblocks) * _lper_block
         if _yend < _ny:
             #self.writeData(_lx,_yend+_ty,_fpix[_yend:0,:])
             self.writeData(_lx,_yend+_ty,_fpix[:_yend,:])
-        
-            
+
+
     def _writeHeader(self,tid,subunit,thingct,x,y,z,t):
 
         """Write request to image display"""
-        
+
         a = n.array([tid,thingct,subunit,0,x,y,z,t],dtype=n.uint16)
         # Compute the checksum
         sum = n.add.reduce(a,dtype=n.uint16)
@@ -557,7 +558,7 @@ class ImageDisplay(object):
 
     def getHandle(self):
         return self
-    
+
     def _read(self, n):
         """Read n bytes from image display and return as string
 
@@ -599,7 +600,7 @@ class FifoImageDisplay(ImageDisplay):
 
             self._fdout = os.open(outfile, os.O_WRONLY | os.O_NDELAY)
             if fcntl:
-                fcntl.fcntl(self._fdout, FCNTL.F_SETFL, os.O_WRONLY)            
+                fcntl.fcntl(self._fdout, FCNTL.F_SETFL, os.O_WRONLY)
         except OSError, error:
             raise IOError("Cannot open image display (%s)" % (error,))
 
@@ -667,7 +668,7 @@ class ImageDisplayProxy(ImageDisplay):
     def open(self, imtdev=None):
 
         """Open image display connection, closing any active connection"""
-        self.close()        
+        self.close()
         self._display = _open(imtdev)
 
     def close(self):
@@ -678,7 +679,7 @@ class ImageDisplayProxy(ImageDisplay):
             self._display.close()
             self._display = None
 
-            
+
     def readCursor(self,sample=0):
 
         """Read image cursor value for the active image display
@@ -687,14 +688,14 @@ class ImageDisplayProxy(ImageDisplay):
         if sample is false (default).  Returns a string with
         x, y, frame, and key.  Opens image display if necessary.
         """
-        
+
         if not self._display:
-            self.open()            
+            self.open()
         try:
             value = self._display.readCursor(sample)
             # Null value indicates display was probably closed
             if value:
-                return value 
+                return value
         except IOError, error:
                 pass
         # This error can occur if image display was closed.
@@ -707,10 +708,10 @@ class ImageDisplayProxy(ImageDisplay):
     def setCursor(self,x,y,wcs):
         if not self._display:
             self.open()
-            
+
         self._display.setCursor(x,y,wcs)
-    
-    def checkDisplay(self): 
+
+    def checkDisplay(self):
         """ Returns True if a valid connection to a display device is found,
         False if no connection could be found.
         """
@@ -719,14 +720,14 @@ class ImageDisplayProxy(ImageDisplay):
         except:
             return False
         return True
-            
-     
+
+
 
 # Print help information
 def help():
     print __doc__
 
-                
+
 _display = ImageDisplayProxy()
 
 # create aliases for _display methods
