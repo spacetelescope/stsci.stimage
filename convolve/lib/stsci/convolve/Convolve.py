@@ -337,8 +337,8 @@ def boxcar(data, boxshape, output=None, mode="nearest", cval=0.0):
            [   0,    0,    0,    0,    0,    0,    0,    0,    0,    0],
            [   0,    0,    0,    0,    0,    0,    0,    0, 1111, 2222],
            [   0,    0,    0,    0,    0,    0,    0,    0, 2222, 4444]], dtype=int64)
-   >>> boxcar(a, (3,3), mode="constant").astype(num.longlong)
-   array([[  11,   11,    0,    0,    0,    0,    0,    0,    0,    0],
+    >>> boxcar(a, (3,3), mode="constant").astype(num.longlong)
+    array([[  11,   11,    0,    0,    0,    0,    0,    0,    0,    0],
           [  11,   11,    0,    0,    0,    0,    0,    0,    0,    0],
           [   0,    0,    0,    0,    0,    0,    0,    0,    0,    0],
           [   0,    0,    0,    0,    0,    0,    0,    0,    0,    0],
@@ -348,7 +348,6 @@ def boxcar(data, boxshape, output=None, mode="nearest", cval=0.0):
           [   0,    0,    0,    0,    0,    0,    0,    0,    0,    0],
           [   0,    0,    0,    0,    0,    0,    0,    0, 1111, 1111],
           [   0,    0,    0,    0,    0,    0,    0,    0, 1111, 1111]], dtype=int64)
-
     >>> a = num.zeros((10,10))
     >>> a[3:6,3:6] = 111
     >>> boxcar(a, (3,3)).astype(num.longlong)

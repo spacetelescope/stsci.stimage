@@ -32,7 +32,7 @@ __doc__     = """Lineshape functors.
 The objects defined in this module can be used to calculate numarrays containing
 common lineshape-profiles.
 
-For the *Profile classes the profile is only evaluated once for each object and
+For the *Profile* classes the profile is only evaluated once for each object and
 then reused for each call. If you only use a profile once and you are concerned
 about memory consumption you could call the underlying functions directly.
 """
@@ -83,10 +83,12 @@ class LorentzProfile(Profile):
 class VoigtProfile(Profile):
     """An object for Voigt-folding.
 
-    The constructor takes the following parameter:
+    The constructor takes the following parameter::
+
       |x|  Scalar or numarray with values to calculate profile at.
       |w|  Tuple of Gaussian and Lorentzian linewidth contribution
       |x0| Center frequency
+
     """
 
     def __init__(self, x, w, x0=0.0):
