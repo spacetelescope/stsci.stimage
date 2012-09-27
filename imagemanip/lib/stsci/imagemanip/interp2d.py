@@ -5,11 +5,20 @@ from bilinearinterp import bilinearinterp as lininterp
 
 def expand2d(image,outputsize):
     """
-
-    Purpose
-    =======
-    Given an input 2D data array, expand the array to larger dimensions using
+    This function expands an input 2D data array to larger dimensions using
     bilinear interpolation.
+
+    Parameters
+    ----------
+    image : ndarray
+        Input image as numpy array
+    outputsize : tuple
+        Shape tuple describing the size of the output image
+
+    Returns
+    -------
+    newimage : ndarray
+        bilinearly interpolated array with shape specified by outputsize parameter
 
     """
     if (outputsize[0] >= image.shape[0] and outputsize[1] >= image.shape[1]):
