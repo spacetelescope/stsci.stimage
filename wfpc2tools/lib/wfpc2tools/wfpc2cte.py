@@ -4,7 +4,8 @@ This module updates the header of the input WFPC2 image with standardized
 computations of the effect of CTE based on the algorithm published by Dolphin
 (2004, http://purcell.as.arizona.edu/wfpc2_calib/2004_12_20.html).
 
-ASSUMPTIONS for the COMPUTATION:
+:ASSUMPTIONS for the COMPUTATION:
+
     1. The CTE gets computed for a source at the chip center.
     2. The background (in electrons) gets defined by the clipped mode of the
         central 200x200 pixels from the image.
@@ -13,8 +14,9 @@ ASSUMPTIONS for the COMPUTATION:
     4. The reported CTE is the sum of the XCTE and YCTE computed from
         Dolphin's algorithm.
 
-INPUT:
-The sole input for this task is the filename of the WFPC2 image.
+:INPUT:
+
+  The sole input for this task is the filename of the WFPC2 image.
 
     If the input image is in GEIS format, it will convert it to
     a multi-extension FITS formatted file, then update the FITS file while
@@ -27,30 +29,38 @@ The sole input for this task is the filename of the WFPC2 image.
     telling the user to first convert the file to GEIS. The user can then
     provide the GEIS image as input.
 
-OUTPUT:
-The keywords which get updated are:
+:OUTPUT:
+
+  The keywords which get updated are::
+
     CTE_1E2  - CTE for a source with an intensity of 100 electrons
     CTE_1E3  - CTE for a source with an intensity of 1000 electrons
     CTE_1E4  - CTE for a source with an intensity of 10000 electrons
 
-SYNTAX:
-This task can be run on an input WFPC2 image using either of the following
-calls:
+:SYNTAX:
+
+  This task can be run on an input WFPC2 image using either of the following calls::
+
     wfpc2cte.compute_CTE(filename,quiet=True)
-  -or-
+    -or-
     wfpc2cte.run(filename,quiet=True)
 
-where the filename is the name of the input WFPC2 image.
+  where the filename is the name of the input WFPC2 image.
 
 
-EXAMPLE:
+:EXAMPLE:
 
-The syntax for running this task on a WFPC2 file named 'u40x0102m.c0h':
+  The syntax for running this task on a WFPC2 file named 'u40x0102m.c0h'::
+
     import wfpc2cte
     wfpc2cte.run('u40x0102m.c0h')
 
-The command to print out this help file:
+  The command to print out this help file::
+
     wfpc2cte.help()
+
+:FUNCTIONS:
+
 """
 from __future__ import division # confidence medium
 
@@ -138,6 +148,24 @@ def update_CTE_keywords(hdr, cte,quiet=False,update=True):
         print 'CTE_1E4 = ',cte[2]
 
 def compute_CTE(filename,quiet=True,nclip=3,update=True):
+    """
+    Compute the CTE correction for a 100, 1000 and 1e+4 DN source in a WFPC2 chip.
+    These correction values will be written to the WFPC2 image header as the
+    CTE_1E2, CTE_1E3 and CTE_1E4 keywords respectively.
+
+    Parameters
+    ----------
+    filename : str
+        Name of WFPC2 image
+    quiet : bool, optional [Default: True]
+        Specifies whether or not to print verbose messages during processing
+    nclip : int [Default: 3]
+        Number of clipping iterations for computing the chip's pixel values
+    update : bool [Default: True]
+        Specifies whether or not to update the input image header with the
+        computed CTE correction values
+
+    """
 
     newname = None
     if filename.find('.fits') < 0:

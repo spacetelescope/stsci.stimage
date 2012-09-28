@@ -8,24 +8,44 @@ import time
 
 QUIET = 0 # verbosity levels
 VERBOSE = 1
-VERY_VERBOSE = 2   
+VERY_VERBOSE = 2
 HUGE_VAL = 100000. # default for bias_thresh
-                                                                                
+
 # default values
 verbosity = VERBOSE
-group = 4 
+group = 4
 bias_thresh = HUGE_VAL
 row_thresh = 0.1
 input_mask = None
 niter = 5
 
 def all_printMsg( message, level=VERBOSE):
+    """ Print message as verbose message by default
 
-    if verbosity >= level:     
+        Parameters
+        ----------
+        message : string
+            message be printed, if verbosity level is appropriate
+        level: int [Default: 1 (VERBOSE)]
+            integer indicating the level of verbosity for printing this string
+
+    """
+
+    if verbosity >= level:
         print message
         sys.stdout.flush()
 
 def printMsg( message, level=QUIET):
+    """ Print message based on verbosity level.
+
+        Parameters
+        ----------
+        message : string
+            message be printed, if verbosity level is appropriate
+        level: int [Default: 0 (QUIET)]
+            integer indicating the level of verbosity for printing this string
+
+    """
 
     if verbosity >= level:
         print message
@@ -33,16 +53,22 @@ def printMsg( message, level=QUIET):
 
 def setGroup( group_value):
         """ Copy group to a variable that is global for this file.
-            @param group_value: value of group
-            @type group_value: int
+
+        Parameters
+        ----------
+        group_value : int
+            value of group
         """
         global group
-        group = group_value            
+        group = group_value
 
 def setBias_thresh( bias_thresh_value):
         """ Copy bias_thresh to a variable that is global for this file.
-            @param bias_thresh_value: value of bias_thresh
-            @type bias_thresh_value: float
+
+        Parameters
+        ----------
+        bias_thresh_value : float
+            value of bias_thresh
         """
         global bias_thresh
         bias_thresh = bias_thresh_value
@@ -50,39 +76,60 @@ def setBias_thresh( bias_thresh_value):
 
 def setRow_thresh( row_thresh_value):
         """ Copy row_thresh to a variable that is global for this file.
-            @param row_thresh_value: value of row_thresh
-            @type row_thresh_value: float
+
+        Parameters
+        ----------
+        row_thresh_value : float
+            value of row_thresh
+
         """
         global row_thresh
-        row_thresh = row_thresh_value            
+        row_thresh = row_thresh_value
 
 def setInput_mask( input_mask_value):
         """Copy input_mask to a variable that is global for this file.
-           @param input_mask_value: value of input_mask
-           @type input_mask_value: string
-        """                                                                          
+
+        Parameters
+        ----------
+        input_mask_value : string
+            value of input_mask
+
+        """
         global input_mask
         input_mask = input_mask_value
 
-def setNiter( niter_value): 
+def setNiter( niter_value):
         """ Copy niter to a variable that is global for this file.
-            @param niter_value: value of niter
-            @type niter_value: int
+
+        Parameters
+        ----------
+        niter_value : int
+            value of niter
+
         """
         global niter
         niter = niter_value
 
 def setVerbosity( verbosity_level):
-        """Copy verbosity to a variable that is global for this file.                                                              
-           argument: verbosity_level -  an integer value indicating the level of verbosity
+        """Copy verbosity to a variable that is global for this file.
+
+        Parameters
+        ----------
+        verbosity_level: int
+            an integer value indicating the level of verbosity
+
         """
-                                                                                
+
         global verbosity
         verbosity = verbosity_level
 
 def checkVerbosity( level):
-         """Return true if verbosity is at least as great as level."""
+    """Return true if verbosity is at least as great as level.
 
-         return (verbosity >= level)
+        Parameters
+        ----------
+        level: int
+            level of verbosity to be checked against global value
 
-
+    """
+    return (verbosity >= level)

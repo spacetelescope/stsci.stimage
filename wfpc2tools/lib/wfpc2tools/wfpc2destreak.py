@@ -1,4 +1,81 @@
 #! /usr/bin/env python
+"""
+WFPC2Destreak - Module for performing destreak correction on WFPC2 images
+
+:Outline:
+
+ 1. In the 'interior' image region (starting to the right of the pyramid region), eliminate the CRs, and
+      calculate the mean (im_mean) and sigma (im_sigma):
+
+     - Over the entire c0 image, cosmic rays are identified and masked in the c0 data
+     - For the entire image, the global mean and the (clipped) sigma is calculated for all unmasked pixels
+     - For each row, the mean is calculated for all unmasked pixels
+     - For each row, the difference between the mean and the global mean is subtracted from the c0 data
+
+ 2. The modified c0 data is written to the file <dataset>_bjc_<chip>.fits ( 'bjc' stands for 'bias jump corrected')
+
+:Command Line Options:
+
+  Linux command line short options and defaults (set in wfpc2util.py)::
+
+     -g: group (default = 4)
+     -b: bias_thresh (default = 100000.)
+     -r: row_thresh (default = 0.1)
+     -v: verbosity (default = verbose)
+     -m: input_mask (default = None)
+     -i: niter (default = 5)
+
+:Examples:
+
+    A. For a dataset with multiple groups, to process group 4 using a bias threshold=280 and row threshold=0.2::
+
+         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 4 -b 280. -r 0.2  -v
+
+       This can also be specified using the 'long options'::
+
+         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits" --group=4 --bias_thresh=280. --row_thresh=0.2
+
+    B. To allow the routine to run with all of the defaults::
+
+         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"
+
+    C. For a dataset with a single group, using defaults for the thresholds::
+
+         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0
+
+    D. Same as example F, but specifing an input mask to use::
+
+         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0  -m "mask_u8zq0104.fits"
+
+    E. Same as example F, but specifing 3 iterations for the CR rejection ::
+
+         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0  -i 3
+
+    F. Run the routine for group 3 of a geis image  ::
+
+         hal> ./wfpc2destreak.py "ub080106m.c0h" -g 3
+
+
+Example 'A' under pyraf::
+
+ --> wfp = wfpc2destreak.Wfpc2destreak( "u96r0603m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.2)
+ --> wfp.destreak()
+
+Example 'A' under stsdas ( after loading hst_calib and wfpc )::
+
+    --> from wfpc2tools import wfpc2destreak
+    --> wfp = wfpc2destreak.Wfpc2destreak( "u96r0603m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.2)
+    --> wfp.destreak()
+
+or ::
+
+    --> import wfpc2tools
+    --> wfp = wfpc2tools.wfpc2destreak.Wfpc2destreak( "u96r0603m_c0h.fits")
+    --> wfp.destreak()
+
+:Functions:
+
+"""
 #
 # Authors: Dave Grumm
 # Program: wfpc2destreak.py
@@ -94,57 +171,6 @@
 #          07/23/08 - put bias_thresh back in as a settable parameter; set default row_thresh = 0.1
 #          09/25/08 - added check for __name__
 #          03/12/10 - added support for geis, waiver fits, and multi-extension fits input
-#
-# Outline:
-#
-# 1. In the 'interior' image region (starting to the right of the pyramid region), eliminate the CRs, and
-#      calculate the mean (im_mean) and sigma (im_sigma)
-#     - Over the entire c0 image, cosmic rays are identified and masked in the c0 data
-#     - For the entire image, the global mean and the (clipped) sigma is calculated for all unmasked pixels
-#     - For each row, the mean is calculated for all unmasked pixels
-#     - For each row, the difference between the mean and the global mean is subtracted from the c0 data
-#
-# 2. The modified c0 data is written to the file <dataset>_bjc_<chip>.fits ( 'bjc' stands for
-#        'bias jump corrected')
-#
-# Linux command line short options and defaults (set in wfpc2util.py):
-#     -g: group (default = 4)
-#     -b: bias_thresh (default = 100000.)
-#     -r: row_thresh (default = 0.1)
-#     -v: verbosity (default = verbose)
-#     -m: input_mask (default = None)
-#     -i: niter (default = 5)
-#
-# Usage examples:
-#    A. For a dataset with multiple groups, to process group 4 using a bias threshold=280 and row threshold=0.2:
-#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 4 -b 280. -r 0.2  -v
-#       This can also be specified using the 'long options':
-#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits" --group=4 --bias_thresh=280. --row_thresh=0.2
-#    B. To allow the routine to run with all of the defaults:
-#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"
-#    C. For a dataset with a single group, using defaults for the thresholds:
-#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0
-#    D. Same as example F, but specifing an input mask to use:
-#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0  -m "mask_u8zq0104.fits"
-#    E. Same as example F, but specifing 3 iterations for the CR rejection :
-#         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0  -i 3
-#    F. Run the routine for group 3 of a geis image  :
-#         hal> ./wfpc2destreak.py "ub080106m.c0h" -g 3
-#
-# Example 'A' under pyraf:
-# --> wfp = wfpc2destreak.Wfpc2destreak( "u96r0603m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.2)
-# --> wfp.destreak()
-#
-# Example 'A' under stsdas ( after loading hst_calib and wfpc )
-# --> from wfpc2tools import wfpc2destreak
-# --> wfp = wfpc2destreak.Wfpc2destreak( "u96r0603m_c0h.fits", group=4, bias_thresh=280, row_thresh=0.2)
-# --> wfp.destreak()
-#  or :
-# --> import wfpc2tools
-# --> wfp = wfpc2tools.wfpc2destreak.Wfpc2destreak( "u96r0603m_c0h.fits")
-# --> wfp.destreak()
-#
-###########################################################################
 
 from __future__ import division # confidence medium
 import pyfits
@@ -165,30 +191,35 @@ ERROR_RETURN = 2
 class Wfpc2destreak:
     """ Calculate magnitude of and remove streaks from specified group of wfpc2 data.
 
-    example:
-       wfpc2_d = wfpc2destreak.Wfpc2destreak( filename, input_mask=input_mask, group=group, verbosity=verbosity,
-               bias_thresh=bias_thresh, row_thresh=row_thresh,  niter=niter)
-       wfpc2destreak.Wfpc2destreak.destreak(wfpc2_d)
     """
 
     def __init__( self, input_file, input_mask=None, group=None, verbosity=0, bias_thresh=None, row_thresh=None, \
                   niter=None):
-        """constructor
+        """
 
-        @param input_file: name of the c0h file to be processed
-        @type input_file: string
-        @param input_mask: name of the input mask
-        @type input_mask: string
-        @param group: number of group to process
-        @type group: int
-        @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
-        @type verbosity: string
-        @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by im_mean)
-        @type bias_thresh: float
-        @param row_thresh: row threshold (no correction will be performed if this exceeds the calculated row correction)
-        @type row_thresh: float
-        @param niter: number of iterations for CR rejection
-        @type niter: int
+        Parameters
+        ----------
+        input_file : str
+            name of the c0h file to be processed
+        input_mask : str
+            name of the input mask
+        group : int
+            number of group to process
+        verbosity : str
+            verbosity level (0 for quiet, 1 verbose, 2 very verbose)
+        bias_thresh : float
+            bias threshold (no correction will be performed if this is exceeded by im_mean)
+        row_thresh : float
+            row threshold (no correction will be performed if this exceeds the calculated row correction)
+        niter : int
+            number of iterations for CR rejection
+
+        Examples
+        --------
+        >>> wfpc2_d = wfpc2destreak.Wfpc2destreak( filename, input_mask=input_mask, group=group, verbosity=verbosity,
+               bias_thresh=bias_thresh, row_thresh=row_thresh,  niter=niter)
+        >>> wfpc2destreak.Wfpc2destreak.destreak(wfpc2_d)
+
         """
 
         # do some parameter type checking, and for python interface, set defaults and check unspecified pars
@@ -208,6 +239,8 @@ class Wfpc2destreak:
         self.niter = niter
 
     def destreak( self ):
+        """ Method to perform destreak correction.
+        """
 
         input_file = self.input_file
         group = self.group
@@ -379,7 +412,7 @@ class Wfpc2destreak:
             print '   ', self.dcormean,'   ', self.dcorstd,'   ', self.dcormin,'   ', self.dcormax,'   ', self.dcorpix
 
         outfile = file_prefix + str('_bjc_')+str(group)+str('.fits')
-        update_header(self, c0_hdr, verbosity) # add statistics keywords to header c0_hdr
+        update_header(self, c0_hdr) # add statistics keywords to header c0_hdr
         write_to_file(corr_c0_data, outfile, c0_hdr, verbosity, im_mean, im_sigma)
 
         # close open file handles
@@ -389,7 +422,7 @@ class Wfpc2destreak:
         if (verbosity >=1 ): print 'DONE '
 
     def print_pars(self):
-        """ Print parameters.
+        """ Print parameters method.
         """
         print 'The values of the input parameters are :'
         print '  input c0 file:  ' , self.input_file
@@ -402,23 +435,28 @@ class Wfpc2destreak:
 
 def check_py_pars(input_file, group, bias_thresh, row_thresh, input_mask, niter):
        """ When run under python, verify that each unspecified parameter should take the default value, and
-           give the user the opportunity to change it.
+            give the user the opportunity to change it.
 
-       @param input_file: name of input file
-       @type input_file: string
-       @param group: number of group to process
-       @type group: int
-       @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by im_mean)
-       @type bias_thresh: float
-       @param row_thresh: row threshold (no correction will be performed if this exceeds the calculated row correction)
-       @type row_thresh: float
-       @param input_mask: name of input mask
-       @type input_mask: string
-       @param niter: number of CR rejection iterations
-       @type niter: int
-       @return: group, row_thresh,
-       @return: group, bias_thresh, row_thresh
-       @rtype:  int, float, float
+        Parameters
+        ----------
+        input_file : str
+            name of input file
+        group : int
+            number of group to process
+        bias_thresh : float
+            bias threshold (no correction will be performed if this is exceeded by im_mean)
+        row_thresh : float
+            row threshold (no correction will be performed if this exceeds the calculated row correction)
+        input_mask : str
+            name of input mask
+        niter : int
+            number of CR rejection iterations
+
+        Returns
+        -------
+        group : int
+        bias_thresh : float
+        row_thresh : float
        """
 
        if (group == None):
@@ -489,21 +527,27 @@ def check_py_pars(input_file, group, bias_thresh, row_thresh, input_mask, niter)
 def check_cl_pars(input_file, group,  bias_thresh, row_thresh, input_mask, niter):
        """ When run from linux command line, verify that each parameter is valid.
 
-       @param input_file: name of input file
-       @type input_file: string
-       @param group: number of group to process
-       @type group: int
-       @param bias_thresh: bias threshold (no correction will be performed if this is exceeded by im_mean)
-       @type bias_thresh: float
-       @param row_thresh: row threshold (no correction will be performed if this exceeds the calculated row correction)
-       @type row_thresh: float
-       @param input_mask: name of input mask file
-       @type input_mask: string
-       @param niter: number of CR rejection iterations
-       @type niter: int
+        Parameters
+        ----------
+        input_file : str
+            name of input file
+        group : int
+            number of group to process
+        bias_thresh : float
+            bias threshold (no correction will be performed if this is exceeded by im_mean)
+        row_thresh : float
+            row threshold (no correction will be performed if this exceeds the calculated row correction)
+        input_mask : str
+            name of input mask file
+        niter : int
+            number of CR rejection iterations
 
-       @return: group, row_thresh, niter
-       @rtype:  int, float, float, int
+        Returns
+        -------
+        group : int
+        row_thresh : float
+        niter : int
+
        """
 
        try:
@@ -549,10 +593,13 @@ def cr_reject( SubArray, niter ):
 
         """Identify and replace cosmic rays in the given subarray.
 
-        @param SubArray: subarray of the data
-        @type SubArray: ndarray
-        @param niter: the number of iterations used when rejecting cosmic rays
-        @type niter: int
+        Parameters
+        ----------
+        SubArray : ndarray
+            subarray of the data
+        niter : int
+            the number of iterations used when rejecting cosmic rays
+
         """
 
         n_rms=[4., 4., 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5]
@@ -638,16 +685,22 @@ def cr_reject( SubArray, niter ):
 def check_neighbors( new_cr, residual, cutoff, sub_shape):
         """Check for cosmic rays in neighboring pixels.
 
-        @param new_cr:  1-D array of ones or zeros (1 indicates a cosmic ray)
-        @type new_cr:  Int32
-        @param residual:  1-D array of residuals, subarray - fit
-        @type residual:  Float64
-        @param cutoff:  criterion for flagging an outlier as a cosmic ray
-        @type cutoff:  float
-        @param sub_shape:  numbers of lines and columns in subarray
-        @type sub_shape:  tuple
-        @return:  new_cr, possibly with additional cosmic rays flagged
-        @rtype:  Int32
+        Parameters
+        ----------
+        new_cr : ndarray
+            1-D array of (int) ones or zeros (1 indicates a cosmic ray)
+        residual : ndarray
+            1-D array of residuals (float64), subarray - fit
+        cutoff : float
+            criterion for flagging an outlier as a cosmic ray
+        sub_shape : tuple
+            numbers of lines and columns in subarray
+
+        Returns
+        -------
+        new_cr : int
+            pixel position associated with identified cosmic ray,
+                possibly with additional cosmic rays flagged
         """
 
         (ny, nx) = sub_shape
@@ -686,12 +739,18 @@ def check_neighbors( new_cr, residual, cutoff, sub_shape):
 def median(  y, mask):
         """Return the median of the array y, ignoring masked elements.
 
-        @param y:  array of values
-        @type y:  Float64
-        @param mask:  array of ones or zeros (0 indicates a good value)
-        @type mask:  Int32
-        @return:  median of y, ignoring masked elements
-        @rtype:  float
+        Parameters
+        -----------
+        y : ndarray
+            array of values
+        mask : ndarray
+            array of (int32) ones or zeros (0 indicates a good value)
+
+        Returns
+        --------
+        median : float
+            median of y, ignoring masked elements
+
         """
         labels = N.where( mask == 0, 1, 0)      # 1 indicates a good value
         y_ok = N.compress( labels, y)
@@ -721,14 +780,20 @@ def median(  y, mask):
 def fitline( x, y, mask):
         """Fit a straight line to y vs x, where mask is 0.
 
-        @param x:  array of independent-variable values
-        @type x:  Float64
-        @param y:  array of dependent-variable values
-        @type y:  Float64
-        @param mask:  array of ones or zeros (0 indicates a good value)
-        @type mask:  Int32
-        @return:  coefficients of fit, the slope and intercept
-        @rtype:  tuple of two floats
+        Parameters
+        -----------
+        x : ndarray
+            float64 array of independent-variable values
+        y :  ndarray
+            float64 array of dependent-variable values
+        mask : ndarray
+            int32 array of ones or zeros (0 indicates a good value)
+
+        Returns
+        --------
+        coeffs : tuple
+            coefficients of fit: tuple of the slope and intercept
+
         """
 
         labels = N.where( mask == 0, 1, 0)      # 1 indicates a good value
@@ -750,13 +815,15 @@ def fitline( x, y, mask):
 # end of fitline()
 
 
-def update_header(self, hdr, verbosity):
+def update_header(self, hdr):
     """ update header from input c0 file with specified header, and updated data
 
-    @param hdr: header
-    @type hdr: Pyfits header object
-    @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
-    @type verbosity: string
+    Parameters
+    ----------
+    self : object
+        Wfpc2destreak object containing results to be recorded to header
+    hdr : object
+        PyFITS header object
 
     """
     hdr.update(key='BIASTHRE', value=self.bias_thresh, comment="bias threshold" )
@@ -787,12 +854,13 @@ def update_header(self, hdr, verbosity):
 def write_mask(data, filename):
     """ write specified mask
 
-    @param data: mask array
-    @type data: array of floats
-    @param filename: mask file name
-    @type file name: string
-    @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
-    @type verbosity: string
+    Parameters
+    ----------
+    data : ndarray
+        mask array
+    filename : string
+        mask file name
+
     """
     fimg = pyfits.HDUList()
     fimghdu = pyfits.PrimaryHDU()
@@ -803,18 +871,23 @@ def write_mask(data, filename):
 
 def write_to_file(data, filename, hdr, verbosity, im_mean, im_sigma):
     """
-    @param data: array
-    @type data: array of floats
-    @param filename: mask file name
-    @type file name: string
-    @param hdr: header
-    @type hdr: Pyfits header object
-    @param verbosity: verbosity level (0 for quiet, 1 verbose, 2 very verbose)
-    @type verbosity: string
-    @param im_mean: clipped mean of image region
-    @type im_mean: float
-    @param im_sigma: clipped sigma of image region
-    @type im_sigma: float
+    Write mean and sigma to file.
+
+    Parameters
+    -----------
+    data : ndarray
+        array of floats
+    filename : string
+        mask file name
+    hdr: object
+        Pyfits header object
+    verbosity: int
+        verbosity level (0 for quiet, 1 verbose, 2 very verbose)
+    im_mean : float
+        clipped mean of image region
+    im_sigma : float
+        clipped sigma of image region
+
     """
 
     fimg = pyfits.HDUList()
@@ -831,12 +904,17 @@ def write_to_file(data, filename, hdr, verbosity, im_mean, im_sigma):
 if __name__ =="__main__":
     """Get input file and other arguments, and call Wfpc2destreak
 
+    Notes
+    -----
     The command-line options are:
         -q (quiet)
         -v (very verbose)
 
-    @param cmdline: command-line arguments
-    @type cmdline: list of strings
+    Parameters
+    -----------
+    cmdline : list
+        command-line arguments as list of strings
+
     """
 
     usage = "usage:  %prog [options] inputfile"
@@ -901,4 +979,3 @@ if __name__ =="__main__":
     except Exception, errmess:
        opusutil.PrintMsg("F","FATAL ERROR "+ str(errmess))
        sys.exit( ERROR_RETURN)
-
