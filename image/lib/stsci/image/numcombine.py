@@ -48,8 +48,9 @@ class numCombine:
     ----------
     arrObjectList : list of ndarray
         A sequence of inputs arrays, which are nominally a stack of identically shaped images.
-    arrMaskList : list of ndarray
+    numarrayMaskList : list of ndarray
         A sequence of mask arrays to use for masking out 'bad' pixels from the combination
+        The ndarray should be a numpy array, despite the variable name.
     combinationType : {'median','imedian','iaverage','mean','sum','minimum'}
         Type of operation should be used to combine the images
         The 'imedian' and 'iaverage' types ignore pixels which have been flagged
@@ -93,7 +94,7 @@ class numCombine:
 
     def __init__(self,
         arrObjectList,         # Specifies a sequence of inputs arrays, which are nominally a stack of identically shaped images.
-        arrMaskList = None,    #
+        numarrayMaskList = None,    #
         combinationType = "median", # What time of numarray object should be created?
         nlow = 0,                   # Number of low pixels to throw out of the median calculation
         nhigh = 0,                  # Number of high pixels to throw out of the median calculation
@@ -101,6 +102,9 @@ class numCombine:
         upper = None,               # Throw out values >= to upper in a median calculation
         lower = None                # Throw out values < lower in a median calculation
         ):
+
+        # keep code with new variable name
+        arrMaskList = numarrayMaskList
 
         # Convert the input arrays to the type of array used by the numerix layer
         for i in range(len(arrObjectList)):
