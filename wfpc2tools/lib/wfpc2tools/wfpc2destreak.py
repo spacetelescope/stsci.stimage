@@ -4,7 +4,7 @@ WFPC2Destreak - Module for performing destreak correction on WFPC2 images
 
 :Outline:
 
- 1. In the 'interior' image region (starting to the right of the pyramid region), eliminate the CRs, and
+1. In the 'interior' image region (starting to the right of the pyramid region), eliminate the CRs, and
       calculate the mean (im_mean) and sigma (im_sigma):
 
      - Over the entire c0 image, cosmic rays are identified and masked in the c0 data
@@ -12,11 +12,11 @@ WFPC2Destreak - Module for performing destreak correction on WFPC2 images
      - For each row, the mean is calculated for all unmasked pixels
      - For each row, the difference between the mean and the global mean is subtracted from the c0 data
 
- 2. The modified c0 data is written to the file <dataset>_bjc_<chip>.fits ( 'bjc' stands for 'bias jump corrected')
+2. The modified c0 data is written to the file <dataset>_bjc_<chip>.fits ( 'bjc' stands for 'bias jump corrected')
 
 :Command Line Options:
 
-  Linux command line short options and defaults (set in wfpc2util.py)::
+Linux command line short options and defaults (set in wfpc2util.py)::
 
      -g: group (default = 4)
      -b: bias_thresh (default = 100000.)
@@ -27,33 +27,33 @@ WFPC2Destreak - Module for performing destreak correction on WFPC2 images
 
 :Examples:
 
-    A. For a dataset with multiple groups, to process group 4 using a bias threshold=280 and row threshold=0.2::
+A. For a dataset with multiple groups, to process group 4 using a bias threshold=280 and row threshold=0.2::
 
-         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 4 -b 280. -r 0.2  -v
+    hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 4 -b 280. -r 0.2  -v
 
-       This can also be specified using the 'long options'::
+  This can also be specified using the 'long options'::
 
-         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits" --group=4 --bias_thresh=280. --row_thresh=0.2
+    hal> ./wfpc2destreak.py "u96r0603m_c0h.fits" --group=4 --bias_thresh=280. --row_thresh=0.2
 
-    B. To allow the routine to run with all of the defaults::
+B. To allow the routine to run with all of the defaults::
 
-         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"
+    hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"
 
-    C. For a dataset with a single group, using defaults for the thresholds::
+C. For a dataset with a single group, using defaults for the thresholds::
 
-         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0
+    hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0
 
-    D. Same as example F, but specifing an input mask to use::
+D. Same as example F, but specifing an input mask to use::
 
-         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0  -m "mask_u8zq0104.fits"
+    hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0  -m "mask_u8zq0104.fits"
 
-    E. Same as example F, but specifing 3 iterations for the CR rejection ::
+E. Same as example F, but specifing 3 iterations for the CR rejection ::
 
-         hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0  -i 3
+    hal> ./wfpc2destreak.py "u96r0603m_c0h.fits"  -g 0  -i 3
 
-    F. Run the routine for group 3 of a geis image  ::
+F. Run the routine for group 3 of a geis image  ::
 
-         hal> ./wfpc2destreak.py "ub080106m.c0h" -g 3
+    hal> ./wfpc2destreak.py "ub080106m.c0h" -g 3
 
 
 Example 'A' under pyraf::
