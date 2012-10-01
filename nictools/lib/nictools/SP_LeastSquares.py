@@ -7,11 +7,13 @@
 # Modified import statements to use just a portion of the package
 # and drop support for non-numpy array packages. Also added an
 # additional return to the leastSquaresFit routine.
-# V. Laidler, 2007-02-05. 
+# V. Laidler, 2007-02-05.
 
 """
 Non-linear least squares fitting
 
+Examples
+--------
 Usage example::
 
     from Scientific.N import exp
@@ -65,20 +67,20 @@ def leastSquaresFit(model, parameters, data, max_iterations=None,
     """General non-linear least-squares fit using the
     X{Levenberg-Marquardt} algorithm and X{automatic differentiation}.
 
-    @param model: the function to be fitted. It will be called
+    model : function
+        the function to be fitted. It will be called
         with two parameters: the first is a tuple containing all fit
         parameters, and the second is the first element of a data point (see
         below). The return value must be a number.  Since automatic
         differentiation is used to obtain the derivatives with respect to the
         parameters, the function may only use the mathematical functions known
         to the module FirstDerivatives.
-    @type param: callable
-
-    @param parameters: a tuple of initial values for the
+    parameters : tuple of numbers
+        a tuple of initial values for the
         fit parameters
-    @type parameters: C{tuple} of numbers
 
-    @param data: a list of data points to which the model
+    data : list
+        a list of data points to which the model
         is to be fitted. Each data point is a tuple of length two or
         three. Its first element specifies the independent variables
         of the model. It is passed to the model function as its first
@@ -88,11 +90,14 @@ def leastSquaresFit(model, parameters, data, max_iterations=None,
         The third element (which defaults to 1.) is the statistical
         variance of the data point, i.e. the inverse of its statistical
         weight in the fitting procedure.
-    @type data: C{list}
 
-    @returns: a list containing the optimal parameter values
-        and the chi-squared value describing the quality of the fit
-    @rtype: C{(list, float)}
+    Returns
+    --------
+    fitlist : list
+        a list containing the optimal parameter values
+    chisq : float
+        chi-squared value describing the quality of the fit
+
     """
     n_param = len(parameters)
     p = ()
@@ -139,15 +144,19 @@ def polynomialLeastSquaresFit(parameters, data):
     Least-squares fit to a polynomial whose order is defined by
     the number of parameter values.
 
-    @note: This could also be done with a linear least squares fit
+    .. note::
+
+        This could also be done with a linear least squares fit
         from L{LinearAlgebra}
 
-    @param parameters: a tuple of initial values for the polynomial
+    Parameters
+    ----------
+    parameters : tuple
+        a tuple of initial values for the polynomial
         coefficients
-    @type parameters: C{tuple}
+    data : list
+        the data points, as for L{leastSquaresFit}
 
-    @param data: the data points, as for L{leastSquaresFit}
-    @type data: C{list}
     """
     return leastSquaresFit(_polynomialModel, parameters, data)
 

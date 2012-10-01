@@ -1,16 +1,16 @@
-## Automatically adapted for numpy.numarray Feb 05, 2007 by 
+## Automatically adapted for numpy.numarray Feb 05, 2007 by
 
 """
 saaclean: Module for estimating and removing persistent CR signal due to a prior
           SAA passage.
 
-Usage:    Normally used via the STSDAS task saaclean in the nicmos package.
+:Usage:    Normally used via the STSDAS task saaclean in the nicmos package.
           To use as pure python, create a params object to override any of
           the default parameters if desired, then invoke clean:
           >>> mypars=saaclean.params(thresh=0.23)
           >>> saaclean.clean('inputfile.fits','outputfile.fits',pars=mypars)
 
-For more information:
+:For more information:
           Additional user information, including parameter definitions and more
           examples, can be found in the help file for the STSDAS saaclean task,
           located in nicmos$doc/saaclean.hlp.
@@ -18,8 +18,8 @@ For more information:
           The algorithm and IDL prototype are described in the NICMOS
           ISR 2003-009, by Bergeron and Dickinson, available through the NICMOS
           webpage.
-          
-Dependencies:
+
+:Dependencies:
           numpy 1.0.2.dev3534 or higher
           pyfits v1.1b4 or higher
           imagestats v1.3 or higher
@@ -33,9 +33,9 @@ __vdate__="2010-10-20"
 
 # The above text is duplicated in the __init__ file for the package, since
 #that's where it shows up for the user.
-from stsci.tools import numerixenv #Temporary NUMERIX environment check 
+from stsci.tools import numerixenv #Temporary NUMERIX environment check
 from stsci.tools import fileutil
-import os 
+import os
 import exceptions
 import numpy as N, pyfits
 from stsci.imagestats import ImageStats as imstat #pyssg lib
@@ -113,15 +113,15 @@ class params:
         self.crthresh=crthresh
         self.noisethresh=noisethresh
         self.binsigfrac=binsigfrac
-        
+
         self.darkpath=osfn(darkpath)
         self.diagfile=osfn(diagfile)
 
         self.appstring=None   # Might be needed later.
-        
+
 class Domain:
     """ Stores a list of pixels for a (typically high or low) signal domain"""
-    
+
     def __init__(self,name,pixellist,range):
         self.name=name
         self.pixlist=pixellist
@@ -131,7 +131,7 @@ class Domain:
         #2 element array, 1 for x & 1 for y. Thus to get the number of
         #pixels, we need the length in one of the elements.
 
-      
+
 
     def striplowerthan(self,factor):
         """self.pp is defined in Exposure.getscales
@@ -155,7 +155,7 @@ class Domain:
         if not clobber:
             if os.path.exists(filename):
                 raise IOError, "%s already exists: aborting\n"%filename
-        #if clobber=True or file does not exist, proceed anyhow    
+        #if clobber=True or file does not exist, proceed anyhow
         f=open(filename,'w')
         f.write('# '+self.name+'\n')
         f.write('# Pixels in this domain: '+`len(self.pixlist[0])`+'\n')
@@ -165,13 +165,13 @@ class Domain:
         for i in range(len(self.pp[0])):
             f.write('%f   %f    %f\n' % (self.pp[0,i],self.pp[1,i],self.pp[2,i]))
         f.close()
-                   
-    
+
+
 class Exposure:
     """ Stores a collection of keywords and the image data for an exposure. """
-    
+
     def __init__(self,imgfile,nickname=None):
-        
+
         self.filename=osfn(imgfile)
         if nickname is None:
             self.nickname=self.filename
@@ -193,9 +193,9 @@ class Exposure:
         self.badfile=osfn(h['maskfile'])
         self.tdkfile=osfn(h.get('saadfile'))
         self.gainplot=h['adcgain']
- 
-        self.inq1=slice(10,118),slice(10,118)              
-        self.inq2=slice(10+128,118+128),slice(10,118)      
+
+        self.inq1=slice(10,118),slice(10,118)
+        self.inq2=slice(10+128,118+128),slice(10,118)
         self.inq3=slice(10+128,118+128),slice(10+128,118+128)
         self.inq4=slice(10,118),slice(10+128,118+128)
 
@@ -223,7 +223,7 @@ class Exposure:
             self.badpix = None
 
  #       print "self.badpix.shape = ",self.badpix.shape
-            
+
         if self.badpix is None:
             print "failing over to ",self.badfile
             try:
@@ -235,10 +235,10 @@ class Exposure:
                 print "Bad pixel image not read"
                 print "Bad pixel image filename obtained from ",self.filename
                 self.badpix=None
-                
+
         #Don't leave file handles hanging around
         self.f.close()
-        
+
     def writeto(self,outname,clobber=False):
         f=pyfits.open(self.filename)
         f[self.extnum].data=self.data
@@ -252,7 +252,7 @@ class Exposure:
     def pedskyish(self):
         """ Performs something like the IRAF pedsky task, but with a bit more
         sophistication in handling the central row and column"""
-        
+
         #Compute the median for each quadrant independently
 ##         m=N.array([imstat(self.data[self.inq1],nclip=0,binwidth=0.01,fields='median').median,
 ##                           imstat(self.data[self.inq2],nclip=0,binwidth=0.01,fields='median').median,
@@ -268,7 +268,7 @@ class Exposure:
 ##      temp=imstat(m,nclip=1,binwidth=0.01,fields='mean,median')
 ##      print "stats: mean/median",m.mean(),median(m)
         m=m-median(m)
-##      print "after sub",m        
+##      print "after sub",m
 
         #Subtract the median from each quadrant
         self.data[self.q1]=self.data[self.q1]-m[0]
@@ -305,7 +305,7 @@ class Exposure:
 ##         else:
 ##             raise ValueError, "Bad camera value"
 
-        
+
     def getmask(self,dim=256,border=3,writename='mask.dat',clobber=False):
         """Computes a mask to use for pixels to omit"""
         mask=N.zeros((dim,dim),dtype=N.dtype('float32'))
@@ -330,10 +330,10 @@ class Exposure:
     def apply_mask(self,mask):
         goodpix=N.where(mask == 0)
         self.masked_data = self.data[goodpix]
-        
+
 
     def getscales(self,saaper,mask,pars):
-        
+
         cal=self.data*self.exptime
         acc=saaper*self.exptime
 
@@ -377,7 +377,7 @@ class Exposure:
                     best,dom.chi2,itertrace=parabola_min(thedata,best)
                    # best=parabola1(dom.pp[0,minx:maxx],pp[1,minx:maxx],minguess=best)
                    # best=parabola1(dom.pp[0,minx:maxx],pp[1,minx:maxx],minguess=best)
-                       
+
                 dom.nr=(1.0-dom.pp[1,ubest]/dom.pp[1,0])*100
                 dom.scale=best
                 dom.bestloc=ubest
@@ -399,15 +399,15 @@ class Exposure:
                 dom.scale = 0
                 dom.bestloc=0
                 dom.chi2=0
-                
+
     def apply_domains(self,saaper,badmask,noisethresh,appimage=None):
-        if appimage is not None: 
+        if appimage is not None:
             final=appimage
         else:
             final=self.data.copy()
 
         saacorr=N.zeros(final.shape,dtype=N.dtype('float32'))
-        
+
         hdom,ldom=self.domains['high'],self.domains['low']
         self.update=1
         if hdom.nr >= noisethresh and ldom.nr >= noisethresh:
@@ -417,38 +417,38 @@ class Exposure:
             saacorr[hdom.pixlist]=saaper[hdom.pixlist]*(hdom.scale*badmask[hdom.pixlist])
 
         elif hdom.nr > noisethresh and ldom.nr < noisethresh:
-            print "\n Applying noise reduction in high domain only "            
+            print "\n Applying noise reduction in high domain only "
             self.appstring='high only'
             saacorr[hdom.pixlist]=saaper[hdom.pixlist]*(hdom.scale*badmask[hdom.pixlist])
-            
+
         elif hdom.nr < noisethresh and ldom.nr >= noisethresh:
             print "\n...Noise reduction in high domain < 1%: applying low scale everywhere"
             self.appstring='low everywhere'
             saacorr=saaper*(ldom.scale*badmask)
-            
+
         elif hdom.nr < noisethresh and ldom.nr < noisethresh:
             print "\n*** Noise reduction < 1 %, not applying"
             self.appstring='none'
             self.update=0
         else:
-            raise ValueError,"Huh?? hi_nr, lo_nr: %f %f"%(hdom.nr,ldom.nr) 
+            raise ValueError,"Huh?? hi_nr, lo_nr: %f %f"%(hdom.nr,ldom.nr)
 
         if self.appstring != 'none':
             final=final-saacorr
-            
+
 ##         import futil
 ##         futil.writeimage(saacorr,'scaled_sapper.fits')
-        
+
         return final
 
     def update_header(self,pars,tag='default',header=None):
         """ Update the FITS header with all this good stuff we've done"""
 
         #Start with the last keyword, for ease of applying.
-        
+
         if header is None:
             header=self.h
-            
+
         #Describe what was applied
         lastkey='SCNAPPLD'
         header.update(lastkey,
@@ -456,14 +456,14 @@ class Exposure:
                       'to which domains was SAA cleaning applied',
                       after='SAACRMAP')
 
-        
+
         #Then work forward from the beginning of the section:
-        
+
         #First put in a comment card as a separator
         header.add_blank('',before=lastkey)
         header.add_blank('      / SAA_CLEAN output keywords',before=lastkey)
         header.add_blank('',before=lastkey)
-        
+
         #Then describe the persistence image:
         header.update('SAAPERS',
                       os.path.basename(pars.saaperfile),
@@ -479,7 +479,7 @@ class Exposure:
                           'median used in flatfielding persistence image',
                           before=lastkey)
         header.add_blank('',before=lastkey)
-        
+
         #Describe the domains
         header.update('SCNTHRSH',
                       self.thresh,
@@ -494,7 +494,7 @@ class Exposure:
                       'Number of pixels in low signal domain (LSD)',
                       before=lastkey)
         header.add_blank('',before=lastkey)
-        
+
         #Describe the results in each domain
 ##         self.h.update('SCNGAIN',
 ##                       self.gainplot,
@@ -519,15 +519,15 @@ class Exposure:
                           self.domains[k].nr,
                           '%sSD  noise reduction (percent)'%HorL,
                           before=lastkey)
-##................................................................       
+##................................................................
 ## Only needed for testing: removed for release
-##................................................................       
+##................................................................
 ##             self.h.update('SCNTAG',
 ##                           tag,
 ##                           'Tag/description of this version',
-##                           
-##................................................................       
-        
+##
+##................................................................
+
 #..........................................................................
 # Exception definitions
 class NoPersistError(exceptions.Exception):
@@ -628,18 +628,18 @@ def thresh_from_gausspoly_fit(saa, parbinwidth=0.5, nclip=3,
         numpoints=600
     else:
         numpoints=hnbins
-        
+
     thedata = [(xloc[i],h.histogram[i]) for i in range(numpoints)]
     t=xloc[0:numpoints]
-    
+
     #Now set up the start guesses
     hmax=h.histogram[0:numpoints].max()
     hbinmax=xloc[h.histogram[0:numpoints].argmax()]
-    startguess=[hmax, 
+    startguess=[hmax,
                 xloc[h.histogram[0:numpoints].argmax()],
                 yy.stddev,
                 0.1, 0.1, 0.0]
-    
+
     #Do the fitting: with a catch for a linear algebra failure
     try:
         coeffs,chi2,itertrace=gausspoly_fit(thedata,startguess)
@@ -652,17 +652,17 @@ def thresh_from_gausspoly_fit(saa, parbinwidth=0.5, nclip=3,
             f.write(line)
         f.close()
         raise e
-    
+
     #and tell us about the results
     print "\nCoefficients for gauss-poly fit to persistence model histogram:"
     r=itertrace[-1] #Last iteration
-    
+
     print "Gaussian (low signal component) terms:"
     print "  Amplitude, Mean, Sigma: %f %f %f"%(r[0].value,r[1].value,r[2].value)
     print "Polynomial terms:"
     print "  Constant, Linear, Quadratic:%f %f %f"%(r[3].value,r[4].value,r[5].value)
     print""
-    
+
     if diagfile:
 
         #This prints the histogram that is actually fit
@@ -685,7 +685,7 @@ def thresh_from_gausspoly_fit(saa, parbinwidth=0.5, nclip=3,
     #Finally, compute the threshold based on the fit.
     #Don't forget to divide out the magic-number to convert back
     #to the original scale.
-    
+
     thresh=(coeffs[1] + 3.5*abs(coeffs[2]))/500.
     return thresh
 
@@ -745,7 +745,7 @@ def getdark(camera,tdkfile,darkpath):
 def make_saaper(imgfile,pars,crthresh=1):
     # Get dark data here
     im1,im2,dark=get_dark_data(imgfile,pars.darkpath)
-    
+
     #Process the data
     for im in [im1,im2]:
         im.dark_subtract(dark)
@@ -764,7 +764,7 @@ def make_saaper(imgfile,pars,crthresh=1):
     if pars.writesaaper and pars.saaperfile:
         hdr = create_saaper_header(im1,im2,saaper)
         hdr['filename'] = pars.saaperfile # update filename for new output
-        writeimage(saaper,pars.saaperfile,clobber=pars.clobber,header=hdr)        
+        writeimage(saaper,pars.saaperfile,clobber=pars.clobber,header=hdr)
     return saaper
 
 
@@ -791,7 +791,7 @@ def create_saaper_header(im1,im2,saaper):
         # copy entire card from im1 header to new header for this keyword
         # this preserves the comment as well as the value
         hdr.ascard.append(im1.h.ascard[kindx])
-        
+
     #Now for those keywords which need special attention...
     hdr.update('imagetyp','SAAPER')
     hdr.update('expend',im2.h['expend'])
@@ -800,7 +800,7 @@ def create_saaper_header(im1,im2,saaper):
     hdr.update('datamin',saaper.min())
     hdr.update('datamax',saaper.max())
     hdr.update('date',fileutil.getDate(),comment='Date this file was written')
-    
+
     return hdr
 
 def flat_saaper(saaper,img):
@@ -832,7 +832,7 @@ def smartopen(fname, mode, clobber=True):
 # The "main" program
 #....................................................................
 def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
-    numerixenv.check() #Temporary NUMERIX environment check 
+    numerixenv.check() #Temporary NUMERIX environment check
     print "Input files: %s %s"%(usr_calcfile,usr_targfile)
     imgfile=osfn(usr_calcfile)
     img=Exposure(imgfile,nickname='sci image')
@@ -854,7 +854,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
         scnappld=check.h.get('scnappld',None)
         if scnappld in already_done:
             raise AlreadyDone, check.filename
-    
+
     outfile=osfn(usr_outfile)
     if pars is None:
         pars=params()
@@ -870,7 +870,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
     mask,badmask=img.getmask(writename=pars.maskfile,clobber=pars.clobber)
     saaper,mm=flat_saaper(saaper,img)
     pars.saaper_median=mm
-    
+
     if pars.flatsaaperfile:
         writeimage(saaper,pars.flatsaaperfile,clobber=pars.clobber)
 
@@ -882,7 +882,7 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
                                                 parbinwidth=pars.histbinwidth,
                                                 nclip=pars.nclip,
                                                 diagfile=pars.diagfile,
-                                                clobber=pars.clobber)     
+                                                clobber=pars.clobber)
     else:
         img.thresh=pars.thresh
 
@@ -910,11 +910,11 @@ def clean(usr_calcfile,usr_targfile,usr_outfile,pars=None):
 
     final=img.apply_domains(saaper,badmask,pars.noisethresh,appimage=appimage)
 
-  
+
     if 1: #img.update:
         targ.data=final
         img.update_header(pars,header=targ.h)
         targ.writeto(outfile,clobber=pars.clobber)
 
-    
+
     return saaper,img

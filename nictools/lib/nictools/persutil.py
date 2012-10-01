@@ -4,26 +4,26 @@ from __future__ import division # confidence high
 import sys
 import time
 import pyfits
-from optparse import OptionParser  
+from optparse import OptionParser
 import os
 
 # Utility functions and parameters for nic_rem_persist
 
 QUIET = 0 # verbosity levels
 VERBOSE = 1
-VERY_VERBOSE = 2   
-                                                                                
+VERY_VERBOSE = 2
+
 # default values
-verbosity = VERBOSE 
+verbosity = VERBOSE
 
 PERSIST_LO = 0.5   # only used for pyraf version
 USED_LO = 0.5   # only used for pyraf version
 
-nref = os.path.expandvars('$nref') 
+nref = os.path.expandvars('$nref')
 
 def all_printMsg( message, level=VERBOSE):
 
-    if verbosity >= level:     
+    if verbosity >= level:
       print message
       sys.stdout.flush()
 
@@ -34,10 +34,10 @@ def printMsg( message, level=QUIET):
         sys.stdout.flush()
 
 def setVerbosity( verbosity_level):
-    """Copy verbosity to a variable that is global for this file.                                                              
+    """Copy verbosity to a variable that is global for this file.
        argument: verbosity_level -  an integer value indicating the level of verbosity
     """
-                                                                                
+
     global verbosity
     verbosity = verbosity_level
 
@@ -48,22 +48,26 @@ def checkVerbosity( level):
 
 def getPersist_lo( calcfile):
     """ Get value of persist_lo from BEPVALLO in the persistence model file PMODFILE
-        or from a default specified by this module.
-        This will only be called if user did not specify a value on the command-line. 
+    or from a default specified by this module.
+    This will only be called if user did not specify a value on the command-line.
 
-    @param calcfile: input ped file
-    @type calcfile: string
+    Parameters
+    ----------
+    calcfile : string
+        input ped file
 
-    @return: persist_lo
-    @rtype:  float    
+    Returns
+    -------
+    persist_lo :  float
+
     """
 
-    # get pmodfile from header of calcfile, and get bepvallo from pmodfile           
+    # get pmodfile from header of calcfile, and get bepvallo from pmodfile
     fh_infile = pyfits.open( calcfile)
     pmodfile =  fh_infile[0].header.get( "PMODFILE" )
     pmodfile = os.path.join( nref, pmodfile.split('nref$')[1] )
-    fh_pmod = pyfits.open( pmodfile)       
-    persist_lo =  fh_pmod[0].header.get( "BEPVALLO" ) 
+    fh_pmod = pyfits.open( pmodfile)
+    persist_lo =  fh_pmod[0].header.get( "BEPVALLO" )
     fh_infile.close(); fh_pmod.close()
 
     if (persist_lo == None ):# if keyword is not in model file, set to module default value
@@ -74,18 +78,20 @@ def getPersist_lo( calcfile):
 
 def getUsed_lo( calcfile):
     """  Get value of used_lo from BEPUSELO in the persistence model file PMODFILE
-        or from a default specified by this module.
-        This will only be called if user did not specify a value on the command-line. 
+    or from a default specified by this module.
+    This will only be called if user did not specify a value on the command-line.
 
+    Parameters
+    -----------
+    calcfile : string
+        input ped file
 
-    @param calcfile: input ped file
-    @type calcfile: string
-
-    @return:  used_lo
-    @rtype:  float    
+    Returns
+    -------
+    used_lo :  float
     """
 
-    # get pmodfile from header of calcfile, and get bepuselo from pmodfile           
+    # get pmodfile from header of calcfile, and get bepuselo from pmodfile
     fh_infile = pyfits.open( calcfile)
     pmodfile =  fh_infile[0].header.get( "PMODFILE" )
     pmodfile = os.path.join( nref, pmodfile.split('nref$')[1])
@@ -97,46 +103,50 @@ def getUsed_lo( calcfile):
          used_lo = USED_LO
 
     return used_lo
-             
+
 
 def getPersist_model( calcfile):
     """  Get name of persistence model from PMODFILE in the input file.
-    This will only be called if user did not specify a model on the command-line. 
+    This will only be called if user did not specify a model on the command-line.
 
-    @param calcfile: input ped file
-    @type calcfile: string
-    @options: command line options
-    @type clip:  string
+    Parameters
+    ----------
+    calcfile : string
+        input ped file
 
-    @return: persist_model
-    @rtype: string    
+    Returns
+    -------
+    persist_model : string
     """
-    
+
     # get pmodfile from header of calcfile
     fh_infile = pyfits.open( calcfile)
     persist_model = fh_infile[0].header.get( "PMODFILE" )
     persist_model = os.path.join( nref, persist_model.split('nref$')[1] )
-    fh_infile.close(); 
+    fh_infile.close();
 
     return persist_model
 
 
 def getPersist_mask( calcfile):
-    """ Get name of persistence mask from PMSKFILE in the input file 
-    This will only be called if user did not specify a model on the command-line. 
+    """ Get name of persistence mask from PMSKFILE in the input file
+    This will only be called if user did not specify a model on the command-line.
 
-    @param calcfile: input ped file
-    @type calcfile: string
+    Parameters
+    ----------
+    calcfile : string
+        input ped file
 
-    @return: persist_mask
-    @rtype: string    
+    Returns
+    -------
+    persist_mask : string
     """
-    
+
     # get pmskfile from header of calcfile
     fh_infile = pyfits.open( calcfile)
     persist_mask = fh_infile[0].header.get( "PMSKFILE" )
     persist_mask = os.path.join( nref,persist_mask.split('nref$')[1])
-    fh_infile.close(); 
+    fh_infile.close();
 
     return persist_mask
 
@@ -167,4 +177,3 @@ def getOptions():
     verbosity = options.verbosity
 
     return options, args, parser
-

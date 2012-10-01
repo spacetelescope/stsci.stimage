@@ -55,33 +55,40 @@ class NicRemPersist:
     """ Remove bright earth persistence persistence from CAL file of NICMOS data (on which pedsub has been run) using a medianed persistence model,
         based on correction calculated from PED file.
 
-    pyraf example:
-    --> nrp = nic_rem_persist.NicRemPersist('n9r7b2bjq_ped.fits', persist_model = 'persistring.fits', persist_mask = 'persist_mask.fits',
-                  used_lo = .3, persist_lo = 0.8)
-    --> nrp.persist()
+    Notes
+    ------
+    The syntax for using this class under Python or PyRAF::
 
-    linux command line example:
+      --> nrp = nic_rem_persist.NicRemPersist('n9r7b2bjq_ped.fits', persist_model = 'persistring.fits', persist_mask = 'persist_mask.fits',
+                  used_lo = .3, persist_lo = 0.8)
+      --> nrp.persist()
+
+    The linux command line syntax for calling this module::
+
        hal> ./nic_rem_persist.py 'n9r7b2bjq_ped.fits','n9r7b2bjq_cal.fits' -d 'same_as_persistring.fits' -m 'same_as_persist_mask.fits' -u 0.4 -p 1.3 -v
 
+    The full description of the parameters required by this class is as follows.
     """
 
     def __init__( self, calcfile, targfile, verbosity=1 ,persist_lo=None, used_lo=None, persist_model=None, persist_mask=None, run_stdout=None):
         """constructor
 
-        @param calcfile: name of ped file
-        @type calcfile:  string
-        @param targfile: name of cal file
-        @type targfile:  string
-        @param persist_lo: minimum allowed value of the persistence
-        @type persist_lo:  Float32
-        @param used_lo: minimum allowed value of the fraction of pixels used
-        @type used_lo:  Float32
-        @param persist_model: filename containing persistence frame (ring median of)
-        @type persist_model:  string
-        @param persist_mask: filename containing pixel mask
-        @type persist_mask:  string
-        @param run_stdout: open trailer file (pipeline use only)
-        @type run_stdout: file handle
+        Parameters
+        ----------
+        calcfile : string
+            name of ped file
+        targfile : string
+            name of cal file
+        persist_lo : float
+            minimum allowed value of the persistence
+        used_lo : float
+            minimum allowed value of the fraction of pixels used
+        persist_model : string
+            filename containing persistence frame (ring median of)
+        persist_mask : string
+            filename containing pixel mask
+        run_stdout : file handle
+            open trailer file (pipeline use only)
 
         """
         if (run_stdout != None): # set standard output to trailer file
@@ -281,26 +288,31 @@ class NicRemPersist:
 
 
 def check_py_pars(self, calcfile, targfile, persist_lo, used_lo, persist_model, persist_mask):
-       """ When run under python, check validity of input parameters. For unspecified *_lo parameters, the
-           user will be given the option of typing in a value or accepting the default value. For an unspecified
-           model(mask) file, will try to get file name from PMODFILE(PMSKFILE) from input file header, otherwise
-           will get default value from persutil.
+       """ When run under python, check validity of input parameters. For unspecified \*_lo parameters, the
+        user will be given the option of typing in a value or accepting the default value. For an unspecified
+        model(mask) file, will try to get file name from PMODFILE(PMSKFILE) from input file header, otherwise
+        will get default value from persutil.
 
-       @param calcfile: name of PED file
-       @type calcfile: string
-       @param targfile: name of CAL file
-       @type targfile: string
-       @param persist_lo: minimum allowed value of the persistence
-       @type persist_lo: Float32
-       @param used_lo: minimum allowed value of the fraction of pixels used
-       @type used_lo: Float32
-       @param persist_model: filename containing persistence frame (ring median of)
-       @type persist_model:  string
-       @param persist_mask: filename containing pixel mask
-       @type persist_mask:  string
+        Parameters
+        ------------
+        calcfile : string
+            name of PED file
+        targfile : string
+            name of CAL file
+        persist_lo : float
+            minimum allowed value of the persistence
+        used_lo : float
+            minimum allowed value of the fraction of pixels used
+        persist_model : string
+            filename containing persistence frame (ring median of)
+        persist_mask : string
+            filename containing pixel mask
 
-       @return: persist_lo, used_lo, persist_model, persist_mask
-       @rtype: float, float, string, string
+        Returns
+        --------
+        persist_lo, used_lo : float
+        persist_model, persist_mask : string
+
        """
 
        try:
@@ -366,17 +378,22 @@ def check_py_pars(self, calcfile, targfile, persist_lo, used_lo, persist_model, 
 
 def check_cl_pars(calcfile, targfile, persist_lo, used_lo):
    """ When run from linux command line, verify that each parameter is valid.
-       @param calcfile: name of ped file
-       @type calcfile: string
-       @param targfile: name of cal file
-       @type targfile: string
-       @param persist_lo: minimum allowed value of the persistence
-       @type persist_lo: Float32
-       @param used_lo: minimum allowed value of the fraction of pixels used
-       @type used_lo: Float32
 
-       @return: persist_lo, used_lo
-       @rtype: float, float
+        Parameters
+        ----------
+        calcfile : string
+            name of ped file
+        targfile : string
+            name of cal file
+        persist_lo : float
+            minimum allowed value of the persistence
+        used_lo : float
+            minimum allowed value of the fraction of pixels used
+
+        Returns
+        --------
+        persist_lo, used_lo : float, float
+
    """
 
    try:
@@ -422,13 +439,17 @@ def make_footprint(rin, rout):
     """ Make an annular mask footprint for use in ndimage.median_filter to create a ring median image.
         Sets all pixels between rin and rout to 1.
 
-    @param rin: inner radius
-    @type rin: integer
-    @param rout: outer radius
-    @type rout: integer
+    Parameters
+    ----------
+    rin : int
+        inner radius
+    rout : int
+        outer radius
 
-    @return: mask
-    @rtype: ndarray
+    Returns
+    --------
+    mask : ndarray
+
     """
     asize = 2*rout+1
     mask = N.zeros( [asize,asize], dtype=N.int )
@@ -448,13 +469,16 @@ def iterstatc( clip, d ):
     """  version of nicmos iterstat: calculate sigma-clipped mean
          and standart deviation
 
-    @param clip: number of std to use in sigma clipping
-    @type clip:  Float32
-    @param d: array of values to sigma clip
-    @type clip:  Float32
+    Parameters
+    ----------
+    clip : float
+        number of std to use in sigma clipping
+    d : float
+        array of values to sigma clip
 
-    @return:  clipped mean, clipped std
-    @rtype:  float, float
+    Returns
+    --------
+    clipped mean, clipped std :  float, float
     """
 
     img = d
@@ -473,13 +497,18 @@ def iterstatc( clip, d ):
 def median( y, mask):
     """Return the median of the array y, ignoring masked elements.
 
-    @param y:  array of values [2d]
-    @type y:  Float32
-    @param mask:  array of ones or zeros (0 indicates a good value) [2d]
-    @type mask:  Int32
+    Parameters
+    ----------
+    y : float
+        array of values [2d]
+    mask : int
+        array of ones or zeros (0 indicates a good value) [2d]
 
-    @return:  median of y, ignoring masked elements
-    @rtype:  float
+    Returns
+    -------
+    median_y : float
+        median of y, ignoring masked elements
+
     """
 
    # make the arrays 1d :
@@ -510,12 +539,16 @@ def median( y, mask):
 
 if __name__=="__main__":
         """Get input file and other arguments, and call nic_rem_persist.
-            The command-line options are:
-            -q (quiet)
-            -v (very verbose)
+            The command-line options are::
 
-            @param cmdline: command-line arguments
-            @type cmdline: list of strings
+              -q (quiet)
+              -v (very verbose)
+
+            Parameters
+            ----------
+            cmdline : list of strings
+                command-line arguments
+
         """
 
         if ( sys.argv[1] ): calcfile = sys.argv[1]

@@ -4,7 +4,7 @@
 # last revision: 2006-6-12
 #
 # Modified import statements to use just a portion of the package
-# and drop support for non-numpy array packages. V. Laidler, 2007-02-05. 
+# and drop support for non-numpy array packages. V. Laidler, 2007-02-05.
 
 """
 Automatic differentiation for functions with any number of variables
@@ -96,16 +96,20 @@ class DerivVar:
 
     def __init__(self, value, index=0, order=1):
         """
-        @param value: the numerical value of the variable
-        @type value: number
-        @param index: the variable index, which serves to
+        Parameters
+        ----------
+        value : int or float
+            the numerical value of the variable
+        index : int
+            the variable index, which serves to
             distinguish between variables and as an index for
             the derivative lists. Each explicitly created
             instance of DerivVar must have a unique index.
-        @type index: C{int}
-        @param order: the derivative order, must be zero or one
-        @type order: C{int}
-        @raise ValueError: if order < 0 or order > 1
+        order : int
+            the derivative order, must be zero or one
+        Raises
+        ------
+        ValueError: if order < 0 or order > 1
         """
         if order < 0 or order > 1:
             raise ValueError('Only first-order derivatives')
@@ -119,11 +123,19 @@ class DerivVar:
 
     def __getitem__(self, order):
         """
-        @param order: derivative order
-        @type order: C{int}
-        @return: a list of all derivatives of the given order
-        @rtype: C{list}
-        @raise ValueError: if order < 0 or order > 1
+        Parameters
+        ----------
+        order : int
+            derivative order
+
+        Returns
+        --------
+        deriv : list
+            a list of all derivatives of the given order
+
+        Raises
+        -------
+        ValueError: if order < 0 or order > 1
         """
         if order < 0 or order > 1:
             raise ValueError('Index out of range')
@@ -190,7 +202,7 @@ class DerivVar:
                                   map(lambda x,f=inv: f*x, self.deriv),
                                   map(lambda x,f=self.value*inv*inv: f*x,
                                       other.deriv)))
-    
+
     # Support calls without future division defined:
     # make sure it does the same thing
     __div__ = __truediv__
@@ -198,7 +210,7 @@ class DerivVar:
     # Don't support integer division (the // operator)
     def __floordiv__(self, other):
         raise TypeError("Integer division (//) is not supported for the DerivVar object")
-    
+
     def __rdiv__(self, other):
         return other/self
 
@@ -306,9 +318,16 @@ class DerivVar:
 
 def isDerivVar(x):
     """
-    @param x: an arbitrary object
-    @return: True if x is a DerivVar object, False otherwise
-    @rtype: bool
+    Parameters
+    ----------
+    x :
+        an arbitrary object
+
+    Returns
+    -------
+    result : bool
+        True if x is a DerivVar object, False otherwise
+
     """
     return hasattr(x,'value') and hasattr(x,'deriv')
 
@@ -326,17 +345,23 @@ def _mapderiv(func, a, b):
 def DerivVector(x, y, z, index=0):
 
     """
-    @param x: x component of the vector
-    @type x: number
-    @param y: y component of the vector
-    @type y: number
-    @param z: z component of the vector
-    @type z: number
-    @param index: the DerivVar index for the x component. The y and z
-                  components receive consecutive indices.
-    @type index: C{int}
-    @return: a vector whose components are DerivVar objects
-    @rtype: L{Scientific.Geometry.Vector}
+    Parameters
+    ----------
+    x : float or int
+        x component of the vector
+    y : float or int
+        y component of the vector
+    z : float or int
+        z component of the vector
+    index : int
+        the DerivVar index for the x component. The y and z
+        components receive consecutive indices.
+
+    Returns
+    -------
+    vector : Scientific.Geometry.VectorModule.Vector
+        a vector whose components are DerivVar objects
+
     """
 
     from Scientific.Geometry.VectorModule import Vector
