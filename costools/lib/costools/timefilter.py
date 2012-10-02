@@ -5,6 +5,7 @@ from __future__ import division         # confidence high
 
 __author__ = "Phil Hodge, STScI, August 2012."
 __usage__ = """
+
 1. To run this task from within Python::
 
     >>> from costools import timefilter
@@ -33,6 +34,8 @@ __usage__ = """
 
 .. note:: make sure the file "timefilter.py" is on your executable path
 """
+
+__doc__ += __usage__
 
 import copy
 import getopt
@@ -522,12 +525,12 @@ class TimelineFilter (object):
         """Print information about the input file.
 
         The information printed includes:
-        The names of the input and output files.
-        The good-time intervals table (the one with largest EXTVER).
-        The following values at the beginning, middle, and end of the
-        range of times in the TIMELINE TIME column:
-            sun altitude, target altitude, longitude, latitude, shift1.
-        The minimum, maximum, median, of shift1, ly_alpha, darkrate.
+         - The names of the input and output files.
+         - The good-time intervals table (the one with largest EXTVER).
+         - The following values at the beginning, middle, and end of the
+            range of times in the TIMELINE TIME column:
+              -sun altitude, target altitude, longitude, latitude, shift1.
+         - The minimum, maximum, median, of shift1, ly_alpha, darkrate.
         """
 
         print "input =", self.input
@@ -1107,10 +1110,12 @@ class TimelineFilter (object):
         two), or "TIMELINE" (we expect one, but a raw file or an old
         corrtag file might have none).
 
-        These three attributes will be assigned by this method:
+        These three attributes will be assigned by this method::
+
             self.events_list        EVENTS tables
             self.gti_list           GTI tables
             self.tl_list            TIMELINE tables
+
         Each element is a two-element list (extver and hdunum) that
         identifies one extension in the input file.  `extver` is the
         value of keyword EXTVER, the extension version number.  `hdunum`
@@ -1141,11 +1146,13 @@ class TimelineFilter (object):
         A RuntimeError exception will be raised if there is more than one
         EVENTS table or more than one TIMELINE table.
 
-        These three attributes will be assigned by this method:
+        These three attributes will be assigned by this method::
+
             self.events_hdunum      HDU number of EVENTS table
             self.first_gti_hdunum   HDU number of first GTI table
             self.gti_hdunum         HDU number of last GTI table
             self.tl_hdunum          HDU number of TIMELINE table
+
         These are the header/data unit numbers of the EVENTS table,
         the last (highest EXTVER) GTI table, and the TIMELINE table
         respectively.  The value will be None if there are no elements
