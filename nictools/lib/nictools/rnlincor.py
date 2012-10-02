@@ -4,10 +4,13 @@ rnlincor: Module to correct for the countrate-dependent nonlinearity in
           a NICMOS image.
 
 :Usage:   Normally used via the STSDAS task rnlincor in the nicmos package.
-          To use as pure python, just invoke the run method:
-          >>> rnlincor.run('inputfile.fits','outputfile.fits')
-          It may also be run from the shell:
-          % rnlincor.py infile.fits [outfile.fits] [--nozpcorr]
+          To use as pure python, just invoke the run method::
+
+            >>> rnlincor.run('inputfile.fits','outputfile.fits')
+
+          It may also be run from the shell::
+
+            % rnlincor.py infile.fits [outfile.fits] [--nozpcorr]
 
 
 :For more information:
@@ -20,8 +23,8 @@ rnlincor: Module to correct for the countrate-dependent nonlinearity in
           de Jong.
 
 :Dependencies:
-    numpy v1.0.2dev3534 or higher
-    pyfits v1.1b4 or higher
+    - numpy v1.0.2dev3534 or higher
+    - pyfits v1.1b4 or higher
 
 """
 from __future__ import division

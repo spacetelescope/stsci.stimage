@@ -18,10 +18,10 @@ puftcorr: Module for estimating and removing "Mr. Staypuft" signal from
 
 :Dependencies:
 
-    numpy v1.0.2dev3534 or higher
-    pyfits v1.1b4 or higher
-    convolve v2.0 or higher
-    ndimage  v2.0 or higher
+    - numpy v1.0.2dev3534 or higher
+    - pyfits v1.1b4 or higher
+    - convolve v2.0 or higher
+    - ndimage  v2.0 or higher
 
 """
 #.....................................................
