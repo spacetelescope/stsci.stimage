@@ -11,14 +11,14 @@ import stsci.ndimage as ndimage
 # x,y = np.loadtxt(fname,usecols=(0,1),unpack=True)
 # More examples of I/O with numpy can be found at:
 #  http://www.scipy.org/Cookbook/InputOutput
-def run(in_list,output,shape=[2048,4096],template=None,order=1,expand=True,verbose=True):
+def run(in_list,output,xstep=64,ystep=64,shape=[2048,4096],template=None,order=1,expand=True,verbose=True):
     """ Create a full-frame DXY reference file derived from a sub-sampled grid
         of values read in from the ASCII files specified in the list of filenames
         given in 'in_list'.
 
         Syntax
         =======
-        >>> makedxy.run([fname1,...,fnameN],output,
+        >>> makedxy.run([fname1,...,fnameN],output,xstep=64,ystep=64,
                         shape=[2048,4096],template=None,order=1,
                         expand=True,verbose=True)
 
@@ -71,6 +71,10 @@ def run(in_list,output,shape=[2048,4096],template=None,order=1,expand=True,verbo
             # just in case the template file is not ordered the same
             hdu.header['EXTNAME'] = extname
             hdu.header['EXTVER'] = extver
+
+            hdu.header['CDELT1'] = xstep
+            hdu.header['CDELT2'] = ystep
+
             # Append new HDU to FITS file
             fimg.append(hdu)
 
@@ -81,7 +85,6 @@ def run(in_list,output,shape=[2048,4096],template=None,order=1,expand=True,verbo
         print 'Writing out new reference file to: ',output
     fimg.writeto(output)
     fimg.info()
-
 
 
 def get_template_hdr(template,extname,extver=1):
