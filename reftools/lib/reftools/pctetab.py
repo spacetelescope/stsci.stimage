@@ -578,11 +578,11 @@ def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
   dtde_file : str
     Path to text file containing dtde data.
     
-    The file should have 2 columns with the following format:
+    The file should have 2 columns with the following format::
   
-    DTDE  Q
-    float int
-    ...   ...
+      DTDE  Q
+      float int
+      ...   ..
     
     Lines beginning with # are ignored.
     
@@ -590,44 +590,44 @@ def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
     Path to text file(s) containing charge leak data. If passed as a string
     the string may contain wild cards so that multiple files are specified.
     
-    The input file should contain 5 columns with following format:
+    The input file should contain 5 columns with following format::
   
-    NODE LOG_Q_1 LOG_Q_2 LOG_Q_3 LOG_Q_4
-    int  float   float   float   float 
-    ...  ...     ...     ...     ...
+      NODE LOG_Q_1 LOG_Q_2 LOG_Q_3 LOG_Q_4
+      int  float   float   float   float 
+      ...  ...     ...     ...     ...
     
     Lines beginning with # are ignored.
     
   levels_file : str
     Text file containing charge levels at which to do CTE evaluation.
     
-    The input file should have a single column with the following format:
+    The input file should have a single column with the following format::
   
-    LEVELS
-    int
-    ...
+      LEVELS
+      int
+      ...
     
     Lines beginning with # are ignored.
     
   scale_file : str
     Text file containing CTE scaling parameters
     
-    The input file should have two columns with the following format:
+    The input file should have two columns with the following format::
     
-    MJD     SCALE
-    float   float
-    ...     ...
+      MJD     SCALE
+      float   float
+      ...     ...
     
     Lines beginning with # are ignored.
     
   column_file : str
     Text file containing CTE column-by-column scaling.
     
-    The input file should have 5 columns with the following format:
+    The input file should have 5 columns with the following format::
     
-    COLUMN  AMPA    AMPB    AMPC    AMPD
-    int     float   float   float   float
-    ...     ...     ...     ...     ...
+      COLUMN  AMPA    AMPB    AMPC    AMPD
+      int     float   float   float   float
+      ...     ...     ...     ...     ...
     
     Lines beginning with # are ignored.
     
@@ -646,10 +646,11 @@ def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
   
   noise_model : {0, 1, 2}
     Select the method to be used for readnoise removal.
-    
-    0: no read noise smoothing
-    1: standard smoothing
-    2: strong smoothing
+    ::
+        
+      0: no read noise smoothing
+      1: standard smoothing
+      2: strong smoothing
   
   oversub_thresh : float
     Value for ``SUBTHRSH`` keyword in PCTEFILE header. CTE corrected
@@ -678,12 +679,14 @@ def MakePCTETab(out_name, dtde_file, chg_leak_file, levels_file, scale_file,
       
   Examples
   --------
-  >>>MakePCTETab('pctetab_pcte.fits','pctetab_dtdel_110425.txt',
+  Saving file pctetab_pcte.fits with the command:
+
+  >>> MakePCTETab('pctetab_pcte.fits','pctetab_dtdel_110425.txt',
                  'pctetab_chgleak_110425.txt','pctetab_levels_110425.txt',
                  'pctetab_scaling_110718.txt',
                  'pctetab_column_scaling_111129.txt',
                  history_file='pctetab_history.txt')
-  Saving file pctetab_pcte.fits
+                 
   
   """
   

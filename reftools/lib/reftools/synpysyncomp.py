@@ -303,15 +303,14 @@ class SynPysynPlot(object):
   The plots show differences between 7 parameters calculated by both synphot
   and pysynphot. The differences are shown as histograms. The difference plotted
   is calculated as 100 * (pysynphot - synphot) / synphot.
-  
+
   Parameters
-  ----------
+  -----------
   csvfile : str
     Filename of input CSV file containing comparison results. Should be a file
     created by `SynPysynComp.write_csv`.
     
   Attributes
-  ----------
   fig : `matplotlib.figure.Figure`
     Useful for setting manipulating figure properties such as the title, which
     otherwise defaults to `csvfile`.
