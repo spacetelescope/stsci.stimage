@@ -54,9 +54,10 @@ def readIDCtab (tabname, chip=1, date=None, direction='forward',
     except:
         err_str =  "------------------------------------------------------------------------ \n"
         err_str += "WARNING: the IDCTAB geometric distortion file specified in the image     \n"
-        err_str += "header was not found on disk. Please verify that your environment        \n"
-        err_str += "variable ('jref'/'uref'/'oref'/'nref') has been correctly defined. If    \n"
-        err_str += "you do not have the IDCTAB file, you may obtain the latest version       \n"
+        err_str += "header was not found on disk; namely, %s   \n"%tabname
+        err_str += "Please verify that your environment variable                             \n"
+        err_str += "(one of 'jref'/'uref'/'oref'/'nref') has been correctly defined.         \n"
+        err_str += "If you do not have the IDCTAB file, you may obtain the latest version    \n"
         err_str += "of it from the relevant instrument page on the STScI HST website:        \n"
         err_str += "http://www.stsci.edu/hst/ For WFPC2, STIS and NICMOS data, the           \n"
         err_str += "present run will continue using the old coefficients provided in         \n"
