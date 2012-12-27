@@ -70,6 +70,7 @@ OLD_PACKAGES = set([
     'stsci_sphinxext',
     'stscidocs',
     'stwcs',
+    'wfc3tools',
     'wfpc2tools',
     ])
 

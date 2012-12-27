@@ -51,6 +51,7 @@ required_versions = {
         'stsci.tools' :             '3.0',
         'stsci.sphinxext' :         '1.0',
         'stwcs' :                   '0.9',
+        'wfc3tools':                '1.0',
         'wfpc2tools.wfpc2cte':      '1.2.4',
         'wfpc2tools.wfpc2destreak': '2.2',
 

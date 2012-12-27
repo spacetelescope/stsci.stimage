@@ -47,6 +47,7 @@ all_packages_input = [
     "stsci_sphinxext",
     "stwcs",
     "tools",
+    "wfc3tools",
     "wfpc2tools",
 
 ]
