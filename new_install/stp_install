@@ -20,7 +20,8 @@ do
 		then
 			echo using setuptools
 			rm -rf junk
-			if python setup.py install --single-version-externally-managed --record=junk $args
+			# if python setup.py install --single-version-externally-managed --record=junk $args
+			if python setup.py install $args
 			then
 				:
 			else
