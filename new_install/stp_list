@@ -56,6 +56,7 @@ costools	    svn		$stsci_python/stsci_python/$branch/costools
 nictools	    svn		$stsci_python/stsci_python/$branch/nictools
 stistools	    svn		$stsci_python/stsci_python/$branch/stistools
 wfpc2tools	    svn		$stsci_python/stsci_python/$branch/wfpc2tools
+wfc3tools           svn         $stsci_python/stsci_python/$branch/wfc3tools
 
 # old
 pydrizzle	    svn		$stsci_python/stsci_python/$branch/pydrizzle
