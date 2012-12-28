@@ -23,8 +23,8 @@ new_install	    svn		$stsci_python/stsci_python/$branch/new_install
 
 # needed by installs
 d2to1		    svn		$stsci_python/d2to1/$branch
-stsci.tools	    svn		$stsci_python/stsci_python/$branch/tools
 stsci.distutils	    svn		$stsci_python/stsci.distutils/$branch
+stsci.tools	    svn		$stsci_python/stsci_python/$branch/tools
 
 # common libraries
 stsci.convolve	    svn		$stsci_python/stsci_python/$branch/convolve
