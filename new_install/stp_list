@@ -48,7 +48,7 @@ stsci.distutils	    svn		$stsci_python/stsci.distutils/$branch
 stsci.image	    svn		$stsci_python/stsci_python/$branch/image
 stsci.imagemanip    svn		$stsci_python/stsci_python/$branch/imagemanip
 stsci.imagestats    svn		$stsci_python/stsci_python/$branch/imagestats
-stsci.ndimage	    svn		$stsci_python/stsci_python/$branch/ndimage
+stsci.ndimage	    svn		$stsci_python/stsci_python/$branch/stsci.ndimage
 stsci.numdisplay    svn		$stsci_python/stsci_python/$branch/numdisplay
 stsci.sphinxext	    svn		$astrolib/$branch/stsci_sphinxext
 stsci.stimage	    svn		$stsci_python/stsci_python/$branch/stimage
