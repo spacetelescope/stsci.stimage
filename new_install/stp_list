@@ -43,7 +43,7 @@ pywcs		    svn		$astrolib/$branch/pywcs
 reftools	    svn		$stsci_python/stsci_python/$branch/reftools
 sample_project	    svn		$stsci_python/sample_project/$branch
 stistools	    svn		$stsci_python/stsci_python/$branch/stistools
-stsci.convolve	    svn		$stsci_python/stsci_python/$branch/convolve
+stsci.convolve	    svn		$stsci_python/stsci.convolve/$branch
 stsci.distutils	    svn		$stsci_python/stsci.distutils/$branch
 stsci.image	    svn		$stsci_python/stsci_python/$branch/image
 stsci.imagemanip    svn		$stsci_python/stsci_python/$branch/imagemanip
