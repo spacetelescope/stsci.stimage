@@ -1,0 +1,7 @@
+2.1.0 (unreleased)
+------------------
+- First release with the new package layout.
+
+- Fixed a bug that occurred with newer versions of Numpy (>=1.6) where
+  exceptions were not handled properly when passing invalid arguments to the
+  Correlate1D and Correlate2D functions.
