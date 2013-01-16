@@ -1,2 +1,0 @@
-a.txt - ends up in the package directory
-- another line

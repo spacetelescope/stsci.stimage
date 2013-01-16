@@ -1,5 +1,0 @@
-#!/usr/bin/env python
-
-import sample_package.main
-sample_package.main.run()
-
