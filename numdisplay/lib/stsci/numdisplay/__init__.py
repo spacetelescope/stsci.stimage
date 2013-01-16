@@ -84,6 +84,8 @@
 """
 from __future__ import division # confidence medium
 
+from .version import *
+
 import numpy as n
 import math, string
 import displaydev
@@ -93,14 +95,6 @@ try:
     import geotrans
 except ImportError:
     geotrans = None
-
-__version__ = "1.6.1 (25-Mar-2011)"
-#
-# Version 0.1-alpha: Initial release
-#       WJH 7-Oct-2003
-# Version 0.2.0: Removed need to explicitly call 'open()'.
-#       RW 30-Nov-2004
-#
 
 
 class NumDisplay(object):
