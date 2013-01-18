@@ -1,4 +1,5 @@
 #!/usr/bin/env python
-print "this setup.py is obsolete"
-print "if you need to install all of stsci_python at once, see new_install/README"
-print "or talk to Mark S."
+from __future__ import division # confidence high
+
+import stsci.tools.stsci_distutils_hack as H
+H.run()

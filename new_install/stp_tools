@@ -1,3 +1,0 @@
-split_line() {
-        awk '{ printf("pkg=%s ; scm=%s ; url=%s\n",$1,$2,$3); }'
-}
