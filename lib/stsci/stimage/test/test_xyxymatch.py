@@ -27,6 +27,8 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 
+from __future__ import print_function
+
 import numpy as np
 import stsci.stimage as stimage
 
@@ -39,8 +41,8 @@ def test_same():
                           tolerance=0.01,
                           separation=0.0, nmatch=0, maxratio=0, nreject=0)
 
-    print r.dtype
-    print r.shape
+    print(r.dtype)
+    print(r.shape)
 
     assert len(r) == 512
 

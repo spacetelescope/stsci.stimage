@@ -230,7 +230,11 @@ from_geomap_fit_e(
         return -1;
     }
 
+#if PY_MAJOR_VERSION >= 3
+    *o = PyUnicode_FromString(c);
+#else
     *o = PyString_FromString(c);
+#endif
     if (*o == NULL) {
         return -1;
     }
@@ -290,7 +294,11 @@ from_surface_type_e(
         return -1;
     }
 
+#if PY_MAJOR_VERSION >= 3
+    *o = PyUnicode_FromString(c);
+#else
     *o = PyString_FromString(c);
+#endif
     if (*o == NULL) {
         return -1;
     }
@@ -350,7 +358,11 @@ from_xterms_e(
         return -1;
     }
 
+#if PY_MAJOR_VERSION >= 3
+    *o = PyUnicode_FromString(c);
+#else
     *o = PyString_FromString(c);
+#endif
     if (*o == NULL) {
         return -1;
     }

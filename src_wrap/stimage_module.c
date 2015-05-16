@@ -45,11 +45,26 @@ static PyMethodDef module_methods[] = {
     {NULL}  /* Sentinel */
 };
 
-#ifndef PyMODINIT_FUNC  /* declarations for DLL import/export */
-#define PyMODINIT_FUNC void
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef moduledef = {
+  PyModuleDef_HEAD_INIT,
+  "_stimage",          /* m_name */
+  "Example module that creates an extension type.",  /* m_doc */
+  -1,                  /* m_size */
+  module_methods,      /* m_methods */
+  NULL,                /* m_reload */
+  NULL,                /* m_traverse */
+  NULL,                /* m_clear */
+  NULL,                /* m_free */
+};
 #endif
+
 PyMODINIT_FUNC
+#if PY_MAJOR_VERSION >= 3
+PyInit__stimage(void)
+#else
 init_stimage(void)
+#endif
 {
     PyObject* m;
 
@@ -57,6 +72,12 @@ init_stimage(void)
 
     SIZE_T_D = sizeof(size_t) == 8 ? "u8" : "u4";
 
+#if PY_MAJOR_VERSION >= 3
+    m = PyModule_Create(&moduledef);
+	return m;
+#else
     m = Py_InitModule3("_stimage", module_methods,
                        "Example module that creates an extension type.");
+	return;
+#endif
 }
