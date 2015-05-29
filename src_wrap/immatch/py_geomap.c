@@ -37,15 +37,178 @@ DAMAGE.
 #define NO_IMPORT_ARRAY
 
 #include <Python.h>
-#include "wrap_util.h"
+#include <structmember.h>
 
+#include "wrap_util.h"
 #include "immatch/geomap.h"
+
+typedef struct {
+    PyObject_HEAD
+    PyObject *fit_geometry;
+    PyObject *function;
+    PyObject *rms;
+    PyObject *mean_ref;
+    PyObject *mean_input;
+    PyObject *shift;
+    PyObject *mag;
+    PyObject *rotation;
+    PyObject *xcoeff;
+    PyObject *ycoeff;
+    PyObject *x2coeff;
+    PyObject *y2coeff;
+} geomap_object;
+
+static PyObject *
+geomap_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    geomap_object *self;
+    self = (geomap_object *)type->tp_alloc(type, 0);
+
+    return (PyObject *)self;
+}
+
+static PyObject *
+geomap_array_init() {
+    PyObject *o = NULL;
+    npy_intp dims = 1;
+    
+    o = PyArray_SimpleNew(1, &dims, NPY_DOUBLE);
+    if (o != NULL) {
+        *((double*)PyArray_GETPTR1(o, 0)) = 0.0;
+    }
+
+    return o;
+}
+
+static int
+geomap_init(geomap_object *self, PyObject *args, PyObject *kwds)
+{
+#if PY_MAJOR_VERSION >= 3
+    self->fit_geometry = PyUnicode_FromString("");
+    self->function = PyUnicode_FromString("");
+#else
+    self->fit_geometry = PyString_FromString("");
+    self->function = PyString_FromString("");
+#endif
+    
+    self->rms = geomap_array_init();
+    if (self->rms == NULL) return -1;
+    
+    self->mean_ref = geomap_array_init();
+    if (self->mean_ref == NULL) return -1;
+    
+    self->mean_input = geomap_array_init();
+    if (self->mean_input == NULL) return -1;
+    
+    self->shift = geomap_array_init();
+    if (self->shift == NULL) return -1;
+    
+    self->mag = geomap_array_init();
+    if (self->mag == NULL) return -1;
+    
+    self->rotation = geomap_array_init();
+    if (self->rotation == NULL) return -1;
+    
+    self->xcoeff = geomap_array_init();
+    if (self->xcoeff == NULL) return -1;
+ 
+    self->ycoeff = geomap_array_init();
+    if (self->ycoeff == NULL) return -1;
+
+    self->x2coeff = geomap_array_init();
+    if (self->x2coeff == NULL) return -1;
+ 
+    self->y2coeff = geomap_array_init();
+    if (self->y2coeff == NULL) return -1;
+
+    return 0;
+}
+
+static void
+geomap_dealloc(geomap_object *self)
+{    
+    Py_XDECREF(self->fit_geometry);
+    Py_XDECREF(self->function);
+    Py_XDECREF(self->rms);
+    Py_XDECREF(self->mean_ref);
+    Py_XDECREF(self->mean_input);
+    Py_XDECREF(self->shift);
+    Py_XDECREF(self->mag);
+    Py_XDECREF(self->rotation);
+    Py_XDECREF(self->xcoeff);
+    Py_XDECREF(self->ycoeff);
+    Py_XDECREF(self->x2coeff);
+    Py_XDECREF(self->y2coeff);
+    Py_TYPE(self)->tp_free((PyObject*)self);
+}
+
+static PyMethodDef geomap_methods[] = {
+    {NULL}  /* Sentinel */
+};
+
+static PyMemberDef geomap_members[] = {
+    {"fit_geometry", T_OBJECT_EX, offsetof(geomap_object, fit_geometry), 0, "fit_geometry"},
+    {"function", T_OBJECT_EX, offsetof(geomap_object, function), 0, "function"},
+    {"rms", T_OBJECT_EX, offsetof(geomap_object, rms), 0, "rms"},
+    {"mean_ref", T_OBJECT_EX, offsetof(geomap_object, mean_ref), 0, "mean_ref"},
+    {"mean_input", T_OBJECT_EX, offsetof(geomap_object, mean_input), 0, "mean_input"},
+    {"shift", T_OBJECT_EX, offsetof(geomap_object, shift), 0, "shift"},
+    {"mag", T_OBJECT_EX, offsetof(geomap_object, mag), 0, "mag"},
+    {"rotation", T_OBJECT_EX, offsetof(geomap_object, rotation), 0, "rotation"},
+    {"xcoeff", T_OBJECT_EX, offsetof(geomap_object, xcoeff), 0, "xcoeff"},
+    {"ycoeff", T_OBJECT_EX, offsetof(geomap_object, ycoeff), 0, "ycoeff"},
+    {"x2coeff", T_OBJECT_EX, offsetof(geomap_object, x2coeff), 0, "x2coeff"},
+    {"y2coeff", T_OBJECT_EX, offsetof(geomap_object, y2coeff), 0, "y2coeff"},
+    {NULL}  /* Sentinel */
+};
+
+static PyTypeObject geomap_class = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "py_geomap.GeomapResults", /* tp_name */
+    sizeof(geomap_object),     /* tp_basicsize */
+    0,                         /* tp_itemsize */
+    (destructor)geomap_dealloc,/* tp_dealloc */
+    0,                         /* tp_print */
+    0,                         /* tp_getattr */
+    0,                         /* tp_setattr */
+    0,                         /* tp_reserved */
+    0,                         /* tp_repr */
+    0,                         /* tp_as_number */
+    0,                         /* tp_as_sequence */
+    0,                         /* tp_as_mapping */
+    0,                         /* tp_hash */
+    0,                         /* tp_call */
+    0,                         /* tp_str */
+    0,                         /* tp_getattro */
+    0,                         /* tp_setattro */
+    0,                         /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,        /* tp_flags */
+    "geomap result objects",   /* tp_doc */
+    0,		                   /* tp_traverse */
+    0,		                   /* tp_clear */
+    0,		                   /* tp_richcompare */
+    0,		                   /* tp_weaklistoffset */
+    0,		                   /* tp_iter */
+    0,		                   /* tp_iternext */
+    geomap_methods,            /* tp_methods */
+    geomap_members,            /* tp_members */
+    0,                         /* tp_getset */
+    0,                         /* tp_base */
+    0,                         /* tp_dict */
+    0,                         /* tp_descr_get */
+    0,                         /* tp_descr_set */
+    0,                         /* tp_dictoffset */
+    (initproc)geomap_init,     /* tp_init */
+    0,                         /* tp_alloc */
+    geomap_new,                /* tp_new */
+};
 
 PyObject*
 py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
     PyObject* input_obj        = NULL;
     PyObject* ref_obj          = NULL;
     PyObject* bbox_obj         = NULL;
+    PyObject* fit_obj          = NULL;
     char*     fit_geometry_str = NULL;
     char*     surface_type_str = NULL;
     size_t    xxorder          = 2;
@@ -67,9 +230,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
     xterms_e       xxterms      = xterms_half;
     xterms_e       yxterms      = xterms_half;
 
-    static PyObject* class        = NULL;
     geomap_result_t  fit;
-    PyObject*        fit_obj      = NULL;
     PyObject*        tmp          = NULL;
     npy_intp         dims         = 0;
     size_t           i            = 0;
@@ -175,13 +336,8 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
         goto exit;
     }
 
-    if (class == NULL) {
-        class = PyClass_New(
-                NULL, PyDict_New(), PyString_FromString("GeomapResults"));
-    }
-
-    fit_obj = PyInstance_New(class, NULL, NULL);
-
+    fit_obj = geomap_new(&geomap_class, NULL, NULL);
+    
     #define ADD_ATTR(func, member, name) \
         if ((func)((member), &tmp)) goto exit;      \
         PyObject_SetAttrString(fit_obj, (name), tmp);       \
@@ -223,3 +379,48 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
 
     return result;
 }
+
+#if PY_MAJOR_VERSION >= 3
+
+static PyModuleDef geomap_module = {
+    PyModuleDef_HEAD_INIT,
+    "geomap_results",
+    "Python object to hold the results of geomap",
+    -1,
+    NULL, NULL, NULL, NULL, NULL
+};
+
+PyMODINIT_FUNC
+PyInit_geomap_results(void) 
+{
+    PyObject* m;
+
+    geomap_class.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&geomap_class) < 0)
+        return NULL;
+
+    m = PyModule_Create(&geomap_module);
+    if (m == NULL)
+        return NULL;
+
+    Py_INCREF(&geomap_class);
+    PyModule_AddObject(m, "GeomapResults", (PyObject *)&geomap_class);
+    return m;
+}
+
+#else
+PyMODINIT_FUNC
+initgeomap_results(void) 
+{
+    PyObject* m;
+
+    geomap_class.tp_new = PyType_GenericNew;
+    if (PyType_Ready(&geomap_class) < 0)
+        return;
+
+    m = Py_InitModule("GeomapResults", geomap_methods);
+
+    Py_INCREF(&geomap_class);
+    PyModule_AddObject(m, "GeomapResults", (PyObject *)&geomap_class);
+}
+#endif
