@@ -29,7 +29,7 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 
-from __future__ import division # confidence high
+from __future__ import division, print_function # confidence high
 
 import sys
 from distutils.core import setup, Extension
@@ -53,8 +53,8 @@ else:
 try:
     import numpy
 except ImportError:
-    print "numpy must be installed to build stimage."
-    print "ABORTING."
+    print("numpy must be installed to build stimage.")
+    print("ABORTING.")
     raise
 
 try:
