@@ -40,8 +40,8 @@ PyObject* py_xyxymatch(PyObject*, PyObject*, PyObject*);
 PyObject* py_geomap(PyObject*, PyObject*, PyObject*);
 
 static PyMethodDef module_methods[] = {
-    {"xyxymatch", (PyCFunction)py_xyxymatch, METH_KEYWORDS, NULL},
-    {"geomap", (PyCFunction)py_geomap, METH_KEYWORDS, NULL},
+    {"xyxymatch", (PyCFunction)py_xyxymatch, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"geomap", (PyCFunction)py_geomap, METH_VARARGS | METH_KEYWORDS, NULL},
     {NULL}  /* Sentinel */
 };
 
