@@ -1,4 +1,4 @@
-include RECON-INFO
+include RELIC-INFO
 include LICENSE MANIFEST.in INSTALL README TODO defsetup.py stsci_distutils_hack.py waf wscript
 include doc/Makefile
 include doc/source/*.py

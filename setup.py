@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import recon.release
+import relic.release
 from glob import glob
 from os import walk
 from os.path import abspath, curdir, join
@@ -7,8 +7,8 @@ from numpy import get_include as np_include
 from setuptools import setup, find_packages, Extension
 
 
-version = recon.release.get_info()
-recon.release.write_template(version, 'lib/stsci/stimage')
+version = relic.release.get_info()
+relic.release.write_template(version, 'lib/stsci/stimage')
 
 sources = []
 for root, dirs, files in walk(curdir):
