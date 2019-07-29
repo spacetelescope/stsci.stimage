@@ -153,7 +153,7 @@ typedef enum {
 static inline int
 coord_is_finite(
     const coord_t* const c) {
-    return isfinite64(c->x) && isfinite64(c->y);
+    return isfinite(c->x) && isfinite(c->y);
 }
 
 void *

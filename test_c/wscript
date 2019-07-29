@@ -15,10 +15,10 @@ TESTS = [
 
 def build(bld):
     test_args = {
-        'features': 'cc cprogram',
+        'features': 'c cprogram',
         'includes': [join(bld.path.abspath(), '../include')],
-        'lib': ['m', 'stdc++'],
-        'uselib_local': 'stimage'
+        'lib': ['m'],
+        'use': 'stimage'
         }
 
     for test in TESTS:
@@ -28,16 +28,15 @@ def build(bld):
             **test_args)
 
 def do_tests(ctx):
-    import nose
-
-    return nose.runmodule(argv = ["nosetests", "test_c"])
+    from subprocess import check_call
+    return check_call(["pytest", "test_c"])
 
 def valgrind(ctx):
     if not os.path.exists("valgrind"):
         os.mkdir("valgrind")
 
     for test in TESTS:
-        print "Valgrinding %s" % test,
+        print("Valgrinding %s" % test)
         path = join("build", "default", "test_c", "test_%s" % test)
         retcode = subprocess.call(
             "valgrind --log-file=valgrind/%s.vg.log --leak-check=yes %s" %
@@ -51,6 +50,6 @@ def valgrind(ctx):
         fd.close()
 
         if 'are definitely lost' in data:
-            print "LEAKING MEMORY"
+            print("LEAKING MEMORY")
         else:
-            print
+            print()

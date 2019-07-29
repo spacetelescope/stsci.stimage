@@ -86,16 +86,16 @@ limit_to_bbox(
     assert(bbox_is_valid(bbox));
 
     for (i = 0; i < ncoord; ++i) {
-        if (isfinite64(bbox->min.x) && ref[i].x < bbox->min.x) {
+        if (isfinite(bbox->min.x) && ref[i].x < bbox->min.x) {
             continue;
         }
-        if (isfinite64(bbox->max.x) && ref[i].x > bbox->max.x) {
+        if (isfinite(bbox->max.x) && ref[i].x > bbox->max.x) {
             continue;
         }
-        if (isfinite64(bbox->min.y) && ref[i].y < bbox->min.y) {
+        if (isfinite(bbox->min.y) && ref[i].y < bbox->min.y) {
             continue;
         }
-        if (isfinite64(bbox->max.y) && ref[i].y > bbox->max.y) {
+        if (isfinite(bbox->max.y) && ref[i].y > bbox->max.y) {
             continue;
         }
 
@@ -122,21 +122,21 @@ determine_bbox(
     assert(a);
     assert(bbox);
 
-    if (!isfinite64(bbox->min.x)) {
+    if (!isfinite(bbox->min.x)) {
         bbox->min.x = MAX_DOUBLE;
     }
-    if (!isfinite64(bbox->min.y)) {
+    if (!isfinite(bbox->min.y)) {
         bbox->min.y = MAX_DOUBLE;
     }
-    if (!isfinite64(bbox->max.x)) {
+    if (!isfinite(bbox->max.x)) {
         bbox->max.x = -MAX_DOUBLE;
     }
-    if (!isfinite64(bbox->max.y)) {
+    if (!isfinite(bbox->max.y)) {
         bbox->max.y = -MAX_DOUBLE;
     }
 
     for (i = 0; i < n; ++i) {
-        if (isfinite64(a[i].x)) {
+        if (isfinite(a[i].x)) {
             if (a[i].x < bbox->min.x) {
                 bbox->min.x = a[i].x;
             }
@@ -145,7 +145,7 @@ determine_bbox(
             }
         }
 
-        if (isfinite64(a[i].y)) {
+        if (isfinite(a[i].y)) {
             if (a[i].y < bbox->min.y) {
                 bbox->min.y = a[i].y;
             }

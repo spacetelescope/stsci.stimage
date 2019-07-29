@@ -1,15 +1,10 @@
-import Scripting
 import os
 
-def set_options(opt):
-    opt.tool_options('compiler_cc')
-    opt.tool_options('compiler_cxx')
+def options(ctx):
+    ctx.load('compiler_c')
 
-def configure(conf):
-    conf.check_tool('compiler_cc')
-    conf.check_tool('compiler_cxx')
-
-    conf.env['BUILD'] = conf.blddir
+def configure(ctx):
+    ctx.load('compiler_c')
 
 def build(ctx):
     # Install header files
@@ -24,7 +19,8 @@ def build(ctx):
     ctx.recurse("test_c")
 
 def test(ctx):
-    Scripting.commands += ['configure', 'build', 'do_tests']
+    from waflib import Options
+    Options.commands += ['configure', 'build', 'do_tests']
 
 def do_tests(ctx):
     ctx.recurse("test_c")
