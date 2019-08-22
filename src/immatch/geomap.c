@@ -1221,7 +1221,7 @@ geofit(
         break;
     }
 
-    if (fit->maxiter <= 0 || !isfinite64(fit->reject)) {
+    if (fit->maxiter <= 0 || !isfinite(fit->reject)) {
         fit->nreject = 0;
     } else {
         if (geo_fit_reject(
@@ -1571,8 +1571,8 @@ geomap(
     /* If the bbox is all NaNs, we don't need to reduce the data, saving an
        alloc and copy */
     if (bbox == NULL ||
-        (!isfinite64(tbbox.min.x) && !isfinite64(tbbox.min.y) &&
-         !isfinite64(tbbox.max.x) && !isfinite64(tbbox.max.y))) {
+        (!isfinite(tbbox.min.x) && !isfinite(tbbox.min.y) &&
+         !isfinite(tbbox.max.x) && !isfinite(tbbox.max.y))) {
         /* If we have no bbox, we don't need to allocate and copy */
         input_in_bbox = (coord_t*)input;
         ref_in_bbox = (coord_t*)ref;

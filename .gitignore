@@ -1,0 +1,14 @@
+*.o
+*.so
+*.a
+*.pyc
+__pycache__
+*.egg-info
+.eggs
+build
+dist
+pip-wheel-metadata
+waf
+.waf*
+.lock-waf*
+.coverage

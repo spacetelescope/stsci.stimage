@@ -1,8 +1,8 @@
 from os.path import join
 
 def build(bld):
-    bld(
-        features = 'cc cstaticlib',
+    bld.stlib(
+        features = 'c',
         target = 'stimage',
         source = [
             'immatch/geomap.c',
