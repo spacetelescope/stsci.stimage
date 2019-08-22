@@ -27,6 +27,7 @@ steps:
 
 - script: |
     python -m pip install pytest pytest-azurepipelines
+    python get_waf.py
     python waf configure build
     pytest --cov=./
     coverage xml
