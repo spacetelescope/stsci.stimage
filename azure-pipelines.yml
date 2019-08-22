@@ -27,7 +27,7 @@ steps:
 
 - script: |
     python -m pip install pytest pytest-azurepipelines
-    pythom waf configure build
+    python waf configure build
     pytest --cov=./
     coverage xml
     codecov -t "$CODECOV"
