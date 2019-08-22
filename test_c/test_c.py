@@ -23,7 +23,7 @@ def test_runall(program):
     if not os.path.exists(program):
         pytest.skip("'{}' does not exist. To run the C tests "
                     "execute the following before invoking pytest: "
-                    "./waf configure build")
+                    "./waf configure build".format(program))
     returncode = 0
     try:
         returncode = subprocess.check_call(program)

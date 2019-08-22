@@ -44,7 +44,9 @@ setup(
             'sphinx',
         ],
         'test': [
-            'pytest'
+            'pytest',
+            'pytest-cov',
+            'codecov',
         ],
     },
     namespace_packages=['stsci'],
