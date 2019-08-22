@@ -58,4 +58,18 @@ setup(
             include_dirs=INCLUDES,
         ),
     ],
+    author='Michael Droettboom',
+    author_email='help@stsci.edu',
+    description='Various image processing functions',
+    url='https://github.com/spacetelescope/stsci.stimage',
+    license='BSD',
+    classifiers=[
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: C',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+    ],
+
 )
