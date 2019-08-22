@@ -46,7 +46,7 @@ setup(
         'test': [
             'pytest',
             'pytest-cov',
-            'coverage',
+            'codecov',
         ],
     },
     namespace_packages=['stsci'],
