@@ -42,6 +42,7 @@ setup(
     extras_require={
         'docs': [
             'sphinx',
+            'sphinx-automodapi'
         ],
         'test': [
             'pytest',
@@ -58,7 +59,7 @@ setup(
             include_dirs=INCLUDES,
         ),
     ],
-    author='Michael Droettboom',
+    author='STScI',
     author_email='help@stsci.edu',
     description='Various image processing functions',
     url='https://github.com/spacetelescope/stsci.stimage',
