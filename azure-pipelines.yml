@@ -1,12 +1,12 @@
 trigger:
 - master
 
+# FIXME: If you add more Python version to the matrix,
+# do NOT calculate coverage for all of them; pick one.
 pool:
   vmImage: 'ubuntu-latest'
 strategy:
   matrix:
-    Python36:
-      python.version: '3.6'
     Python37:
       python.version: '3.7'
 
@@ -29,8 +29,7 @@ steps:
     python -m pip install pytest pytest-azurepipelines
     python get_waf.py
     python waf configure build
-    pytest -rs -v --cov=./
-    coverage xml
+    pytest -rsv --cov=./ --cov-report=xml
     codecov -t "$CODECOV"
   displayName: 'pytest'
   env:
