@@ -27,50 +27,18 @@ def c_includes(parent, depth=1):
     return includes
 
 
-PACKAGENAME = 'stsci.stimage'
 SOURCES = c_sources('src')
 INCLUDES = c_includes('include') + c_includes('src') + [numpy_includes()]
 
 
 setup(
-    name=PACKAGENAME,
     use_scm_version=True,
     setup_requires=['setuptools_scm'],
-    install_requires=[
-        'numpy',
-    ],
-    extras_require={
-        'docs': [
-            'sphinx',
-            'sphinx-automodapi'
-        ],
-        'test': [
-            'pytest',
-            'pytest-cov',
-            'codecov',
-        ],
-    },
-    namespace_packages=['stsci'],
-    packages=find_packages(),
     ext_modules=[
         Extension(
-            PACKAGENAME + '._stimage',
+            'stsci.stimage._stimage',
             sources=SOURCES,
             include_dirs=INCLUDES,
         ),
     ],
-    author='STScI',
-    author_email='help@stsci.edu',
-    description='Various image processing functions',
-    url='https://github.com/spacetelescope/stsci.stimage',
-    license='BSD',
-    classifiers=[
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: C',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-    ],
-
 )
