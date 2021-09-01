@@ -1,36 +1,58 @@
-trigger:
-- master
+name: CI
 
-# FIXME: If you add more Python version to the matrix,
-# do NOT calculate coverage for all of them; pick one.
-pool:
-  vmImage: 'ubuntu-latest'
-strategy:
-  matrix:
-    Python37:
-      python.version: '3.7'
+on:
+  push:
+    branches:
+      - master
+      - '*.x'
+    tags:
+      - '*'
+  pull_request:
+  schedule:
+    # Weekly Monday 7AM build
+    - cron: "0 7 * * 1"
 
-steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '$(python.version)'
-  displayName: 'Python $(python.version)'
+jobs:
+  ci:
+    name: Python ${{ matrix.python-version }}, numpy${{ matrix.numpy-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: 3.7
+            numpy-version: 1.14.0
+        python-version: [3.7, 3.8, 3.9]
+        numpy-version: [1.17.0, 1.19.0, 1.21.0]
 
-- script: |
-    python -m pip install --upgrade pip
-    pip install -e ".[test]"
-  displayName: 'Install dependencies'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-- script: |
-    python -m pip freeze
-  displayName: 'Package listing'
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
-- script: |
-    python -m pip install pytest pytest-azurepipelines
-    python get_waf.py
-    python waf configure build
-    pytest -rsv --cov=./ --cov-report=xml
-    codecov -t "$CODECOV"
-  displayName: 'pytest'
-  env:
-    CODECOV: $(codecov)
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[test] numpy~=${{ matrix.numpy-version }}
+
+      - name: Run tests
+        run: |
+          python get_waf.py
+          python waf configure build
+          pytest -rsv --cov=./ --cov-report=xml
+
+
+      - name: Upload coverage to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: true
+
+env:
+  CODECOV: $(codecov)
