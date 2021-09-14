@@ -12,3 +12,4 @@ waf
 .waf*
 .lock-waf*
 .coverage
+*version.py
