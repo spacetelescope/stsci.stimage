@@ -32,7 +32,7 @@ INCLUDES = c_includes('include') + c_includes('src') + [numpy_includes()]
 
 
 setup(
-    use_scm_version=True,
+    use_scm_version={"write_to": "stsci/stimage/_version.py"},
     setup_requires=['setuptools_scm'],
     ext_modules=[
         Extension(

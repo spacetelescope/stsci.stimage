@@ -28,14 +28,8 @@
 # DAMAGE.
 
 from __future__ import absolute_import
-from pkg_resources import get_distribution, DistributionNotFound
+from ._version import version as __version__
 from . import _stimage
-
-try:
-        __version__ = get_distribution(__name__).version
-except DistributionNotFound:
-        # package is not installed
-        __version__ = 'UNKNOWN'
 
 
 def xyxymatch(input,
