@@ -71,6 +71,3 @@ jobs:
           user: _token_
           password: ${{ secrets.pypi_password }}
           repository_url: https://test.pypi.org/legacy/
-	run: |
-        python setup.py sdist bdist_wheel
-        twine upload dist/*
