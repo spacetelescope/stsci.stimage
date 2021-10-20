@@ -19,11 +19,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - python-version: 3.7
-            numpy-version: 1.14.0
-        python-version: [3.7, 3.8, 3.9]
-        numpy-version: [1.17.0, 1.19.0, 1.21.0]
+        python-version: [3.6, 3.7, 3.8, 3.9, 3.10]
+        numpy-version: [1.14.0, 1.17.0, 1.19.0, 1.21.0]
 
     steps:
       - name: Checkout code
