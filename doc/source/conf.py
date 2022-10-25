@@ -10,15 +10,20 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
+from datetime import datetime
+from pathlib import Path
 
-import sys, os
+import tomli
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.append(os.path.abspath('.'))
+# sys.path.append(os.path.abspath('.'))
 
 # -- General configuration -----------------------------------------------------
+with open(Path(__file__).parent.parent.parent / "pyproject.toml", "rb") as configuration_file:
+    conf = tomli.load(configuration_file)
+setup_cfg = conf['project']
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -43,8 +48,10 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'stimage'
-copyright = u'2010-2020, STScI'
+project = setup_cfg['name']
+primary_author = setup_cfg["authors"][0]
+author = f'{primary_author["name"]} <{primary_author["email"]}>'
+copyright = f'2010-{datetime.now().year}, {primary_author["name"]}'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -125,7 +132,7 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ['_static']
+#html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -176,8 +183,8 @@ htmlhelp_basename = 'stimagedoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'stimage.tex', u'stimage Documentation',
-   u'STScI', 'manual'),
+    ('index', 'stimage.tex', u'stimage Documentation',
+     u'STScI', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
