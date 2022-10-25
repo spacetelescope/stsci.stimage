@@ -12,6 +12,9 @@ on:
     # Weekly Monday 7AM build
     - cron: "0 7 * * 1"
 
+env:
+  CODECOV: $(codecov)
+
 jobs:
   ci:
     name: Python ${{ matrix.python }}, numpy ${{ matrix.numpy }}
@@ -37,6 +40,3 @@ jobs:
         with:
           file: ./coverage.xml
           fail_ci_if_error: true
-
-env:
-  CODECOV: $(codecov)
