@@ -18,11 +18,12 @@ env:
 jobs:
   test:
     name: run tests (Python ${{ matrix.python }}, numpy ${{ matrix.numpy }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         python: [ '3.7', '3.8', '3.9', '3.10' ]
+        os: [ ubuntu-latest, macos-latest ]
         numpy: [ '1.20.*', '1.21.*', '1.*' ]
         exclude:
           - python: '3.6'
