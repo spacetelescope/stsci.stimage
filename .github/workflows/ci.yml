@@ -16,8 +16,8 @@ env:
   CODECOV: $(codecov)
 
 jobs:
-  ci:
-    name: Python ${{ matrix.python }}, numpy ${{ matrix.numpy }}
+  test:
+    name: run tests (Python ${{ matrix.python }}, numpy ${{ matrix.numpy }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -38,10 +38,36 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
+      - uses: actions/cache@v3
+        with:
+          path: ${{ env.pythonLocation }}
+          key: test-${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('**/pyproject.toml', '**/setup.*') }}
       - run: pip install -e ".[test]" "numpy==${{ matrix.numpy }}"
       - run: |
           python get_waf.py
           python waf configure build
+      - run: pip freeze
+      - run: pytest -rsv
+  test_with_coverage:
+    name: run tests with coverage
+    needs: [ test ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/cache@v3
+        with:
+          path: ${{ env.pythonLocation }}
+          key: test-${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('**/pyproject.toml', '**/setup.*') }}
+      - run: pip install -e ".[test]"
+      - run: |
+          python get_waf.py
+          python waf configure build
+      - run: pip freeze
       - run: pytest -rsv --cov=./ --cov-report=xml --cov-report term-missing
       - uses: codecov/codecov-action@v3
         with:
