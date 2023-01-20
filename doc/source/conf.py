@@ -21,10 +21,6 @@ import tomli
 # sys.path.append(os.path.abspath('.'))
 
 # -- General configuration -----------------------------------------------------
-with open(Path(__file__).parent.parent.parent / "pyproject.toml", "rb") as configuration_file:
-    conf = tomli.load(configuration_file)
-setup_cfg = conf['project']
-
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.imgmath',
@@ -48,10 +44,11 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = setup_cfg['name']
-primary_author = setup_cfg["authors"][0]
-author = f'{primary_author["name"]} <{primary_author["email"]}>'
-copyright = f'2010-{datetime.now().year}, {primary_author["name"]}'
+with open(Path(__file__).parent.parent.parent / "pyproject.toml", "rb") as metadata_file:
+    metadata = tomli.load(metadata_file)['project']
+project = metadata['name']
+author = metadata["authors"][0]["name"]
+copyright = f'2010-{datetime.now().year}, {author}'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
