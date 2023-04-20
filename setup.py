@@ -2,8 +2,9 @@
 
 import os
 from fnmatch import fnmatch
-from setuptools import setup, find_packages, Extension
+
 from numpy import get_include as numpy_includes
+from setuptools import setup, Extension
 
 
 def c_sources(parent):
@@ -30,15 +31,14 @@ def c_includes(parent, depth=1):
 SOURCES = c_sources('src')
 INCLUDES = c_includes('include') + c_includes('src') + [numpy_includes()]
 
+ext_modules = [
+    Extension(
+        'stsci.stimage._stimage',
+        sources=SOURCES,
+        include_dirs=INCLUDES,
+    ),
+]
 
 setup(
-    use_scm_version={"write_to": "stsci/stimage/_version.py"},
-    setup_requires=['setuptools_scm'],
-    ext_modules=[
-        Extension(
-            'stsci.stimage._stimage',
-            sources=SOURCES,
-            include_dirs=INCLUDES,
-        ),
-    ],
+    ext_modules=ext_modules,
 )
