@@ -13,6 +13,7 @@
 from datetime import datetime
 from pathlib import Path
 
+import sys
 if sys.version_info < (3, 11):
     import tomli as tomllib
 else:
