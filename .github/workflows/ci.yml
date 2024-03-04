@@ -70,3 +70,28 @@ jobs:
         with:
           file: ./coverage.xml
           fail_ci_if_error: true
+  test_devdeps:
+    if: (github.repository == 'spacetelescope/stsci.stimage' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run devdeps tests')))
+    strategy:
+      fail-fast: false
+      matrix:
+        python: [ '3.8', '3.9', '3.10' ]
+        os: [ ubuntu-latest, macos-latest ]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/cache@v3
+        with:
+          path: ${{ env.pythonLocation }}
+          key: test-${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('**/pyproject.toml', '**/setup.*') }}
+      - run: pip install -e ".[test]"
+      - run: pip install "numpy>=2.0.0.dev0" --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
+      - run: |
+          python get_waf.py
+          python waf configure build
+      - run: pip freeze
+      - run: pytest -rsv
