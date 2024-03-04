@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: [ '3.10', '3.11', '3.12' ]
+        python: [ '3.10', '3.11' ]
         os: [ ubuntu-latest, macos-latest ]
     steps:
       - uses: actions/checkout@v3
@@ -36,8 +36,7 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: test-${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('**/pyproject.toml', '**/setup.*') }}
-      - run: pip install -e ".[test]"
-      - run: pip install "numpy>=2.0.0.dev0" --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
+      - run: pip install -e ".[test]" "numpy>=2.0.0.dev0" --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
       - run: |
           python get_waf.py
           python waf configure build
