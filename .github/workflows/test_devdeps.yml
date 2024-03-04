@@ -1,0 +1,45 @@
+name: test with development versions
+
+on:
+  push:
+    branches:
+      - master
+      - '*.x'
+    tags:
+      - '*'
+  pull_request:
+  schedule:
+    # Weekly Monday 7AM build
+    - cron: "0 7 * * 1"
+
+env:
+  CODECOV: $(codecov)
+
+jobs:
+  test_devdeps:
+    if: (github.repository == 'spacetelescope/stsci.stimage' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run devdeps tests')))
+    name: run tests with development versions
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: [ '3.10', '3.11' ]
+        os: [ ubuntu-latest, macos-latest ]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/cache@v3
+        with:
+          path: ${{ env.pythonLocation }}
+          key: test-${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('**/pyproject.toml', '**/setup.*') }}
+      - run: pip install -e ".[test]"
+      - run: pip install "numpy>=2.0.0.dev0" --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
+      - run: |
+          python get_waf.py
+          python waf configure build
+      - run: pip freeze
+      - run: pytest -rsv
