@@ -72,6 +72,8 @@ jobs:
           fail_ci_if_error: true
   test_devdeps:
     if: (github.repository == 'spacetelescope/stsci.stimage' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run devdeps tests')))
+    name: run tests with development versions
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
