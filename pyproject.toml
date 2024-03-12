@@ -57,9 +57,6 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 zip-safe = false
 include-package-data = false
-namespace-packages = [
-    "stsci",
-]
 
 [tool.setuptools.packages.find]
 include = [
