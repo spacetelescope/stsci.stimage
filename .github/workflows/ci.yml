@@ -1,4 +1,4 @@
-name: CI
+name: test
 
 on:
   push:
@@ -21,7 +21,7 @@ env:
 
 jobs:
   test:
-    name: run tests (Python ${{ matrix.python }}, numpy ${{ matrix.numpy }})
+    name: test (Python ${{ matrix.python }}, numpy ${{ matrix.numpy }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
