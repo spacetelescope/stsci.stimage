@@ -33,16 +33,14 @@ jobs:
           - python: '3.10'
             numpy: '1.21.*'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - uses: actions/cache@v3
-        with:
-          path: ${{ env.pythonLocation }}
-          key: test-${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('**/pyproject.toml', '**/setup.*') }}
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
       - run: pip install -e ".[test]" "numpy==${{ matrix.numpy }}"
       - run: |
           python get_waf.py
@@ -54,23 +52,21 @@ jobs:
     needs: [ test ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - uses: actions/cache@v3
-        with:
-          path: ${{ env.pythonLocation }}
-          key: test-${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('**/pyproject.toml', '**/setup.*') }}
+          cache: 'pip'
+          cache-dependency-path: pyproject.toml
       - run: pip install -e ".[test]"
       - run: |
           python get_waf.py
           python waf configure build
       - run: pip freeze
       - run: pytest -rsv --cov=./ --cov-report=xml --cov-report term-missing
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
           fail_ci_if_error: true
