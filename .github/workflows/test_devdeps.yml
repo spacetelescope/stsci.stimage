@@ -26,19 +26,16 @@ jobs:
         python: [ '3.9', '3.10', '3.11', '3.12' ]
         os: [ ubuntu-latest, macos-latest ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - uses: actions/cache@v3
-        with:
-          path: ${{ env.pythonLocation }}
-          key: test-${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('**/pyproject.toml', '**/setup.*') }}
+          cache: 'pip'
+          cache-dependencies-path: pyproject.toml
       - run: pip install -e ".[test]" "numpy>=2.0.0b1" --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
-      - run: |
-          python get_waf.py
-          python waf configure build
+      - run: python get_waf.py
+      - run: python waf configure build
       - run: pip freeze
       - run: pytest -rsv

@@ -54,9 +54,8 @@ jobs:
           cache: 'pip'
           cache-dependency-path: pyproject.toml
       - run: pip install -e ".[test]" "numpy==${{ matrix.numpy }}"
-      - run: |
-          python get_waf.py
-          python waf configure build
+      - run: python get_waf.py
+      - run: python waf configure build
       - run: pip freeze
       - run: pytest -rsv
   test_with_coverage:
@@ -73,9 +72,8 @@ jobs:
           cache: 'pip'
           cache-dependency-path: pyproject.toml
       - run: pip install -e ".[test]"
-      - run: |
-          python get_waf.py
-          python waf configure build
+      - run: python get_waf.py
+      - run: python waf configure build
       - run: pip freeze
       - run: pytest -rsv --cov=./ --cov-report=xml --cov-report term-missing
       - uses: codecov/codecov-action@v4
