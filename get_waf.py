@@ -3,8 +3,8 @@ import os
 from urllib.request import urlopen
 
 
-version = '2.0.18'
-site = 'https://waf.io/waf-{}'.format(version)
+version = '2.0.27'
+site = f'https://waf.io/waf-{version}'
 exe = 'waf'
 
 
