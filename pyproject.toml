@@ -65,3 +65,6 @@ include = [
 
 [tool.setuptools_scm]
 write_to = "stsci/stimage/_version.py"
+
+[tool.cibuildwheel]
+test-command = "python -c from stsci.stimage import xyxymatch, geomap"
