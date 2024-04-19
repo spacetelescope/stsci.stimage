@@ -60,7 +60,7 @@ include-package-data = false
 
 [tool.setuptools.packages.find]
 include = [
-    "stsci",
+    "stsci.stimage",
 ]
 
 [tool.setuptools_scm]
