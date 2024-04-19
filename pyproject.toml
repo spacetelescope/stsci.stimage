@@ -50,7 +50,7 @@ requires = [
     "setuptools >=61",
     "setuptools_scm[toml] >=3.4",
     "wheel",
-    "numpy>=2.0.0b1",
+    "numpy>=2.0.0rc1",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -60,7 +60,7 @@ include-package-data = false
 
 [tool.setuptools.packages.find]
 include = [
-    "stsci",
+    "stsci.stimage",
 ]
 
 [tool.setuptools_scm]
