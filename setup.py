@@ -31,6 +31,8 @@ def c_includes(parent, depth=1):
 SOURCES = c_sources('src')
 INCLUDES = c_includes('include') + c_includes('src') + [numpy_includes()]
 
+# importing these extension modules is tested in `.github/workflows/build.yml`; 
+# when adding new modules here, make sure to add them to the `test_command` entry there
 ext_modules = [
     Extension(
         'stsci.stimage._stimage',
