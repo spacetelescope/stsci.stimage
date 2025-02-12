@@ -58,12 +58,12 @@ jobs:
           cache: 'pip'
           cache-dependency-path: pyproject.toml
       - run: |
-          pip install -e ".[test]"
+          python -m pip install -e ".[test]"
           python get_waf.py
           python waf configure build
-          pip install "numpy==${{ matrix.numpy }}"
-          pip freeze
-          pytest -rsv
+          python -m pip install "numpy==${{ matrix.numpy }}"
+          python -m pip freeze
+          python -m pytest -rsv
   test_with_coverage:
     name: run tests with coverage
     needs: [ test ]
