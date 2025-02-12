@@ -23,8 +23,12 @@ jobs:
         # ARM64 wheels
         - cp3*-macosx_arm64
         # Windows wheels
-        - cp3*win32
-        - cp3*win_amd64
+        - cp311-win32
+        - cp312-win32
+        - cp313-win32
+        - cp311-win_amd64
+        - cp312-win_amd64
+        - cp313-win_amd64
       sdist: true
       test_command: python -c "from stsci.stimage import xyxymatch, geomap"
     secrets:
