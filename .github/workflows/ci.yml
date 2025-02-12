@@ -45,8 +45,14 @@ jobs:
           - python: '3.10'
             numpy: '1.21.*'
             os: ubuntu-latest
-          - python: '3.10'
-            numpy: '1.21.*'
+          - python: '3.12'
+            numpy: '2.*'
+            os: windows-latest
+          - python: '3.12'
+            numpy: '2.*'
+            os: ubuntu-latest
+          - python: '3.12'
+            numpy: '2.*'
             os: macos-latest
     steps:
       - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938  # v4.2.0
