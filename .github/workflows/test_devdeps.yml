@@ -43,7 +43,9 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: 'pip'
           cache-dependencies-path: pyproject.toml
-      - run: python get_waf.py
-      - run: python waf configure build
-      - run: pip freeze
-      - run: pytest -rsv
+      - run: |
+          pip install -e ".[test]"
+          python get_waf.py
+          python waf configure build
+          pip freeze
+          pytest -rsv
