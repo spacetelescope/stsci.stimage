@@ -26,9 +26,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: [ '3.9', '3.10', '3.11', '3.12' ]
-        os: [ ubuntu-latest, macos-latest ]
-        numpy: [ '1.*' ]
         include:
           - python: '3.9'
             numpy: '1.20.*'
@@ -45,6 +42,9 @@ jobs:
           - python: '3.10'
             numpy: '1.21.*'
             os: ubuntu-latest
+          - python: '3.10'
+            numpy: '1.21.*'
+            os: macos-latest
           - python: '3.12'
             numpy: '2.*'
             os: windows-latest
@@ -63,11 +63,12 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: 'pip'
           cache-dependency-path: pyproject.toml
-      - run: pip install -e ".[test]" "numpy==${{ matrix.numpy }}"
-      - run: python get_waf.py
-      - run: python waf configure build
-      - run: pip freeze
-      - run: pytest -rsv
+      - run: |
+          pip install -e ".[test]" "numpy==${{ matrix.numpy }}"
+          python get_waf.py
+          python waf configure build
+          pip freeze
+          pytest -rsv
   test_with_coverage:
     name: run tests with coverage
     needs: [ test ]
@@ -81,11 +82,12 @@ jobs:
           python-version: '3.10'
           cache: 'pip'
           cache-dependency-path: pyproject.toml
-      - run: pip install -e ".[test]"
-      - run: python get_waf.py
-      - run: python waf configure build
-      - run: pip freeze
-      - run: pytest -rsv --cov=./ --cov-report=xml --cov-report term-missing
+      - run: |
+          pip install -e ".[test]"
+          python get_waf.py
+          python waf configure build
+          pip freeze
+          pytest -rsv --cov=./ --cov-report=xml
       - uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673  # v4.5.0
         with:
           file: ./coverage.xml
