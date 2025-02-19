@@ -331,7 +331,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
     dims = (npy_intp)noutput;
     output_array = PyArray_NewFromDescr(
             &PyArray_Type, dtype, 1, &dims, NULL, output,
-            NPY_OWNDATA, NULL);
+            NPY_ARRAY_OWNDATA, NULL);
     if (output_array == NULL) {
         goto exit;
     }
