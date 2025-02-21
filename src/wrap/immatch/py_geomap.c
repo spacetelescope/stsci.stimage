@@ -370,9 +370,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
     if (input_array) {
         Py_DECREF(input_array);
     }
-    if (ref_array) {
-        Py_DECREF(ref_array);
-    }
+    Py_XDECREF(ref_array);
     geomap_result_free(&fit);
     if (result == NULL) {
         Py_XDECREF(output_array);
