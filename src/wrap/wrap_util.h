@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2008-2010 Association of Universities for Research in Astronomy (AURA)
+Copyright (C) 2008-2025 Association of Universities for Research in Astronomy (AURA)
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,7 @@ DAMAGE.
 
 /*
  Author: Michael Droettboom
-         mdroe@stsci.edu
+         help@stsci.edu
 */
 
 #ifndef __STIMAGE_WRAP_UTIL_H__
@@ -40,6 +40,9 @@ DAMAGE.
 #define PY_ARRAY_UNIQUE_SYMBOL pywcs_numpy_api
 
 #include <Python.h>
+#ifndef NPY_NO_DEPRECATED_API
+#define NPY_NO_DEPRECATED_API NPY_1_10_API_VERSION
+#endif
 #include <numpy/arrayobject.h>
 
 #include "immatch/xyxymatch.h"
@@ -58,7 +61,7 @@ to_coord_t(
 int
 from_coord_t(
         const coord_t* const c,
-        PyObject** o);
+        PyArrayObject** o);
 
 int
 to_bbox_t(

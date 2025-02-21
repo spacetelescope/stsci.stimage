@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import sys
 from fnmatch import fnmatch
 
 from numpy import get_include as numpy_includes
@@ -31,13 +32,26 @@ def c_includes(parent, depth=1):
 SOURCES = c_sources('src')
 INCLUDES = c_includes('include') + c_includes('src') + [numpy_includes()]
 
-# importing these extension modules is tested in `.github/workflows/build.yml`; 
+cfg = {
+    'libraries': [],
+    'define_macros': [],
+}
+
+if sys.platform == 'win32':
+    cfg['define_macros'].append(('WIN32', None))
+    cfg['define_macros'].append(('__STDC__', 1))
+    cfg['define_macros'].append(('_CRT_SECURE_NO_WARNINGS', None))
+else:
+    cfg['libraries'].append('m')
+
+# importing these extension modules is tested in `.github/workflows/build.yml`;
 # when adding new modules here, make sure to add them to the `test_command` entry there
 ext_modules = [
     Extension(
         'stsci.stimage._stimage',
         sources=SOURCES,
         include_dirs=INCLUDES,
+        **cfg,
     ),
 ]
 

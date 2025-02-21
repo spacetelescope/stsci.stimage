@@ -101,7 +101,7 @@ eval_1dpoly(
 
     free(tmp);
 
-    return 0;
+    return status;
 }
 
 int
@@ -195,7 +195,7 @@ eval_1dchebyshev(
     free(pnm1);
     free(pnm2);
 
-    return 0;
+    return status;
 }
 
 int
