@@ -43,16 +43,16 @@ char* SIZE_T_D;
 int
 to_coord_t(
         const char* const name,
-        PyObject* o,
-        coord_t* const c) {
+        PyArrayObject* o,
+        void * const c) {
 
-    PyObject* array = NULL;
+    PyArrayObject* array = NULL;
 
     if (o == NULL || o == Py_None) {
         return 0;
     }
 
-    array = PyArray_FromObject(o, NPY_DOUBLE, 1, 1);
+    array = (PyArrayObject *) PyArray_FromObject((PyObject *) o, NPY_DOUBLE, 1, 1);
     if (array == NULL) {
         return -1;
     }
@@ -66,8 +66,9 @@ to_coord_t(
         return -1;
     }
 
-    c->x = *((double*)PyArray_GETPTR1(array, 0));
-    c->y = *((double*)PyArray_GETPTR1(array, 1));
+    coord_t * const cl = c;
+    cl->x = *((double*)PyArray_GETPTR1(array, 0));
+    cl->y = *((double*)PyArray_GETPTR1(array, 1));
 
     Py_DECREF(array);
 
@@ -77,17 +78,18 @@ to_coord_t(
 int
 from_coord_t(
         const coord_t* const c,
-        PyObject** o) {
+        void *o) {
 
     npy_intp dims = 2;
 
-    *o = PyArray_SimpleNew(1, &dims, NPY_DOUBLE);
-    if (*o == NULL) {
+    PyArrayObject **ol = o;
+    *ol = (PyArrayObject *)PyArray_SimpleNew(1, &dims, NPY_DOUBLE);
+    if (*ol == NULL) {
         return -1;
     }
 
-    *((double*)PyArray_GETPTR1(*o, 0)) = c->x;
-    *((double*)PyArray_GETPTR1(*o, 1)) = c->y;
+    *((double*)PyArray_GETPTR1(*ol, 0)) = c->x;
+    *((double*)PyArray_GETPTR1(*ol, 1)) = c->y;
 
     return 0;
 }
@@ -95,17 +97,17 @@ from_coord_t(
 int
 to_bbox_t(
         const char* const name,
-        PyObject* o,
-        bbox_t* const b) {
+        PyArrayObject* o,
+        void * const b) {
 
-    PyObject* array;
+    PyArrayObject* array;
     double* data;
 
     if (o == NULL || o == Py_None) {
         return 0;
     }
 
-    array = PyArray_ContiguousFromAny(o, NPY_DOUBLE, 1, 2);
+    array = (PyArrayObject *)PyArray_ContiguousFromAny((PyObject *) o, NPY_DOUBLE, 1, 2);
     if (array == NULL) {
         return -1;
     }
@@ -122,11 +124,12 @@ to_bbox_t(
         return -1;
     }
 
+    bbox_t * const bl = b;
     data = (double*)PyArray_DATA(array);
-    b->min.x = data[0];
-    b->min.y = data[1];
-    b->max.x = data[2];
-    b->max.y = data[3];
+    bl->min.x = data[0];
+    bl->min.y = data[1];
+    bl->max.x = data[2];
+    bl->max.y = data[3];
 
     Py_DECREF(array);
 
@@ -137,16 +140,17 @@ int
 to_xyxymatch_algo_e(
         const char* const name,
         const char* const s,
-        xyxymatch_algo_e* const e) {
+        void * const e) {
 
     if (s == NULL) {
         return 0;
     }
 
+    xyxymatch_algo_e * const el = e;
     if (strcmp(s, "tolerance") == 0) {
-        *e = xyxymatch_algo_tolerance;
+        *el = xyxymatch_algo_tolerance;
     } else if (strcmp(s, "triangles") == 0) {
-        *e = xyxymatch_algo_triangles;
+        *el = xyxymatch_algo_triangles;
     } else {
         PyErr_Format(
                 PyExc_ValueError,
@@ -162,31 +166,32 @@ int
 to_geomap_fit_e(
         const char* const name,
         const char* const s,
-        geomap_fit_e* const e) {
+        void * const e) {
 
     if (s == NULL) {
         return 0;
     }
 
+    geomap_fit_e * const el = e;
     if (strcmp(s, "general") == 0) {
-        *e = geomap_fit_general;
+        *el = geomap_fit_general;
         return 0;
     } else if (s[0] == 'r') {
         if (strcmp(s, "rotate") == 0) {
-            *e = geomap_fit_rotate;
+            *el = geomap_fit_rotate;
             return 0;
         } else if (strcmp(s, "rscale") == 0) {
-            *e = geomap_fit_rscale;
+            *el = geomap_fit_rscale;
             return 0;
         } else if (strcmp(s, "rxyscale") == 0) {
-            *e = geomap_fit_rxyscale;
+            *el = geomap_fit_rxyscale;
             return 0;
         }
     } else if (strcmp(s, "shift") == 0) {
-        *e = geomap_fit_shift;
+        *el = geomap_fit_shift;
         return 0;
     } else if (strcmp(s, "xyscale") == 0) {
-        *e = geomap_fit_xyscale;
+        *el = geomap_fit_xyscale;
         return 0;
     }
 
@@ -200,7 +205,7 @@ to_geomap_fit_e(
 int
 from_geomap_fit_e(
         const geomap_fit_e e,
-        PyObject** o) {
+        void *o) {
 
     const char* c;
 
@@ -230,12 +235,13 @@ from_geomap_fit_e(
         return -1;
     }
 
+    PyObject **ol = o;
 #if PY_MAJOR_VERSION >= 3
-    *o = PyUnicode_FromString(c);
+    *ol = (PyObject *) PyUnicode_FromString(c);
 #else
-    *o = PyString_FromString(c);
+    *ol = (PyObject *) PyString_FromString(c);
 #endif
-    if (*o == NULL) {
+    if (*ol == NULL) {
         return -1;
     }
 
@@ -246,20 +252,21 @@ int
 to_surface_type_e(
         const char* const name,
         const char* const s,
-        surface_type_e* const e) {
+        void * const e) {
 
     if (s == NULL) {
         return 0;
     }
 
+    surface_type_e * const el = e;
     if (strcmp(s, "polynomial") == 0) {
-        *e = surface_type_polynomial;
+        *el = surface_type_polynomial;
         return 0;
     } else if (strcmp(s, "legendre") == 0) {
-        *e = surface_type_legendre;
+        *el = surface_type_legendre;
         return 0;
     } else if (strcmp(s, "chebyshev") == 0) {
-        *e = surface_type_chebyshev;
+        *el = surface_type_chebyshev;
         return 0;
     }
 
@@ -273,7 +280,7 @@ to_surface_type_e(
 int
 from_surface_type_e(
         const surface_type_e e,
-        PyObject** o) {
+        void *o) {
 
     const char* c;
 
@@ -294,12 +301,13 @@ from_surface_type_e(
         return -1;
     }
 
+    PyObject **ol = o;
 #if PY_MAJOR_VERSION >= 3
-    *o = PyUnicode_FromString(c);
+    *ol = (PyObject *) PyUnicode_FromString(c);
 #else
-    *o = PyString_FromString(c);
+    *ol = (PyObject *) PyString_FromString(c);
 #endif
-    if (*o == NULL) {
+    if (*ol == NULL) {
         return -1;
     }
 
@@ -310,20 +318,21 @@ int
 to_xterms_e(
         const char* const name,
         const char* const s,
-        xterms_e* const e) {
+        void * const e) {
 
     if (s == NULL) {
         return 0;
     }
 
+    xterms_e * const el = e;
     if (strcmp(s, "none") == 0) {
-        *e = xterms_none;
+        *el = xterms_none;
         return 0;
     } else if (strcmp(s, "half") == 0) {
-        *e = xterms_half;
+        *el = xterms_half;
         return 0;
     } else if (strcmp(s, "full") == 0) {
-        *e = xterms_full;
+        *el = xterms_full;
         return 0;
     }
 
@@ -337,7 +346,7 @@ to_xterms_e(
 int
 from_xterms_e(
         const xterms_e e,
-        PyObject** o) {
+        void *o) {
 
     const char* c;
 
@@ -358,12 +367,13 @@ from_xterms_e(
         return -1;
     }
 
+    PyObject **ol = o;
 #if PY_MAJOR_VERSION >= 3
-    *o = PyUnicode_FromString(c);
+    *ol = PyUnicode_FromString(c);
 #else
-    *o = PyString_FromString(c);
+    *ol = PyString_FromString(c);
 #endif
-    if (*o == NULL) {
+    if (*ol == NULL) {
         return -1;
     }
 

@@ -43,12 +43,12 @@ DAMAGE.
 
 PyObject*
 py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
-    PyObject* input_obj      = NULL;
-    PyObject* ref_obj        = NULL;
-    PyObject* origin_obj     = NULL;
-    PyObject* mag_obj        = NULL;
-    PyObject* rotation_obj   = NULL;
-    PyObject* ref_origin_obj = NULL;
+    PyArrayObject* input_obj      = NULL;
+    PyArrayObject* ref_obj        = NULL;
+    PyArrayObject* origin_obj     = NULL;
+    PyArrayObject* mag_obj        = NULL;
+    PyArrayObject* rotation_obj   = NULL;
+    PyArrayObject* ref_origin_obj = NULL;
     char*     algorithm_str  = NULL;
     double    tolerance      = 1.0;
     double    separation     = 9.0;
@@ -56,8 +56,8 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
     double    maxratio       = 10.0;
     size_t    nreject        = 10;
 
-    PyObject*        input_array = NULL;
-    PyObject*        ref_array   = NULL;
+    PyArrayObject*        input_array = NULL;
+    PyArrayObject*        ref_array   = NULL;
     coord_t          origin      = {0.0, 0.0};
     coord_t          mag         = {1.0, 1.0};
     coord_t          rotation    = {0.0, 0.0};
@@ -88,8 +88,8 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
         return NULL;
     }
 
-    input_array = (PyObject*)PyArray_ContiguousFromAny(
-            input_obj, NPY_DOUBLE, 2, 2);
+    input_array = (PyArrayObject*)PyArray_ContiguousFromAny(
+            (PyObject *) input_obj, NPY_DOUBLE, 2, 2);
     if (input_array == NULL) {
         goto exit;
     }
@@ -98,8 +98,8 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
         goto exit;
     }
 
-    ref_array = (PyObject*)PyArray_ContiguousFromAny(
-            ref_obj, NPY_DOUBLE, 2, 2);
+    ref_array = (PyArrayObject*)PyArray_ContiguousFromAny(
+            (PyObject *) ref_obj, NPY_DOUBLE, 2, 2);
     if (ref_array == NULL) {
         goto exit;
     }

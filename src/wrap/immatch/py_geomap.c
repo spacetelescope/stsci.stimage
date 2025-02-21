@@ -46,16 +46,16 @@ typedef struct {
     PyObject_HEAD
     PyObject *fit_geometry;
     PyObject *function;
-    PyObject *rms;
-    PyObject *mean_ref;
-    PyObject *mean_input;
-    PyObject *shift;
-    PyObject *mag;
-    PyObject *rotation;
-    PyObject *xcoeff;
-    PyObject *ycoeff;
-    PyObject *x2coeff;
-    PyObject *y2coeff;
+    PyArrayObject *rms;
+    PyArrayObject *mean_ref;
+    PyArrayObject *mean_input;
+    PyArrayObject *shift;
+    PyArrayObject *mag;
+    PyArrayObject *rotation;
+    PyArrayObject *xcoeff;
+    PyArrayObject *ycoeff;
+    PyArrayObject *x2coeff;
+    PyArrayObject *y2coeff;
 } geomap_object;
 
 static PyObject *
@@ -67,12 +67,12 @@ geomap_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return (PyObject *)self;
 }
 
-static PyObject *
+static PyArrayObject *
 geomap_array_init() {
-    PyObject *o = NULL;
+    PyArrayObject *o = NULL;
     npy_intp dims = 1;
     
-    o = PyArray_SimpleNew(1, &dims, NPY_DOUBLE);
+    o = (PyArrayObject *) PyArray_SimpleNew(1, &dims, NPY_DOUBLE);
     if (o != NULL) {
         *((double*)PyArray_GETPTR1(o, 0)) = 0.0;
     }
@@ -207,7 +207,7 @@ PyObject*
 py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
     PyObject* input_obj        = NULL;
     PyObject* ref_obj          = NULL;
-    PyObject* bbox_obj         = NULL;
+    PyArrayObject* bbox_obj    = NULL;
     PyObject* fit_obj          = NULL;
     char*     fit_geometry_str = NULL;
     char*     surface_type_str = NULL;
@@ -221,9 +221,9 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
     double    reject           = 0.0;
 
     size_t         ninput       = 0;
-    PyObject*      input_array  = NULL;
+    PyArrayObject* input_array  = NULL;
     size_t         nref         = 0;
-    PyObject*      ref_array    = NULL;
+    PyArrayObject* ref_array    = NULL;
     bbox_t         bbox;
     geomap_fit_e   fit_geometry = geomap_fit_general;
     surface_type_e surface_type = surface_type_polynomial;
@@ -231,6 +231,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
     xterms_e       yxterms      = xterms_half;
 
     geomap_result_t  fit;
+    PyArrayObject*   tmp_arr      = NULL;
     PyObject*        tmp          = NULL;
     npy_intp         dims         = 0;
     size_t           i            = 0;
@@ -261,7 +262,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
         return NULL;
     }
 
-    input_array = (PyObject*)PyArray_ContiguousFromAny(
+    input_array = (PyArrayObject*)PyArray_ContiguousFromAny(
             input_obj, NPY_DOUBLE, 2, 2);
     if (input_array == NULL) {
         goto exit;
@@ -271,7 +272,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
         goto exit;
     }
 
-    ref_array = (PyObject*)PyArray_ContiguousFromAny(
+    ref_array = (PyArrayObject*)PyArray_ContiguousFromAny(
             ref_obj, NPY_DOUBLE, 2, 2);
     if (ref_array == NULL) {
         goto exit;
@@ -340,15 +341,15 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
     
     #define ADD_ATTR(func, member, name) \
         if ((func)((member), &tmp)) goto exit;      \
-        PyObject_SetAttrString(fit_obj, (name), tmp);       \
+        PyObject_SetAttrString(fit_obj, (name), (PyObject *) tmp);       \
         Py_DECREF(tmp);
 
     #define ADD_ARRAY(size, member, name) \
         dims = (size); \
-        tmp = PyArray_SimpleNew(1, &dims, NPY_DOUBLE); \
-        if (tmp == NULL) goto exit; \
-        for (i = 0; i < (size); ++i) ((double*)PyArray_DATA(tmp))[i] = (member)[i]; \
-        PyObject_SetAttrString(fit_obj, (name), tmp); \
+        tmp_arr = (PyArrayObject *)PyArray_SimpleNew(1, &dims, NPY_DOUBLE); \
+        if (tmp_arr == NULL) goto exit; \
+        for (i = 0; i < (size); ++i) ((double*)PyArray_DATA((PyArrayObject *)tmp_arr))[i] = (member)[i]; \
+        PyObject_SetAttrString(fit_obj, (name), (PyObject *)tmp_arr); \
         Py_DECREF(tmp);
 
     ADD_ATTR(from_geomap_fit_e, fit.fit_geometry, "fit_geometry");
