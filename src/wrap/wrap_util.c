@@ -57,7 +57,7 @@ to_coord_t(
         return -1;
     }
 
-    if (PyArray_DIM(array, 0) != 2) {
+    if (PyArray_DIM((PyArrayObject *) array, 0) != 2) {
         Py_DECREF(array);
         PyErr_Format(
                 PyExc_ValueError,
@@ -66,8 +66,8 @@ to_coord_t(
         return -1;
     }
 
-    c->x = *((double*)PyArray_GETPTR1(array, 0));
-    c->y = *((double*)PyArray_GETPTR1(array, 1));
+    c->x = *((double*)PyArray_GETPTR1((PyArrayObject *) array, 0));
+    c->y = *((double*)PyArray_GETPTR1((PyArrayObject *) array, 1));
 
     Py_DECREF(array);
 
@@ -86,8 +86,8 @@ from_coord_t(
         return -1;
     }
 
-    *((double*)PyArray_GETPTR1(*o, 0)) = c->x;
-    *((double*)PyArray_GETPTR1(*o, 1)) = c->y;
+    *((double*)PyArray_GETPTR1((PyArrayObject *) *o, 0)) = c->x;
+    *((double*)PyArray_GETPTR1((PyArrayObject *) *o, 1)) = c->y;
 
     return 0;
 }
@@ -110,10 +110,10 @@ to_bbox_t(
         return -1;
     }
 
-    if ((PyArray_NDIM(array) == 1 &&
-         PyArray_DIM(array, 0) != 4) ||
-        (PyArray_NDIM(array) == 2 &&
-         (PyArray_DIM(array, 0) != 2 || PyArray_DIM(array, 1) != 2))) {
+    if ((PyArray_NDIM((PyArrayObject *) array) == 1 &&
+         PyArray_DIM((PyArrayObject *) array, 0) != 4) ||
+        (PyArray_NDIM((PyArrayObject *) array) == 2 &&
+         (PyArray_DIM((PyArrayObject *) array, 0) != 2 || PyArray_DIM((PyArrayObject *) array, 1) != 2))) {
         PyErr_Format(
                 PyExc_ValueError,
                 "%s must be a length-4 or 2x2 sequence",
@@ -122,7 +122,7 @@ to_bbox_t(
         return -1;
     }
 
-    data = (double*)PyArray_DATA(array);
+    data = (double*)PyArray_DATA((PyArrayObject *) array);
     b->min.x = data[0];
     b->min.y = data[1];
     b->max.x = data[2];

@@ -74,7 +74,7 @@ geomap_array_init() {
     
     o = PyArray_SimpleNew(1, &dims, NPY_DOUBLE);
     if (o != NULL) {
-        *((double*)PyArray_GETPTR1(o, 0)) = 0.0;
+        *((double*)PyArray_GETPTR1((PyArrayObject *) o, 0)) = 0.0;
     }
 
     return o;
@@ -266,7 +266,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
     if (input_array == NULL) {
         goto exit;
     }
-    if (PyArray_DIM(input_array, 1) != 2) {
+    if (PyArray_DIM((PyArrayObject *) input_array, 1) != 2) {
         PyErr_SetString(PyExc_TypeError, "input array must be an Nx2 array");
         goto exit;
     }
@@ -276,7 +276,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
     if (ref_array == NULL) {
         goto exit;
     }
-    if (PyArray_DIM(ref_array, 1) != 2) {
+    if (PyArray_DIM((PyArrayObject *) ref_array, 1) != 2) {
         PyErr_SetString(PyExc_TypeError, "ref array must be an Nx2 array");
         goto exit;
     }
@@ -289,8 +289,8 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
         goto exit;
     }
 
-    ninput = PyArray_DIM(input_array, 0);
-    nref = PyArray_DIM(ref_array, 0);
+    ninput = PyArray_DIM((PyArrayObject *) input_array, 0);
+    nref = PyArray_DIM((PyArrayObject *) ref_array, 0);
     noutput = MAX(ninput, nref);
     output = malloc(noutput * sizeof(geomap_output_t));
     if (output == NULL) {
@@ -299,8 +299,8 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
     }
 
     if (geomap(
-                ninput, (coord_t*)PyArray_DATA(input_array),
-                nref, (coord_t*)PyArray_DATA(ref_array),
+                ninput, (coord_t*)PyArray_DATA((PyArrayObject *) input_array),
+                nref, (coord_t*)PyArray_DATA((PyArrayObject *) ref_array),
                 &bbox, fit_geometry, surface_type,
                 xxorder, xyorder, yxorder, yyorder,
                 xxterms, yxterms,
@@ -347,7 +347,8 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
         dims = (size); \
         tmp = PyArray_SimpleNew(1, &dims, NPY_DOUBLE); \
         if (tmp == NULL) goto exit; \
-        for (i = 0; i < (size); ++i) ((double*)PyArray_DATA(tmp))[i] = (member)[i]; \
+        for (i = 0; i < (size); ++i) \
+            ((double*)PyArray_DATA((PyArrayObject *) tmp))[i] = (member)[i]; \
         PyObject_SetAttrString(fit_obj, (name), tmp); \
         Py_DECREF(tmp);
 

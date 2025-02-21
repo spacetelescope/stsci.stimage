@@ -93,7 +93,7 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
     if (input_array == NULL) {
         goto exit;
     }
-    if (PyArray_DIM(input_array, 1) != 2) {
+    if (PyArray_DIM((PyArrayObject *) input_array, 1) != 2) {
         PyErr_SetString(PyExc_TypeError, "input array must be an Nx2 array");
         goto exit;
     }
@@ -103,7 +103,7 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
     if (ref_array == NULL) {
         goto exit;
     }
-    if (PyArray_DIM(ref_array, 1) != 2) {
+    if (PyArray_DIM((PyArrayObject *) ref_array, 1) != 2) {
         PyErr_SetString(PyExc_TypeError, "ref array must be an Nx2 array");
         goto exit;
     }
@@ -116,15 +116,15 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
         goto exit;
     }
 
-    noutput = PyArray_DIM(input_array, 0);
+    noutput = PyArray_DIM((PyArrayObject *) input_array, 0);
     output = malloc(noutput * sizeof(xyxymatch_output_t));
     if (output == NULL) {
         result = PyErr_NoMemory();
         goto exit;
     }
     if (xyxymatch(
-                PyArray_DIM(input_array, 0), (coord_t*)PyArray_DATA(input_array),
-                PyArray_DIM(ref_array, 0), (coord_t*)PyArray_DATA(ref_array),
+                PyArray_DIM((PyArrayObject *) input_array, 0), (coord_t*)PyArray_DATA((PyArrayObject *) input_array),
+                PyArray_DIM((PyArrayObject *) ref_array, 0), (coord_t*)PyArray_DATA((PyArrayObject *) ref_array),
                 &noutput, output,
                 &origin, &mag, &rotation, &ref_origin,
                 algorithm, tolerance, separation, nmatch, maxratio, nreject,
