@@ -262,7 +262,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
         return NULL;
     }
 
-    input_array = (PyArrayObject*)PyArray_ContiguousFromAny(
+    input_array = (PyArrayObject *) PyArray_ContiguousFromAny(
             input_obj, NPY_DOUBLE, 2, 2);
     if (input_array == NULL) {
         goto exit;
@@ -272,7 +272,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
         goto exit;
     }
 
-    ref_array = (PyArrayObject*)PyArray_ContiguousFromAny(
+    ref_array = (PyArrayObject *) PyArray_ContiguousFromAny(
             ref_obj, NPY_DOUBLE, 2, 2);
     if (ref_array == NULL) {
         goto exit;
@@ -341,16 +341,16 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
     
     #define ADD_ATTR(func, member, name) \
         if ((func)((member), &tmp)) goto exit;      \
-        PyObject_SetAttrString(fit_obj, (name), (PyObject *) tmp);       \
+        PyObject_SetAttrString(fit_obj, (name), (void *) tmp);       \
         Py_DECREF(tmp);
 
     #define ADD_ARRAY(size, member, name) \
         dims = (size); \
         tmp_arr = (PyArrayObject *)PyArray_SimpleNew(1, &dims, NPY_DOUBLE); \
         if (tmp_arr == NULL) goto exit; \
-        for (i = 0; i < (size); ++i) ((double*)PyArray_DATA(tmp_arr)[i] = (member)[i]; \
-        PyObject_SetAttrString(fit_obj, (name), (PyObject *)tmp_arr); \
-        Py_DECREF(tmp);
+        for (i = 0; i < (size); ++i) ((double*)PyArray_DATA((PyArrayObject *)tmp_arr))[i] = (member)[i]; \
+        PyObject_SetAttrString(fit_obj, (name), (PyObject *) tmp_arr); \
+        Py_DECREF(tmp_arr);
 
     ADD_ATTR(from_geomap_fit_e, fit.fit_geometry, "fit_geometry");
     ADD_ATTR(from_surface_type_e, fit.function, "function");
