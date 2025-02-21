@@ -153,9 +153,8 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
             &PyArray_Type, dtype, 1, &dims, NULL, output, NPY_ARRAY_OWNDATA, NULL);
 
  exit:
-
-    Py_DECREF(input_array);
-    Py_DECREF(ref_array);
+    Py_XDECREF(input_array);
+    Py_XDECREF(ref_array);
     if (result == NULL) {
         free(output);
     }

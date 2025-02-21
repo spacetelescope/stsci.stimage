@@ -367,9 +367,8 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
     result = Py_BuildValue("OO", fit_obj, output_array);
 
  exit:
-
-    Py_DECREF(input_array);
-    Py_DECREF(ref_array);
+    Py_XDECREF(input_array);
+    Py_XDECREF(ref_array);
     geomap_result_free(&fit);
     if (result == NULL) {
         Py_XDECREF(output_array);
