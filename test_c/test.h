@@ -12,7 +12,7 @@
 #endif // srand48
 
 #ifndef drand48
-#define drand48 rand
+#define drand48() rand() / (RAND_MAX + 1.0)
 #endif // drand48
 
 #endif // _MSC_VER
