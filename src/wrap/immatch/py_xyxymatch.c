@@ -150,7 +150,7 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
     Py_DECREF(dtype_list);
     dims = (npy_intp)noutput;
     result = PyArray_NewFromDescr(
-            &PyArray_Type, dtype, 1, &dims, NULL, output, NPY_OWNDATA, NULL);
+            &PyArray_Type, dtype, 1, &dims, NULL, output, NPY_ARRAY_OWNDATA, NULL);
 
  exit:
 
