@@ -154,9 +154,7 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
 
  exit:
     Py_XDECREF(input_array);
-    if (ref_array) {
-        Py_DECREF(ref_array);
-    }
+    Py_XDECREF(ref_array);
     if (result == NULL) {
         free(output);
     }
