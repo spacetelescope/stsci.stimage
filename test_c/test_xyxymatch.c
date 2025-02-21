@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "immatch/xyxymatch.h"
+#include "test.h"
 
 int main(int argc, char** argv) {
     #define ncoords 512

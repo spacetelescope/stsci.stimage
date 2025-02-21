@@ -1,6 +1,7 @@
 from os.path import join
 import os
 import subprocess
+import sys
 
 TESTS = [
     'cholesky',
@@ -13,11 +14,15 @@ TESTS = [
     'xyxymatch',
     'xyxymatch_triangles']
 
+libs=[]
+if not sys.platform.startswith("win"):
+    libs.append("m")
+
 def build(bld):
     test_args = {
         'features': 'c cprogram',
         'includes': [join(bld.path.abspath(), '../include')],
-        'lib': ['m'],
+        'lib': libs,
         'use': 'stimage'
         }
 

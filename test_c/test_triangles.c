@@ -3,6 +3,7 @@
 #include "immatch/lib/triangles.h"
 #include "lib/xysort.h"
 #include "lib/xycoincide.h"
+#include "test.h"
 
 int main(int argc, char** argv) {
     #define ncoords 512

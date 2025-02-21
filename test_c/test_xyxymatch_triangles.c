@@ -3,6 +3,7 @@
 
 #include "immatch/xyxymatch.h"
 #include "lib/lintransform.h"
+#include "test.h"
 
 int compare(const size_t ncoords,
             const coord_t* const ref,
