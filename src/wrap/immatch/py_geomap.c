@@ -348,7 +348,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
         dims = (size); \
         tmp_arr = (PyArrayObject *)PyArray_SimpleNew(1, &dims, NPY_DOUBLE); \
         if (tmp_arr == NULL) goto exit; \
-        for (i = 0; i < (size); ++i) ((double*)PyArray_DATA((PyArrayObject *)tmp_arr))[i] = (member)[i]; \
+        for (i = 0; i < (size); ++i) ((double*)PyArray_DATA(tmp_arr)[i] = (member)[i]; \
         PyObject_SetAttrString(fit_obj, (name), (PyObject *)tmp_arr); \
         Py_DECREF(tmp);
 
