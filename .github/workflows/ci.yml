@@ -27,7 +27,7 @@ jobs:
       fail-fast: false
       matrix:
         python: [ '3.9', '3.10', '3.11', '3.12' ]
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest, macos-latest, windows]
         numpy: [ '1.*' ]
         include:
           - python: '3.9'
@@ -36,18 +36,21 @@ jobs:
           - python: '3.9'
             numpy: '1.20.*'
             os: macos-13
-          - python: '3.9'
-            numpy: '1.21.*'
-            os: ubuntu-latest
-          - python: '3.9'
-            numpy: '1.21.*'
-            os: macos-latest
           - python: '3.10'
             numpy: '1.21.*'
             os: ubuntu-latest
-          - python: '3.10'
-            numpy: '1.21.*'
+          - python: '3.11'
+            numpy: '1.26.*'
             os: macos-latest
+          - python: '3.12'
+            numpy: '1.26.*'
+            os: ubuntu-latest
+          - python: '3.12'
+            numpy: '2.0.*'
+            os: macos-latest
+          - python: '3.12'
+            numpy: '1.26.*'
+            os: windows
     steps:
       - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938  # v4.2.0
         with:
