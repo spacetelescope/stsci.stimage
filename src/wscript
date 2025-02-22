@@ -26,8 +26,8 @@ def build(bld):
             'surface/fit.c',
             'surface/surface.c',
             'surface/vector.c'
-            ],
+        ],
 
         includes = [join(bld.path.abspath(), '../include')],
         libs = libs
-        )
+    )

@@ -31,7 +31,6 @@ DAMAGE.
 
 /*
  Author: Michael Droettboom
-         help@stsci.edu
 */
 
 #include "wrap_util.h"

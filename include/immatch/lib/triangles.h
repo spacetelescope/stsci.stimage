@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2008-2010 Association of Universities for Research in Astronomy (AURA)
+Copyright (C) 2008-2025 Association of Universities for Research in Astronomy (AURA)
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,6 @@ DAMAGE.
 
 /*
  Author: Michael Droettboom
-         mdroe@stsci.edu
 */
 
 #ifndef _STIMAGE_TRIANGLES_H_
