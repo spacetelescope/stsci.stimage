@@ -36,17 +36,6 @@ DAMAGE.
 #ifndef _STIMAGE_UTIL_H_
 #define _STIMAGE_UTIL_H_
 
-#ifdef _WIN32
-	/*
-	* Make inline go away on Windows (for now).
-	* The syntax is subtly different from gcc in some way.  Mike
-	* says he did the inline because of benchmarking, but it isn't
-	* all that important.
-	*	- Mark S 2012-02-14
-	*/
-#define inline
-#endif
-
 #include <math.h>
 #include <stdlib.h>
 
