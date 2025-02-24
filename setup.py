@@ -6,7 +6,7 @@ from fnmatch import fnmatch
 
 from numpy import get_include as numpy_includes
 from setuptools import setup, Extension
-
+import sysconfig
 
 def c_sources(parent):
     sources = []
@@ -37,6 +37,15 @@ cfg = {
     'define_macros': [],
 }
 
+cflags = sysconfig.get_config_var('CFLAGS')
+if cflags:
+    extra_compile_args = cflags.split()
+    extra_compile_args += ["-Wall", "-Wextra"]
+    extra_compile_args += ["-DNDEBUG", "-O2"]
+    # extra_compile_args += ["-Wno-incompatible-pointer-types"]
+else:
+    extra_compile_args = None
+
 if sys.platform == 'win32':
     cfg['define_macros'].append(('WIN32', None))
     cfg['define_macros'].append(('__STDC__', 1))
@@ -51,6 +60,7 @@ ext_modules = [
         'stsci.stimage._stimage',
         sources=SOURCES,
         include_dirs=INCLUDES,
+        extra_compile_args=extra_compile_args,
         **cfg,
     ),
 ]
