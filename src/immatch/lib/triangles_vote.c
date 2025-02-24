@@ -83,7 +83,7 @@ vote_triangle_matches(
 
     #define VOTE(li, ri) votes[(ri) * nleft + (li)]
 
-    votes = malloc(nleft * nright * sizeof(size_t));
+    votes = (vote_t *) malloc(nleft * nright * sizeof(vote_t));
     if (votes == NULL) {
         goto exit;
     }
