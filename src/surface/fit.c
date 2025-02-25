@@ -211,7 +211,7 @@ surface_fit_add_points(
                         xxorder = 1;
                         break;
                     case xterms_half:
-                        if ((ll + s->xorder) > maxorder) {
+                        if ((int) (ll + s->xorder) > maxorder) {
                             --xxorder;
                         }
                         break;
@@ -236,7 +236,7 @@ surface_fit_add_points(
             xorder = 1;
             break;
         case xterms_half:
-            if ((l + s->xorder + 1) > maxorder) {
+            if ((int) (l + s->xorder + 1) > maxorder) {
                 --xorder;
             }
             break;

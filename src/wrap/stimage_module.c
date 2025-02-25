@@ -38,11 +38,14 @@ DAMAGE.
 PyObject* py_xyxymatch(PyObject*, PyObject*, PyObject*);
 PyObject* py_geomap(PyObject*, PyObject*, PyObject*);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 static PyMethodDef module_methods[] = {
     {"xyxymatch", (PyCFunction)py_xyxymatch, METH_VARARGS | METH_KEYWORDS, NULL},
     {"geomap", (PyCFunction)py_geomap, METH_VARARGS | METH_KEYWORDS, NULL},
     {NULL}  /* Sentinel */
 };
+#pragma GCC diagnostic pop
 
 #if PY_MAJOR_VERSION >= 3
 static struct PyModuleDef moduledef = {

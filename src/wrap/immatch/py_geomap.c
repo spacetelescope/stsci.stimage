@@ -66,7 +66,7 @@ geomap_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 static PyArrayObject *
-geomap_array_init() {
+geomap_array_init(void) {
     PyArrayObject *o = NULL;
     npy_intp dims = 1;
 
@@ -140,6 +140,8 @@ geomap_dealloc(geomap_object *self)
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 static PyMethodDef geomap_methods[] = {
     {NULL}  /* Sentinel */
 };
@@ -200,6 +202,7 @@ static PyTypeObject geomap_class = {
     0,                         /* tp_alloc */
     geomap_new,                /* tp_new */
 };
+#pragma GCC diagnostic pop
 
 PyObject*
 py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {

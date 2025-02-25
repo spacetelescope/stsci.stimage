@@ -41,8 +41,9 @@ cflags = sysconfig.get_config_var('CFLAGS')
 if cflags:
     extra_compile_args = cflags.split()
     extra_compile_args += ["-Wall", "-Wextra"]
-    extra_compile_args += ["-DNDEBUG", "-O2"]
-    # extra_compile_args += ["-Wno-incompatible-pointer-types"]
+    extra_compile_args += ["-DNDEBUG", "-O2", "-Wpedantic"]
+    extra_compile_args += ["-Wno-unused-parameter"]
+    extra_compile_args += ["-Wincompatible-pointer-types"]
 else:
     extra_compile_args = None
 

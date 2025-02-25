@@ -55,7 +55,7 @@ eval_1dpoly(
         stimage_error_t* const error) {
 
     size_t        i      = 0;
-    size_t        j      = 0;
+    int           j      = 0;
     const double* x      = (double *)ref + axis;
     double*       tmp    = NULL;
     int           status = 1;
@@ -117,7 +117,7 @@ eval_1dchebyshev(
         stimage_error_t* const error) {
 
     size_t        i      = 0;
-    size_t        j      = 0;
+    int           j      = 0;
     const double* x      = (double *)ref + axis;
     double        c1     = 0.0;
     double        c2     = 0.0;
@@ -211,7 +211,7 @@ eval_1dlegendre(
         stimage_error_t* const error) {
 
     size_t        i      = 0;
-    size_t        j      = 0;
+    int           j      = 0;
     const double* x      = (double *)ref + axis;
     double        ri     = 0.0;
     double        ri1    = 0.0;
@@ -309,7 +309,7 @@ basis_poly(
         stimage_error_t* const error) {
 
     size_t              i  = 0;
-    size_t              k  = 0;
+    int                 k  = 0;
     const double* const x  = (double*)ref + axis;
     double*             bp = basis;
 
@@ -354,7 +354,7 @@ basis_chebyshev(
         stimage_error_t* const error) {
 
     size_t              i  = 0;
-    size_t              k  = 0;
+    int                 k  = 0;
     const double* const x  = (double*)ref + axis;
     double*             bp = basis;
 
@@ -401,7 +401,7 @@ basis_legendre(
         stimage_error_t* const error) {
 
     size_t              i   = 0;
-    size_t              k   = 0;
+    int                 k   = 0;
     const double* const x   = (double*)ref + axis;
     double*             bp  = basis;
     double              ri  = 0.0;
@@ -460,14 +460,14 @@ eval_poly_generic(
         stimage_error_t* const error) {
 
     size_t       i        = 0;
-    size_t       j        = 0;
-    size_t       k        = 0;
+    int          j        = 0;
+    int          k        = 0;
     double*      xb       = NULL;
     double*      yb       = NULL;
     double*      accum    = NULL;
-    size_t       cp       = 0;
-    const size_t maxorder = MAX(xorder + 1, yorder + 1);
-    size_t       xincr    = 0;
+    int          cp       = 0;
+    const int maxorder = MAX(xorder + 1, yorder + 1);
+    int          xincr    = 0;
     double*      xbp      = xb;
     double*      ybp      = yb;
     int          status   = 1;

@@ -123,6 +123,8 @@ geomap_fit_init(
     fit->initialized = 1;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 static void
 geomap_fit_new(
         geomap_fit_t* fit) {
@@ -138,6 +140,7 @@ geomap_fit_free(
     free(fit->rej); fit->rej = NULL;
     fit->initialized = 0;
 }
+#pragma GCC diagnostic pop
 
 static void
 compute_sums(

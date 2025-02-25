@@ -251,7 +251,7 @@ compute_mode(
        If the data has no range, then the constant value will be
        returned. */
     x1 = MAX(0, (int)((double)(n) * (1.0 - range) * 0.5));
-    x3 = MIN(n-1, (int)((double)(n) * (1.0 + range) * 0.5));
+    x3 = MIN((int) n - 1, (int)((double)(n) * (1.0 + range) * 0.5));
     if (a[x1] == a[x3]) {
         return a[x1];
     }
