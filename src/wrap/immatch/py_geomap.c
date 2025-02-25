@@ -142,6 +142,8 @@ geomap_dealloc(geomap_object *self)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
 static PyMethodDef geomap_methods[] = {
     {NULL}  /* Sentinel */
 };
@@ -202,6 +204,7 @@ static PyTypeObject geomap_class = {
     0,                         /* tp_alloc */
     geomap_new,                /* tp_new */
 };
+#pragma clang diagnostic pop
 #pragma GCC diagnostic pop
 
 PyObject*

@@ -35,24 +35,22 @@ INCLUDES = c_includes('include') + c_includes('src') + [numpy_includes()]
 cfg = {
     'libraries': [],
     'define_macros': [],
+    'extra_compile_args': [],
 }
 
-cflags = sysconfig.get_config_var('CFLAGS')
-if cflags:
-    extra_compile_args = cflags.split()
-    extra_compile_args += ["-Wall", "-Wextra"]
-    extra_compile_args += ["-DNDEBUG", "-O2", "-Wpedantic"]
-    extra_compile_args += ["-Wno-unused-parameter"]
-    extra_compile_args += ["-Wincompatible-pointer-types"]
-else:
-    extra_compile_args = None
-
 if sys.platform == 'win32':
-    cfg['define_macros'].append(('WIN32', None))
     cfg['define_macros'].append(('__STDC__', 1))
     cfg['define_macros'].append(('_CRT_SECURE_NO_WARNINGS', None))
 else:
+    cfg['define_macros'].append(('NDEBUG', None))
     cfg['libraries'].append('m')
+    cfg['extra_compile_args'] += [
+        '-Wall',
+        '-Wextra',
+        '-Wpedantic',
+        '-Wno-unused-parameter',
+        '-Wincompatible-pointer-types'
+    ]
 
 # importing these extension modules is tested in `.github/workflows/build.yml`;
 # when adding new modules here, make sure to add them to the `test_command` entry there
@@ -61,7 +59,6 @@ ext_modules = [
         'stsci.stimage._stimage',
         sources=SOURCES,
         include_dirs=INCLUDES,
-        extra_compile_args=extra_compile_args,
         **cfg,
     ),
 ]

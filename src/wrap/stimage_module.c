@@ -40,11 +40,14 @@ PyObject* py_geomap(PyObject*, PyObject*, PyObject*);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
 static PyMethodDef module_methods[] = {
     {"xyxymatch", (PyCFunction)py_xyxymatch, METH_VARARGS | METH_KEYWORDS, NULL},
     {"geomap", (PyCFunction)py_geomap, METH_VARARGS | METH_KEYWORDS, NULL},
     {NULL}  /* Sentinel */
 };
+#pragma clang diagnostic pop
 #pragma GCC diagnostic pop
 
 #if PY_MAJOR_VERSION >= 3
