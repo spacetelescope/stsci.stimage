@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
                        &error);
 
     if (status) {
-        printf(stimage_error_get_message(&error));
+        printf("%s", stimage_error_get_message(&error));
         return status;
     }
 
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
                        &error);
 
     if (status) {
-        printf(stimage_error_get_message(&error));
+        printf("%s", stimage_error_get_message(&error));
         return status;
     }
 

@@ -42,7 +42,7 @@ int main(int argv, char** argc) {
 
     if (status) {
         if (error.message[0]) {
-            printf(stimage_error_get_message(&error));
+            printf("%s", stimage_error_get_message(&error));
         }
     }
 

@@ -34,7 +34,7 @@ int compare(const size_t ncoords,
             &error);
 
     if (status) {
-        printf(stimage_error_get_message(&error));
+        printf("%s", stimage_error_get_message(&error));
         return status;
     }
 
