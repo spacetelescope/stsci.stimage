@@ -101,7 +101,10 @@ vote_triangle_matches(
             l_coord = l_tri->vertices[j];
             r_coord = r_tri->vertices[j];
             li = l_coord - left;
-            assert(li >= 0 && li < nleft);
+            if (!(li >= 0 && li < nleft)) {
+                printf("li = %d, nleft = %d", li, nleft);
+                exit(-1);
+            }
             ri = r_coord - right;
             assert(ri >= 0 && ri < nright);
             vote = ++VOTE(li, ri);
