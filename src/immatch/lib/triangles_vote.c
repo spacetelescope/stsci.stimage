@@ -102,13 +102,15 @@ vote_triangle_matches(
             r_coord = r_tri->vertices[j];
             li = l_coord - left;
             if (li >= 0 && li < nleft) {
-                printf("\nGOOD l_coord: %f, %f\n", l_coord->x, l_coord->y);
+                printf("GOOD l_coord: %f, %f; j=%d\n", l_coord->x, l_coord->y, j);
                 printf("GOOD left: %f, %f\n", left->x, left->y);
                 printf("GOOD li = %d, nleft = %d\n\n", li, nleft);
+                fflush(stdout);
             } else {
-                printf("\nBAD l_coord: %f, %f\n", l_coord->x, l_coord->y);
+                printf("BAD l_coord: %f, %f\n", l_coord->x, l_coord->y);
                 printf("BAD left: %f, %f\n", left->x, left->y);
                 printf("BAD li = %d, nleft = %d\n\n", li, nleft);
+                fflush(stdout);
                 exit(-1);
             }
             ri = r_coord - right;
