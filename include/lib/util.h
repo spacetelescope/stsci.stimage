@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2008-2010 Association of Universities for Research in Astronomy (AURA)
+Copyright (C) 2008-2025 Association of Universities for Research in Astronomy (AURA)
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -31,22 +31,10 @@ DAMAGE.
 
 /*
  Author: Michael Droettboom
-         mdroe@stsci.edu
 */
 
 #ifndef _STIMAGE_UTIL_H_
 #define _STIMAGE_UTIL_H_
-
-#ifdef _WIN32
-	/*
-	* Make inline go away on Windows (for now).
-	* The syntax is subtly different from gcc in some way.  Mike
-	* says he did the inline because of benchmarking, but it isn't
-	* all that important.
-	*	- Mark S 2012-02-14
-	*/
-#define inline
-#endif
 
 #include <math.h>
 #include <stdlib.h>

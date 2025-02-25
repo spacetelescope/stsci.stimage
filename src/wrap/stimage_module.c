@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2008-2010 Association of Universities for Research in Astronomy (AURA)
+Copyright (C) 2008-2025 Association of Universities for Research in Astronomy (AURA)
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,6 @@ DAMAGE.
 
 /*
  Author: Michael Droettboom
-         mdroe@stsci.edu
 */
 
 #include "wrap_util.h"
@@ -39,11 +38,17 @@ DAMAGE.
 PyObject* py_xyxymatch(PyObject*, PyObject*, PyObject*);
 PyObject* py_geomap(PyObject*, PyObject*, PyObject*);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
 static PyMethodDef module_methods[] = {
     {"xyxymatch", (PyCFunction)py_xyxymatch, METH_VARARGS | METH_KEYWORDS, NULL},
     {"geomap", (PyCFunction)py_geomap, METH_VARARGS | METH_KEYWORDS, NULL},
     {NULL}  /* Sentinel */
 };
+#pragma clang diagnostic pop
+#pragma GCC diagnostic pop
 
 #if PY_MAJOR_VERSION >= 3
 static struct PyModuleDef moduledef = {

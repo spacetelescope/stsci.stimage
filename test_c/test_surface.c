@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "surface/surface.h"
+#include "test.h"
 
 int main(int argv, char** argc) {
     surface_t surface;
@@ -41,7 +42,7 @@ int main(int argv, char** argc) {
 
     if (status) {
         if (error.message[0]) {
-            printf(stimage_error_get_message(&error));
+            printf("%s", stimage_error_get_message(&error));
         }
     }
 

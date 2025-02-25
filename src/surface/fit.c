@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2008-2010 Association of Universities for Research in Astronomy (AURA)
+Copyright (C) 2008-2025 Association of Universities for Research in Astronomy (AURA)
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -211,7 +211,7 @@ surface_fit_add_points(
                         xxorder = 1;
                         break;
                     case xterms_half:
-                        if ((ll + s->xorder) > maxorder) {
+                        if ((int) (ll + s->xorder) > maxorder) {
                             --xxorder;
                         }
                         break;
@@ -236,7 +236,7 @@ surface_fit_add_points(
             xorder = 1;
             break;
         case xterms_half:
-            if ((l + s->xorder + 1) > maxorder) {
+            if ((int) (l + s->xorder + 1) > maxorder) {
                 --xorder;
             }
             break;

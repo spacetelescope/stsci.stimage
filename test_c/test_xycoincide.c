@@ -4,6 +4,7 @@
 
 #include "lib/xysort.h"
 #include "lib/xycoincide.h"
+#include "test.h"
 
 int main(int argv, char** argc) {
     #define ncoords 512

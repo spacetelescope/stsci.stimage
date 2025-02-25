@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2008-2010 Association of Universities for Research in Astronomy (AURA)
+Copyright (C) 2008-2025 Association of Universities for Research in Astronomy (AURA)
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,7 @@ DAMAGE.
 
 /*
  Author: Michael Droettboom
-         mdroe@stsci.edu
+         help@stsci.edu
 */
 
 #define NO_IMPORT_ARRAY
@@ -46,13 +46,13 @@ to_coord_t(
         PyObject* o,
         coord_t* const c) {
 
-    PyObject* array = NULL;
+    PyArrayObject* array = NULL;
 
     if (o == NULL || o == Py_None) {
         return 0;
     }
 
-    array = PyArray_FromObject(o, NPY_DOUBLE, 1, 1);
+    array = (PyArrayObject *) PyArray_FromObject(o, NPY_DOUBLE, 1, 1);
     if (array == NULL) {
         return -1;
     }
@@ -77,11 +77,11 @@ to_coord_t(
 int
 from_coord_t(
         const coord_t* const c,
-        PyObject** o) {
+        PyArrayObject** o) {
 
     npy_intp dims = 2;
 
-    *o = PyArray_SimpleNew(1, &dims, NPY_DOUBLE);
+    *o = (PyArrayObject *) PyArray_SimpleNew(1, &dims, NPY_DOUBLE);
     if (*o == NULL) {
         return -1;
     }
@@ -98,14 +98,14 @@ to_bbox_t(
         PyObject* o,
         bbox_t* const b) {
 
-    PyObject* array;
+    PyArrayObject* array;
     double* data;
 
     if (o == NULL || o == Py_None) {
         return 0;
     }
 
-    array = PyArray_ContiguousFromAny(o, NPY_DOUBLE, 1, 2);
+    array = (PyArrayObject *) PyArray_ContiguousFromAny(o, NPY_DOUBLE, 1, 2);
     if (array == NULL) {
         return -1;
     }

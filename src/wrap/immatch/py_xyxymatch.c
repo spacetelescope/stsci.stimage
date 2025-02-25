@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2008-2010 Association of Universities for Research in Astronomy (AURA)
+Copyright (C) 2008-2025 Association of Universities for Research in Astronomy (AURA)
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -31,14 +31,12 @@ DAMAGE.
 
 /*
  Author: Michael Droettboom
-         mdroe@stsci.edu
+         help@stsci.edu
 */
 
 #define NO_IMPORT_ARRAY
 
-#include <Python.h>
 #include "wrap_util.h"
-
 #include "immatch/xyxymatch.h"
 
 PyObject*
@@ -56,8 +54,8 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
     double    maxratio       = 10.0;
     size_t    nreject        = 10;
 
-    PyObject*        input_array = NULL;
-    PyObject*        ref_array   = NULL;
+    PyArrayObject*   input_array = NULL;
+    PyArrayObject*   ref_array   = NULL;
     coord_t          origin      = {0.0, 0.0};
     coord_t          mag         = {1.0, 1.0};
     coord_t          rotation    = {0.0, 0.0};
@@ -65,6 +63,7 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
     xyxymatch_algo_e algorithm   = xyxymatch_algo_tolerance;
 
     PyObject*           result     = NULL;
+    PyArrayObject*      result_arr = NULL;
     size_t              noutput    = 0;
     xyxymatch_output_t* output     = NULL;
     PyObject*           dtype_list = NULL;
@@ -72,7 +71,7 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
     npy_intp            dims;
     stimage_error_t     error;
 
-    const char*    keywords[]    = {
+    const char* keywords[] = {
         "input", "ref", "origin", "mag", "rotation", "ref_origin", "algorithm",
         "tolerance", "separation", "nmatch", "maxratio", "nreject", NULL
     };
@@ -88,7 +87,7 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
         return NULL;
     }
 
-    input_array = (PyObject*)PyArray_ContiguousFromAny(
+    input_array = (PyArrayObject*)PyArray_ContiguousFromAny(
             input_obj, NPY_DOUBLE, 2, 2);
     if (input_array == NULL) {
         goto exit;
@@ -98,7 +97,7 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
         goto exit;
     }
 
-    ref_array = (PyObject*)PyArray_ContiguousFromAny(
+    ref_array = (PyArrayObject*)PyArray_ContiguousFromAny(
             ref_obj, NPY_DOUBLE, 2, 2);
     if (ref_array == NULL) {
         goto exit;
@@ -149,8 +148,10 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
     }
     Py_DECREF(dtype_list);
     dims = (npy_intp)noutput;
-    result = PyArray_NewFromDescr(
+    result_arr = (PyArrayObject *) PyArray_NewFromDescr(
             &PyArray_Type, dtype, 1, &dims, NULL, output, NPY_ARRAY_OWNDATA, NULL);
+    PyArray_ENABLEFLAGS(result_arr, NPY_ARRAY_OWNDATA);
+    result = Py_BuildValue("N", result_arr);
 
  exit:
     Py_XDECREF(input_array);

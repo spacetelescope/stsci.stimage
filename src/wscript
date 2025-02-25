@@ -1,4 +1,9 @@
+import sys
 from os.path import join
+
+libs = []
+if not sys.platform.startswith("win"):
+    libs.append("m")
 
 def build(bld):
     bld.stlib(
@@ -21,8 +26,8 @@ def build(bld):
             'surface/fit.c',
             'surface/surface.c',
             'surface/vector.c'
-            ],
+        ],
 
         includes = [join(bld.path.abspath(), '../include')],
-        libs = ['m']
-        )
+        libs = libs
+    )

@@ -3,6 +3,7 @@
 #include "immatch/lib/triangles.h"
 #include "lib/xysort.h"
 #include "lib/xycoincide.h"
+#include "test.h"
 
 int main(int argc, char** argv) {
     #define ncoords 512
@@ -199,7 +200,7 @@ int main(int argc, char** argv) {
 
     if (status) {
         if (error.message[0]) {
-            printf(stimage_error_get_message(&error));
+            printf("%s", stimage_error_get_message(&error));
         }
     }
 

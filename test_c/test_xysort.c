@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "lib/xysort.h"
+#include "test.h"
 
 int main(int argv, char** argc) {
     #define ncoords 512

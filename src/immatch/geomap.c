@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2008-2010 Association of Universities for Research in Astronomy (AURA)
+Copyright (C) 2008-2025 Association of Universities for Research in Astronomy (AURA)
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -31,12 +31,12 @@ DAMAGE.
 
 /*
  Author: Michael Droettboom
-         mdroe@stsci.edu
+         help@stsci.edu
 */
 
 #include <assert.h>
 
-#define _USE_MATH_DEFINES       /* needed for MS Windows to define M_PI */ 
+#define _USE_MATH_DEFINES       /* needed for MS Windows to define M_PI */
 #include <math.h>
 #include <stdio.h>
 
@@ -123,6 +123,8 @@ geomap_fit_init(
     fit->initialized = 1;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 static void
 geomap_fit_new(
         geomap_fit_t* fit) {
@@ -138,6 +140,7 @@ geomap_fit_free(
     free(fit->rej); fit->rej = NULL;
     fit->initialized = 0;
 }
+#pragma GCC diagnostic pop
 
 static void
 compute_sums(
@@ -185,7 +188,7 @@ compute_surface_coefficients(
         surface_t* const sy1,
         stimage_error_t* const error) {
 
-    int       status = 1;
+    int status = 1;
 
     assert(bbox);
     assert(i0);
@@ -232,7 +235,7 @@ compute_surface_coefficients(
 
  exit:
 
-    return 0;
+    return status;
 }
 
 static int
@@ -1093,8 +1096,10 @@ geo_fit_reject(
         /* Reject points from the fit */
         for (i = 0; i < ncoord; ++i) {
             if (tweights[i] > 0.0 &&
-                ((abs(residual_x[i]) > cutx) || abs(residual_y[i]) > cuty)) {
-                tweights[i] = 0.0;
+                // TODO: this change may require OKifying regression tests
+                ((fabs(residual_x[i]) > cutx) || fabs(residual_y[i]) > cuty)) {
+                //((abs(residual_x[i]) > cutx) || abs(residual_y[i]) > cuty)) {
+                    tweights[i] = 0.0;
                 ++nreject;
                 assert(nreject < ncoord);
                 fit->rej[nreject] = i;

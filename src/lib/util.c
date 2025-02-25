@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2008-2010 Association of Universities for Research in Astronomy (AURA)
+Copyright (C) 2008-2025 Association of Universities for Research in Astronomy (AURA)
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,6 @@ DAMAGE.
 
 /*
  Author: Michael Droettboom
-         mdroe@stsci.edu
 */
 
 #include <assert.h>
@@ -252,7 +251,7 @@ compute_mode(
        If the data has no range, then the constant value will be
        returned. */
     x1 = MAX(0, (int)((double)(n) * (1.0 - range) * 0.5));
-    x3 = MIN(n-1, (int)((double)(n) * (1.0 + range) * 0.5));
+    x3 = MIN((int) n - 1, (int)((double)(n) * (1.0 + range) * 0.5));
     if (a[x1] == a[x3]) {
         return a[x1];
     }

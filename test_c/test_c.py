@@ -21,6 +21,9 @@ TESTS = [
 
 @pytest.mark.parametrize("program", [os.path.join(ROOT, x) for x in TESTS])
 def test_runall(program):
+    if sys.platform.startswith("win"):
+        program += ".exe"
+
     if not os.path.exists(program):
         pytest.skip("'{}' does not exist. To run the C tests "
                     "execute the following before invoking pytest: "
