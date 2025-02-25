@@ -107,7 +107,7 @@ vote_triangle_matches(
                 printf("GOOD li = %d, nleft = %d\n\n", li, nleft);
                 fflush(stdout);
             } else {
-                printf("BAD l_coord: %f, %f\n", l_coord->x, l_coord->y);
+                printf("BAD l_coord: %f, %f; j=%d\n", l_coord->x, l_coord->y, j);
                 printf("BAD left: %f, %f\n", left->x, left->y);
                 printf("BAD li = %d, nleft = %d\n\n", li, nleft);
                 fflush(stdout);
