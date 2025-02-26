@@ -43,8 +43,9 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: 'pip'
           cache-dependencies-path: pyproject.toml
-      - run: pip install -e ".[test]" "numpy>=0.0.0" --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
+      - run: pip install -e ".[test]"
       - run: python get_waf.py
       - run: python waf configure build
+      - run: pip install "numpy>=0.0.0" --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
       - run: pip freeze
       - run: pytest -rsv
