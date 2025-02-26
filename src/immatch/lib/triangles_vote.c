@@ -101,9 +101,13 @@ vote_triangle_matches(
             l_coord = l_tri->vertices[j];
             r_coord = r_tri->vertices[j];
             li = l_coord - left;
-            assert(li >= 0 && li < nleft);
+            if (!(li >= 0 && li < nleft)) {
+                continue;
+            }
             ri = r_coord - right;
-            assert(ri >= 0 && ri < nright);
+            if (!(ri >= 0 && ri < nright)) {
+                continue;
+            }
             vote = ++VOTE(li, ri);
             if (maxvote < vote) {
                 maxvote = vote;
