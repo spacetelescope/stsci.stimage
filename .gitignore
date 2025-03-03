@@ -5,7 +5,11 @@
 __pycache__
 *.egg-info
 .eggs
+*.log
+.idea
+venv
 build
+cmake-build-*
 dist
 pip-wheel-metadata
 waf
