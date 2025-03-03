@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+import shutil
 import subprocess
 import pytest
 
@@ -8,7 +9,7 @@ import pytest
 ROOT = os.path.relpath(os.path.join('build', 'test_c'))
 TESTS = [
     'test_cholesky',
-    # 'test_geomap',  # FIXME: died with Signals.SIGABRT 6
+    'test_geomap',
     'test_lintransform',
     'test_surface',
     'test_triangles',
@@ -24,10 +25,13 @@ def test_runall(program):
     if sys.platform.startswith("win"):
         program += ".exe"
 
+    if not shutil.which("cmake"):
+        pytest.skip("'cmake' is not installed")
+
     if not os.path.exists(program):
         pytest.skip("'{}' does not exist. To run the C tests "
                     "execute the following before invoking pytest: "
-                    "./waf configure build".format(program))
+                    "cmake -S . -B ./build -DENABLE_TESTING=ON && cmake --build ./build".format(program))
     returncode = 0
     try:
         returncode = subprocess.check_call(program)
