@@ -24,11 +24,11 @@ main(int argc, char** argv) {
 
     /* TEST 1 */
 
-    srand48(0);
+    FILE *data_handle = get_test_data_handle(TEST_DATA_FILE);
 
     for (i = 0; i < ncoords; ++i) {
-        ref[i].x = input[i].x = drand48();
-        ref[i].y = input[i].y = drand48();
+        ref[i].x = input[i].x = iter_test_data(&data_handle);
+        ref[i].y = input[i].y = iter_test_data(&data_handle);
     }
 
     status = geomap(
@@ -47,11 +47,9 @@ main(int argc, char** argv) {
     geomap_result_free(&result);
 
     /* TEST 2: SHIFT */
-    srand48(0);
-
     for (i = 0; i < ncoords; ++i) {
-        ref[i].x = drand48();
-        ref[i].y = drand48();
+        ref[i].x = iter_test_data(&data_handle);
+        ref[i].y = iter_test_data(&data_handle);
         input[i].x = ref[i].x + 1.5;
         input[i].y = ref[i].y + 1.25;
     }
@@ -72,11 +70,11 @@ main(int argc, char** argv) {
     geomap_result_free(&result);
 
     /* /\* TEST 3: SCALE *\/ */
-    /* srand48(0); */
+    /* srand(0); */
 
     /* for (i = 0; i < ncoords; ++i) { */
-    /*     ref[i].x = drand48(); */
-    /*     ref[i].y = drand48(); */
+    /*     ref[i].x = rand1(); */
+    /*     ref[i].y = rand1(); */
     /*     input[i].x = ref[i].x * 5.5; */
     /*     input[i].y = ref[i].y * 1.25; */
     /* } */
@@ -96,5 +94,6 @@ main(int argc, char** argv) {
     /* geomap_result_print(&result); */
     /* geomap_result_free(&result); */
 
+    fclose(data_handle);
     return status;
 }

@@ -19,11 +19,11 @@ int main(int argv, char** argc) {
     const double tolerance = 0.1;
     const double tolerance2 = tolerance*tolerance;
 
-    srand48(0);
+    FILE *data_handle = get_test_data_handle(TEST_DATA_FILE);
 
     for (i = 0; i < ncoords; ++i) {
-        data[i].x = drand48();
-        data[i].y = drand48();
+        data[i].x = iter_test_data(&data_handle);
+        data[i].y = iter_test_data(&data_handle);
     }
 
     xysort(ncoords, data, ptr);
@@ -49,5 +49,6 @@ int main(int argv, char** argc) {
         }
     }
 
+    fclose(data_handle);
     return 0;
 }

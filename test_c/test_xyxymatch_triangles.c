@@ -66,11 +66,11 @@ int main(int argc, char** argv) {
 
     size_t i = 0;
 
-    srand48(0);
+    FILE *data_handle = get_test_data_handle(TEST_DATA_FILE);
 
     for (i = 0; i < ncoords; ++i) {
-        ref[i].x = drand48() - 0.5;
-        ref[i].y = drand48() - 0.5;
+        ref[i].x = iter_test_data(&data_handle) - 0.5;
+        ref[i].y = iter_test_data(&data_handle) - 0.5;
     }
 
     /* Test identity transform */
@@ -119,5 +119,6 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    fclose(data_handle);
     return 0;
 }

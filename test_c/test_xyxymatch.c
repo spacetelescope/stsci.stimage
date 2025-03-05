@@ -26,11 +26,11 @@ int main(int argc, char** argv) {
     stimage_error_init(&error);
 
     double *test_data_1 = NULL;
-    get_test_data("drand48_linux_1", &test_data_1, ncoords);
+    FILE *data_handle = get_test_data_handle(TEST_DATA_FILE);
 
     for (i = 0; i < ncoords; ++i) {
-        ref[i].x = input[i].x = iter_test_data(&test_data_1);
-        ref[i].y = input[i].y = iter_test_data(&test_data_1);
+        ref[i].x = input[i].x = iter_test_data(&data_handle);
+        ref[i].y = input[i].y = iter_test_data(&data_handle);
     }
 
     status = xyxymatch(ncoords, input,
@@ -73,10 +73,10 @@ int main(int argc, char** argv) {
     /* Now with different values in input and ref */
 
     for (i = 0; i < ncoords; ++i) {
-        input[i].x = iter_test_data(&test_data_1);
-        input[i].y = iter_test_data(&test_data_1);
-        ref[i].x =   iter_test_data(&test_data_1);
-        ref[i].y =   iter_test_data(&test_data_1);
+        input[i].x = iter_test_data(&data_handle);
+        input[i].y = iter_test_data(&data_handle);
+        ref[i].x =   iter_test_data(&data_handle);
+        ref[i].y =   iter_test_data(&data_handle);
     }
 
     status = xyxymatch(ncoords, input,
@@ -115,5 +115,6 @@ int main(int argc, char** argv) {
         }
     }
 
+    fclose(data_handle);
     return status;
 }

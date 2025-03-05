@@ -38,11 +38,11 @@ int main(int argc, char** argv) {
 
     stimage_error_init(&error);
 
-    srand48(0);
+    FILE *data_handle = get_test_data_handle(TEST_DATA_FILE);
 
     for (i = 0; i < ncoords; ++i) {
-        data1[i].x = data2[i].x = drand48();
-        data1[i].y = data2[i].y = drand48();
+        data1[i].x = data2[i].x = iter_test_data(&data_handle);
+        data1[i].y = data2[i].y = iter_test_data(&data_handle);
     }
 
     xysort(ncoords, data1, ptr1);
@@ -204,5 +204,6 @@ int main(int argc, char** argv) {
         }
     }
 
+    fclose(data_handle);
     return status;
 }

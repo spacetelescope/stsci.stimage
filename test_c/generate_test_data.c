@@ -26,6 +26,10 @@ void usage(char *argv0) {
 }
 
 int main(int argc, char *argv[]) {
+#ifdef _WIN32
+    printf("srand48 and drand48 are not supported on windows.");
+    exit(1);
+#else
     if (argc < 2) {
         fprintf(stderr, "Number of elements required\n");
         usage(argv[0]);
@@ -60,5 +64,6 @@ int main(int argc, char *argv[]) {
     }
 
     fclose(fp);
+#endif
     return 0;
 }
