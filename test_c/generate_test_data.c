@@ -56,11 +56,7 @@ int main(int argc, char *argv[]) {
     printf("Writing %zu elements to %s\n", nelem, outfile);
     srand48(0);
     for (size_t i = 0; i < nelem; i++) {
-        double v;
-        do {
-            v = drand48();
-        } while (!isfinite(v));
-        fprintf(fp, TEST_DATA_FMT "\n", v);
+        fprintf(fp, TEST_DATA_FMT "\n", drand48());
     }
 
     fclose(fp);
