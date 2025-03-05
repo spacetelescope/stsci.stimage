@@ -134,9 +134,9 @@ surface_init(
     s->cholesky_fact =
         malloc_with_error(s->ncoeff * s->ncoeff * sizeof(double), error);
     if (s->cholesky_fact == NULL) goto fail;
-    s->vector = malloc_with_error(s->ncoeff * sizeof(double), error);
+    s->vector = malloc_with_error(s->ncoeff * s->ncoeff * sizeof(double), error);
     if (s->vector == NULL) goto fail;
-    s->coeff = malloc_with_error(s->ncoeff * sizeof(double), error);
+    s->coeff = malloc_with_error(s->ncoeff * s->ncoeff * sizeof(double), error);
     if (s->coeff == NULL) goto fail;
 
     if (surface_zero(s, error)) {
