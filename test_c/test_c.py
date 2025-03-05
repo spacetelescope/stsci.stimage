@@ -8,7 +8,7 @@ import pytest
 ROOT = os.path.relpath(os.path.join('build', 'test_c'))
 TESTS = [
     'test_cholesky',
-    # 'test_geomap',  # FIXME: died with Signals.SIGABRT 6
+    'test_geomap',
     'test_lintransform',
     'test_surface',
     'test_triangles',
