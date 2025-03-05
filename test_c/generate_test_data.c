@@ -26,10 +26,6 @@ void usage(char *argv0) {
 }
 
 int main(int argc, char *argv[]) {
-#ifdef _WIN32
-    printf("srand48 and drand48 are not supported on windows.");
-    exit(1);
-#else
     if (argc < 2) {
         fprintf(stderr, "Number of elements required\n");
         usage(argv[0]);
@@ -58,12 +54,21 @@ int main(int argc, char *argv[]) {
     }
 
     printf("Writing %zu elements to %s\n", nelem, outfile);
+#ifdef _WIN32
+    srand(0);
+#else
     srand48(0);
+#endif
     for (size_t i = 0; i < nelem; i++) {
-        fprintf(fp, TEST_DATA_FMT "\n", drand48());
+        double v = 0.0;
+#ifdef _WIN32
+        v = rand() / (RAND_MAX + 1.0);
+#else
+        v = drand48();
+#endif
+        fprintf(fp, TEST_DATA_FMT "\n", v);
     }
 
     fclose(fp);
-#endif
     return 0;
 }
