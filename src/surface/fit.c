@@ -185,7 +185,7 @@ surface_fit_add_points(
             }
 
             vindex = vzp + k;
-            assert(vindex - s->vector < s->ncoeff);
+            assert(vindex - s->vector < s->ncoeff * s->ncoeff);
             *vindex += vector_dot_product(ncoord, bw, z);
             bbyp = byp;
             bbxp = bxp;
