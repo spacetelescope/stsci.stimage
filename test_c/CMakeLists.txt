@@ -16,3 +16,5 @@ foreach(test_srcfile ${files})
     add_test(target_${test_target} ${test_target} ${CMAKE_CURRENT_BINARY_DIR})
     set_tests_properties(target_${test_target} PROPERTIES SKIP_RETURN_CODE 127)
 endforeach()
+
+add_executable(generate_test_data generate_test_data.c)
