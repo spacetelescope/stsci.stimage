@@ -9,6 +9,8 @@
 #include <float.h>
 
 #define TEST_DATA_FMT "%.8lf"
+#define TEST_DATA_FILE "drand48_linux"
+#define TEST_DATA_PATH_MAX 1024
 
 extern inline const char *get_test_data_dir() {
     const char *datadir = getenv("STIMAGE_TEST_DATA");
@@ -19,23 +21,30 @@ extern inline const char *get_test_data_dir() {
     return datadir;
 }
 
-extern inline double iter_test_data(double **data) {
-    double result = **data;
-    (*data)++;
-    return result;
+extern inline double iter_test_data(FILE **fp) {
+    char value_buf[255] = {0};
+    if (fgets(value_buf, sizeof(value_buf) - 1, *fp) != NULL) {
+        // truncate line feeds
+        value_buf[strcspn(value_buf, "\r\n")] = 0;
+
+        char *value_ptr = NULL;
+        double value = strtod(value_buf, &value_ptr);
+        if (!value_ptr && !value) {
+            fprintf(stderr, "invalid value in data file\n");
+            exit(1);
+        }
+        return value;
+    }
+    fprintf(stderr, "test data exhausted\n");
+    exit(1);
 }
 
-extern inline void get_test_data(const char *filename, double **result, size_t nelem) {
+extern inline FILE *get_test_data_handle(const char *filename) {
     const char *datadir = get_test_data_dir();
-    char *path = NULL;
-    if (asprintf(&path, "%s/%s", datadir, filename) < 2) {
-        perror("path string creation failed");
-        exit(1);
-    }
 
-    *result = malloc(nelem * sizeof(**result));
-    if (!*result) {
-        perror("unable to allocate bytes for result array");
+    char path[TEST_DATA_PATH_MAX] = {0};
+    if (sprintf(path, "%s/%s", datadir, filename) < 2) {
+        perror("path string creation failed");
         exit(1);
     }
 
@@ -44,28 +53,8 @@ extern inline void get_test_data(const char *filename, double **result, size_t n
         perror(path);
         exit(1);
     }
+    return fp;
 
-    char value_buf[255] = {0};
-    size_t i = 0;
-    while (i < nelem && fgets(value_buf, sizeof(value_buf) - 1, fp) != NULL) {
-        // truncate line feeds
-        value_buf[strcspn(value_buf, "\r\n")] = 0;
-
-        char *value_ptr = NULL;
-        double value = strtod(value_buf, &value_ptr);
-        if (!value_ptr && !value) {
-            fprintf(stderr, "invalid value in %s: '%s'\n", path, value_buf);
-            fclose(fp);
-            free(path);
-            exit(1);
-        }
-
-        *(*result + i) = value;
-        i++;
-    }
-
-    fclose(fp);
-    free(path);
 }
 
 #endif // STSCI_STIMAGE_TEST_H
