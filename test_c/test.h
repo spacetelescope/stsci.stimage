@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <float.h>
 
-#define TEST_DATA_FMT "%lf"
+#define TEST_DATA_FMT "%.8lf"
 
 extern inline const char *get_test_data_dir() {
     const char *datadir = getenv("STIMAGE_TEST_DATA");
