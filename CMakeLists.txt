@@ -4,10 +4,6 @@ project(libstimage C)
 set(STIMAGE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(ASAN_FLAGS -fsanitize=address)
 set(LSAN_FLAGS -fsanitize=leak)
-if (MSVC)
-	set(ASAN_FLAGS ${ASAN_FLAGS})
-	set(LSAN_FLAGS ${LSAN_FLAGS})
-endif()
 
 option(ENABLE_WARNINGS BOOL ON)
 if (ENABLE_WARNINGS)
@@ -21,6 +17,7 @@ else()
     message(STATUS "Compiler warnings disabled")
 endif()
 
+# Address analyzer
 option(ENABLE_ASAN BOOL OFF)
 if (ENABLE_ASAN)
     message(STATUS "ASAN is enabled")
@@ -32,6 +29,7 @@ else()
     message(STATUS "ASAN is disabled")
 endif()
 
+# Leak detector
 option(ENABLE_LSAN BOOL OFF)
 if (ENABLE_LSAN)
     message(STATUS "LSAN is enabled")
