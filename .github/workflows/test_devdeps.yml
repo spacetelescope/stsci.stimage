@@ -47,5 +47,5 @@ jobs:
       - run: pip install -e ".[test]"
       - run: pip freeze
       - run: cmake -S . -B ./build -DENABLE_TESTING=ON && cmake --build ./build
-      - run: ctest -V --output-on-failure --test-dir build
+      - run: ctest --output-on-failure --test-dir build
       - run: pytest -vvv -rs
