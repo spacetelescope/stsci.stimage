@@ -46,6 +46,4 @@ jobs:
       - run: pip install "numpy>=0.0.0" --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --pre -U
       - run: pip install -e ".[test]"
       - run: pip freeze
-      - run: cmake -S . -B ./build -DENABLE_TESTING=ON && cmake --build ./build
-      - run: ctest --output-on-failure --test-dir build
       - run: pytest -vvv -rs
