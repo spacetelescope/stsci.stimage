@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
     name: test (C, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     steps:
@@ -63,9 +63,9 @@ jobs:
           - python: '3.13'
             numpy: '2.0.*'
             os: macos-latest
-          # - python: '3.13'
-          #   numpy: '2.0.*'
-          #   os: windows-latest
+          - python: '3.13'
+            numpy: '2.0.*'
+            os: windows-latest
     name: test (Python ${{ matrix.python }}, numpy ${{ matrix.numpy }}, ${{ matrix.os }})
     needs: [test_c]
     runs-on: ${{ matrix.os }}
