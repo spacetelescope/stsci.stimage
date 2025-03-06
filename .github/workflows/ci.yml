@@ -91,3 +91,9 @@ jobs:
         with:
           files: ./coverage.xml
           fail_ci_if_error: true
+  test_downstream:
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
+    with:
+      envs: |
+        - jwst
+        - tweakwcs
