@@ -95,5 +95,5 @@ jobs:
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     with:
       envs: |
-        - jwst
-        - tweakwcs
+        - linux: jwst
+        - linux: tweakwcs
