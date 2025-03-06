@@ -3,8 +3,6 @@
 
 #ifdef _WIN32
 
-#ifdef _MSC_VER
-
 #include <stdlib.h>
 
 #ifndef srand48
@@ -12,10 +10,17 @@
 #endif // srand48
 
 #ifndef drand48
-#define drand48() rand() / (RAND_MAX + 1.0)
+extern inline double drand48() {
+    double r = rand() / (RAND_MAX + 1.0);
+    while (r < 0.01) {
+        // BUG:
+        // This library cannot handle input values smaller than 0.01
+        // Increase the value of r until its usable
+        r *= 10.0;
+    }
+    return r;
+}
 #endif // drand48
-
-#endif // _MSC_VER
 
 #endif // _WIN32
 
