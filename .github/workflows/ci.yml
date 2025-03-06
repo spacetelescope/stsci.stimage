@@ -67,6 +67,7 @@ jobs:
       - run: cmake -S . -B ./build -DENABLE_TESTING=ON && cmake --build ./build
       - run: pip install "numpy==${{ matrix.numpy }}"
       - run: pip freeze
+      - run: ctest -V --output-on-failure
       - run: pytest -vvv -rs
   test_with_coverage:
     name: run tests with coverage
@@ -82,9 +83,10 @@ jobs:
           cache: 'pip'
           cache-dependency-path: pyproject.toml
       - run: pip install -e ".[test]"
-      - run: cmake -S . -B ./build -DENABLE_TESTING=ON && cmake --build ./build
       - run: pip freeze
-      - run: pytest -vvv -rs --cov=./ --cov-report=xml --cov-report term-missing
+      - run: cmake -S . -B ./build -DENABLE_TESTING=ON && cmake --build ./build
+      - run: ctest -V --output-on-failure
+      - run: pytest -vvv -rsv --cov=./ --cov-report=xml --cov-report term-missing
       - uses: codecov/codecov-action@13ce06bfc6bbe3ecf90edbbf1bc32fe5978ca1d3  # v5.3.1
         with:
           files: ./coverage.xml

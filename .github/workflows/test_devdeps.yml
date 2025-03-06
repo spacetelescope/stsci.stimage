@@ -45,6 +45,7 @@ jobs:
           cache-dependencies-path: pyproject.toml
       - run: pip install "numpy>=0.0.0" --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --pre -U
       - run: pip install -e ".[test]"
-      - run: cmake -S . -B ./build -DENABLE_TESTING=ON && cmake --build ./build
       - run: pip freeze
+      - run: cmake -S . -B ./build -DENABLE_TESTING=ON && cmake --build ./build
+      - run: ctest -V --output-on-failure
       - run: pytest -vvv -rs
