@@ -68,7 +68,7 @@ jobs:
       - run: python waf configure build
       - run: pip install "numpy==${{ matrix.numpy }}"
       - run: pip freeze
-      - run: pytest -rsv
+      - run: pytest -vvv -rs
   test_with_coverage:
     name: run tests with coverage
     needs: [ test ]
@@ -86,7 +86,7 @@ jobs:
       - run: python get_waf.py
       - run: python waf configure build
       - run: pip freeze
-      - run: pytest -rsv --cov=./ --cov-report=xml --cov-report term-missing
+      - run: pytest -vvv -rs --cov=./ --cov-report=xml --cov-report term-missing
       - uses: codecov/codecov-action@13ce06bfc6bbe3ecf90edbbf1bc32fe5978ca1d3  # v5.3.1
         with:
           files: ./coverage.xml

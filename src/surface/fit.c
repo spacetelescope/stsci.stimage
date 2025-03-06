@@ -179,7 +179,7 @@ surface_fit_add_points(
 
         bxp = xbasis;
 
-        for (k = 1; k <= s->xorder; ++k) {
+        for (k = 1; k <= xorder; ++k) {
             for (i = 0; i < ncoord; ++i) {
                 bw[i] = byw[i] * bxp[i];
             }
