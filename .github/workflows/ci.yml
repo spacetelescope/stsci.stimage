@@ -38,34 +38,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os:
+          - ubuntu-latest
+          - macos-13
+          - macos-latest
+          - windows-latest
         include:
           - python: '3.9'
             numpy: '1.20.*'
-            os: ubuntu-latest
-          - python: '3.9'
-            numpy: '1.20.*'
-            os: macos-13
           - python: '3.10'
             numpy: '1.21.*'
-            os: ubuntu-latest
           - python: '3.11'
             numpy: '1.26.*'
-            os: macos-latest
           - python: '3.12'
             numpy: '1.26.*'
-            os: ubuntu-latest
           - python: '3.12'
             numpy: '2.0.*'
-            os: macos-latest
+          - python: '3.12'
+            numpy: '2.0.*'
           - python: '3.13'
             numpy: '2.0.*'
-            os: ubuntu-latest
-          - python: '3.13'
-            numpy: '2.0.*'
-            os: macos-latest
-          - python: '3.13'
-            numpy: '2.0.*'
-            os: windows-latest
     name: test (Python ${{ matrix.python }}, numpy ${{ matrix.numpy }}, ${{ matrix.os }})
     needs: [test_c]
     runs-on: ${{ matrix.os }}
