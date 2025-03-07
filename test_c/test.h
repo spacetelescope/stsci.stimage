@@ -11,7 +11,13 @@
 
 #ifndef drand48
 extern inline double drand48() {
-    double r = 0.01 + 0.99 * rand() / (RAND_MAX + 1.0);
+    double r = rand() / (RAND_MAX + 1.0);
+    while (r < 0.01) {
+        // BUG:
+        // This library cannot handle input values smaller than 0.01
+        // Increase the value of r until its usable
+        r *= 10.0;
+    }
     return r;
 }
 #endif // drand48
