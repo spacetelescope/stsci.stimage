@@ -10,16 +10,7 @@
 #endif // srand48
 
 #ifndef drand48
-extern inline double drand48() {
-    double r = rand() / (RAND_MAX + 1.0);
-    while (r < 0.01) {
-        // BUG:
-        // This library cannot handle input values smaller than 0.01
-        // Increase the value of r until its usable
-        r *= 10.0;
-    }
-    return r;
-}
+#define drand48() rand() / (RAND_MAX + 1.0)
 #endif // drand48
 
 #endif // _WIN32
