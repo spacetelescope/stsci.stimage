@@ -3,8 +3,6 @@
 
 #ifdef _WIN32
 
-#ifdef _MSC_VER
-
 #include <stdlib.h>
 
 #ifndef srand48
@@ -14,8 +12,6 @@
 #ifndef drand48
 #define drand48() rand() / (RAND_MAX + 1.0)
 #endif // drand48
-
-#endif // _MSC_VER
 
 #endif // _WIN32
 
