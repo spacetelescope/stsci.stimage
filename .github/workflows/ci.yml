@@ -52,6 +52,9 @@ jobs:
         numpy:
           - '1.*'
           - '2.*'
+        exclude:
+          - python: '3.13'
+            numpy: '1.*'
     name: test (Python ${{ matrix.python }}, numpy ${{ matrix.numpy }}, ${{ matrix.os }})
     needs: [test_c]
     runs-on: ${{ matrix.os }}
