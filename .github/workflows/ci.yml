@@ -32,15 +32,9 @@ jobs:
       - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938  # v4.2.0
         with:
           fetch-depth: 0
-      - run: |
-          cmake -S . \
-              -B ./build \
-              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-              -DENABLE_TESTING=ON \
-              -DENABLE_ASAN=ON
-
-          cmake --build ./build \
-              --config ${{ matrix.build_type }}
+      # Do not reformat! Commands executed in BASH and CMD.exe. We cannot make them pretty.
+      - run: cmake -S . -B ./build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DENABLE_TESTING=ON -DENABLE_ASAN=ON
+      - run: cmake --build ./build --config ${{ matrix.build_type }}
       - run: ctest --output-on-failure --test-dir build
 
   test:
