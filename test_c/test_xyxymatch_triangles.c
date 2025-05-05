@@ -5,6 +5,11 @@
 #include "lib/lintransform.h"
 #include "test.h"
 
+/*
+ * Tests
+ * ../src/lib/lintransform.c
+ */
+
 int compare(const size_t ncoords,
             const coord_t* const ref,
             const coord_t* const input,

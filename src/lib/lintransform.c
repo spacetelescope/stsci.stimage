@@ -49,8 +49,8 @@ compute_lintransform(
     const coord_t mag,
     const coord_t rot,
     const coord_t out,
-    lintransform_t* coeffs) {
-
+    lintransform_t* coeffs)
+{
     assert(coeffs);
 
     assert(coord_is_finite(&in));
@@ -72,8 +72,8 @@ apply_lintransform(
     const lintransform_t* const coeffs,
     size_t ncoords,
     const coord_t* const input, /* [ncoords] */
-    coord_t* output) {
-
+    coord_t* output)
+{
     size_t i;
     double x, y;
 

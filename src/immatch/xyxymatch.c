@@ -111,8 +111,8 @@ xyxymatch(
         const size_t nmatch,
         const double maxratio,
         const size_t nreject,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     static const coord_t      DEFAULT_ORIGIN     = {0.0, 0.0};
     static const coord_t      DEFAULT_MAG        = {1.0, 1.0};
     static const coord_t      DEFAULT_ROTATION   = {0.0, 0.0};
