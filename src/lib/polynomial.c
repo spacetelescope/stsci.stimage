@@ -52,8 +52,8 @@ eval_1dpoly(
         const size_t axis,
         const coord_t* const ref,
         double* const zfit,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     size_t        i      = 0;
     int           j      = 0;
     const double* x      = (double *)ref + axis;
@@ -114,8 +114,8 @@ eval_1dchebyshev(
         const double k1,
         const double k2,
         double* const zfit,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     size_t        i      = 0;
     int           j      = 0;
     const double* x      = (double *)ref + axis;
@@ -208,8 +208,8 @@ eval_1dlegendre(
         const double k1,
         const double k2,
         double* const zfit,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     size_t        i      = 0;
     int           j      = 0;
     const double* x      = (double *)ref + axis;
@@ -306,8 +306,8 @@ basis_poly(
         const double k1, /* Ignored */
         const double k2, /* Ignored */
         double* const basis,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     size_t              i  = 0;
     int                 k  = 0;
     const double* const x  = (double*)ref + axis;
@@ -351,8 +351,8 @@ basis_chebyshev(
         const double k1,
         const double k2,
         double* const basis,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     size_t              i  = 0;
     int                 k  = 0;
     const double* const x  = (double*)ref + axis;
@@ -398,8 +398,8 @@ basis_legendre(
         const double k1,
         const double k2,
         double* const basis,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     size_t              i   = 0;
     int                 k   = 0;
     const double* const x   = (double*)ref + axis;
@@ -457,8 +457,8 @@ eval_poly_generic(
         basis_function_t basis_function,
         /* Output */
         double* const zfit,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     size_t       i        = 0;
     int          j        = 0;
     int          k        = 0;
@@ -599,11 +599,10 @@ eval_poly(
         const double k2y,
         /* Output */
         double* const zfit,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     return eval_poly_generic(
-            xorder, yorder, coeff, ncoord, ref, xterms, k1x, k2x, k1y, k2y,
-            &basis_poly, zfit, error);
+        xorder, yorder, coeff, ncoord, ref, xterms, k1x, k2x, k1y, k2y, &basis_poly, zfit, error);
 }
 
 int
@@ -620,11 +619,10 @@ eval_chebyshev(
         const double k2y,
         /* Output */
         double* const zfit,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     return eval_poly_generic(
-            xorder, yorder, coeff, ncoord, ref, xterms, k1x, k2x, k1y, k2y,
-            &basis_chebyshev, zfit, error);
+        xorder, yorder, coeff, ncoord, ref, xterms, k1x, k2x, k1y, k2y, &basis_chebyshev, zfit, error);
 }
 
 int
@@ -641,9 +639,8 @@ eval_legendre(
         const double k2y,
         /* Output */
         double* const zfit,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     return eval_poly_generic(
-            xorder, yorder, coeff, ncoord, ref, xterms, k1x, k2x, k1y, k2y,
-            &basis_legendre, zfit, error);
+        xorder, yorder, coeff, ncoord, ref, xterms, k1x, k2x, k1y, k2y, &basis_legendre, zfit, error);
 }

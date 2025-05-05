@@ -41,8 +41,8 @@ surface_vector(
         const coord_t* const ref,
         /* Output */
         double* const zfit,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     int status;
 
     assert(s);

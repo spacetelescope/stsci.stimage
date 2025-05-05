@@ -41,8 +41,8 @@ DAMAGE.
 void *
 malloc_with_error(
         size_t size,
-        stimage_error_t* error) {
-
+        stimage_error_t* error)
+{
     void *result = NULL;
 
     assert(error);
@@ -58,8 +58,8 @@ void *
 calloc_with_error(
         size_t nmemb,
         size_t size,
-        stimage_error_t* error) {
-
+        stimage_error_t* error)
+{
     void *result = NULL;
 
     assert(error);
@@ -73,8 +73,8 @@ calloc_with_error(
 
 STIMAGE_Int64
 factorial(
-        size_t n) {
-
+        size_t n)
+{
     STIMAGE_Int64 fac = 1;
 
     while (n > 0)
@@ -97,8 +97,8 @@ equation.
 size_t
 combinatorial(
         size_t n,
-        size_t ngroup) {
-
+        size_t ngroup)
+{
     size_t fac;
     size_t gfac;
     size_t i;
@@ -127,8 +127,8 @@ combinatorial(
 static int
 double_compare(
         const void* ap,
-        const void* bp) {
-
+        const void* bp)
+{
     const double a = *(const double*)ap;
     const double b = *(const double*)bp;
 
@@ -144,8 +144,8 @@ double_compare(
 void
 sort_doubles(
         const size_t n,
-        double* const a) {
-
+        double* const a)
+{
     assert(a);
 
     qsort(a, n, sizeof(double), &double_compare);
@@ -155,8 +155,8 @@ void
 double_normalize(
         const double x,
         double* const normx,
-        int* const expon) {
-
+        int* const expon)
+{
     const double tol = EPS_DOUBLE * 10.0;
     double absx = ABS(x);
 
@@ -189,8 +189,8 @@ double_normalize(
 int
 double_approx_equal(
         const double x,
-        const double y) {
-
+        const double y)
+{
     double normx, normy;
     double x1, x2;
     int ex, ey;
@@ -227,8 +227,8 @@ compute_mode(
         const size_t min,
         const double range,
         const double bin,
-        const double step) {
-
+        const double step)
+{
     int x1, x2, x3, nmax;
     double y1, y2, mode;
 
@@ -287,8 +287,8 @@ compute_mode(
 double
 compute_mean(
         const size_t n,
-        const double* const a) {
-
+        const double* const a)
+{
     size_t i = 0;
     double sum = 0.0;
 
@@ -305,8 +305,8 @@ void
 compute_mean_coord(
         const size_t n,
         const coord_t* const a,
-        coord_t* out) {
-
+        coord_t* out)
+{
     size_t i = 0;
     coord_t sum = {0.0, 0.0};
 
@@ -320,4 +320,3 @@ compute_mean_coord(
     out->x = sum.x / (double)n;
     out->y = sum.y / (double)n;
 }
-

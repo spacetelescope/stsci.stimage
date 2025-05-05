@@ -41,8 +41,8 @@ DAMAGE.
 
 void
 bbox_init(
-        bbox_t* const bbox) {
-
+        bbox_t* const bbox)
+{
     double my_nan;
 
     assert(bbox);
@@ -57,8 +57,8 @@ bbox_init(
 
 void
 bbox_print(
-        const bbox_t* const bbox) {
-
+        const bbox_t* const bbox)
+{
     printf("(%f, %f)--(%f, %f)",
            bbox->min.x, bbox->min.y,
            bbox->max.x, bbox->max.y);
@@ -72,8 +72,8 @@ limit_to_bbox(
         const coord_t* const ref,
         const bbox_t* const bbox,
         coord_t* const input_in_bbox,
-        coord_t* const ref_in_bbox) {
-
+        coord_t* const ref_in_bbox)
+{
     size_t i = 0;
     size_t nout = 0;
 
@@ -114,8 +114,8 @@ void
 determine_bbox(
         size_t n,
         const coord_t* const a,
-        bbox_t* const bbox) {
-
+        bbox_t* const bbox)
+{
     size_t i = 0;
 
     assert(a);
@@ -157,8 +157,8 @@ determine_bbox(
 
 void
 bbox_make_nonsingular(
-        bbox_t* const bbox) {
-
+        bbox_t* const bbox)
+{
     assert(bbox);
 
     if (double_approx_equal(bbox->min.x, bbox->max.x)) {

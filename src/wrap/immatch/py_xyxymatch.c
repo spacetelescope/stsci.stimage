@@ -40,7 +40,8 @@ DAMAGE.
 #include "immatch/xyxymatch.h"
 
 PyObject*
-py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
+py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds)
+{
     PyObject* input_obj      = NULL;
     PyObject* ref_obj        = NULL;
     PyObject* origin_obj     = NULL;
@@ -87,8 +88,7 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
         return NULL;
     }
 
-    input_array = (PyArrayObject*)PyArray_ContiguousFromAny(
-            input_obj, NPY_DOUBLE, 2, 2);
+    input_array = (PyArrayObject*)PyArray_ContiguousFromAny(input_obj, NPY_DOUBLE, 2, 2);
     if (input_array == NULL) {
         goto exit;
     }
@@ -97,8 +97,7 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
         goto exit;
     }
 
-    ref_array = (PyArrayObject*)PyArray_ContiguousFromAny(
-            ref_obj, NPY_DOUBLE, 2, 2);
+    ref_array = (PyArrayObject*)PyArray_ContiguousFromAny(ref_obj, NPY_DOUBLE, 2, 2);
     if (ref_array == NULL) {
         goto exit;
     }
@@ -107,11 +106,11 @@ py_xyxymatch(PyObject* self, PyObject* args, PyObject* kwds) {
         goto exit;
     }
 
-    if (to_coord_t("origin", origin_obj, &origin) ||
-        to_coord_t("mag", mag_obj, &mag) ||
-        to_coord_t("rotation", rotation_obj, &rotation) ||
-        to_coord_t("ref_origin", ref_origin_obj, &ref_origin) ||
-        to_xyxymatch_algo_e("algorithm", algorithm_str, &algorithm)) {
+    if (to_coord_t("origin", origin_obj, &origin)
+        || to_coord_t("mag", mag_obj, &mag)
+        || to_coord_t("rotation", rotation_obj, &rotation)
+        || to_coord_t("ref_origin", ref_origin_obj, &ref_origin)
+        || to_xyxymatch_algo_e("algorithm", algorithm_str, &algorithm)) {
         goto exit;
     }
 

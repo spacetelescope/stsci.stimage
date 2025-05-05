@@ -38,10 +38,10 @@ DAMAGE.
 
 static double
 vector_dot_product(
-    const size_t n,
-    const double* const a,
-    const double* const b) {
-
+        const size_t n,
+        const double* const a,
+        const double* const b)
+{
     size_t i;
     double sum = 0.0;
 
@@ -61,8 +61,8 @@ surface_fit_add_points(
         const double* const z,
         double* const w,
         const surface_fit_weight_e weight_type,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     size_t i, j, k, l, ii, jj, ll;
     double* byw = NULL;
     double* bw = NULL;
@@ -265,8 +265,8 @@ surface_fit_solve(
         surface_t* const s,
         /* Output  */
         surface_fit_error_e* const error_type,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     int nfree;
 
     assert(s);
@@ -317,8 +317,8 @@ surface_fit(
         const surface_fit_weight_e weight_type,
         /* Output */
         surface_fit_error_e* const error_type,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     assert(s);
     assert(coord);
     assert(z);

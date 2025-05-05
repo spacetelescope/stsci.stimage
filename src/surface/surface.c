@@ -43,8 +43,8 @@ surface_init(
         const int yorder,
         const xterms_e xterms,
         const bbox_t* const bbox,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     int order;
 
     assert(s);
@@ -155,7 +155,8 @@ surface_init(
 
 int
 surface_new(
-        surface_t* const s) {
+        surface_t* const s)
+{
     memset(s, 0, sizeof(surface_t));
 
     surface_free(s);
@@ -165,8 +166,8 @@ surface_new(
 
 void
 surface_free(
-        surface_t* const s) {
-
+        surface_t* const s)
+{
     assert(s);
 
     free(s->matrix); s->matrix = NULL;
@@ -180,8 +181,8 @@ surface_copy_vector(
         const size_t size,
         const double* const s,
         double** const d,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     size_t i;
 
     if (s != NULL) {
@@ -200,8 +201,8 @@ int
 surface_copy(
         const surface_t* const s,
         surface_t* const d,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     assert(s);
     assert(d);
     assert(error);
@@ -245,8 +246,8 @@ surface_copy(
 int
 surface_zero(
         surface_t* const s,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     size_t i;
 
     assert(s);
@@ -286,8 +287,8 @@ surface_zero(
 
 void
 surface_print(
-        const surface_t* const s) {
-
+        const surface_t* const s)
+{
     char*  type;
     char*  xterms;
     size_t i;

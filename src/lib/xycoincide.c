@@ -43,8 +43,8 @@ xycoincide(
     const size_t ncoords,
     const coord_t* const * const input /*[ncoords]*/,
     const coord_t** const output /*[ncoords]*/,
-    const double tolerance) {
-
+    const double tolerance)
+{
     double tolerance2 = tolerance * tolerance;
     size_t nunique = ncoords;
     double distance = 0.0;

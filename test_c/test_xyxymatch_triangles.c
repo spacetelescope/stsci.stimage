@@ -58,7 +58,8 @@ int compare(const size_t ncoords,
     return 0;
 }
 
-int main(int argc, char** argv) {
+int main(void)
+{
     #define ncoords 4098
     coord_t ref[ncoords];
     coord_t input[ncoords];

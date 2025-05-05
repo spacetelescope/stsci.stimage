@@ -66,7 +66,8 @@ geomap_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 }
 
 static PyArrayObject *
-geomap_array_init(void) {
+geomap_array_init(void)
+{
     PyArrayObject *o = NULL;
     npy_intp dims = 1;
 
@@ -90,34 +91,54 @@ geomap_init(geomap_object *self, PyObject *args, PyObject *kwds)
 #endif
 
     self->rms = geomap_array_init();
-    if (self->rms == NULL) return -1;
+    if (self->rms == NULL) {
+        return -1;
+    }
 
     self->mean_ref = geomap_array_init();
-    if (self->mean_ref == NULL) return -1;
+    if (self->mean_ref == NULL) {
+        return -1;
+    }
 
     self->mean_input = geomap_array_init();
-    if (self->mean_input == NULL) return -1;
+    if (self->mean_input == NULL) {
+        return -1;
+    }
 
     self->shift = geomap_array_init();
-    if (self->shift == NULL) return -1;
+    if (self->shift == NULL) {
+        return -1;
+    }
 
     self->mag = geomap_array_init();
-    if (self->mag == NULL) return -1;
+    if (self->mag == NULL) {
+        return -1;
+    }
 
     self->rotation = geomap_array_init();
-    if (self->rotation == NULL) return -1;
+    if (self->rotation == NULL) {
+        return -1;
+    }
 
     self->xcoeff = geomap_array_init();
-    if (self->xcoeff == NULL) return -1;
+    if (self->xcoeff == NULL) {
+        return -1;
+    }
 
     self->ycoeff = geomap_array_init();
-    if (self->ycoeff == NULL) return -1;
+    if (self->ycoeff == NULL) {
+        return -1;
+    }
 
     self->x2coeff = geomap_array_init();
-    if (self->x2coeff == NULL) return -1;
+    if (self->x2coeff == NULL) {
+        return -1;
+    }
 
     self->y2coeff = geomap_array_init();
-    if (self->y2coeff == NULL) return -1;
+    if (self->y2coeff == NULL) {
+        return -1;
+    }
 
     return 0;
 }
@@ -208,7 +229,8 @@ static PyTypeObject geomap_class = {
 #pragma GCC diagnostic pop
 
 PyObject*
-py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
+py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
+{
     PyObject* input_obj        = NULL;
     PyObject* ref_obj          = NULL;
     PyObject* bbox_obj         = NULL;

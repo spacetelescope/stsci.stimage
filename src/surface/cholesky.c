@@ -41,8 +41,8 @@ cholesky_factorization(
         /* Output */
         double* const matfac,
         surface_fit_error_e* const error_type,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     #define MATRIX(j, i) (matrix[(i)*nbands+(j)])
     #define MATFAC(j, i) (matfac[(i)*nbands+(j)])
 
@@ -117,8 +117,8 @@ cholesky_solve(
         const double* const vector,
         /* Output */
         double* const coeff,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     #define MATFAC(j, i) (matfac[(i)*nbands+(j)])
 
     size_t i, j, jmax, nbands_m1;
@@ -167,4 +167,3 @@ cholesky_solve(
 
     #undef MATFAC
 }
-

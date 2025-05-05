@@ -49,7 +49,8 @@ vote_triangle_matches(
         size_t* ncoord_matches,
         const coord_t** const refcoord_matches,
         const coord_t** const inputcoord_matches,
-        stimage_error_t* const error) {
+        stimage_error_t* const error)
+{
 
     typedef size_t vote_t;
 

@@ -43,8 +43,8 @@ max_num_triangles(
         const size_t ncoords,
         const size_t maxnpoints,
         size_t* num_triangles,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     size_t n = MIN(ncoords, maxnpoints);
     if (n >= 2346 || n == 0) {
         stimage_error_set_message(
@@ -69,8 +69,8 @@ sides_def [3][2] = {
 static int
 triangle_ratio_compare(
         const void* ap,
-        const void* bp) {
-
+        const void* bp)
+{
     const triangle_t* a = (const triangle_t*)ap;
     const triangle_t* b = (const triangle_t*)bp;
 
@@ -92,8 +92,8 @@ find_triangles(
         const size_t maxnpoints,
         const double tolerance,
         const double maxratio,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     const double tol2 = tolerance * tolerance;
     const size_t nsample = MAX(1, ncoords / maxnpoints);
     const size_t npoints = MIN(ncoords, nsample * maxnpoints);
@@ -244,8 +244,8 @@ merge_triangles(
         const triangle_t* const l_triangles,
         size_t* nmatches,
         triangle_match_t* const matches,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     size_t i;
     size_t match_iter = 0;
     double rmaxtol, lmaxtol, maxtol;
@@ -366,8 +366,8 @@ reject_triangles_compute_sigma_mode_factor(
         const size_t ntrue,
         double* sigma,
         double* mode,
-        double* factor) {
-
+        double* factor)
+{
     assert(diffp);
     assert(sigma);
     assert(mode);
@@ -408,8 +408,8 @@ reject_triangles(
         size_t* nmatches,
         triangle_match_t* const matches,
         const size_t nreject,
-        stimage_error_t* error) {
-
+        stimage_error_t* error)
+{
     size_t            i            = 0;
     double            sum          = 0.0;
     double            sumsq        = 0.0;
@@ -575,8 +575,8 @@ _match_triangles(
         const size_t nreject,
         size_t* nkeep,
         size_t* nmerge,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     const coord_t**   refcoord_matches   = NULL;
     const coord_t**   inputcoord_matches = NULL;
     size_t            nleft              = 0;
@@ -741,8 +741,8 @@ match_triangles(
         const size_t nreject,
         coord_match_callback_t* callback,
         void* callback_data,
-        stimage_error_t* const error) {
-
+        stimage_error_t* const error)
+{
     size_t          ncoord_matches     = nmatch;
     const coord_t** refcoord_matches   = NULL;
     const coord_t** inputcoord_matches = NULL;

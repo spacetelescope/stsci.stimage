@@ -44,8 +44,8 @@ int
 to_coord_t(
         const char* const name,
         PyObject* o,
-        coord_t* const c) {
-
+        coord_t* const c)
+{
     PyArrayObject* array = NULL;
 
     if (o == NULL || o == Py_None) {
@@ -77,8 +77,8 @@ to_coord_t(
 int
 from_coord_t(
         const coord_t* const c,
-        PyArrayObject** o) {
-
+        PyArrayObject** o)
+{
     npy_intp dims = 2;
 
     *o = (PyArrayObject *) PyArray_SimpleNew(1, &dims, NPY_DOUBLE);
@@ -96,8 +96,8 @@ int
 to_bbox_t(
         const char* const name,
         PyObject* o,
-        bbox_t* const b) {
-
+        bbox_t* const b)
+{
     PyArrayObject* array;
     double* data;
 
@@ -137,8 +137,8 @@ int
 to_xyxymatch_algo_e(
         const char* const name,
         const char* const s,
-        xyxymatch_algo_e* const e) {
-
+        xyxymatch_algo_e* const e)
+{
     if (s == NULL) {
         return 0;
     }
@@ -162,8 +162,8 @@ int
 to_geomap_fit_e(
         const char* const name,
         const char* const s,
-        geomap_fit_e* const e) {
-
+        geomap_fit_e* const e)
+{
     if (s == NULL) {
         return 0;
     }
@@ -200,8 +200,8 @@ to_geomap_fit_e(
 int
 from_geomap_fit_e(
         const geomap_fit_e e,
-        PyObject** o) {
-
+        PyObject** o)
+{
     const char* c;
 
     switch (e) {
@@ -246,8 +246,8 @@ int
 to_surface_type_e(
         const char* const name,
         const char* const s,
-        surface_type_e* const e) {
-
+        surface_type_e* const e)
+{
     if (s == NULL) {
         return 0;
     }
@@ -273,8 +273,8 @@ to_surface_type_e(
 int
 from_surface_type_e(
         const surface_type_e e,
-        PyObject** o) {
-
+        PyObject** o)
+{
     const char* c;
 
     switch (e) {
@@ -310,8 +310,8 @@ int
 to_xterms_e(
         const char* const name,
         const char* const s,
-        xterms_e* const e) {
-
+        xterms_e* const e)
+{
     if (s == NULL) {
         return 0;
     }
@@ -337,8 +337,8 @@ to_xterms_e(
 int
 from_xterms_e(
         const xterms_e e,
-        PyObject** o) {
-
+        PyObject** o)
+{
     const char* c;
 
     switch (e) {
