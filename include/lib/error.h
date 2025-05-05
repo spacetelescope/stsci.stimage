@@ -38,16 +38,20 @@ DAMAGE.
 
 #define STIMAGE_MAX_ERROR_LEN 512
 
+#include <stdio.h>
+
+#if 1
 /* Print macros to include meta information about the print statement */
 #define base_print(F,L,...) \
     do { \
         if (F) { \
-            fprintf(F, "%s - [C:%d::%d] ", L, __LINE__, g_pid); \
+            fprintf(F, "%s - [%s:%d] ", L, __FILE__, __LINE__); \
             fprintf(F, __VA_ARGS__); \
         }\
     } while(0)
-#define dbg_print(...) ols_base_print(stdout, "Debug", __VA_ARGS__)
-#define err_print(...) ols_base_print(stderr, "Error", __VA_ARGS__)
+#define dbg_print(...) base_print(stdout, "Debug", __VA_ARGS__)
+#define err_print(...) base_print(stderr, "Error", __VA_ARGS__)
+#endif
 
 /* Message structure */
 typedef struct {
