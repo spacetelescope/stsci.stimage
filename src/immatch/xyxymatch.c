@@ -55,8 +55,8 @@ xyxymatch_callback(
         void* data,
         size_t ref_index,
         size_t input_index,
-        stimage_error_t* error) {
-
+        stimage_error_t* error)
+{
     xyxymatch_callback_data_t* state = (xyxymatch_callback_data_t*)data;
     xyxymatch_output_t* entry;
 
@@ -184,10 +184,14 @@ xyxymatch(
      PREPARE INPUT COORDINATES
     */
     input_trans = malloc_with_error(ninput * sizeof(coord_t), error);
-    if (input_trans == NULL) goto exit;
+    if (input_trans == NULL) {
+        goto exit;
+    }
 
     input_trans_sorted = malloc_with_error(ninput * sizeof(coord_t*), error);
-    if (input_trans_sorted == NULL) goto exit;
+    if (input_trans_sorted == NULL) {
+        goto exit;
+    }
 
     apply_lintransform(&lintransform, ninput, input, input_trans);
     xysort(ninput, input_trans, input_trans_sorted);
@@ -236,6 +240,3 @@ exit:
     free(input_trans);
     return status;
 }
-
-
-
