@@ -40,6 +40,23 @@ DAMAGE.
 
 #include "lib/error.h"
 
+int 
+base_print_function(
+        FILE * fd, int line, const char * filename, const char * label)
+{
+    char * bname = NULL;
+    char * root = "/Users/kmacdonald/code/stimage/stsci.stimage/";
+    int rlen = strlen(root);
+
+    if (NULL != root) {
+        bname = (char*)filename + rlen;
+    } else {
+        bname = (char*)filename;
+    }
+
+    return fprintf(fd, "%s - [./%s:%d] ", label, bname, line);
+}
+
 void
 stimage_error_init(
     stimage_error_t* const error) {

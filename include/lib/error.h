@@ -38,47 +38,16 @@ DAMAGE.
 
 #define STIMAGE_MAX_ERROR_LEN 512
 
-#include <libgen.h>
 #include <limits.h>
-#include <stdarg.h>
 #include <stdio.h>
 
-#if 0
-inline int 
-base_print_function(
-        FILE * fd, int line, const char * filename, const char * label, const char * fmt, ...)
-{
-    char pathname[PATH_MAX];
-    char * bname = NULL;
-    int ret = 0;
-    va_list args;
+#define PARAM_UNUSED(X) (void)(X)  // Used for unused parameter warnings
 
-    snprintf(pathname, PATH_MAX-1, "%s", filename);
-    bname = basename(pathname);
+int base_print_function(FILE * fd, int line, const char * filename, const char * label);
 
-    ret = fprintf(fd, "%s - [%s:%d] ", label, bname, line);
-
-    va_start(args, fmt);
-    ret += vfprintf(fd, fmt, args);
-    va_end(args);
-
-    return ret;
-}
-#define dbg_print(FMT, ...) base_print_function(stdout, __LINE__, __FILE__, "DEBUG", FMT, ##__VA_ARGS__)
-#else
-/* Print macros to include meta information about the print statement */
-#define base_print(F,L,...) \
-    do { \
-        if (F) { \
-            fprintf(F, "%s - [%s:%d] ", L, __FILE__, __LINE__); \
-            fprintf(F, __VA_ARGS__); \
-        }\
-    } while(0)
-#define dbg_print(...) base_print(stdout, "Debug", __VA_ARGS__)
-#define err_print(...) base_print(stderr, "Error", __VA_ARGS__)
-#endif
-
-#define PARAM_UNUSED(X) (void)(X)
+#define print_base(F, L) base_print_function(F, __LINE__, __FILE__, L);
+#define dbg_print(...) do{print_base(stdout, "DEBUG"); fprintf(stdout,__VA_ARGS__);}while(0)
+#define err_print(...) do{print_base(stderr, "ERROR"); fprintf(stdout,__VA_ARGS__);}while(0)
 
 /* Message structure */
 typedef struct {
