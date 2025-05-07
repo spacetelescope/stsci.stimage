@@ -57,6 +57,26 @@ base_print_function(
     return fprintf(fd, "%s - [./%s:%d] ", label, bname, line);
 }
 
+#if 0
+int base_print_function2(
+        FILE * fd, int line, const char * filename, const char * label, const char * fmt, ...)
+{
+    char * bname = NULL;
+    char * root = "/Users/kmacdonald/code/stimage/stsci.stimage/";
+    int rlen = strlen(root);
+
+    if (NULL != root) {
+        bname = (char*)filename + rlen;
+    } else {
+        bname = (char*)filename;
+    }
+
+    // XXX This doesn't compile for some reason.  I don't properly understand the variadic.
+    // return fprintf(fd, "%s - [./%s:%d] %s", label, bname, line, fmt, __VA_ARGS__);
+    return fprintf(fd, "%s - [./%s:%d] %s", label, bname, line, fmt, ##__VA_ARGS__);
+}
+#endif
+
 void
 stimage_error_init(
     stimage_error_t* const error) {

@@ -26,7 +26,6 @@ main(void)
 
     /* TEST 1 */
     dbg_print("Test 1\n");
-    return 0;
 
     srand48(0);
 
@@ -47,9 +46,9 @@ main(void)
             &noutput, output,
             &result,
             &error);
-    dbg_print("End Test 1\n");
     // geomap_result_print(&result);
     geomap_result_free(&result);
+    return 0;
 
     /* TEST 2: SHIFT */
     srand48(0);

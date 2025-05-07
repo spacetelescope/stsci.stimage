@@ -44,10 +44,17 @@ DAMAGE.
 #define PARAM_UNUSED(X) (void)(X)  // Used for unused parameter warnings
 
 int base_print_function(FILE * fd, int line, const char * filename, const char * label);
+int base_print_function2(
+        FILE * fd, int line, const char * filename, const char * label, const char * fmt, ...);
 
 #define print_base(F, L) base_print_function(F, __LINE__, __FILE__, L);
 #define dbg_print(...) do{print_base(stdout, "DEBUG"); fprintf(stdout,__VA_ARGS__);}while(0)
 #define err_print(...) do{print_base(stderr, "ERROR"); fprintf(stdout,__VA_ARGS__);}while(0)
+
+#if 0
+// For some reason this doesn't work.
+#define dbg_print2(FMT, ...) do{base_print_function2(stdout, __LINE__, __FILE__, "DEBUG", FMT, __VA_ARGS__while(0)
+#endif
 
 /* Message structure */
 typedef struct {
