@@ -151,6 +151,14 @@ sort_doubles(
     qsort(a, n, sizeof(double), &double_compare);
 }
 
+/*
+ * XXX I don't think the premise of this is valid.  A double
+ *     already has a structure base 2.  The constant multiplication
+ *     by ten changes the bits of the mantissa.
+ *
+ *     I think the use of frexp would be a much better solution
+ *     for this comparison.
+ */
 void
 double_normalize(
         const double x,
@@ -208,6 +216,7 @@ double_approx_equal(
     }
 
     /* Normalize the operands and do an epsilon compare */
+    /* XXX Consider using frexp */
     double_normalize(x, &normx, &ex);
     double_normalize(y, &normy, &ey);
 
