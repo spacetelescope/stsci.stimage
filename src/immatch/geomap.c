@@ -200,8 +200,9 @@ compute_surface_coefficients(
     assert(error);
 
     /* Compute the x fit coefficients */
-    if (surface_init(
-                sx1, function, 2, 2, xterms_none, bbox, error)) goto exit;
+    if (surface_init(sx1, function, 2, 2, xterms_none, bbox, error)) {
+        goto exit;
+    }
 
     if (function == surface_type_polynomial) {
         sx1->coeff[0] = i0->x - (r0->x*cthetac->x + r0->y*sthetac->x);
@@ -216,17 +217,19 @@ compute_surface_coefficients(
     }
 
     /* Compute the y fit coefficients */
-    if (surface_init(
-                sy1, function, 2, 2, xterms_none, bbox, error)) goto exit;
+    if (surface_init(sy1, function, 2, 2, xterms_none, bbox, error)) {
+        goto exit;
+    }
 
     if (function == surface_type_polynomial) {
         sy1->coeff[0] = i0->y - (-r0->x*sthetac->y + r0->y*cthetac->y);
         sy1->coeff[1] = -sthetac->y;
         sy1->coeff[2] = cthetac->y;
     } else {
-        sy1->coeff[0] = i0->y - (-r0->x*sthetac->y + r0->y*cthetac->y) - \
-            sthetac->y*(bbox->max.x + bbox->min.x) / 2.0 +              \
-            cthetac->y*(bbox->max.y + bbox->min.y) / 2.0;
+        sy1->coeff[0] = i0->y - (-r0->x*sthetac->y + r0->y*cthetac->y);
+        sy1->coeff[0] -= sthetac->y * (bbox->max.x + bbox->min.x) / 2.0;
+        sy1->coeff[0] += cthetac->y * (bbox->max.y + bbox->min.y) / 2.0;
+
         sy1->coeff[1] = -sthetac->y * (bbox->max.x - bbox->min.x) / 2.0;
         sy1->coeff[2] = cthetac->y * (bbox->max.y - bbox->min.y) / 2.0;
     }
@@ -260,9 +263,13 @@ compute_residuals(
     assert(residual_y);
     assert(error);
 
-    if (surface_vector(sx1, ncoord, ref, residual_x, error)) return 1;
+    if (surface_vector(sx1, ncoord, ref, residual_x, error)) {
+        return 1;
+    }
 
-    if (surface_vector(sy1, ncoord, ref, residual_y, error)) return 1;
+    if (surface_vector(sy1, ncoord, ref, residual_y, error)) {
+        return 1;
+    }
 
     for (i = 0; i < ncoord; ++i) {
         residual_x[i] = input[i].x - residual_x[i];
@@ -380,12 +387,10 @@ geo_fit_theta(
     /* Do the fit */
     if (sw < 2.0) {
         if (fit->projection == geomap_proj_none) {
-            stimage_error_set_message(
-                    error, "Too few data points for X and Y fits.");
+            stimage_error_set_message(error, "Too few data points for X and Y fits.");
             goto exit;
         } else {
-            stimage_error_set_message(
-                    error, "Too few data points for XI and ETA fits.");
+            stimage_error_set_message(error, "Too few data points for XI and ETA fits.");
             goto exit;
         }
     }
@@ -442,21 +447,20 @@ geo_fit_theta(
     cthetac.y = ctheta;
 
     /* Compute the X and Y fit coefficients */
-    if (compute_surface_coefficients(
-                fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1,
-                error)) goto exit;
+    if (compute_surface_coefficients(fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error)) {
+        goto exit;
+    }
 
     /* Compute the residuals */
-    if (compute_residuals(
-                sx1, sy1, ncoord, input, ref, residual_x, residual_y,
-                error)) goto exit;
+    if (compute_residuals(sx1, sy1, ncoord, input, ref, residual_x, residual_y, error)) {
+        goto exit;
+    }
 
     /* Compute the number of zero-weighted points */
     fit->n_zero_weighted = count_zero_weighted(ncoord, weights);
 
     /* Compute the rms of the x and y fits */
-    compute_rms(
-            ncoord, weights, residual_x, residual_y, &fit->xrms, &fit->yrms);
+    compute_rms(ncoord, weights, residual_x, residual_y, &fit->xrms, &fit->yrms);
 
     fit->ncoord = ncoord;
 
@@ -526,11 +530,9 @@ geo_fit_magnify(
     /* Do the fit */
     if (sw < 2.0) {
         if (fit->projection == geomap_proj_none) {
-            stimage_error_set_message(
-                    error, "Too few data points for X and Y fits");
+            stimage_error_set_message(error, "Too few data points for X and Y fits");
         } else {
-            stimage_error_set_message(
-                    error, "Too few data points for XI and ETA fits");
+            stimage_error_set_message(error, "Too few data points for XI and ETA fits");
         }
         goto exit;
     }
@@ -598,21 +600,20 @@ geo_fit_magnify(
     cthetac.y = mag * ctheta;
 
     /* Compute the X fit coefficients */
-    if (compute_surface_coefficients(
-                fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1,
-                error)) goto exit;
+    if (compute_surface_coefficients(fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error)) {
+        goto exit;
+    }
 
     /* Compute the residuals */
-    if (compute_residuals(
-                sx1, sy1, ncoord, input, ref, residual_x, residual_y,
-                error)) goto exit;
+    if (compute_residuals(sx1, sy1, ncoord, input, ref, residual_x, residual_y, error)) {
+        goto exit;
+    }
 
     /* Compute the number of zero-weighted points */
     fit->n_zero_weighted = count_zero_weighted(ncoord, weights);
 
     /* Compute the rms of the x and y fits */
-    compute_rms(
-            ncoord, weights, residual_x, residual_y, &fit->xrms, &fit->yrms);
+    compute_rms(ncoord, weights, residual_x, residual_y, &fit->xrms, &fit->yrms);
 
     fit->ncoord = ncoord;
 
@@ -681,11 +682,9 @@ geo_fit_linear(
 
     if (sw < 3.0) {
         if (fit->projection == geomap_proj_none) {
-            stimage_error_set_message(
-                    error, "Too few data points for X and Y fits.");
+            stimage_error_set_message(error, "Too few data points for X and Y fits.");
         } else {
-            stimage_error_set_message(
-                    error, "Too few data points for XI and ETA fits.");
+            stimage_error_set_message(error, "Too few data points for XI and ETA fits.");
         }
         goto exit;
     }
@@ -705,8 +704,8 @@ geo_fit_linear(
 
     /* Compute the rotation angle */
     num = 2.0 * (sxrxr * syrxi * syryi - syryr * sxrxi * sxryi);
-    denom = syryr * (sxrxi - sxryi) * (sxrxi + sxryi) - \
-        sxrxr * (syrxi + syryi) * (syrxi - syryi);
+    denom = syryr * (sxrxi - sxryi) * (sxrxi + sxryi);
+    denom -= sxrxr * (syrxi + syryi) * (syrxi - syryi);
     if (double_approx_equal(num, 0.0) && double_approx_equal(denom, 0.0)) {
         theta = 0.0;
     } else {
@@ -744,21 +743,20 @@ geo_fit_linear(
     cthetac.x = ymag * ctheta;
 
     /* Compute the X and Y fit coefficients */
-    if (compute_surface_coefficients(
-                fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1,
-                error)) goto exit;
+    if (compute_surface_coefficients(fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error)) {
+        goto exit;
+    }
 
     /* Compute the residuals */
-    if (compute_residuals(
-                sx1, sy1, ncoord, input, ref, residual_x, residual_y,
-                error)) goto exit;
+    if (compute_residuals(sx1, sy1, ncoord, input, ref, residual_x, residual_y, error)) {
+        goto exit;
+    }
 
     /* Compute the number of zero-weighted points */
     fit->n_zero_weighted = count_zero_weighted(ncoord, weights);
 
     /* Compute the rms of the x and y fits */
-    compute_rms(
-            ncoord, weights, residual_x, residual_y, &fit->xrms, &fit->yrms);
+    compute_rms(ncoord, weights, residual_x, residual_y, &fit->xrms, &fit->yrms);
 
     fit->ncoord = ncoord;
 
@@ -782,19 +780,15 @@ _geo_fit_xy_validate_fit_error(
     case surface_fit_error_no_degrees_of_freedom:
         if (xfit) {
             if (projection == geomap_proj_none) {
-                stimage_error_set_message(
-                        error, "Too few data points for X fit.");
+                stimage_error_set_message(error, "Too few data points for X fit.");
             } else {
-                stimage_error_set_message(
-                        error, "Too few data points for XI fit.");
+                stimage_error_set_message(error, "Too few data points for XI fit.");
             }
         } else {
             if (projection == geomap_proj_none) {
-                stimage_error_set_message(
-                        error, "Too few data points for Y fit.");
+                stimage_error_set_message(error, "Too few data points for Y fit.");
             } else {
-                stimage_error_set_message(
-                        error, "Too few data points for ETA fit.");
+                stimage_error_set_message(error, "Too few data points for ETA fit.");
             }
         }
         return 1;
@@ -847,7 +841,9 @@ geo_fit_xy(
     *has_secondary = 1;
 
     zfit = malloc_with_error(ncoord * sizeof(double), error);
-    if (zfit == NULL) goto exit;
+    if (zfit == NULL) {
+        goto exit;
+    }
 
     bbox_copy(&fit->bbox, &bbox);
     bbox_make_nonsingular(&bbox);
@@ -855,20 +851,21 @@ geo_fit_xy(
     if (xfit) {
         switch(fit->fit_geometry) {
         case geomap_fit_shift:
-            if (surface_init(
-                        &savefit, fit->function, 2, 2, xterms_none, &bbox,
-                        error)) goto exit;
+            if (surface_init(&savefit, fit->function, 2, 2, xterms_none, &bbox, error)) {
+                goto exit;
+            }
             surface_free(sf1);
-            if (surface_init(
-                        sf1, fit->function, 1, 1, xterms_none, &bbox,
-                        error)) goto exit;
+            if (surface_init(sf1, fit->function, 1, 1, xterms_none, &bbox, error)) {
+                goto exit;
+            }
             for (i = 0; i < ncoord; ++i) {
                 zfit[i] = z[i<<1] - ref[i].x;
             }
 
-            if (surface_fit(
-                        sf1, ncoord, ref, zfit, weights,
-                        surface_fit_weight_user, &fit_error, error)) goto exit;
+            dbg_print("geomap-surface_fit\n");
+            if (surface_fit(sf1, ncoord, ref, zfit, weights, surface_fit_weight_user, &fit_error, error)) {
+                goto exit;
+            }
 
             if (fit->function == surface_type_polynomial) {
                 savefit.coeff[0] = sf1->coeff[0];
@@ -880,33 +877,37 @@ geo_fit_xy(
                 savefit.coeff[2] = 0.0;
             }
             surface_free(sf1);
-            if (surface_copy(&savefit, sf1, error)) goto exit;
+            if (surface_copy(&savefit, sf1, error)) {
+                goto exit;
+            }
             *has_secondary = 0;
             break;
 
         case geomap_fit_xyscale:
-            if (surface_init(
-                        sf1, fit->function, 2, 1, xterms_none, &bbox,
-                        error)) goto exit;
-            if (surface_fit(
-                        sf1, ncoord, ref, z, weights,
-                        surface_fit_weight_user, &fit_error, error)) goto exit;
+            if (surface_init(sf1, fit->function, 2, 1, xterms_none, &bbox, error)) {
+                goto exit;
+            }
+            dbg_print("geomap-surface_fit\n");
+            if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
+                goto exit;
+            }
             *has_secondary = 0;
             break;
 
         default:
-            if (surface_init(
-                        sf1, fit->function, 2, 2, xterms_none, &bbox,
-                        error)) goto exit;
-            if (surface_fit(
-                        sf1, ncoord, ref, z, weights,
-                        surface_fit_weight_user, &fit_error, error)) goto exit;
+            if (surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error)) {
+                goto exit;
+            }
+            dbg_print("geomap-surface_fit\n");
+            if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
+                goto exit;
+            }
 
             if (fit->xxorder > 2 || fit->xyorder > 2 ||
                 fit->xxterms == xterms_full) {
-                if (surface_init(
-                            sf2, fit->function, fit->xxorder, fit->xyorder,
-                            fit->xxterms, &fit->bbox, error)) {
+                if (surface_init(sf2, fit->function, fit->xxorder, fit->xyorder,
+                                 fit->xxterms, &fit->bbox, error))
+                {
                     surface_free(sf1);
                     goto exit;
                 }
@@ -918,19 +919,20 @@ geo_fit_xy(
     } else {
         switch(fit->fit_geometry) {
         case geomap_fit_shift:
-            if (surface_init(
-                        &savefit, fit->function, 2, 2, xterms_none, &bbox,
-                        error)) goto exit;
+            if (surface_init(&savefit, fit->function, 2, 2, xterms_none, &bbox, error)) {
+                goto exit;
+            }
             surface_free(sf1);
-            if (surface_init(
-                        sf1, fit->function, 1, 1, xterms_none, &bbox,
-                        error)) goto exit;
+            if (surface_init(sf1, fit->function, 1, 1, xterms_none, &bbox, error)) {
+                goto exit;
+            }
             for (i = 0; i < ncoord; ++i) {
                 zfit[i] = z[i<<1] - ref[i].y;
             }
-            if (surface_fit(
-                        sf1, ncoord, ref, zfit, weights,
-                        surface_fit_weight_user, &fit_error, error)) goto exit;
+            dbg_print("geomap-surface_fit\n");
+            if (surface_fit(sf1, ncoord, ref, zfit, weights, surface_fit_weight_user, &fit_error, error)) {
+                goto exit;
+            }
             if (fit->function == surface_type_polynomial) {
                 savefit.coeff[0] = sf1->coeff[0];
                 savefit.coeff[1] = 0.0;
@@ -941,33 +943,39 @@ geo_fit_xy(
                 savefit.coeff[2] = (bbox.max.y - bbox.min.y) / 2.0;
             }
             surface_free(sf1);
-            if (surface_copy(&savefit, sf1, error)) goto exit;
+            if (surface_copy(&savefit, sf1, error)) {
+                goto exit;
+            }
 
             *has_secondary = 0;
             break;
 
         case geomap_fit_xyscale:
-            if (surface_init(
-                        sf1, fit->function, 1, 2, xterms_none, &bbox,
-                        error)) goto exit;
-            if (surface_fit(
-                        sf1, ncoord, ref, z, weights,
-                        surface_fit_weight_user, &fit_error, error)) goto exit;
+            if (surface_init(sf1, fit->function, 1, 2, xterms_none, &bbox, error)) {
+                goto exit;
+            }
+            dbg_print("geomap-surface_fit\n");
+            if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
+                goto exit;
+            }
             *has_secondary = 0;
             break;
 
         default:
-            if (surface_init(
-                        sf1, fit->function, 2, 2, xterms_none, &bbox,
-                        error)) goto exit;
-            if (surface_fit(
-                        sf1, ncoord, ref, z, weights,
-                        surface_fit_weight_user, &fit_error, error)) goto exit;
+            if (surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error)) {
+                goto exit;
+            }
+            dbg_print("geomap-surface_fit\n");
+            if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
+                goto exit;
+            }
             if (fit->yxorder > 2 || fit->yyorder > 2 ||
                 fit->yxterms == xterms_full) {
-                if (surface_init(
-                            sf2, fit->function, fit->yxorder, fit->yyorder,
-                            fit->yxterms, &bbox, error)) goto exit;
+                if (surface_init(sf2, fit->function, fit->yxorder, fit->yyorder,
+                                 fit->yxterms, &bbox, error))
+                {
+                    goto exit;
+                }
             } else {
                 *has_secondary = 0;
             }
@@ -976,23 +984,30 @@ geo_fit_xy(
         }
     }
 
-    if (_geo_fit_xy_validate_fit_error(
-                fit_error, xfit, fit->projection, error)) goto exit;
+    if (_geo_fit_xy_validate_fit_error(fit_error, xfit, fit->projection, error)) {
+        goto exit;
+    }
 
-    if (surface_vector(sf1, ncoord, ref, residual, error)) goto exit;
+    if (surface_vector(sf1, ncoord, ref, residual, error)) {
+        goto exit;
+    }
     for (i = 0; i < ncoord; ++i) {
         residual[i] = z[i<<1] - residual[i];
     }
 
     /* Calculate the higher-order fit */
     if (*has_secondary) {
-        if (surface_fit(
-                    sf2, ncoord, ref, residual, weights,
-                    surface_fit_weight_user, &fit_error, error)) goto exit;
-        if (_geo_fit_xy_validate_fit_error(
-                    fit_error, xfit, fit->projection, error)) goto exit;
+        dbg_print("geomap-surface_fit\n");
+        if (surface_fit(sf2, ncoord, ref, residual, weights, surface_fit_weight_user, &fit_error, error)) {
+            goto exit;
+        }
+        if (_geo_fit_xy_validate_fit_error(fit_error, xfit, fit->projection, error)) {
+            goto exit;
+        }
 
-        if (surface_vector(sf2, ncoord, ref, zfit, error)) goto exit;
+        if (surface_vector(sf2, ncoord, ref, zfit, error)) {
+            goto exit;
+        }
         for (i = 0; i < ncoord; ++i) {
             residual[i] = zfit[i] - residual[i];
         }
@@ -1088,10 +1103,9 @@ geo_fit_reject(
     do { /* while (niter < fit->maxiter) */
         /* Compute the rejection limits */
         if (ncoord - fit->n_zero_weighted > 1) {
-            cutx = fit->reject * \
-                sqrt(fit->xrms / (double)(ncoord - fit->n_zero_weighted - 1));
-            cuty = fit->reject * \
-                sqrt(fit->yrms / (double)(ncoord - fit->n_zero_weighted - 1));
+            double tmp = (double)(ncoord - fit->n_zero_weighted - 1);
+            cutx = fit->reject * sqrt(fit->xrms / tmp);
+            cuty = fit->reject * sqrt(fit->yrms / tmp);
         } else {
             cutx = MAX_DOUBLE;
             cuty = MAX_DOUBLE;
@@ -1099,10 +1113,7 @@ geo_fit_reject(
 
         /* Reject points from the fit */
         for (i = 0; i < ncoord; ++i) {
-            if (
-                    tweights[i] > 0.0
-                    && ((fabs(residual_x[i]) > cutx) || fabs(residual_y[i]) > cuty)
-               )
+            if (tweights[i] > 0.0 && ((fabs(residual_x[i]) > cutx) || fabs(residual_y[i]) > cuty))
             {
                 tweights[i] = 0.0;
                 ++nreject;
@@ -1122,27 +1133,32 @@ geo_fit_reject(
         /* Recompute the X and Y fit */
         switch (fit->fit_geometry) {
             case geomap_fit_rotate:
-                if (geo_fit_theta(
-                            fit, sx1, sy1, ncoord, input, ref, tweights,
-                            residual_x, residual_y, error)) goto exit;
+                if (geo_fit_theta(fit, sx1, sy1, ncoord, input, ref, tweights,
+                                  residual_x, residual_y, error)) 
+                {
+                    goto exit;
+                }
                 break;
             case geomap_fit_rscale:
-                if (geo_fit_magnify(
-                            fit, sx1, sy1, ncoord, input, ref, tweights,
-                            residual_x, residual_y, error)) goto exit;
+                if (geo_fit_magnify(fit, sx1, sy1, ncoord, input, ref, tweights,
+                                    residual_x, residual_y, error)) 
+                {
+                    goto exit;
+                }
                 break;
             case geomap_fit_rxyscale:
-                if (geo_fit_linear(
-                            fit, sx1, sy1, ncoord, input, ref, tweights,
-                            residual_x, residual_y, error)) goto exit;
+                if (geo_fit_linear(fit, sx1, sy1, ncoord, input, ref, tweights,
+                                   residual_x, residual_y, error)) 
+                {
+                    goto exit;
+                }
                 break;
             default:
-                if (geo_fit_xy(
-                            fit, sx1, sx2, ncoord, 1, input, ref, has_sx2, tweights,
-                            residual_x, error) ||
-                    geo_fit_xy(
-                            fit, sy1, sy2, ncoord, 0, input, ref, has_sy2, tweights,
-                            residual_y, error)) goto exit;
+                if (geo_fit_xy(fit, sx1, sx2, ncoord, 1, input, ref, has_sx2, tweights, residual_x, error)
+                    || geo_fit_xy(fit, sy1, sy2, ncoord, 0, input, ref, has_sy2, tweights, residual_y, error))
+                {
+                    goto exit;
+                }
                 break;
         }
 
@@ -1195,44 +1211,54 @@ geofit(
     *has_sy2 = 0;
 
     residual_x = malloc_with_error(ncoord * sizeof(double), error);
-    if (residual_x == NULL) goto exit;
+    if (residual_x == NULL) {
+        goto exit;
+    }
 
     residual_y = malloc_with_error(ncoord * sizeof(double), error);
-    if (residual_y == NULL) goto exit;
+    if (residual_y == NULL) {
+        goto exit;
+    }
 
     switch(fit->fit_geometry) {
-    case geomap_fit_rotate:
-        if (geo_fit_theta(
-                    fit, sx1, sy1, ncoord, input, ref, weights,
-                    residual_x, residual_y, error)) goto exit;
-        break;
-    case geomap_fit_rscale:
-        if (geo_fit_magnify(
-                    fit, sx1, sy1, ncoord, input, ref, weights,
-                    residual_x, residual_y, error)) goto exit;
-        break;
-    case geomap_fit_rxyscale:
-        if (geo_fit_linear(
-                    fit, sx1, sy1, ncoord, input, ref, weights,
-                    residual_x, residual_y, error)) goto exit;
-        break;
-    default:
-        if (geo_fit_xy(
-                    fit, sx1, sx2, ncoord, 0, input, ref, has_sx2, weights,
-                    residual_x, error)
-            ||
-            geo_fit_xy(
-                    fit, sy1, sy2, ncoord, 1, input, ref, has_sy2, weights,
-                    residual_y, error)) goto exit;
-        break;
+        case geomap_fit_rotate:
+            if (geo_fit_theta(fit, sx1, sy1, ncoord, input, ref, weights,
+                              residual_x, residual_y, error)) 
+            {
+                goto exit;
+            }
+            break;
+        case geomap_fit_rscale:
+            if (geo_fit_magnify(fit, sx1, sy1, ncoord, input, ref, weights,
+                                residual_x, residual_y, error))
+            {
+                goto exit;
+            }
+            break;
+        case geomap_fit_rxyscale:
+            if (geo_fit_linear(fit, sx1, sy1, ncoord, input, ref, weights,
+                               residual_x, residual_y, error))
+            {
+                goto exit;
+            }
+            break;
+        default:
+            if (geo_fit_xy(fit, sx1, sx2, ncoord, 0, input, ref, has_sx2, weights, residual_x, error)
+                || geo_fit_xy(fit, sy1, sy2, ncoord, 1, input, ref, has_sy2, weights, residual_y, error))
+            {
+                goto exit;
+            }
+            break;
     }
 
     if (fit->maxiter <= 0 || !isfinite(fit->reject)) {
         fit->nreject = 0;
     } else {
-        if (geo_fit_reject(
-                    fit, sx1, sy1, sx2, sy2, has_sx2, has_sy2, ncoord, input,
-                    ref, weights, residual_x, residual_y, error)) goto exit;
+        if (geo_fit_reject(fit, sx1, sy1, sx2, sy2, has_sx2, has_sy2, ncoord, input,
+                           ref, weights, residual_x, residual_y, error))
+        {
+            goto exit;
+        }
     }
 
     status = 0;
@@ -1273,20 +1299,30 @@ geoeval(
 
     if (has_sx2 || has_sy2) {
         tmp = malloc_with_error(ncoord * sizeof(double), error);
-        if (tmp == NULL) goto exit;
+        if (tmp == NULL) {
+            goto exit;
+        }
     }
 
-    if (surface_vector(sx1, ncoord, ref, xfit, error)) goto exit;
+    if (surface_vector(sx1, ncoord, ref, xfit, error)) {
+        goto exit;
+    }
     if (has_sx2) {
-        if (surface_vector(sx2, ncoord, ref, tmp, error)) goto exit;
+        if (surface_vector(sx2, ncoord, ref, tmp, error)) {
+            goto exit;
+        }
         for (i = 0; i < ncoord; ++i) {
             xfit[i] += tmp[i];
         }
     }
 
-    if (surface_vector(sy1, ncoord, ref, yfit, error)) goto exit;
+    if (surface_vector(sy1, ncoord, ref, yfit, error)) {
+        goto exit;
+    }
     if (has_sy2) {
-        if (surface_vector(sy2, ncoord, ref, tmp, error)) goto exit;
+        if (surface_vector(sy2, ncoord, ref, tmp, error)) {
+            goto exit;
+        }
         for (i = 0; i < ncoord; ++i) {
             yfit[i] += tmp[i];
         }
@@ -1351,12 +1387,11 @@ geo_get_coeff(
     }
 
     /* Get the shifts */
-    shift->x = sx->coeff[0] + \
-        sx->coeff[1] * xxmaxmin / xxrange + \
-        sx->coeff[2] * xymaxmin / xyrange;
-    shift->y = sy->coeff[0] + \
-        sy->coeff[1] * yxmaxmin / yxrange +
-        sx->coeff[2] * yymaxmin / yyrange;
+    shift->x = sx->coeff[0] + sx->coeff[1] * xxmaxmin / xxrange;
+    shift->x += sx->coeff[2] * xymaxmin / xyrange;
+
+    shift->y = sy->coeff[0] + sy->coeff[1] * yxmaxmin / yxrange;
+    shift->y += sx->coeff[2] * yymaxmin / yyrange;
 
     /* Get the rotation and scaling parameters */
     if (nxxcoeff > 1) {
@@ -1429,6 +1464,7 @@ geo_get_results(
     assert(result);
     assert(error);
 
+    // HERE
     geomap_result_init(result);
 
     result->fit_geometry = fit->fit_geometry;
@@ -1547,6 +1583,7 @@ geomap(
     double           my_nan         = fmod(1.0, 0.0);
     int              status         = 1;
 
+    dbg_print("Here\n");
     assert(input);
     assert(ref);
     assert(error);
@@ -1562,10 +1599,8 @@ geomap(
     surface_new(&sx2);
     surface_new(&sy2);
 
-    geomap_fit_init(
-            &fit, geomap_proj_none, fit_geometry, function,
-            xxorder, xyorder, xxterms, yxorder, yyorder, yxterms,
-            maxiter, reject);
+    geomap_fit_init(&fit, geomap_proj_none, fit_geometry, function, xxorder, xyorder,
+        xxterms, yxorder, yyorder, yxterms, maxiter, reject);
 
     /* If bbox is NULL, provide a dummy one full of NaNs */
     if (bbox == NULL) {
@@ -1594,6 +1629,7 @@ geomap(
         if (ref_in_bbox == NULL) goto exit;
 
         /* Reduce data to only those in the bbox */
+        dbg_print("limit_to_bbox\n");
         ninput_in_bbox = nref_in_bbox = limit_to_bbox(
                 ninput, input, ref, &tbbox, input_in_bbox, ref_in_bbox);
     }
@@ -1608,14 +1644,20 @@ geomap(
 
     /* Allocate some memory */
     xfit = malloc_with_error(ninput_in_bbox * sizeof(double), error);
-    if (xfit == NULL) goto exit;
+    if (xfit == NULL) {
+        goto exit;
+    }
 
     yfit = malloc_with_error(ninput_in_bbox * sizeof(double), error);
-    if (yfit == NULL) goto exit;
+    if (yfit == NULL) {
+        goto exit;
+    }
 
     /* Compute the weights */
     weights = malloc_with_error(ninput_in_bbox * sizeof(double), error);
-    if (weights == NULL) goto exit;
+    if (weights == NULL) {
+        goto exit;
+    }
 
     for (i = 0; i < ninput_in_bbox; ++i) {
         weights[i] = 1.0;
@@ -1625,32 +1667,37 @@ geomap(
     determine_bbox(nref_in_bbox, ref_in_bbox, &tbbox);
     bbox_copy(&tbbox, &fit.bbox);
 
-    if (geofit(
-                &fit, &sx1, &sy1, &sx2, &sy2, &has_sx2, &has_sy2,
-                ninput_in_bbox, input_in_bbox, ref_in_bbox, weights,
-                error)) goto exit;
+    if (geofit(&fit, &sx1, &sy1, &sx2, &sy2, &has_sx2, &has_sy2, ninput_in_bbox,
+               input_in_bbox, ref_in_bbox, weights, error))
+    {
+        goto exit;
+    }
 
     /* Compute the fitted x and y values */
-    if (geoeval(
-                &sx1, &sy1, &sx2, &sy2, has_sx2, has_sy2, ninput_in_bbox,
-                ref_in_bbox, xfit, yfit, error)) goto exit;
+    if (geoeval(&sx1, &sy1, &sx2, &sy2, has_sx2, has_sy2, ninput_in_bbox,
+                ref_in_bbox, xfit, yfit, error))
+    {
+        goto exit;
+    }
 
-    if (geo_get_results(
-                &fit, &sx1, &sy1, &sx2, &sy2, has_sx2, has_sy2, result,
-                error)) goto exit;
+    if (geo_get_results(&fit, &sx1, &sy1, &sx2, &sy2, has_sx2, has_sy2, result,error)) {
+        goto exit;
+    }
 
     /* DIFF: This section is from geo_plistd */
 
     /* Copy the results to the output buffer */
     tweights = malloc_with_error(ninput_in_bbox * sizeof(double), error);
-    if (tweights == NULL) goto exit;
+    if (tweights == NULL) {
+        goto exit;
+    }
 
     for (i = 0; i < ninput_in_bbox; ++i) {
         tweights[i] = weights[i];
     }
 
     for (i = 0; i < fit.nreject; ++i) {
-        assert(fit.rej);
+        assert(fit.rej); /* XXX Should this be done every loop or before loop? */
         assert(fit.rej[i] < ninput_in_bbox);
         if (weights[fit.rej[i]] > 0.0) {
             tweights[fit.rej[i]] = 0.0;
@@ -1663,6 +1710,7 @@ geomap(
         outi->ref.y = ref_in_bbox[i].y;
         outi->input.x = input_in_bbox[i].x;
         outi->input.y = input_in_bbox[i].y;
+
         if (tweights[i] > 0.0) {
             outi->fit.x = xfit[i];
             outi->fit.y = yfit[i];
