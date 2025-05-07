@@ -1368,6 +1368,8 @@ geo_get_coeff(
     assert(sx->ncoeff >= 3);
     assert(sy->ncoeff >= 3);
 
+    PARAM_UNUSED(error); // Suppress unused parameter warning
+
     nxxcoeff = nyxcoeff = sx->nxcoeff;
     nxycoeff = nyycoeff = sy->nycoeff;
 
@@ -1463,6 +1465,8 @@ geo_get_results(
     assert(fit);
     assert(result);
     assert(error);
+
+    PARAM_UNUSED(error); // Suppress unused parameter warning
 
     // HERE
     geomap_result_init(result);
@@ -1698,7 +1702,7 @@ geomap(
 
     for (i = 0; i < fit.nreject; ++i) {
         assert(fit.rej); /* XXX Should this be done every loop or before loop? */
-        assert(fit.rej[i] < ninput_in_bbox);
+        assert((size_t)fit.rej[i] < ninput_in_bbox);
         if (weights[fit.rej[i]] > 0.0) {
             tweights[fit.rej[i]] = 0.0;
         }

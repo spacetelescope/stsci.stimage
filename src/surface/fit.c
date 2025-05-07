@@ -179,13 +179,13 @@ surface_fit_add_points(
 
         bxp = xbasis;
 
-        for (k = 1; k <= xorder; ++k) {
+        for (k = 1; k <= (size_t)xorder; ++k) {
             for (i = 0; i < ncoord; ++i) {
                 bw[i] = byw[i] * bxp[i];
             }
 
             vindex = vzp + k;
-            assert(vindex - s->vector < s->ncoeff);
+            assert((size_t)(vindex - s->vector) < s->ncoeff);
             *vindex += vector_dot_product(ncoord, bw, z);
             bbyp = byp;
             bbxp = bxp;
@@ -195,7 +195,7 @@ surface_fit_add_points(
             ii = 0;
             for (j = k + ntimes; j <= s->ncoeff; ++j) {
                 mindex = mzp + ii;
-                assert(mindex - s->matrix < s->ncoeff * s->ncoeff);
+                assert((size_t)(mindex - s->matrix) < s->ncoeff * s->ncoeff);
                 assert((bbxp - xbasis) + ncoord - 1 < ncoord * s->xorder);
                 assert((bbyp - ybasis) + ncoord - 1 < ncoord * s->yorder);
                 for (i = 0; i < ncoord; ++i) {

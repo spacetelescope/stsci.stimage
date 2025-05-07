@@ -317,6 +317,9 @@ basis_poly(
     assert(basis);
     assert(error);
 
+    PARAM_UNUSED(k1); // Suppress unused parameter warning
+    PARAM_UNUSED(k2); // Suppress unused parameter warning
+
     for (k = 0; k < order; ++k) {
         assert((bp - basis) >= 0);
 

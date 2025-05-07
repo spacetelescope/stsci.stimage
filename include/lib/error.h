@@ -43,7 +43,7 @@ DAMAGE.
 #include <stdarg.h>
 #include <stdio.h>
 
-#if 1
+#if 0
 inline int 
 base_print_function(
         FILE * fd, int line, const char * filename, const char * label, const char * fmt, ...)
@@ -77,6 +77,8 @@ base_print_function(
 #define dbg_print(...) base_print(stdout, "Debug", __VA_ARGS__)
 #define err_print(...) base_print(stderr, "Error", __VA_ARGS__)
 #endif
+
+#define PARAM_UNUSED(X) (void)(X)
 
 /* Message structure */
 typedef struct {

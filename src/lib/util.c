@@ -281,10 +281,10 @@ compute_mode(
         if (x2 - x1 > nmax) {
             nmax = x2 - x1;
             if (((x2 + x1) & 0x1) == 0) {
-                assert(((x2+x1)>>1) < n);
+                assert((size_t)((x2+x1)>>1) < n);
                 mode = a[((x2+x1)>>1) - 1];
             } else {
-                assert(((x2+x1)>>1) + 1 < n);
+                assert((size_t)((x2+x1)>>1) + 1 < n);
                 mode = (a[(x2+x1)>>1] + a[((x2+x1)>>1)+1]) * 0.5;
             }
         }
