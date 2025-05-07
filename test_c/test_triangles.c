@@ -5,7 +5,7 @@
 #include "lib/xycoincide.h"
 #include "test.h"
 
-int main(int argc, char** argv) {
+int main(void) {
     #define ncoords 512
     coord_t data1[ncoords];
     coord_t data2[ncoords];

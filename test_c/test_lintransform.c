@@ -16,7 +16,7 @@ print_array(const size_t ncoords, const coord_t* data, const char* name) {
     printf("]\n");
 }
 
-int main(int argv, char** argc) {
+int main(void) {
     #define ncoords 512
     coord_t data[ncoords];
     coord_t data_trans[ncoords];

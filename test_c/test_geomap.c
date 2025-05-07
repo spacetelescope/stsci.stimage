@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -6,7 +7,8 @@
 #include "test.h"
 
 int
-main(int argc, char** argv) {
+main(void)
+{
     #define ncoords 64
     coord_t ref[ncoords];
     coord_t input[ncoords];
@@ -23,6 +25,8 @@ main(int argc, char** argv) {
     geomap_result_init(&result);
 
     /* TEST 1 */
+    dbg_print("Test 1\n");
+    return 0;
 
     srand48(0);
 
@@ -37,13 +41,14 @@ main(int argc, char** argv) {
             &bbox,
             geomap_fit_general,
             surface_type_polynomial,
-            2, 2, 2, 2,
+            2, 2, 2, 2, // xx, yy, xy, yx orders
             xterms_half, xterms_half,
-            0, 0,
+            0, 0, // maxiter, reject
             &noutput, output,
             &result,
             &error);
-    geomap_result_print(&result);
+    dbg_print("End Test 1\n");
+    // geomap_result_print(&result);
     geomap_result_free(&result);
 
     /* TEST 2: SHIFT */
@@ -62,13 +67,14 @@ main(int argc, char** argv) {
             &bbox,
             geomap_fit_shift,
             surface_type_polynomial,
-            2, 2, 2, 2,
+            2, 2, 2, 2, // xx, yy, xy, yx orders
             xterms_none, xterms_none,
-            0, 0,
+            0, 0, // maxiter, reject
             &noutput, output,
             &result,
             &error);
-    geomap_result_print(&result);
+    dbg_print("End Test 2\n");
+    // geomap_result_print(&result);
     geomap_result_free(&result);
 
     /* /\* TEST 3: SCALE *\/ */
@@ -98,3 +104,32 @@ main(int argc, char** argv) {
 
     return status;
 }
+#if 0
+union dbl_bytes {
+    double x;
+    uint8_t u8[16];
+};
+
+void print_u8_arr(uint8_t * arr, int len) {
+    printf("(");
+    for (int k=0; k<len; ++k) {
+        printf("%02x", arr[k]);
+    }
+    printf(")");
+}
+
+int main(void) {
+    double x, nx;
+    int ex;
+    union dbl_bytes dbl_x, dbl_m;
+
+    dbl_x.x = x;
+    nx = frexp(x, &ex);
+    dbl_m.x = nx;
+    printf("dbl_x = ");
+    print_u8_arr(dbl_x.u8, 16);
+    printf("\ndbl_m = ");
+    print_u8_arr(dbl_m.u8, 16);
+    printf("\n");
+}
+#endif

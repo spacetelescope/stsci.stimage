@@ -5,6 +5,6 @@
 #include "surface/cholesky.h"
 #include "test.h"
 
-int main(int argv, char** argc) {
+int main(void) {
     return 0;
 }

@@ -4,7 +4,7 @@
 #include "immatch/xyxymatch.h"
 #include "test.h"
 
-int main(int argc, char** argv) {
+int main(void) {
     #define ncoords 512
     coord_t ref[ncoords];
     coord_t input[ncoords];

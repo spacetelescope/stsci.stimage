@@ -38,9 +38,34 @@ DAMAGE.
 
 #define STIMAGE_MAX_ERROR_LEN 512
 
+#include <libgen.h>
+#include <limits.h>
+#include <stdarg.h>
 #include <stdio.h>
 
 #if 1
+inline int 
+base_print_function(
+        FILE * fd, int line, const char * filename, const char * label, const char * fmt, ...)
+{
+    char pathname[PATH_MAX];
+    char * bname = NULL;
+    int ret = 0;
+    va_list args;
+
+    snprintf(pathname, PATH_MAX-1, "%s", filename);
+    bname = basename(pathname);
+
+    ret = fprintf(fd, "%s - [%s:%d] ", label, bname, line);
+
+    va_start(args, fmt);
+    ret += vfprintf(fd, fmt, args);
+    va_end(args);
+
+    return ret;
+}
+#define dbg_print(FMT, ...) base_print_function(stdout, __LINE__, __FILE__, "DEBUG", FMT, ##__VA_ARGS__)
+#else
 /* Print macros to include meta information about the print statement */
 #define base_print(F,L,...) \
     do { \

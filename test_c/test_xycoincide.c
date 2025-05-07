@@ -6,7 +6,7 @@
 #include "lib/xycoincide.h"
 #include "test.h"
 
-int main(int argv, char** argc) {
+int main(void) {
     #define ncoords 512
     coord_t data[ncoords];
     const coord_t* ptr[ncoords];

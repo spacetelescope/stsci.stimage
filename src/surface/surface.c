@@ -295,6 +295,9 @@ surface_print(
 
     assert(s);
 
+    dbg_print("In function: surface_print\n");
+    return;
+
     switch (s->type) {
     case surface_type_polynomial:
         type = "polynomial";

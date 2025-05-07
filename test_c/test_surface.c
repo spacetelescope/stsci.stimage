@@ -5,7 +5,7 @@
 #include "surface/surface.h"
 #include "test.h"
 
-int main(int argv, char** argc) {
+int main(void) {
     surface_t surface;
     surface_t copy;
     bbox_t bbox;
