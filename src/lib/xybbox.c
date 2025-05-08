@@ -77,6 +77,8 @@ limit_to_bbox(
     size_t i = 0;
     size_t nout = 0;
 
+    print_start_func; // XXX remove
+
     assert(input);
     assert(ref);
     assert(bbox);

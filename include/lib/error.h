@@ -51,6 +51,8 @@ int base_print_function2(
 #define dbg_print(...) do{print_base(stdout, "DEBUG"); fprintf(stdout,__VA_ARGS__);}while(0)
 #define err_print(...) do{print_base(stderr, "ERROR"); fprintf(stdout,__VA_ARGS__);}while(0)
 
+#define print_start_func dbg_print(" --> Starting function: %s\n", __FUNCTION__)
+
 #if 0
 // For some reason this doesn't work.
 #define dbg_print2(FMT, ...) do{base_print_function2(stdout, __LINE__, __FILE__, "DEBUG", FMT, __VA_ARGS__while(0)

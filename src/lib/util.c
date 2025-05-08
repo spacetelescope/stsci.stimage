@@ -320,6 +320,7 @@ compute_mean_coord(
     coord_t sum = {0.0, 0.0};
 
     assert(a);
+    assert(out);
 
     for (i = 0; i < n; ++i) {
         sum.x += a[i].x;

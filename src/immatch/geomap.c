@@ -365,6 +365,8 @@ geo_fit_theta(
     size_t  i       = 0;
     int     status  = 1;
 
+    print_start_func;  // XXX remove
+
     assert(fit);
     assert(sx1);
     assert(sy1);
@@ -508,6 +510,8 @@ geo_fit_magnify(
     coord_t sthetac = {0.0, 0.0};
     size_t  i       = 0;
     int     status  = 1;
+
+    print_start_func;  // XXX remove
 
     assert(fit);
     assert(sx1);
@@ -661,6 +665,8 @@ geo_fit_linear(
     double  ymag    = 0.0;
     size_t  i       = 0;
     int     status  = 1;
+
+    print_start_func;  // XXX remove
 
     assert(fit);
     assert(sx1);
@@ -824,6 +830,8 @@ geo_fit_xy(
     size_t              i         = 0;
     int                 status    = 1;
 
+    print_start_func;  // XXX remove
+
     assert(fit);
     assert(sf1);
     assert(sf2);
@@ -850,137 +858,141 @@ geo_fit_xy(
 
     if (xfit) {
         switch(fit->fit_geometry) {
-        case geomap_fit_shift:
-            if (surface_init(&savefit, fit->function, 2, 2, xterms_none, &bbox, error)) {
-                goto exit;
-            }
-            surface_free(sf1);
-            if (surface_init(sf1, fit->function, 1, 1, xterms_none, &bbox, error)) {
-                goto exit;
-            }
-            for (i = 0; i < ncoord; ++i) {
-                zfit[i] = z[i<<1] - ref[i].x;
-            }
-
-            dbg_print("geomap-surface_fit\n");
-            if (surface_fit(sf1, ncoord, ref, zfit, weights, surface_fit_weight_user, &fit_error, error)) {
-                goto exit;
-            }
-
-            if (fit->function == surface_type_polynomial) {
-                savefit.coeff[0] = sf1->coeff[0];
-                savefit.coeff[1] = 1.0;
-                savefit.coeff[2] = 0.0;
-            } else {
-                savefit.coeff[0] = sf1->coeff[0] + (bbox.max.x + bbox.min.x) / 2.0;
-                savefit.coeff[1] = (bbox.max.x - bbox.min.x) / 2.0;
-                savefit.coeff[2] = 0.0;
-            }
-            surface_free(sf1);
-            if (surface_copy(&savefit, sf1, error)) {
-                goto exit;
-            }
-            *has_secondary = 0;
-            break;
-
-        case geomap_fit_xyscale:
-            if (surface_init(sf1, fit->function, 2, 1, xterms_none, &bbox, error)) {
-                goto exit;
-            }
-            dbg_print("geomap-surface_fit\n");
-            if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
-                goto exit;
-            }
-            *has_secondary = 0;
-            break;
-
-        default:
-            if (surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error)) {
-                goto exit;
-            }
-            dbg_print("geomap-surface_fit\n");
-            if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
-                goto exit;
-            }
-
-            if (fit->xxorder > 2 || fit->xyorder > 2 ||
-                fit->xxterms == xterms_full) {
-                if (surface_init(sf2, fit->function, fit->xxorder, fit->xyorder,
-                                 fit->xxterms, &fit->bbox, error))
-                {
-                    surface_free(sf1);
+            case geomap_fit_shift:
+                /* XXX Move everything to a function */
+                if (surface_init(&savefit, fit->function, 2, 2, xterms_none, &bbox, error)) {
                     goto exit;
                 }
-            } else {
+                surface_free(sf1);
+                if (surface_init(sf1, fit->function, 1, 1, xterms_none, &bbox, error)) {
+                    goto exit;
+                }
+                for (i = 0; i < ncoord; ++i) {
+                    zfit[i] = z[i<<1] - ref[i].x;
+                }
+
+                dbg_print("geomap-surface_fit\n");
+                if (surface_fit(sf1, ncoord, ref, zfit, weights, surface_fit_weight_user, &fit_error, error)) {
+                    goto exit;
+                }
+
+                if (fit->function == surface_type_polynomial) {
+                    savefit.coeff[0] = sf1->coeff[0];
+                    savefit.coeff[1] = 1.0;
+                    savefit.coeff[2] = 0.0;
+                } else {
+                    savefit.coeff[0] = sf1->coeff[0] + (bbox.max.x + bbox.min.x) / 2.0;
+                    savefit.coeff[1] = (bbox.max.x - bbox.min.x) / 2.0;
+                    savefit.coeff[2] = 0.0;
+                }
+                surface_free(sf1);
+                if (surface_copy(&savefit, sf1, error)) {
+                    goto exit;
+                }
                 *has_secondary = 0;
-            }
-            break;
+                break;
+
+            case geomap_fit_xyscale:
+                /* XXX Move everything to a function */
+                if (surface_init(sf1, fit->function, 2, 1, xterms_none, &bbox, error)) {
+                    goto exit;
+                }
+                dbg_print("geomap-surface_fit\n");
+                if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
+                    goto exit;
+                }
+                *has_secondary = 0;
+                break;
+
+            default:
+                if (surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error)) {
+                    goto exit;
+                }
+                dbg_print("geomap-surface_fit\n");
+                if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
+                    goto exit;
+                }
+
+                if (fit->xxorder > 2 || fit->xyorder > 2 ||
+                    fit->xxterms == xterms_full) {
+                    if (surface_init(sf2, fit->function, fit->xxorder, fit->xyorder,
+                                     fit->xxterms, &fit->bbox, error))
+                    {
+                        surface_free(sf1);
+                        goto exit;
+                    }
+                } else {
+                    *has_secondary = 0;
+                }
+                break;
         }
     } else {
         switch(fit->fit_geometry) {
-        case geomap_fit_shift:
-            if (surface_init(&savefit, fit->function, 2, 2, xterms_none, &bbox, error)) {
-                goto exit;
-            }
-            surface_free(sf1);
-            if (surface_init(sf1, fit->function, 1, 1, xterms_none, &bbox, error)) {
-                goto exit;
-            }
-            for (i = 0; i < ncoord; ++i) {
-                zfit[i] = z[i<<1] - ref[i].y;
-            }
-            dbg_print("geomap-surface_fit\n");
-            if (surface_fit(sf1, ncoord, ref, zfit, weights, surface_fit_weight_user, &fit_error, error)) {
-                goto exit;
-            }
-            if (fit->function == surface_type_polynomial) {
-                savefit.coeff[0] = sf1->coeff[0];
-                savefit.coeff[1] = 0.0;
-                savefit.coeff[2] = 1.0;
-            } else {
-                savefit.coeff[0] = sf1->coeff[0] + (bbox.min.y + bbox.max.y) / 2.0;
-                savefit.coeff[1] = 0.0;
-                savefit.coeff[2] = (bbox.max.y - bbox.min.y) / 2.0;
-            }
-            surface_free(sf1);
-            if (surface_copy(&savefit, sf1, error)) {
-                goto exit;
-            }
-
-            *has_secondary = 0;
-            break;
-
-        case geomap_fit_xyscale:
-            if (surface_init(sf1, fit->function, 1, 2, xterms_none, &bbox, error)) {
-                goto exit;
-            }
-            dbg_print("geomap-surface_fit\n");
-            if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
-                goto exit;
-            }
-            *has_secondary = 0;
-            break;
-
-        default:
-            if (surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error)) {
-                goto exit;
-            }
-            dbg_print("geomap-surface_fit\n");
-            if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
-                goto exit;
-            }
-            if (fit->yxorder > 2 || fit->yyorder > 2 ||
-                fit->yxterms == xterms_full) {
-                if (surface_init(sf2, fit->function, fit->yxorder, fit->yyorder,
-                                 fit->yxterms, &bbox, error))
-                {
+            case geomap_fit_shift:
+                /* XXX Move everything to a function */
+                if (surface_init(&savefit, fit->function, 2, 2, xterms_none, &bbox, error)) {
                     goto exit;
                 }
-            } else {
-                *has_secondary = 0;
-            }
+                surface_free(sf1);
+                if (surface_init(sf1, fit->function, 1, 1, xterms_none, &bbox, error)) {
+                    goto exit;
+                }
+                for (i = 0; i < ncoord; ++i) {
+                    zfit[i] = z[i<<1] - ref[i].y;
+                }
+                dbg_print("geomap-surface_fit\n");
+                if (surface_fit(sf1, ncoord, ref, zfit, weights, surface_fit_weight_user, &fit_error, error)) {
+                    goto exit;
+                }
+                if (fit->function == surface_type_polynomial) {
+                    savefit.coeff[0] = sf1->coeff[0];
+                    savefit.coeff[1] = 0.0;
+                    savefit.coeff[2] = 1.0;
+                } else {
+                    savefit.coeff[0] = sf1->coeff[0] + (bbox.min.y + bbox.max.y) / 2.0;
+                    savefit.coeff[1] = 0.0;
+                    savefit.coeff[2] = (bbox.max.y - bbox.min.y) / 2.0;
+                }
+                surface_free(sf1);
+                if (surface_copy(&savefit, sf1, error)) {
+                    goto exit;
+                }
 
-            break;
+                *has_secondary = 0;
+                break;
+
+            case geomap_fit_xyscale:
+                /* XXX Move everything to a function */
+                if (surface_init(sf1, fit->function, 1, 2, xterms_none, &bbox, error)) {
+                    goto exit;
+                }
+                dbg_print("geomap-surface_fit\n");
+                if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
+                    goto exit;
+                }
+                *has_secondary = 0;
+                break;
+
+            default:
+                if (surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error)) {
+                    goto exit;
+                }
+                dbg_print("geomap-surface_fit\n");
+                if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
+                    goto exit;
+                }
+                if (fit->yxorder > 2 || fit->yyorder > 2 ||
+                    fit->yxterms == xterms_full) {
+                    if (surface_init(sf2, fit->function, fit->yxorder, fit->yyorder,
+                                     fit->yxterms, &bbox, error))
+                    {
+                        goto exit;
+                    }
+                } else {
+                    *has_secondary = 0;
+                }
+
+                break;
         }
     }
 
@@ -1191,6 +1203,7 @@ geofit(
         double* const weights,
         stimage_error_t* error)
 {
+    /* XXX Refactor to smaller functions */
     double* residual_x = NULL;
     double* residual_y = NULL;
     int status = 1;
@@ -1222,6 +1235,7 @@ geofit(
 
     switch(fit->fit_geometry) {
         case geomap_fit_rotate:
+            dbg_print("geo_fit: geomap_fit_rotate\n");
             if (geo_fit_theta(fit, sx1, sy1, ncoord, input, ref, weights,
                               residual_x, residual_y, error)) 
             {
@@ -1229,6 +1243,7 @@ geofit(
             }
             break;
         case geomap_fit_rscale:
+            dbg_print("geo_fit: geomap_fit_rscale\n");
             if (geo_fit_magnify(fit, sx1, sy1, ncoord, input, ref, weights,
                                 residual_x, residual_y, error))
             {
@@ -1236,6 +1251,7 @@ geofit(
             }
             break;
         case geomap_fit_rxyscale:
+            dbg_print("geo_fit: geomap_fit_rxyscale\n");
             if (geo_fit_linear(fit, sx1, sy1, ncoord, input, ref, weights,
                                residual_x, residual_y, error))
             {
@@ -1243,6 +1259,7 @@ geofit(
             }
             break;
         default:
+            dbg_print("geo_fit: default\n");
             if (geo_fit_xy(fit, sx1, sx2, ncoord, 0, input, ref, has_sx2, weights, residual_x, error)
                 || geo_fit_xy(fit, sy1, sy2, ncoord, 1, input, ref, has_sy2, weights, residual_y, error))
             {
@@ -1254,6 +1271,7 @@ geofit(
     if (fit->maxiter <= 0 || !isfinite(fit->reject)) {
         fit->nreject = 0;
     } else {
+        dbg_print("geo_fit: geo_fit_reject\n");
         if (geo_fit_reject(fit, sx1, sy1, sx2, sy2, has_sx2, has_sy2, ncoord, input,
                            ref, weights, residual_x, residual_y, error))
         {
@@ -1587,7 +1605,9 @@ geomap(
     double           my_nan         = fmod(1.0, 0.0);
     int              status         = 1;
 
-    dbg_print("Here\n");
+    print_start_func;  // XXX remove
+
+    /* XXX Verify inputs */
     assert(input);
     assert(ref);
     assert(error);
@@ -1597,7 +1617,9 @@ geomap(
             error, "Must have the same number of input and reference coordinates.");
         goto exit;
     }
+    /* XXX End Verify inputs */
 
+    /* XXX Initialize */
     surface_new(&sx1);
     surface_new(&sy1);
     surface_new(&sx2);
@@ -1615,9 +1637,10 @@ geomap(
 
     /* If the bbox is all NaNs, we don't need to reduce the data, saving an
        alloc and copy */
-    if (bbox == NULL ||
-        (!isfinite(tbbox.min.x) && !isfinite(tbbox.min.y) &&
-         !isfinite(tbbox.max.x) && !isfinite(tbbox.max.y))) {
+    if (bbox == NULL
+        || (!isfinite(tbbox.min.x) && !isfinite(tbbox.min.y)
+        && !isfinite(tbbox.max.x) && !isfinite(tbbox.max.y)))
+    {
         /* If we have no bbox, we don't need to allocate and copy */
         input_in_bbox = (coord_t*)input;
         ref_in_bbox = (coord_t*)ref;
@@ -1633,11 +1656,12 @@ geomap(
         if (ref_in_bbox == NULL) goto exit;
 
         /* Reduce data to only those in the bbox */
-        dbg_print("limit_to_bbox\n");
         ninput_in_bbox = nref_in_bbox = limit_to_bbox(
                 ninput, input, ref, &tbbox, input_in_bbox, ref_in_bbox);
     }
+    /* XXX End Initialize */
 
+    /* XXX Precomputations */
     /* Compute the mean of the reference and input coordinates */
     compute_mean_coord(nref_in_bbox, ref_in_bbox, &fit.oref);
     compute_mean_coord(ninput_in_bbox, input_in_bbox, &fit.oin);
@@ -1670,6 +1694,7 @@ geomap(
     /* Determine the actual max and min of the coordinates */
     determine_bbox(nref_in_bbox, ref_in_bbox, &tbbox);
     bbox_copy(&tbbox, &fit.bbox);
+    /* XXX End Precomputations */
 
     if (geofit(&fit, &sx1, &sy1, &sx2, &sy2, &has_sx2, &has_sy2, ninput_in_bbox,
                input_in_bbox, ref_in_bbox, weights, error))
