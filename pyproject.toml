@@ -7,7 +7,6 @@ authors = [
 ]
 classifiers = [
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Topic :: Scientific/Engineering :: Astronomy",
@@ -16,6 +15,7 @@ classifiers = [
 dependencies = [
     "numpy>=1.14",
 ]
+license-files = ["LICENSE"]
 dynamic = [
     "version",
 ]
@@ -23,10 +23,6 @@ dynamic = [
 [project.readme]
 file = "README.md"
 content-type = "text/markdown"
-
-[project.license]
-file = "LICENSE"
-content-type = "text/plain"
 
 [project.urls]
 Tracker = "https://github.com/spacetelescope/stsci.stimage/issues"
