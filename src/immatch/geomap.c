@@ -783,24 +783,24 @@ _geo_fit_xy_validate_fit_error(
     assert(error);
 
     switch (error_type) {
-    case surface_fit_error_no_degrees_of_freedom:
-        if (xfit) {
-            if (projection == geomap_proj_none) {
-                stimage_error_set_message(error, "Too few data points for X fit.");
+        case surface_fit_error_no_degrees_of_freedom:
+            if (xfit) {
+                if (projection == geomap_proj_none) {
+                    stimage_error_set_message(error, "Too few data points for X fit.");
+                } else {
+                    stimage_error_set_message(error, "Too few data points for XI fit.");
+                }
             } else {
-                stimage_error_set_message(error, "Too few data points for XI fit.");
+                if (projection == geomap_proj_none) {
+                    stimage_error_set_message(error, "Too few data points for Y fit.");
+                } else {
+                    stimage_error_set_message(error, "Too few data points for ETA fit.");
+                }
             }
-        } else {
-            if (projection == geomap_proj_none) {
-                stimage_error_set_message(error, "Too few data points for Y fit.");
-            } else {
-                stimage_error_set_message(error, "Too few data points for ETA fit.");
-            }
-        }
-        return 1;
+            return 1;
 
-    default:
-        break;
+        default:
+            break;
     }
 
     return 0;
@@ -1807,6 +1807,7 @@ geomap_result_print(
     assert(r);
 
     switch (r->fit_geometry) {
+        // XXX force these enums to be in order and make an array
         case geomap_fit_shift:
             fit_geometry = "shift";
             break;
@@ -1837,6 +1838,7 @@ geomap_result_print(
     }
 
     switch (r->function) {
+        // XXX force these enums to be in order and make an array
         case surface_type_polynomial:
             function = "polynomial";
             break;
