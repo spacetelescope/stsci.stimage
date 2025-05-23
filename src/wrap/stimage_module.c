@@ -50,7 +50,7 @@ static PyMethodDef module_methods[] = {
 #pragma clang diagnostic pop
 #pragma GCC diagnostic pop
 
-#if PY_MAJOR_VERSION >= 3
+#if PY_MAJOR_VERSION >= 3  /* XXX This can probably be removed now and use only 3 */
 static struct PyModuleDef moduledef = {
   PyModuleDef_HEAD_INIT,
   "_stimage",          /* m_name */
@@ -65,7 +65,7 @@ static struct PyModuleDef moduledef = {
 #endif
 
 PyMODINIT_FUNC
-#if PY_MAJOR_VERSION >= 3
+#if PY_MAJOR_VERSION >= 3  /* XXX This can probably be removed now and use only 3 */
 PyInit__stimage(void)
 #else
 init_stimage(void)
@@ -77,7 +77,7 @@ init_stimage(void)
 
     SIZE_T_D = sizeof(size_t) == 8 ? "u8" : "u4";
 
-#if PY_MAJOR_VERSION >= 3
+#if PY_MAJOR_VERSION >= 3  /* XXX This can probably be removed now and use only 3 */
     m = PyModule_Create(&moduledef);
 	return m;
 #else
