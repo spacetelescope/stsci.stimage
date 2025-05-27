@@ -38,6 +38,10 @@ DAMAGE.
 
 #include "lib/util.h"
 
+/* 
+ * XXX This is a mystery structure of elements.
+ *     What are these values and how do they relate to some transform?
+ */
 typedef struct {
     double a;
     double b;
