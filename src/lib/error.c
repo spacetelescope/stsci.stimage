@@ -40,42 +40,7 @@ DAMAGE.
 
 #include "lib/error.h"
 
-int 
-base_print_function(
-        FILE * fd, int line, const char * filename, const char * label)
-{
-    char * bname = NULL;
-    char * root = "/Users/kmacdonald/code/stimage/stsci.stimage/";
-    int rlen = strlen(root);
-
-    if (NULL != root) {
-        bname = (char*)filename + rlen;
-    } else {
-        bname = (char*)filename;
-    }
-
-    return fprintf(fd, "%s - [./%s:%d] ", label, bname, line);
-}
-
-#if 0
-int base_print_function2(
-        FILE * fd, int line, const char * filename, const char * label, const char * fmt, ...)
-{
-    char * bname = NULL;
-    char * root = "/Users/kmacdonald/code/stimage/stsci.stimage/";
-    int rlen = strlen(root);
-
-    if (NULL != root) {
-        bname = (char*)filename + rlen;
-    } else {
-        bname = (char*)filename;
-    }
-
-    // XXX This doesn't compile for some reason.  I don't properly understand the variadic.
-    // return fprintf(fd, "%s - [./%s:%d] %s", label, bname, line, fmt, __VA_ARGS__);
-    return fprintf(fd, "%s - [./%s:%d] %s", label, bname, line, fmt, ##__VA_ARGS__);
-}
-#endif
+#define MAX_MSG 4096
 
 void
 stimage_error_init(
@@ -87,21 +52,29 @@ stimage_error_init(
         error->message[i] = '\0';
     }
 }
-
+#if 0
 void
 stimage_error_set_message(
     stimage_error_t* error,
     const char* message) {
+#endif
+void
+stimage_error_set_message_func(char * fname, int line, stimage_error_t* error, const char* message) {
+    char msg[STIMAGE_MAX_ERROR_LEN];
+    int msg_len;
 
-  assert(error);
-  assert(message);
+    memset(msg, 0, STIMAGE_MAX_ERROR_LEN);
+    msg_len = snprintf(msg, STIMAGE_MAX_ERROR_LEN-1, "[%s:%d] %s", fname, line, message);
 
-  strncpy(error->message, message, STIMAGE_MAX_ERROR_LEN);
+    assert(error);
+    assert(message);
 
-  #if DEBUG
+    strncpy(error->message, msg, STIMAGE_MAX_ERROR_LEN);
+
+#if DEBUG
     printf("ERROR RAISED:\n%s\n", error->message);
     assert(0);
-  #endif
+#endif
 }
 
 void
