@@ -58,6 +58,10 @@ compute_lintransform(
     assert(coord_is_finite(&rot));
     assert(coord_is_finite(&out));
 
+    /*
+     * XXX - It's unclear where these transforms come from
+     *       and what they are supposed to represent.
+     */
     coeffs->a = mag.x * cos(DEGTORAD(rot.x));
     coeffs->b = -mag.y * sin(DEGTORAD(rot.y));
     coeffs->c = out.x - coeffs->a * in.x - coeffs->b * in.y;
