@@ -170,7 +170,9 @@ xyxymatch(
      PREPARE REFERENCE COORDINATES
     */
     ref_sorted = malloc_with_error(nref * sizeof(coord_t*), error);
-    if (ref_sorted == NULL) goto exit;
+    if (ref_sorted == NULL) {
+        goto exit;
+    }
 
     xysort(nref, ref, ref_sorted);
     nref_unique = xycoincide(nref, ref_sorted, ref_sorted, separation);
@@ -213,7 +215,10 @@ xyxymatch(
                 ninput_unique, input_trans, input_trans_sorted,
                 tolerance,
                 xyxymatch_callback, &state,
-                error)) goto exit;
+                error))
+        {
+            goto exit;
+        }
         *noutput = state.outputp;
         break;
     case xyxymatch_algo_triangles:
@@ -222,7 +227,10 @@ xyxymatch(
                 ninput, ninput_unique, input_trans, input_trans_sorted,
                 nmatch, tolerance, maxratio, nreject,
                 &xyxymatch_callback, &state,
-                error)) goto exit;
+                error))
+        {
+            goto exit;
+        }
         *noutput = state.outputp;
         break;
     case xyxymatch_algo_LAST:
