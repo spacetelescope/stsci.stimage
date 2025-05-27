@@ -178,6 +178,12 @@ combinatorial(
         size_t n,
         size_t ngroup);
 
+void
+print_arr_coord_t(coord_t * coords, int len, const char * label);
+
+void
+print_arr_coord_t_ptr(coord_t ** coords, int len, const char * label);
+
 /**
 Calculate the square of the Euclidean distance between two points.
 */
