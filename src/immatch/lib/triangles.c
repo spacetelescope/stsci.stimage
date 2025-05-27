@@ -35,8 +35,12 @@ DAMAGE.
 
 #include <assert.h>
 #include <math.h>
+#include <string.h>
+#include <stdio.h>
 
 #include "immatch/lib/triangles.h"
+
+#define MSG_LEN 512
 
 int
 max_num_triangles(
@@ -46,10 +50,13 @@ max_num_triangles(
         stimage_error_t* const error)
 {
     size_t n = MIN(ncoords, maxnpoints);
+    char msg[MSG_LEN];
+
+    memset(msg, 0, MSG_LEN);
+
     if (n >= 2346 || n == 0) {
-        stimage_error_set_message(
-            error,
-            "maxnpoints should be a lower number");
+        snprintf(msg, MSG_LEN-1, "maxnpoints should be a lower number, (n=%zu <2346)", n);
+        stimage_error_set_message(error, msg);
         return 1;
     }
 
@@ -436,7 +443,9 @@ reject_triangles(
     assert(error);
 
     diffp = malloc_with_error(ncurrmatches * sizeof(double), error);
-    if (diffp == NULL) goto exit;
+    if (diffp == NULL) {
+        goto exit;
+    }
 
     /* Accumulate the number of same-sense and number of
        opposite-sense matches as well as the log perimeter
@@ -487,8 +496,7 @@ reject_triangles(
                 #ifndef NDEBUG
                     if (ncount >= *nmatches) {
                         stimage_error_set_message(
-                            error,
-                            "Rejection created more matches than it started with.");
+                            error, "Rejection created more matches than it started with.");
                         goto exit;
                     }
                 #endif
@@ -590,6 +598,7 @@ _match_triangles(
     size_t            ntriangle_matches  = 0;
     triangle_match_t* triangle_matches   = NULL;
     int               status             = 1;
+    char msg[MSG_LEN];
 
     assert(ref);
     assert(ref_sorted);
@@ -603,58 +612,72 @@ _match_triangles(
     assert(error);
 
     if (nref < 3) {
-        stimage_error_set_message(
-            error,
-            "Too few reference coordinates to do triangle matching");
+        memset(msg, 0, MSG_LEN);
+        snprintf(msg, MSG_LEN-1,
+            "Too few reference coordinates to do triangle matching (nref=%zu < 3).", nref);
+        stimage_error_set_message(error, msg);
         goto exit;
     }
 
     if (ninput < 3) {
-        stimage_error_set_message(
-            error,
-            "Too few input coordinates to do triangle matching");
+        memset(msg, 0, MSG_LEN);
+        snprintf(msg, MSG_LEN-1,
+            "Too few input coordinates to do triangle matching (ninput=%zu < 3)", ninput);
+        stimage_error_set_message(error, msg);
         goto exit;
     }
 
     /* Find all the reference triangles */
-    if (max_num_triangles(nref, nmatch, &nref_triangles, error)) goto exit;
+    if (max_num_triangles(nref, nmatch, &nref_triangles, error)) {
+        goto exit;
+    }
 
     ref_triangles = malloc_with_error(
             nref_triangles * sizeof(triangle_t), error);
-    if (ref_triangles == NULL) goto exit;
+    if (ref_triangles == NULL) {
+        goto exit;
+    }
 
     if (find_triangles(nref, ref_sorted, &nref_triangles, ref_triangles,
-                       nmatch, tolerance, maxratio, error)) goto exit;
+                       nmatch, tolerance, maxratio, error))
+    {
+        goto exit;
+    }
 
     if (nref_triangles == 0) {
-        stimage_error_set_message(
-            error,
-            "No valid reference triangles found.");
+        stimage_error_set_message(error, "No valid reference triangles found.");
         goto exit;
     }
 
     /* Find all the input triangles */
-    if (max_num_triangles(ninput, nmatch, &ninput_triangles, error)) goto exit;
+    if (max_num_triangles(ninput, nmatch, &ninput_triangles, error)) {
+        goto exit;
+    }
 
     input_triangles = malloc_with_error(
             ninput_triangles * sizeof(triangle_t), error);
-    if (input_triangles == NULL) goto exit;
+    if (input_triangles == NULL) {
+        goto exit;
+    }
 
     if (find_triangles(ninput, input_sorted, &ninput_triangles,
                        input_triangles, nmatch, tolerance, maxratio,
-                       error)) goto exit;
+                       error))
+    {
+        goto exit;
+    }
 
     if (ninput_triangles == 0) {
-        stimage_error_set_message(
-            error,
-            "No valid input triangles found.");
+        stimage_error_set_message(error, "No valid input triangles found.");
         goto exit;
     }
 
     ntriangle_matches = MAX(nref_triangles, ninput_triangles);
     triangle_matches = malloc_with_error(
         ntriangle_matches * sizeof(triangle_match_t), error);
-    if (triangle_matches == NULL) goto exit;
+    if (triangle_matches == NULL) {
+        goto exit;
+    }
 
     /* Match the triangles in the input list to those in the reference
        list */
@@ -669,7 +692,10 @@ _match_triangles(
                 nref_triangles, ref_triangles,
                 ninput_triangles, input_triangles,
                 &ntriangle_matches, triangle_matches,
-                error)) goto exit;
+                error))
+        {
+            goto exit;
+        }
     } else {
         refcoord_matches = refcoord_matches_;
         inputcoord_matches = inputcoord_matches_;
@@ -681,7 +707,10 @@ _match_triangles(
                 ninput_triangles, input_triangles,
                 nref_triangles, ref_triangles,
                 &ntriangle_matches, triangle_matches,
-                error)) goto exit;
+                error))
+        {
+            goto exit;
+        }
     }
 
     *nmerge = ntriangle_matches;
@@ -692,9 +721,7 @@ _match_triangles(
     }
 
     /* Reject triangles */
-    if (reject_triangles(&ntriangle_matches, triangle_matches,
-                         nreject,
-                         error)) {
+    if (reject_triangles(&ntriangle_matches, triangle_matches, nreject, error)) {
         goto exit;
     }
 
@@ -711,7 +738,8 @@ _match_triangles(
                 nleft, left, nright, right,
                 ntriangle_matches, triangle_matches,
                 ncoord_matches, refcoord_matches, inputcoord_matches,
-                error)) {
+                error))
+    {
         goto exit;
     }
 
@@ -756,11 +784,15 @@ match_triangles(
 
     refcoord_matches = malloc_with_error(
             ncoord_matches * sizeof(coord_t*), error);
-    if (refcoord_matches == NULL) goto exit;
+    if (refcoord_matches == NULL) {
+        goto exit;
+    }
 
     inputcoord_matches = malloc_with_error(
             ncoord_matches * sizeof(coord_t*), error);
-    if (inputcoord_matches == NULL) goto exit;
+    if (inputcoord_matches == NULL) {
+        goto exit;
+    }
 
     if (_match_triangles(
         nref_unique, ref, ref_sorted,
@@ -768,7 +800,10 @@ match_triangles(
         &ncoord_matches, refcoord_matches, inputcoord_matches,
         nmatch, tolerance, maxratio, nreject,
         &nkeep, &nmerge,
-        error)) goto exit;
+        error))
+    {
+        goto exit;
+    }
 
     if (ncoord_matches == 0 || (ncoord_matches <= 3 && nkeep < nmerge)) {
         status = 0;
@@ -786,7 +821,10 @@ match_triangles(
                 ncoord_matches, input, inputcoord_matches,
                 &ncoord_matches, refcoord_matches, inputcoord_matches,
                 nmatch, tolerance, maxratio, nreject,
-                &nkeep, &nmerge, error)) goto exit;
+                &nkeep, &nmerge, error))
+        {
+            goto exit;
+        }
 
         if (ncoord_matches < ncheck) {
             ncoord_matches = 0;
