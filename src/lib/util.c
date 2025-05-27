@@ -38,6 +38,48 @@ DAMAGE.
 
 #include "lib/util.h"
 
+void
+print_arr_coord_t(coord_t * coords, int len, const char * label) {
+    const int maxlen = 20;
+    int k;
+
+    printf("--------------------------------\n");
+    len = (len < maxlen) ? len : maxlen;
+    if (label) {
+        printf("%s = ", label);
+    }
+    printf("[\n");
+    for (k=0; k<len; ++k) {
+        printf("    (%10.7f, %10.7f)\n", coords[k].x, coords[k].y);
+    }
+    printf("]\n");
+    printf("--------------------------------\n");
+}
+
+void
+print_arr_coord_t_ptr(coord_t ** coords, int len, const char * label) {
+    const int maxlen = 20;
+    coord_t coord;
+    int k;
+
+    printf("--------------------------------\n");
+    len = (len < maxlen) ? len : maxlen;
+    if (label) {
+        printf("%s = ", label);
+    }
+    printf("[\n");
+    for (k=0; k<len; ++k) {
+        if (coords[k]) {
+            coord = *coords[k];
+            printf("    (%10.7f, %10.7f)\n", coord.x, coord.y);
+        } else {
+            printf("    NULL\n");
+        }
+    }
+    printf("]\n");
+    printf("--------------------------------\n");
+}
+
 void *
 malloc_with_error(
         size_t size,
