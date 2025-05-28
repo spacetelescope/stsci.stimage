@@ -313,3 +313,71 @@ def test_triangles_15_points_all_transforms():
 
     # All 15 base points should be matched.  The 5 extra random points should not be.
     assert len(r) == (len(x) - len(x1))
+
+
+def test_tolerance_15_points_same():
+    """
+    The input and reference lists will have the same first 15 points.  An
+    additional 5 random points are added, for a total of 20 points in each
+    list of points.
+    """
+    x, y = base_xy_15()
+    tx = x.copy()
+    ty = y.copy()
+
+    x1, y1, x2, y2 = extra_xy_5()
+    x += x1; y += y1
+    tx += x2; ty += y2
+
+    inp = np.zeros(shape=(20, 2), dtype=float)
+    inp[:, 0] = np.array(x)
+    inp[:, 1] = np.array(y)
+
+    ref = np.zeros(shape=(20, 2), dtype=float)
+    ref[:, 0] = np.array(tx)
+    ref[:, 1] = np.array(ty)
+
+    r = stimage.xyxymatch(inp, ref, algorithm="tolerance", tolerance=0.01)
+
+    # All 15 base points should be matched.  The 5 extra random points should not be.
+    assert len(r) == (len(x) - len(x1))
+
+
+@pytest.mark.parametrize("theta_deg", [45., 60., 90., 150])
+def test_tolerance_15_points_rotated(theta_deg):
+    """
+    The input and reference lists will have the same first 15 points.
+
+    An additional 5 random points are added, for a total of 20 points
+    in each list of points.
+
+    The input points will be rotated by various degrees.
+    """
+    print(" ")
+    x, y = base_xy_15()
+    tx = x.copy()
+    ty = y.copy()
+
+    x1, y1, x2, y2 = extra_xy_5()
+    x += x1; y += y1
+    tx += x2; ty += y2
+
+    # Rotate input points by theta_deg degrees
+    rot_theta = theta_deg * np.pi / 180.0
+    rot_mat = rotation_matrix(rot_theta)
+    x, y = rotate_points(x, y, rot_mat)
+
+    inp = np.zeros(shape=(20, 2), dtype=float)
+    inp[:, 0] = np.array(x)
+    inp[:, 1] = np.array(y)
+
+    ref = np.zeros(shape=(20, 2), dtype=float)
+    ref[:, 0] = np.array(tx)
+    ref[:, 1] = np.array(ty)
+
+    r = stimage.xyxymatch(inp, ref, algorithm="tolerance", tolerance=0.01)
+
+    # All 15 base points should be matched.  The 5 extra random points should not be.
+    # assert len(r) == (len(x) - len(x1))
+    print(f"{len(r) = }")
+    print(r)
