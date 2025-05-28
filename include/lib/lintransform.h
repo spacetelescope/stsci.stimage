@@ -39,8 +39,9 @@ DAMAGE.
 #include "lib/util.h"
 
 /* 
- * XXX This is a mystery structure of elements.
- *     What are these values and how do they relate to some transform?
+ * These are the coefficients to transform (x, y).
+ *     x' = ax + by + c
+ *     y' = dx + ey + f
  */
 typedef struct {
     double a;
