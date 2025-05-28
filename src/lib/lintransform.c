@@ -59,8 +59,11 @@ compute_lintransform(
     assert(coord_is_finite(&out));
 
     /*
-     * XXX - It's unclear where these transforms come from
-     *       and what they are supposed to represent.
+     * Compute the linear coefficients to be used to linearly
+     * transform (x, y) inputs.
+     * XXX Not sure where the eqations come from.  Maybe they come from
+     *     eqns (2) and (3) from the paper by Valdes, et al called:
+     *         "FOCAS Automatic Catalog Matching Algorithms"
      */
     coeffs->a = mag.x * cos(DEGTORAD(rot.x));
     coeffs->b = -mag.y * sin(DEGTORAD(rot.y));
@@ -91,6 +94,7 @@ apply_lintransform(
         x = input[i].x;
         y = input[i].y;
 
+        /* Linearly transform input points */
         output[i].x = coeffs->a * x + coeffs->b * y + coeffs->c;
         output[i].y = coeffs->d * x + coeffs->e * y + coeffs->f;
     }
