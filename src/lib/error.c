@@ -52,12 +52,7 @@ stimage_error_init(
         error->message[i] = '\0';
     }
 }
-#if 0
-void
-stimage_error_set_message(
-    stimage_error_t* error,
-    const char* message) {
-#endif
+
 void
 stimage_error_set_message_func(char * fname, int line, stimage_error_t* error, const char* message) {
     char msg[STIMAGE_MAX_ERROR_LEN];
@@ -83,9 +78,11 @@ stimage_error_format_message(
     const char* format,
     ...) {
 
-  /* See http://c-faq.com/varargs/vprintf.html
-     for an explanation of how all this variable length argument list stuff
-     works. */
+  /* 
+   * See http://c-faq.com/varargs/vprintf.html
+   * for an explanation of how all this variable length argument list stuff
+   * works.
+   */
   va_list argp;
 
   assert(error);
