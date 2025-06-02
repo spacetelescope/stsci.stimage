@@ -43,6 +43,35 @@ DAMAGE.
 
 #include "lib/lintransform.h"
 
+
+static void
+dbg_print_lintransform(lintransform_t* coeffs) {
+    PRINT_DELIM;
+    printf("Linear transform coefficients:\n");
+    printf("a = %f\n", coeffs->a);
+    printf("b = %f\n", coeffs->b);
+    printf("c = %f\n\n", coeffs->c);
+
+    printf("d = %f\n", coeffs->d);
+    printf("e = %f\n", coeffs->e);
+    printf("f = %f\n", coeffs->f);
+    PRINT_DELIM;
+}
+
+static void
+dbg_print_args(const coord_t in, const coord_t mag, const coord_t rot, const coord_t out) {
+    PRINT_DELIM;
+
+    printf("Linear transform arguments:\n");
+    printf("in  = (%"DBL", %"DBL")\n", in.x, in.y);
+    printf("mag = (%"DBL", %"DBL")\n", mag.x, mag.y);
+    printf("rot = (%"DBL", %"DBL")\n", rot.x, rot.y);
+    printf("out = (%"DBL", %"DBL")\n", out.x, out.y);
+
+    PRINT_DELIM;
+}
+
+/* Consider changing to pointers */
 void
 compute_lintransform(
     const coord_t in,
@@ -52,11 +81,12 @@ compute_lintransform(
     lintransform_t* coeffs)
 {
     assert(coeffs);
-
     assert(coord_is_finite(&in));
     assert(coord_is_finite(&mag));
     assert(coord_is_finite(&rot));
     assert(coord_is_finite(&out));
+
+    // dbg_print_args(in, mag, rot, out);
 
     /*
      * Compute the linear coefficients to be used to linearly
@@ -64,7 +94,11 @@ compute_lintransform(
      * XXX Not sure where the eqations come from.  Maybe they come from
      *     eqns (2) and (3) from the paper by Valdes, et al called:
      *         "FOCAS Automatic Catalog Matching Algorithms"
+     *
+     *     Annoyingly, the a, b, c, d, e, and f here are different from
+     *     the a, b, c, d, e, and f in the readthedocs.
      */
+
     coeffs->a = mag.x * cos(DEGTORAD(rot.x));
     coeffs->b = -mag.y * sin(DEGTORAD(rot.y));
     coeffs->c = out.x - coeffs->a * in.x - coeffs->b * in.y;
@@ -72,6 +106,8 @@ compute_lintransform(
     coeffs->d = mag.x * sin(DEGTORAD(rot.x));
     coeffs->e = mag.y * cos(DEGTORAD(rot.y));
     coeffs->f = out.y - coeffs->d * in.x - coeffs->e * in.y;
+
+    // dbg_print_lintransform(coeffs);
 }
 
 void
