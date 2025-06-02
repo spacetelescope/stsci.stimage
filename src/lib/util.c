@@ -35,8 +35,20 @@ DAMAGE.
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "lib/util.h"
+
+char *
+print_coord_t(coord_t * coord)
+{
+    static char coord_t_string[STIMAGE_MAX_ERROR_LEN];
+
+    memset(coord_t_string, 0, STIMAGE_MAX_ERROR_LEN);
+    snprintf(coord_t_string, STIMAGE_MAX_ERROR_LEN-1, "(%"DBL", %"DBL")", coord->x, coord->y);
+
+    return coord_t_string;
+}
 
 void
 print_arr_coord_t(coord_t * coords, int len, const char * label) {
@@ -50,7 +62,7 @@ print_arr_coord_t(coord_t * coords, int len, const char * label) {
     }
     printf("[\n");
     for (k=0; k<len; ++k) {
-        printf("    (%10.7f, %10.7f)\n", coords[k].x, coords[k].y);
+        printf("    (%"DBL", %"DBL")\n", coords[k].x, coords[k].y);
     }
     printf("]\n");
     printf("--------------------------------\n");
@@ -71,7 +83,7 @@ print_arr_coord_t_ptr(coord_t ** coords, int len, const char * label) {
     for (k=0; k<len; ++k) {
         if (coords[k]) {
             coord = *coords[k];
-            printf("    (%10.7f, %10.7f)\n", coord.x, coord.y);
+            printf("    (%"DBL", %"DBL")\n", coord.x, coord.y);
         } else {
             printf("    NULL\n");
         }
