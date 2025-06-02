@@ -343,7 +343,6 @@ def test_tolerance_15_points_same():
     assert len(r) == (len(x) - len(x1))
 
 
-@pytest.mark.skip(reason="Not finished")
 @pytest.mark.parametrize("theta_deg", [45.0, 60.0, 90.0, 150.0])
 def test_tolerance_15_points_rotated(theta_deg):
     """
@@ -354,7 +353,6 @@ def test_tolerance_15_points_rotated(theta_deg):
 
     The input points will be rotated by various degrees.
     """
-    print(" ")
     x, y = base_xy_15()
     tx = x.copy()
     ty = y.copy()
@@ -366,7 +364,7 @@ def test_tolerance_15_points_rotated(theta_deg):
     # Rotate input points by theta_deg degrees
     rot_theta = theta_deg * np.pi / 180.0
     rot_mat = rotation_matrix(rot_theta)
-    x, y = rotate_points(x, y, rot_mat)
+    tx, ty = rotate_points(tx, ty, rot_mat)
 
     inp = np.zeros(shape=(20, 2), dtype=float)
     inp[:, 0] = np.array(x)
@@ -376,18 +374,15 @@ def test_tolerance_15_points_rotated(theta_deg):
     ref[:, 0] = np.array(tx)
     ref[:, 1] = np.array(ty)
 
-    rotation = (rot_theta, rot_theta)
-    print(f"{rotation = }")
+    # rotation = (rot_theta, rot_theta)
+    rotation = (theta_deg, theta_deg)
     r = stimage.xyxymatch(inp, ref,
             algorithm="tolerance", tolerance=0.01, rotation=rotation)
 
     # All 15 base points should be matched.  The 5 extra random points should not be.
-    # assert len(r) == (len(x) - len(x1))
-    print(f"{theta_deg:.2f}, {rot_theta:.2f} : {len(r) = }")
-    # print(r)
+    assert len(r) == (len(x) - len(x1))
 
 
-@pytest.mark.skip(reason="Not finished")
 def test_tolerance_15_points_translated():
     """
     The input and reference lists will have the same first 15 points.
@@ -407,7 +402,7 @@ def test_tolerance_15_points_translated():
 
     # Translate input points using vector (-12, 21)
     point = [-12., 21.]
-    x, y = translate_points(x, y, point)
+    tx, ty = translate_points(tx, ty, point)
 
     inp = np.zeros(shape=(20, 2), dtype=float)
     inp[:, 0] = np.array(x)
@@ -421,10 +416,7 @@ def test_tolerance_15_points_translated():
             algorithm="tolerance", tolerance=0.01, ref_origin=(-12., 21.))
 
     # All 15 base points should be matched.  The 5 extra random points should not be.
-    # assert len(r) == (len(x) - len(x1))
-    print(" ")
-    print(f"{len(r) = }")
-    print(r)
+    assert len(r) == (len(x) - len(x1))
 
 
 @pytest.mark.parametrize("mag", [0.2, 0.5, 10.])
@@ -466,6 +458,55 @@ def test_tolerance_15_points_magnified(mag):
     else:
         # Due to separation tolerances, few are matched
         assert len(r) < (len(x) - len(x1))
+
+
+def test_tolerance_15_points_all_transforms():
+    """
+    The input and reference lists will have the same first 15 points.
+
+    An additional 5 random points are added, for a total of 20 points
+    in each list of points.
+
+    The input points will be rotated, magnified, flipped, and translated.
+    """
+    x, y = base_xy_15()
+    tx = x.copy()
+    ty = y.copy()
+
+    x1, y1, x2, y2 = extra_xy_5()
+    x += x1; y += y1
+    tx += x2; ty += y2
+
+    # Rotate input points.
+    theta_deg = 45.0
+    rotation = [theta_deg, theta_deg]
+    rot_theta = theta_deg * np.pi / 180.0
+    rot_mat = rotation_matrix(rot_theta)
+    x, y = rotate_points(x, y, rot_mat)
+
+    # Magnify points.
+    mag = 10.
+    in_mag = [mag, mag]
+    x, y = magnify_points(x, y, mag)
+
+    # Translate input points.
+    point = [-12., 21.]
+    x, y = translate_points(x, y, point)
+
+    inp = np.zeros(shape=(20, 2), dtype=float)
+    inp[:, 0] = np.array(tx)
+    inp[:, 1] = np.array(ty)
+
+    ref = np.zeros(shape=(20, 2), dtype=float)
+    ref[:, 0] = np.array(x)
+    ref[:, 1] = np.array(y)
+
+    r = stimage.xyxymatch(inp, ref,
+            algorithm="tolerance", tolerance=0.01,
+            mag=in_mag, rotation=rotation, ref_origin=point)
+
+    # All 15 base points should be matched.  The 5 extra random points should not be.
+    assert len(r) == (len(x) - len(x1))
 
 
 """
