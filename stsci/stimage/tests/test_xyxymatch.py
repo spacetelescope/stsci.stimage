@@ -507,23 +507,3 @@ def test_tolerance_15_points_all_transforms():
 
     # All 15 base points should be matched.  The 5 extra random points should not be.
     assert len(r) == (len(x) - len(x1))
-
-
-"""
-
-    const char* keywords[] = {
-        "input", "ref", "origin", "mag", "rotation", "ref_origin", "algorithm",
-        "tolerance", "separation", "nmatch", "maxratio", "nreject", NULL
-    };
-xyxymatch(input, ref,
-        origin=(0.0, 0.0),
-        mag=(1.0, 1.0),
-        rotation=(0.0, 0.0),
-        ref_origin=(0.0, 0.0),
-        algorithm='tolerance',
-        tolerance=1.0,
-        separation=9.0,
-        nmatch=30,
-        maxratio=10.0,
-        nreject=10)
-"""
