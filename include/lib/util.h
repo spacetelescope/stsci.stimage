@@ -126,6 +126,9 @@ typedef struct {
     double y;
 } coord_t;
 
+char *
+print_coord_t(coord_t * coord);
+
 typedef struct {
     const coord_t* l;
     const coord_t* r;
