@@ -124,7 +124,7 @@ def test_triangles_15_points_same():
     assert len(r) == (len(x) - len(x1))
 
 
-@pytest.mark.parametrize("theta_deg", [45., 60., 90., 150])
+@pytest.mark.parametrize("theta_deg", [45.0, 60.0, 90.0, 150.0])
 def test_triangles_15_points_rotated(theta_deg):
     """
     The input and reference lists will have the same first 15 points.
@@ -343,7 +343,8 @@ def test_tolerance_15_points_same():
     assert len(r) == (len(x) - len(x1))
 
 
-@pytest.mark.parametrize("theta_deg", [45., 60., 90., 150])
+@pytest.mark.skip(reason="Not finished")
+@pytest.mark.parametrize("theta_deg", [45.0, 60.0, 90.0, 150.0])
 def test_tolerance_15_points_rotated(theta_deg):
     """
     The input and reference lists will have the same first 15 points.
@@ -375,9 +376,113 @@ def test_tolerance_15_points_rotated(theta_deg):
     ref[:, 0] = np.array(tx)
     ref[:, 1] = np.array(ty)
 
-    r = stimage.xyxymatch(inp, ref, algorithm="tolerance", tolerance=0.01)
+    rotation = (rot_theta, rot_theta)
+    print(f"{rotation = }")
+    r = stimage.xyxymatch(inp, ref,
+            algorithm="tolerance", tolerance=0.01, rotation=rotation)
 
     # All 15 base points should be matched.  The 5 extra random points should not be.
     # assert len(r) == (len(x) - len(x1))
+    print(f"{theta_deg:.2f}, {rot_theta:.2f} : {len(r) = }")
+    # print(r)
+
+
+@pytest.mark.skip(reason="Not finished")
+def test_tolerance_15_points_translated():
+    """
+    The input and reference lists will have the same first 15 points.
+
+    An additional 5 random points are added, for a total of 20 points
+    in each list of points.
+
+    The input points will be translated by (-12, 21)
+    """
+    x, y = base_xy_15()
+    tx = x.copy()
+    ty = y.copy()
+
+    x1, y1, x2, y2 = extra_xy_5()
+    x += x1; y += y1
+    tx += x2; ty += y2
+
+    # Translate input points using vector (-12, 21)
+    point = [-12., 21.]
+    x, y = translate_points(x, y, point)
+
+    inp = np.zeros(shape=(20, 2), dtype=float)
+    inp[:, 0] = np.array(x)
+    inp[:, 1] = np.array(y)
+
+    ref = np.zeros(shape=(20, 2), dtype=float)
+    ref[:, 0] = np.array(tx)
+    ref[:, 1] = np.array(ty)
+
+    r = stimage.xyxymatch(inp, ref,
+            algorithm="tolerance", tolerance=0.01, ref_origin=(-12., 21.))
+
+    # All 15 base points should be matched.  The 5 extra random points should not be.
+    # assert len(r) == (len(x) - len(x1))
+    print(" ")
     print(f"{len(r) = }")
     print(r)
+
+
+@pytest.mark.parametrize("mag", [0.2, 0.5, 10.])
+def test_tolerance_15_points_magnified(mag):
+    """
+    The input and reference lists will have the same first 15 points.
+
+    An additional 5 random points are added, for a total of 20 points
+    in each list of points.
+
+    The input points will be magnified by mag
+    """
+    x, y = base_xy_15()
+    tx = x.copy()
+    ty = y.copy()
+
+    x1, y1, x2, y2 = extra_xy_5()
+    x += x1; y += y1
+    tx += x2; ty += y2
+
+    # Magnify points
+    mx, my = magnify_points(tx, ty, mag)
+
+    inp = np.zeros(shape=(20, 2), dtype=float)
+    inp[:, 0] = np.array(x)
+    inp[:, 1] = np.array(y)
+
+    ref = np.zeros(shape=(20, 2), dtype=float)
+    ref[:, 0] = np.array(mx)
+    ref[:, 1] = np.array(my)
+
+    in_mag = [mag, mag]
+    r = stimage.xyxymatch(inp, ref,
+            algorithm="tolerance", tolerance=0.01, mag=in_mag)
+
+    if mag > 0.3:
+        # All 15 base points should be matched.  The 5 extra random points should not be.
+        assert len(r) == (len(x) - len(x1))
+    else:
+        # Due to separation tolerances, few are matched
+        assert len(r) < (len(x) - len(x1))
+
+
+"""
+
+    const char* keywords[] = {
+        "input", "ref", "origin", "mag", "rotation", "ref_origin", "algorithm",
+        "tolerance", "separation", "nmatch", "maxratio", "nreject", NULL
+    };
+xyxymatch(input, ref,
+        origin=(0.0, 0.0),
+        mag=(1.0, 1.0),
+        rotation=(0.0, 0.0),
+        ref_origin=(0.0, 0.0),
+        algorithm='tolerance',
+        tolerance=1.0,
+        separation=9.0,
+        nmatch=30,
+        maxratio=10.0,
+        nreject=10)
+"""
