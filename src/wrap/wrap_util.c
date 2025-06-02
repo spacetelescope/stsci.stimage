@@ -59,10 +59,7 @@ to_coord_t(
 
     if (PyArray_DIM(array, 0) != 2) {
         Py_DECREF(array);
-        PyErr_Format(
-                PyExc_ValueError,
-                "%s must be a pair",
-                name);
+        PyErr_Format(PyExc_ValueError, "%s must be a pair", name);
         return -1;
     }
 
