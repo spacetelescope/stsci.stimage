@@ -871,7 +871,6 @@ geo_fit_xy(
                     zfit[i] = z[i<<1] - ref[i].x;
                 }
 
-                dbg_print("geomap-surface_fit\n");
                 if (surface_fit(sf1, ncoord, ref, zfit, weights, surface_fit_weight_user, &fit_error, error)) {
                     goto exit;
                 }
@@ -897,7 +896,6 @@ geo_fit_xy(
                 if (surface_init(sf1, fit->function, 2, 1, xterms_none, &bbox, error)) {
                     goto exit;
                 }
-                dbg_print("geomap-surface_fit\n");
                 if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
                     goto exit;
                 }
@@ -908,7 +906,6 @@ geo_fit_xy(
                 if (surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error)) {
                     goto exit;
                 }
-                dbg_print("geomap-surface_fit\n");
                 if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
                     goto exit;
                 }
@@ -940,7 +937,6 @@ geo_fit_xy(
                 for (i = 0; i < ncoord; ++i) {
                     zfit[i] = z[i<<1] - ref[i].y;
                 }
-                dbg_print("geomap-surface_fit\n");
                 if (surface_fit(sf1, ncoord, ref, zfit, weights, surface_fit_weight_user, &fit_error, error)) {
                     goto exit;
                 }
@@ -966,7 +962,6 @@ geo_fit_xy(
                 if (surface_init(sf1, fit->function, 1, 2, xterms_none, &bbox, error)) {
                     goto exit;
                 }
-                dbg_print("geomap-surface_fit\n");
                 if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
                     goto exit;
                 }
@@ -977,7 +972,6 @@ geo_fit_xy(
                 if (surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error)) {
                     goto exit;
                 }
-                dbg_print("geomap-surface_fit\n");
                 if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
                     goto exit;
                 }
@@ -1009,7 +1003,6 @@ geo_fit_xy(
 
     /* Calculate the higher-order fit */
     if (*has_secondary) {
-        dbg_print("geomap-surface_fit\n");
         if (surface_fit(sf2, ncoord, ref, residual, weights, surface_fit_weight_user, &fit_error, error)) {
             goto exit;
         }
@@ -1235,7 +1228,6 @@ geofit(
 
     switch(fit->fit_geometry) {
         case geomap_fit_rotate:
-            dbg_print("geo_fit: geomap_fit_rotate\n");
             if (geo_fit_theta(fit, sx1, sy1, ncoord, input, ref, weights,
                               residual_x, residual_y, error)) 
             {
@@ -1243,7 +1235,6 @@ geofit(
             }
             break;
         case geomap_fit_rscale:
-            dbg_print("geo_fit: geomap_fit_rscale\n");
             if (geo_fit_magnify(fit, sx1, sy1, ncoord, input, ref, weights,
                                 residual_x, residual_y, error))
             {
@@ -1251,7 +1242,6 @@ geofit(
             }
             break;
         case geomap_fit_rxyscale:
-            dbg_print("geo_fit: geomap_fit_rxyscale\n");
             if (geo_fit_linear(fit, sx1, sy1, ncoord, input, ref, weights,
                                residual_x, residual_y, error))
             {
@@ -1259,7 +1249,6 @@ geofit(
             }
             break;
         default:
-            dbg_print("geo_fit: default\n");
             if (geo_fit_xy(fit, sx1, sx2, ncoord, 0, input, ref, has_sx2, weights, residual_x, error)
                 || geo_fit_xy(fit, sy1, sy2, ncoord, 1, input, ref, has_sy2, weights, residual_y, error))
             {
@@ -1271,7 +1260,6 @@ geofit(
     if (fit->maxiter <= 0 || !isfinite(fit->reject)) {
         fit->nreject = 0;
     } else {
-        dbg_print("geo_fit: geo_fit_reject\n");
         if (geo_fit_reject(fit, sx1, sy1, sx2, sy2, has_sx2, has_sy2, ncoord, input,
                            ref, weights, residual_x, residual_y, error))
         {
@@ -1565,6 +1553,27 @@ geo_get_results(
     return status;
 }
 
+static int
+verify_geomap_inputs(
+        const size_t ninput, const coord_t* const input,
+        const size_t nref, const coord_t* const ref,
+        stimage_error_t* const error)
+{
+    int ret = 0;
+
+    assert(input);
+    assert(ref);
+    assert(error);
+
+    if (ninput != nref) {
+        stimage_error_set_message(
+            error, "Must have the same number of input and reference coordinates.");
+        ret = 1;
+    }
+
+    return ret;
+}
+
 int
 geomap(
         const size_t ninput, const coord_t* const input,
@@ -1607,17 +1616,9 @@ geomap(
 
     print_start_func;  // XXX remove
 
-    /* XXX Verify inputs */
-    assert(input);
-    assert(ref);
-    assert(error);
-
-    if (ninput != nref) {
-        stimage_error_set_message(
-            error, "Must have the same number of input and reference coordinates.");
+    if (verify_geomap_inputs(ninput, input, nref, ref, error)) {
         goto exit;
     }
-    /* XXX End Verify inputs */
 
     /* XXX Initialize */
     surface_new(&sx1);
@@ -1772,6 +1773,8 @@ geomap(
     surface_free(&sy1);
     surface_free(&sx2);
     surface_free(&sy2);
+
+    // XXX Gets to the end of this, but segfaults.
 
     return status;
 }

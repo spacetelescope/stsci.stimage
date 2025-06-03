@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -46,9 +45,12 @@ main(void)
             &noutput, output,
             &result,
             &error);
-    // geomap_result_print(&result);
+    geomap_result_print(&result);
     geomap_result_free(&result);
-    return 0;
+    // return 0;
+
+    print_delim();
+    dbg_print("Test 2\n");
 
     /* TEST 2: SHIFT */
     srand48(0);
@@ -72,8 +74,7 @@ main(void)
             &noutput, output,
             &result,
             &error);
-    dbg_print("End Test 2\n");
-    // geomap_result_print(&result);
+    geomap_result_print(&result);
     geomap_result_free(&result);
 
     /* /\* TEST 3: SCALE *\/ */
@@ -103,32 +104,3 @@ main(void)
 
     return status;
 }
-#if 0
-union dbl_bytes {
-    double x;
-    uint8_t u8[16];
-};
-
-void print_u8_arr(uint8_t * arr, int len) {
-    printf("(");
-    for (int k=0; k<len; ++k) {
-        printf("%02x", arr[k]);
-    }
-    printf(")");
-}
-
-int main(void) {
-    double x, nx;
-    int ex;
-    union dbl_bytes dbl_x, dbl_m;
-
-    dbl_x.x = x;
-    nx = frexp(x, &ex);
-    dbl_m.x = nx;
-    printf("dbl_x = ");
-    print_u8_arr(dbl_x.u8, 16);
-    printf("\ndbl_m = ");
-    print_u8_arr(dbl_m.u8, 16);
-    printf("\n");
-}
-#endif

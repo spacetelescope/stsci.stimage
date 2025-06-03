@@ -295,7 +295,6 @@ surface_print(
 
     assert(s);
 
-    dbg_print("In function: surface_print\n");
     return;
 
     switch (s->type) {
