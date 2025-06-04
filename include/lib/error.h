@@ -46,6 +46,7 @@ DAMAGE.
 #define PARAM_UNUSED(X) (void)(X)  // Used for unused parameter warnings
 
 #define dbg_print(...) do{printf("DEBUG - [%s,%d]: ", __FILE__, __LINE__); printf(__VA_ARGS__);}while(0)
+#define err_print(...) do{fprintf(stderr, "ERROR - [%s,%d]: ", __FILE__, __LINE__); fprintf(stderr, __VA_ARGS__);}while(0)
 #define print_start_func dbg_print(" --> Starting function: %s\n", __FUNCTION__)
 
 #define PRINT_DELIM print_delim('=', 50, 1)
