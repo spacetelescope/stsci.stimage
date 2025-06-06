@@ -365,8 +365,6 @@ geo_fit_theta(
     size_t  i       = 0;
     int     status  = 1;
 
-    print_start_func;  // XXX remove
-
     assert(fit);
     assert(sx1);
     assert(sy1);
@@ -510,8 +508,6 @@ geo_fit_magnify(
     coord_t sthetac = {0.0, 0.0};
     size_t  i       = 0;
     int     status  = 1;
-
-    print_start_func;  // XXX remove
 
     assert(fit);
     assert(sx1);
@@ -665,8 +661,6 @@ geo_fit_linear(
     double  ymag    = 0.0;
     size_t  i       = 0;
     int     status  = 1;
-
-    print_start_func;  // XXX remove
 
     assert(fit);
     assert(sx1);
@@ -829,8 +823,6 @@ geo_fit_xy(
     surface_fit_error_e fit_error = surface_fit_error_ok;
     size_t              i         = 0;
     int                 status    = 1;
-
-    print_start_func;  // XXX remove
 
     assert(fit);
     assert(sf1);
@@ -1574,6 +1566,28 @@ verify_geomap_inputs(
     return ret;
 }
 
+static void
+initialize_surfaces(surface_t * sx1, surface_t * sy1, surface_t * sx2, surface_t * sy2)
+{
+    surface_new(sx1);
+    surface_new(sy1);
+    surface_new(sx2);
+    surface_new(sy2);
+}
+
+static int
+initialize_bbox(
+        const bbox_t * const bbox,
+        bbox_t * tbbox
+        )
+{
+    if (bbox == NULL) {
+        bbox_init(tbbox);
+    } else {
+        bbox_copy(bbox, tbbox);
+    }
+}
+
 int
 geomap(
         const size_t ninput, const coord_t* const input,
@@ -1614,30 +1628,20 @@ geomap(
     double           my_nan         = fmod(1.0, 0.0);
     int              status         = 1;
 
-    print_start_func;  // XXX remove
-
     if (verify_geomap_inputs(ninput, input, nref, ref, error)) {
         goto exit;
     }
 
     /* XXX Initialize */
-    surface_new(&sx1);
-    surface_new(&sy1);
-    surface_new(&sx2);
-    surface_new(&sy2);
+    initialize_surfaces(&sx1, &sy1, &sx2, &sy2);
 
     geomap_fit_init(&fit, geomap_proj_none, fit_geometry, function, xxorder, xyorder,
         xxterms, yxorder, yyorder, yxterms, maxiter, reject);
 
     /* If bbox is NULL, provide a dummy one full of NaNs */
-    if (bbox == NULL) {
-        bbox_init(&tbbox);
-    } else {
-        bbox_copy(bbox, &tbbox);
-    }
+    initialize_bbox(bbox, &tbbox);
 
-    /* If the bbox is all NaNs, we don't need to reduce the data, saving an
-       alloc and copy */
+    // If the bbox is all NaNs, we don't need to reduce the data, saving an alloc and copy
     if (bbox == NULL
         || (!isfinite(tbbox.min.x) && !isfinite(tbbox.min.y)
         && !isfinite(tbbox.max.x) && !isfinite(tbbox.max.y)))
@@ -1775,6 +1779,7 @@ geomap(
     surface_free(&sy2);
 
     // XXX Gets to the end of this, but segfaults.
+    dbg_print("Returning from %s\n", __FUNCTION__);
 
     return status;
 }
