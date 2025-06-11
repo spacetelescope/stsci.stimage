@@ -48,7 +48,51 @@ void print_exception(int line) {
     return;
 }
 
-// XXX Sadly, this clears the exception, but I only want to check it.
+/*
+ * Check an object to see if it has an attribute.
+ */
+#define check_attr(name) do { \
+    if (!PyObject_HasAttrString(fit_obj, name)) { \
+        dbg_print("Attribute '%s' doesn't exist yet.\n", name); \
+    } \
+} while(0)
+
+// The following three macros may be better as functions.
+/*
+ * Add an attribute value to PyObject fit_obj attribute 'name'.
+ * 'tmp' is a PyObject*.
+ */
+#define ADD_ATTR(func, member, name) do { \
+    check_attr(name); \
+    if ((func)((member), &tmp)) {dbg_print("%s - fail\n", name); goto exit;} \
+    PyObject_SetAttrString(fit_obj, (name), tmp); \
+    Py_DECREF(tmp); \
+} while(0)
+
+/*
+ * Add an array object to a PyObject fit_obj attribute 'name'.
+ * 'tmp' is a PyObject*.
+ */
+#define ADD_ARR_ATTR(func, member, name) do { \
+    if ((func)((member), &tmp_arr)) {dbg_print("%s - fail\n", name); goto exit;} \
+    PyObject_SetAttrString(fit_obj, (name), tmp); \
+    Py_DECREF(tmp_arr); \
+} while(0)
+
+/*
+ * Add an array values to a PyObject fit_obj array attribute 'name'.
+ * 'tmp' is a PyObject*.
+ */
+#define ADD_ARRAY(size, member, name) do { \
+    dims = (size); \
+    tmp_arr = (PyArrayObject *) PyArray_SimpleNew(1, &dims, NPY_DOUBLE); \
+    if (tmp_arr == NULL) goto exit; \
+    for (i = 0; i < (size); ++i) ((double*)PyArray_DATA(tmp_arr))[i] = (member)[i]; \
+    PyObject_SetAttrString(fit_obj, (name), (PyObject *) tmp_arr); \
+    Py_DECREF(tmp_arr); \
+} while(0)
+
+// Debugging macro
 #define EXCEPTION_INFO do { \
     if (PyErr_Occurred()) { \
         print_exception(__LINE__); \
@@ -57,8 +101,21 @@ void print_exception(int line) {
     } \
 }while(0)
 
+#define CHECK_NULL_PYNONE_JUMP(O, L) do { \
+    if (NULL==(O)) { \
+        err_print("Object is NULL\n"); \
+        goto L; \
+    } else if (Py_None==(O)) { \
+        err_print("Object is Py_None\n"); \
+        goto L; \
+    } \
+} while(0)
+
+
+// XXX Flesh out comments for each element.
 typedef struct {
     PyObject_HEAD
+    PyObject *dict;             // will store __dict__
     PyObject *fit_geometry;
     PyObject *function;
     PyArrayObject *rms;
@@ -78,12 +135,9 @@ geomap_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     geomap_object *self = NULL;
 
+    // An allocation function must be defined, otherwise a segfault occurs.
     if (type->tp_alloc) {
-        // XXX Is this correct?  The function prototype for tp_alloc is
-        //         typedef PyObject *(*allocfunc)(PyTypeObject*, Py_ssize_t);
-        //     A size of 0 seems ... silly.
         self = (geomap_object *)type->tp_alloc(type, 0);
-        dbg_print("sizeof(*self) = %zu\n", sizeof(*self));
     }
 
     return (PyObject *)self;
@@ -93,9 +147,11 @@ static PyArrayObject *
 geomap_array_init(void)
 {
     PyArrayObject *o = NULL;
-    npy_intp dims = 1;
+    const int nd = 1;           // The number of dimensions of array
+    npy_intp dims[nd] = {1};    // The number of elements in dimension 1.
 
-    o = (PyArrayObject *) PyArray_SimpleNew(1, &dims, NPY_DOUBLE);
+    // Create a 1-D array with dimension 'dims' of type double.
+    o = (PyArrayObject *) PyArray_SimpleNew(nd, dims, NPY_DOUBLE);
     if (o != NULL) {
         *((double*)PyArray_GETPTR1(o, 0)) = 0.0;
     }
@@ -185,14 +241,19 @@ geomap_dealloc(geomap_object *self)
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+/* 
+ # XXX Not sure what these pragmas do.  I commented this out
+ *     and everything compiled just fine.
+ */
+// #pragma GCC diagnostic push
+// #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+// #pragma clang diagnostic push
+// #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
 static PyMethodDef geomap_methods[] = {
     {NULL}  /* Sentinel */
 };
 
+// https://docs.python.org/3.12/c-api/structures.html#c.PyMemberDef
 static PyMemberDef geomap_members[] = {
     {"fit_geometry", T_OBJECT_EX, offsetof(geomap_object, fit_geometry), 0, "fit_geometry"},
     {"function", T_OBJECT_EX, offsetof(geomap_object, function), 0, "function"},
@@ -209,49 +270,33 @@ static PyMemberDef geomap_members[] = {
     {NULL}  /* Sentinel */
 };
 
+// https://docs.python.org/3.12/c-api/typeobj.html
 static PyTypeObject geomap_class = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    "py_geomap.GeomapResults", /* tp_name */
-    sizeof(geomap_object),     /* tp_basicsize */
-    0,                         /* tp_itemsize */
-    (destructor)geomap_dealloc,/* tp_dealloc */
-    0,                         /* tp_print */
-    0,                         /* tp_getattr */
-    0,                         /* tp_setattr */
-    0,                         /* tp_reserved */
-    0,                         /* tp_repr */
-    0,                         /* tp_as_number */
-    0,                         /* tp_as_sequence */
-    0,                         /* tp_as_mapping */
-    0,                         /* tp_hash */
-    0,                         /* tp_call */
-    0,                         /* tp_str */
-    0,                         /* tp_getattro */
-    0,                         /* tp_setattro */
-    0,                         /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,        /* tp_flags */
-    "geomap result objects",   /* tp_doc */
-    0,		                   /* tp_traverse */
-    0,		                   /* tp_clear */
-    0,		                   /* tp_richcompare */
-    0,		                   /* tp_weaklistoffset */
-    0,		                   /* tp_iter */
-    0,		                   /* tp_iternext */
-    geomap_methods,            /* tp_methods */
-    geomap_members,            /* tp_members */
-    0,                         /* tp_getset */
-    0,                         /* tp_base */
-    0,                         /* tp_dict */
-    0,                         /* tp_descr_get */
-    0,                         /* tp_descr_set */
-    0,                         /* tp_dictoffset */
-    (initproc)geomap_init,     /* tp_init */
-    PyType_GenericAlloc,       /* tp_alloc */
-    geomap_new,                /* tp_new */
+    .ob_base = PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "py_geomap.GeomapResults",
+    .tp_basicsize = sizeof(geomap_object),
+    .tp_dealloc = (destructor)geomap_dealloc,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_doc = "geomap result objects",
+    .tp_methods = geomap_methods,
+    .tp_members = geomap_members,
+    .tp_init = (initproc)geomap_init,
+    .tp_alloc = PyType_GenericAlloc,
+    .tp_new = geomap_new,
+    .tp_dictoffset = offsetof(geomap_object, dict), // <--- REQUIRED
 };
-#pragma clang diagnostic pop
-#pragma GCC diagnostic pop
 
+/* 
+ # XXX Not sure what these pragmas do.  I commented this out
+ *     and everything compiled just fine.
+ */
+// #pragma clang diagnostic pop
+// #pragma GCC diagnostic pop
+
+/*
+ * XXX This function is way too long and does too many things.
+ *     It should be refactored into something smaller.
+ */
 PyObject*
 py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
 {
@@ -293,6 +338,10 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
     PyArrayObject*   output_array = NULL;
     stimage_error_t  error;
 
+    // ---------------------------------------------------------------------------
+    // XXX Refactor candidate parse_args_from_python_to_c(python_args, c_args);
+    //     The refactor would use a struct, instead of the large number of variables
+    //     within this function.
     const char*    keywords[]    = {
         "input", "ref", "bbox", "fit_geometry", "function",
         "xxorder", "xyorder", "yxorder", "yyorder", "xxterms",
@@ -313,6 +362,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
     }
 
     // Create Nx2 array, essentially a list of (x,y) points.
+    // XXX Refactor candidate input_array = n_by_2_array(input_obj);
     input_array = (PyArrayObject*)PyArray_ContiguousFromAny(input_obj, NPY_DOUBLE, 2, 2);
     if (input_array == NULL) {
         err_print("input_array creation failed (returned NULL).\n");
@@ -325,6 +375,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
     }
 
     // Create Nx2 array, essentially a list of (x,y) points.
+    // XXX Refactor candidate ref_array = n_by_2_array(ref_obj);
     ref_array = (PyArrayObject*)PyArray_ContiguousFromAny(ref_obj, NPY_DOUBLE, 2, 2);
     if (ref_array == NULL) {
         err_print("ref_array creation failed (returned NULL).\n");
@@ -354,6 +405,8 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
         result = PyErr_NoMemory();
         goto exit;
     }
+    // XXX End parse_args_from_python_to_c(python_args, c_args);
+    // ---------------------------------------------------------------------------
 
     dbg_print("Entering geomap\n");
     if (geomap(
@@ -371,6 +424,9 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
     }
     dbg_print("Returned from geomap\n");
 
+    // -----------------------------------------------------
+    // XXX Refactor candidate output_array = get_output_array(output);
+    // Develop output array
     dtype_list = Py_BuildValue(
             "[(ss)(ss)(ss)(ss)(ss)(ss)(ss)(ss)]",
             "input_x", "f8",
@@ -395,83 +451,63 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
     if (output_array == NULL) {
         goto exit;
     }
+    // -----------------------------------------------------
 
+    // -----------------------------------------------------
+    // XXX Refactor candidate fit_obj = get_geomap_result(fit);
+    // Develop GeomapResult class
     fit_obj = geomap_new(&geomap_class, NULL, NULL);
-    if (NULL==fit_obj) {
-        err_print("fit_obj is NULL\n");
-        goto exit;
-    } else if (Py_None==fit_obj) {
-        err_print("fit_obj is Py_None\n");
-        goto exit;
-    }
+    CHECK_NULL_PYNONE_JUMP(fit_obj, exit);
+
     EXCEPTION_INFO;
 
-    #define ADD_ATTR(func, member, name) do { \
-        if ((func)((member), &tmp)) goto exit;      \
-        PyObject_SetAttrString(fit_obj, (name), tmp);       \
-        Py_DECREF(tmp); } while(0)
-
-    #define ADD_ARR_ATTR(func, member, name) do {\
-    if ((func)((member), &tmp_arr)) goto exit;      \
-    PyObject_SetAttrString(fit_obj, (name), tmp);       \
-    Py_DECREF(tmp_arr); } while(0)
-
-    #define ADD_ARRAY(size, member, name) do {\
-        dims = (size); \
-        tmp_arr = (PyArrayObject *) PyArray_SimpleNew(1, &dims, NPY_DOUBLE); \
-        if (tmp_arr == NULL) goto exit; \
-        for (i = 0; i < (size); ++i) ((double*)PyArray_DATA(tmp_arr))[i] = (member)[i]; \
-        PyObject_SetAttrString(fit_obj, (name), (PyObject *) tmp_arr); \
-        Py_DECREF(tmp_arr); } while(0)
-
-    dbg_print("Adding attr's\n");
+    dbg_print("ADD_ATTR\n");
     ADD_ATTR(from_geomap_fit_e, fit.fit_geometry, "fit_geometry");
-    EXCEPTION_INFO;
+    EXCEPTION_INFO;  // XXX debugging here
     ADD_ATTR(from_surface_type_e, fit.function, "function");
-    EXCEPTION_INFO;
 
+    dbg_print("ADD_ARR_ATTR\n");
     ADD_ARR_ATTR(from_coord_t, &fit.rms, "rms");
-    EXCEPTION_INFO;
+    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARR_ATTR(from_coord_t, &fit.mean_ref, "mean_ref");
-    EXCEPTION_INFO;
+    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARR_ATTR(from_coord_t, &fit.mean_input, "mean_input");
-    EXCEPTION_INFO;
+    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARR_ATTR(from_coord_t, &fit.shift, "shift");
-    EXCEPTION_INFO;
+    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARR_ATTR(from_coord_t, &fit.mag, "mag");
-    EXCEPTION_INFO;
+    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARR_ATTR(from_coord_t, &fit.rotation, "rotation");
-    EXCEPTION_INFO;
+    EXCEPTION_INFO;  // XXX debugging here
 
+    dbg_print("ADD_ARRAY\n");
     ADD_ARRAY(fit.nxcoeff, fit.xcoeff, "xcoeff");
-    EXCEPTION_INFO;
+    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARRAY(fit.nycoeff, fit.ycoeff, "ycoeff");
-    EXCEPTION_INFO;
+    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARRAY(fit.nx2coeff, fit.x2coeff, "x2coeff");
-    EXCEPTION_INFO;
+    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARRAY(fit.ny2coeff, fit.y2coeff, "y2coeff");
-    EXCEPTION_INFO;
+    EXCEPTION_INFO;  // XXX debugging here
+    // -----------------------------------------------------
 
-    dbg_print("Py_BuildValue (result = %p)\n", result);
+    // The result value is a tuple of length 2u
+    // The first element is a GeomapResults class
+    // The second element is a array
     result = Py_BuildValue("OO", fit_obj, output_array);
-    dbg_print("Py_BuildValue result = %p\n", result);
 
+    // PyErr_Clear();  // XXX Remove.  Here only for debugging.
  exit:
-    EXCEPTION_INFO;
 
-    dbg_print("Decref\n");
     Py_XDECREF(input_array);
     Py_XDECREF(ref_array);
-    dbg_print("free\n");
     geomap_result_free(&fit);
     if (result == NULL) {
-        dbg_print("Error: result is NULL\n");
         Py_XDECREF(output_array);
         free(output);
         Py_XDECREF(fit_obj);
     }
 
-    dbg_print("Returning built value\n");
     return result;
 }
 
@@ -484,6 +520,15 @@ static PyModuleDef geomap_module = {
     -1,
     NULL, NULL, NULL, NULL, NULL
 };
+
+#if 0
+static PyModuleDef geomap_module = {
+    .m_base = PyModuleDef_HEAD_INIT,
+    .m_name = "geomap_results",
+    .m_doc = "Python object to hold the results of geomap",
+    .m_size = -1,
+}
+#endif
 
 PyMODINIT_FUNC
 PyInit_geomap_results(void)
