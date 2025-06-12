@@ -27,20 +27,30 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 
+from pprint import pprint
+
 import numpy as np
 import stsci.stimage as stimage
 
-# def test_same():
-#     np.random.seed(0)
-#     x = np.random.random((512, 2))
-#     y = x[:]
+def test_same():
+    print(" ")
+    # test_sz = 512
+    test_sz = 32
+    np.random.seed(0)
+    x = np.random.random((32, 2))
+    y = x[:]
 
-#     r = stimage.geomap(x, y, fit_geometry='general', function='polynomial')
+    r = stimage.geomap(x, y, fit_geometry='general', function='polynomial')
 
-#     print r
-#     print r[0].fit_geometry
+    result = r[0]
 
-#     assert False
+    # import ipdb; ipdb.set_trace()
+
+    print(f"{type(r) = }")
+    print(f"{len(r) = }")
+    print(f"{r[0] = }")
+    # print(f"{r[1] = }")
+
 
 if __name__ == '__main__':
     test_same()
