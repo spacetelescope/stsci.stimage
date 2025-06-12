@@ -42,7 +42,7 @@ DAMAGE.
 
 void print_exception(int line) {
     PyObject *exc = PyErr_GetRaisedException();
-    printf("[%d]   ---> Displaying Exception\n", line);
+    printf("Error - Line %d: ", line);
     PyErr_DisplayException(exc);
     // PyErr_SetRaisedException(exc);
     return;
@@ -51,9 +51,11 @@ void print_exception(int line) {
 /*
  * Check an object to see if it has an attribute.
  */
-#define check_attr(name) do { \
-    if (!PyObject_HasAttrString(fit_obj, name)) { \
+#define check_attr(obj,name) do { \
+    if (!PyObject_HasAttrString(obj, name)) { \
         dbg_print("Attribute '%s' doesn't exist yet.\n", name); \
+    } else { \
+        dbg_print("Attribute '%s' exists.\n", name); \
     } \
 } while(0)
 
@@ -63,9 +65,9 @@ void print_exception(int line) {
  * 'tmp' is a PyObject*.
  */
 #define ADD_ATTR(func, member, name) do { \
-    check_attr(name); \
     if ((func)((member), &tmp)) {dbg_print("%s - fail\n", name); goto exit;} \
     PyObject_SetAttrString(fit_obj, (name), tmp); \
+    EXCEPTION_INFO; \
     Py_DECREF(tmp); \
 } while(0)
 
@@ -76,6 +78,7 @@ void print_exception(int line) {
 #define ADD_ARR_ATTR(func, member, name) do { \
     if ((func)((member), &tmp_arr)) {dbg_print("%s - fail\n", name); goto exit;} \
     PyObject_SetAttrString(fit_obj, (name), tmp); \
+    EXCEPTION_INFO; \
     Py_DECREF(tmp_arr); \
 } while(0)
 
@@ -89,17 +92,16 @@ void print_exception(int line) {
     if (tmp_arr == NULL) goto exit; \
     for (i = 0; i < (size); ++i) ((double*)PyArray_DATA(tmp_arr))[i] = (member)[i]; \
     PyObject_SetAttrString(fit_obj, (name), (PyObject *) tmp_arr); \
+    EXCEPTION_INFO; \
     Py_DECREF(tmp_arr); \
 } while(0)
 
 // Debugging macro
-#define EXCEPTION_INFO do { \
-    if (PyErr_Occurred()) { \
-        print_exception(__LINE__); \
-    } else { \
-        dbg_print("Not PyErr_Occurred\n"); \
-    } \
-}while(0)
+#if 1
+#define EXCEPTION_INFO do { if (PyErr_Occurred()) { print_exception(__LINE__); } }while(0)
+#else
+#define EXCEPTION_INFO
+#endif
 
 #define CHECK_NULL_PYNONE_JUMP(O, L) do { \
     if (NULL==(O)) { \
@@ -136,9 +138,13 @@ geomap_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     geomap_object *self = NULL;
 
     // An allocation function must be defined, otherwise a segfault occurs.
-    if (type->tp_alloc) {
+    if (type->tp_alloc)
+    {
         self = (geomap_object *)type->tp_alloc(type, 0);
     }
+    // XXX This is NULL, which means it doesn't exist.  Why is it NULL?
+    dbg_print("fit_geometry = %p\n", self->fit_geometry);
+    check_attr(self, "fit_geometry");
 
     return (PyObject *)self;
 }
@@ -159,66 +165,27 @@ geomap_array_init(void)
     return o;
 }
 
+#define GEOMAP_ARRAY_INIT(A) do { \
+    (A) = geomap_array_init(); \
+    if (NULL==(A)) {return -1;} \
+} while(0)
+
 static int
 geomap_init(geomap_object *self, PyObject *args, PyObject *kwds)
 {
-#if PY_MAJOR_VERSION >= 3
     self->fit_geometry = PyUnicode_FromString("");
     self->function = PyUnicode_FromString("");
-#else
-    self->fit_geometry = PyString_FromString("");
-    self->function = PyString_FromString("");
-#endif
 
-    self->rms = geomap_array_init();
-    if (self->rms == NULL) {
-        return -1;
-    }
-
-    self->mean_ref = geomap_array_init();
-    if (self->mean_ref == NULL) {
-        return -1;
-    }
-
-    self->mean_input = geomap_array_init();
-    if (self->mean_input == NULL) {
-        return -1;
-    }
-
-    self->shift = geomap_array_init();
-    if (self->shift == NULL) {
-        return -1;
-    }
-
-    self->mag = geomap_array_init();
-    if (self->mag == NULL) {
-        return -1;
-    }
-
-    self->rotation = geomap_array_init();
-    if (self->rotation == NULL) {
-        return -1;
-    }
-
-    self->xcoeff = geomap_array_init();
-    if (self->xcoeff == NULL) {
-        return -1;
-    }
-
-    self->ycoeff = geomap_array_init();
-    if (self->ycoeff == NULL) {
-        return -1;
-    }
-
-    self->x2coeff = geomap_array_init();
-    if (self->x2coeff == NULL) {
-        return -1;
-    }
-
-    self->y2coeff = geomap_array_init();
-    if (self->y2coeff == NULL) {
-        return -1;
-    }
+    GEOMAP_ARRAY_INIT(self->rms);
+    GEOMAP_ARRAY_INIT(self->mean_ref);
+    GEOMAP_ARRAY_INIT(self->mean_input);
+    GEOMAP_ARRAY_INIT(self->shift);
+    GEOMAP_ARRAY_INIT(self->mag);
+    GEOMAP_ARRAY_INIT(self->rotation);
+    GEOMAP_ARRAY_INIT(self->xcoeff);
+    GEOMAP_ARRAY_INIT(self->ycoeff);
+    GEOMAP_ARRAY_INIT(self->x2coeff);
+    GEOMAP_ARRAY_INIT(self->y2coeff);
 
     return 0;
 }
@@ -250,7 +217,8 @@ geomap_dealloc(geomap_object *self)
 // #pragma clang diagnostic push
 // #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
 static PyMethodDef geomap_methods[] = {
-    {NULL}  /* Sentinel */
+    {NULL, NULL, 0, NULL}  /* Sentinel */
+    // {NULL}  /* Sentinel */
 };
 
 // https://docs.python.org/3.12/c-api/structures.html#c.PyMemberDef
@@ -276,7 +244,7 @@ static PyTypeObject geomap_class = {
     .tp_name = "py_geomap.GeomapResults",
     .tp_basicsize = sizeof(geomap_object),
     .tp_dealloc = (destructor)geomap_dealloc,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_doc = "geomap result objects",
     .tp_methods = geomap_methods,
     .tp_members = geomap_members,
@@ -459,36 +427,23 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
     fit_obj = geomap_new(&geomap_class, NULL, NULL);
     CHECK_NULL_PYNONE_JUMP(fit_obj, exit);
 
-    EXCEPTION_INFO;
-
     dbg_print("ADD_ATTR\n");
     ADD_ATTR(from_geomap_fit_e, fit.fit_geometry, "fit_geometry");
-    EXCEPTION_INFO;  // XXX debugging here
     ADD_ATTR(from_surface_type_e, fit.function, "function");
 
     dbg_print("ADD_ARR_ATTR\n");
     ADD_ARR_ATTR(from_coord_t, &fit.rms, "rms");
-    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARR_ATTR(from_coord_t, &fit.mean_ref, "mean_ref");
-    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARR_ATTR(from_coord_t, &fit.mean_input, "mean_input");
-    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARR_ATTR(from_coord_t, &fit.shift, "shift");
-    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARR_ATTR(from_coord_t, &fit.mag, "mag");
-    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARR_ATTR(from_coord_t, &fit.rotation, "rotation");
-    EXCEPTION_INFO;  // XXX debugging here
 
     dbg_print("ADD_ARRAY\n");
     ADD_ARRAY(fit.nxcoeff, fit.xcoeff, "xcoeff");
-    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARRAY(fit.nycoeff, fit.ycoeff, "ycoeff");
-    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARRAY(fit.nx2coeff, fit.x2coeff, "x2coeff");
-    EXCEPTION_INFO;  // XXX debugging here
     ADD_ARRAY(fit.ny2coeff, fit.y2coeff, "y2coeff");
-    EXCEPTION_INFO;  // XXX debugging here
     // -----------------------------------------------------
 
     // The result value is a tuple of length 2u
@@ -508,27 +463,19 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
         Py_XDECREF(fit_obj);
     }
 
+    PyErr_Clear(); // XXX for debugging only.  Remove!!!
+    dbg_print("    ----> Returning from python\n");
     return result;
 }
-
-#if PY_MAJOR_VERSION >= 3
 
 static PyModuleDef geomap_module = {
     PyModuleDef_HEAD_INIT,
     "geomap_results",
     "Python object to hold the results of geomap",
     -1,
-    NULL, NULL, NULL, NULL, NULL
+    geomap_methods
+    // NULL, NULL, NULL, NULL, NULL
 };
-
-#if 0
-static PyModuleDef geomap_module = {
-    .m_base = PyModuleDef_HEAD_INIT,
-    .m_name = "geomap_results",
-    .m_doc = "Python object to hold the results of geomap",
-    .m_size = -1,
-}
-#endif
 
 PyMODINIT_FUNC
 PyInit_geomap_results(void)
@@ -537,30 +484,26 @@ PyInit_geomap_results(void)
 
     geomap_class.tp_new = PyType_GenericNew;
     if (PyType_Ready(&geomap_class) < 0)
+    {
         return NULL;
+    }
 
     m = PyModule_Create(&geomap_module);
     if (m == NULL)
+    {
         return NULL;
+    }
 
     Py_INCREF(&geomap_class);
     PyModule_AddObject(m, "GeomapResults", (PyObject *)&geomap_class);
+#if 0
+    // Possibly like this:
+    if (PyModule_AddObject(m, "GeomapResults", (PyObject *)&geomap_class) < 0)
+    {
+        Py_DECREF(&CustomType);
+        Py_DECREF(m);
+        return NULL;
+    }
+#endif
     return m;
 }
-
-#else
-PyMODINIT_FUNC
-initgeomap_results(void)
-{
-    PyObject* m;
-
-    geomap_class.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&geomap_class) < 0)
-        return;
-
-    m = Py_InitModule("GeomapResults", geomap_methods);
-
-    Py_INCREF(&geomap_class);
-    PyModule_AddObject(m, "GeomapResults", (PyObject *)&geomap_class);
-}
-#endif
