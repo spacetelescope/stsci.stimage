@@ -1778,9 +1778,6 @@ geomap(
     surface_free(&sx2);
     surface_free(&sy2);
 
-    // XXX Gets to the end of this, but segfaults.
-    dbg_print("Returning from %s\n", __FUNCTION__);
-
     return status;
 }
 
