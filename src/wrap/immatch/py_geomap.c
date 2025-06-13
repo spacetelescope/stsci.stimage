@@ -65,7 +65,7 @@ void print_exception(int line) {
  * 'tmp' is a PyObject*.
  */
 #define ADD_ATTR(func, member, name) do { \
-    if ((func)((member), &tmp)) {dbg_print("%s - fail\n", name); goto exit;} \
+    if ((func)((member), &tmp)) {err_print("%s - fail\n", name); goto exit;} \
     PyObject_SetAttrString(fit_obj, (name), tmp); \
     EXCEPTION_INFO; \
     Py_DECREF(tmp); \
@@ -76,7 +76,7 @@ void print_exception(int line) {
  * 'tmp' is a PyObject*.
  */
 #define ADD_ARR_ATTR(func, member, name) do { \
-    if ((func)((member), &tmp_arr)) {dbg_print("%s - fail\n", name); goto exit;} \
+    if ((func)((member), &tmp_arr)) {err_print("%s - fail\n", name); goto exit;} \
     PyObject_SetAttrString(fit_obj, (name), tmp); \
     EXCEPTION_INFO; \
     Py_DECREF(tmp_arr); \
@@ -97,7 +97,7 @@ void print_exception(int line) {
 } while(0)
 
 // Debugging macro
-#if 1
+#if 0
 #define EXCEPTION_INFO do { if (PyErr_Occurred()) { print_exception(__LINE__); } }while(0)
 #else
 #define EXCEPTION_INFO
@@ -143,8 +143,8 @@ geomap_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         self = (geomap_object *)type->tp_alloc(type, 0);
     }
     // XXX This is NULL, which means it doesn't exist.  Why is it NULL?
-    dbg_print("fit_geometry = %p\n", self->fit_geometry);
-    check_attr(self, "fit_geometry");
+    // dbg_print("fit_geometry = %p\n", self->fit_geometry);
+    // check_attr(self, "fit_geometry");
 
     return (PyObject *)self;
 }
@@ -376,7 +376,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
     // XXX End parse_args_from_python_to_c(python_args, c_args);
     // ---------------------------------------------------------------------------
 
-    dbg_print("Entering geomap\n");
+    // dbg_print("Entering geomap\n");
     if (geomap(
                 ninput, (coord_t*)PyArray_DATA(input_array),
                 nref, (coord_t*)PyArray_DATA(ref_array),
@@ -390,7 +390,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
         PyErr_SetString(PyExc_RuntimeError, stimage_error_get_message(&error));
         goto exit;
     }
-    dbg_print("Returned from geomap\n");
+    // dbg_print("Returned from geomap\n");
 
     // -----------------------------------------------------
     // XXX Refactor candidate output_array = get_output_array(output);
@@ -427,11 +427,11 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
     fit_obj = geomap_new(&geomap_class, NULL, NULL);
     CHECK_NULL_PYNONE_JUMP(fit_obj, exit);
 
-    dbg_print("ADD_ATTR\n");
+    // dbg_print("ADD_ATTR\n");
     ADD_ATTR(from_geomap_fit_e, fit.fit_geometry, "fit_geometry");
     ADD_ATTR(from_surface_type_e, fit.function, "function");
 
-    dbg_print("ADD_ARR_ATTR\n");
+    // dbg_print("ADD_ARR_ATTR\n");
     ADD_ARR_ATTR(from_coord_t, &fit.rms, "rms");
     ADD_ARR_ATTR(from_coord_t, &fit.mean_ref, "mean_ref");
     ADD_ARR_ATTR(from_coord_t, &fit.mean_input, "mean_input");
@@ -439,7 +439,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
     ADD_ARR_ATTR(from_coord_t, &fit.mag, "mag");
     ADD_ARR_ATTR(from_coord_t, &fit.rotation, "rotation");
 
-    dbg_print("ADD_ARRAY\n");
+    // dbg_print("ADD_ARRAY\n");
     ADD_ARRAY(fit.nxcoeff, fit.xcoeff, "xcoeff");
     ADD_ARRAY(fit.nycoeff, fit.ycoeff, "ycoeff");
     ADD_ARRAY(fit.nx2coeff, fit.x2coeff, "x2coeff");
@@ -464,7 +464,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
     }
 
     PyErr_Clear(); // XXX for debugging only.  Remove!!!
-    dbg_print("    ----> Returning from python\n");
+    // dbg_print("    ----> Returning from python\n");
     return result;
 }
 
