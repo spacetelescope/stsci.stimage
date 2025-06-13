@@ -40,6 +40,8 @@ DAMAGE.
 #include "immatch/geomap.h"
 #include <structmember.h>
 
+#if 0
+// This is only available for python versions 3.12 or later.
 void print_exception(int line) {
     PyObject *exc = PyErr_GetRaisedException();
     printf("Error - Line %d: ", line);
@@ -47,6 +49,7 @@ void print_exception(int line) {
     // PyErr_SetRaisedException(exc);
     return;
 }
+#endif
 
 /*
  * Check an object to see if it has an attribute.
@@ -463,7 +466,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds)
         Py_XDECREF(fit_obj);
     }
 
-    PyErr_Clear(); // XXX for debugging only.  Remove!!!
+    // PyErr_Clear(); // XXX for debugging only.  Remove!!!
     // dbg_print("    ----> Returning from python\n");
     return result;
 }
@@ -482,7 +485,7 @@ PyInit_geomap_results(void)
 {
     PyObject* m;
 
-    geomap_class.tp_new = PyType_GenericNew;
+    // geomap_class.tp_new = PyType_GenericNew;
     if (PyType_Ready(&geomap_class) < 0)
     {
         return NULL;
