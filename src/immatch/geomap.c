@@ -1466,7 +1466,6 @@ geo_get_results(
 
     PARAM_UNUSED(error); // Suppress unused parameter warning
 
-    // HERE
     geomap_result_init(result);
 
     result->fit_geometry = fit->fit_geometry;
@@ -1812,7 +1811,7 @@ geomap_result_print(
     assert(r);
 
     switch (r->fit_geometry) {
-        // XXX force these enums to be in order and make an array
+        // XXX refactor these enums to be in order and make an array
         case geomap_fit_shift:
             fit_geometry = "shift";
             break;
