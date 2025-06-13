@@ -156,8 +156,10 @@ static PyArrayObject *
 geomap_array_init(void)
 {
     PyArrayObject *o = NULL;
-    const int nd = 1;           // The number of dimensions of array
-    npy_intp dims[nd] = {1};    // The number of elements in dimension 1.
+    const int nd = 1;   // The number of dimensions of array
+    npy_intp dims[nd];  // The number of elements in dimension 1.
+
+    nd[0] = 1; // Must be initialized like this.
 
     // Create a 1-D array with dimension 'dims' of type double.
     o = (PyArrayObject *) PyArray_SimpleNew(nd, dims, NPY_DOUBLE);
