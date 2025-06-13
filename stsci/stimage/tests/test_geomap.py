@@ -27,11 +27,12 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 
-from pprint import pprint
+import pytest
 
 import numpy as np
 import stsci.stimage as stimage
 
+@pytest.mark.skip("Incomplete.")
 def test_same():
     print(" ")
     # test_sz = 512
@@ -42,13 +43,13 @@ def test_same():
 
     r = stimage.geomap(x, y, fit_geometry='general', function='polynomial')
 
-    result = r[0]
+    # result = r[0]
 
     # import ipdb; ipdb.set_trace()
 
-    print(f"{type(r) = }")
-    print(f"{len(r) = }")
-    print(f"{r[0] = }")
+    # print(f"{type(r) = }")
+    # print(f"{len(r) = }")
+    # print(f"{r[0] = }")
     # print(f"{r[1] = }")
 
 
