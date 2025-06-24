@@ -36,6 +36,84 @@ DAMAGE.
 #include "surface/surface.h"
 
 int
+polynomial_init(
+        surface_t* const s,
+        const int xorder,
+        const int yorder,
+        const xterms_e xterms,
+        stimage_error_t* const error)
+{
+    int order;
+
+    s->xorder = xorder;
+    s->yorder = yorder;
+    s->nxcoeff = xorder;
+    s->nycoeff = yorder;
+    s->xterms = xterms;
+    switch (xterms) {
+        case xterms_none:
+            s->ncoeff = xorder + yorder - 1;
+            break;
+        case xterms_half:
+            order = MIN(xorder, yorder);
+            s->ncoeff = xorder * yorder - order * (order - 1) / 2;
+            break;
+        case xterms_full:
+            s->ncoeff = xorder * yorder;
+            break;
+        default:
+            stimage_error_set_message(error, "Invalid surface xterms value");
+            return 1;
+    }
+
+    s->xrange = 1.0;
+    s->xmaxmin = 0.0;
+    s->yrange = 1.0;
+    s->ymaxmin = 0.0;
+
+    return 0;
+}
+
+int
+chebyshev_legendre_init(
+        surface_t* const s,
+        const int xorder,
+        const int yorder,
+        const xterms_e xterms,
+        const bbox_t* const bbox,
+        stimage_error_t* const error)
+{
+    int order;
+
+    s->xorder = xorder;
+    s->yorder = yorder;
+    s->nxcoeff = xorder;
+    s->nycoeff = yorder;
+    s->xterms = xterms;
+    switch (xterms) {
+    case xterms_none:
+        s->ncoeff = xorder + yorder - 1;
+        break;
+    case xterms_half:
+        order = MIN(xorder, yorder);
+        s->ncoeff = xorder * yorder - order * (order - 1) / 2;
+        break;
+    case xterms_full:
+        s->ncoeff = xorder * yorder;
+        break;
+    default:
+        stimage_error_set_message(error, "Invalid surface xterms value");
+        return 1;
+    }
+    s->xrange = 2.0 / (bbox->max.x - bbox->min.x);
+    s->xmaxmin = -(bbox->max.x - bbox->min.x) / 2.0;
+    s->yrange = 2.0 / (bbox->max.y - bbox->min.y);
+    s->ymaxmin = -(bbox->max.y - bbox->min.y) / 2.0;
+
+    return 0;
+}
+
+int
 surface_init(
         surface_t* const s,
         const surface_type_e function,
@@ -45,8 +123,6 @@ surface_init(
         const bbox_t* const bbox,
         stimage_error_t* const error)
 {
-    int order;
-
     assert(s);
     assert(bbox);
     assert(error);
@@ -67,57 +143,11 @@ surface_init(
     switch (function) {
     case surface_type_chebyshev:
     case surface_type_legendre:
-        s->xorder = xorder;
-        s->yorder = yorder;
-        s->nxcoeff = xorder;
-        s->nycoeff = yorder;
-        s->xterms = xterms;
-        switch (xterms) {
-        case xterms_none:
-            s->ncoeff = xorder + yorder - 1;
-            break;
-        case xterms_half:
-            order = MIN(xorder, yorder);
-            s->ncoeff = xorder * yorder - order * (order - 1) / 2;
-            break;
-        case xterms_full:
-            s->ncoeff = xorder * yorder;
-            break;
-        default:
-            stimage_error_set_message(error, "Invalid surface xterms value");
-            goto fail;
-        }
-        s->xrange = 2.0 / (bbox->max.x - bbox->min.x);
-        s->xmaxmin = -(bbox->max.x - bbox->min.x) / 2.0;
-        s->yrange = 2.0 / (bbox->max.y - bbox->min.y);
-        s->ymaxmin = -(bbox->max.y - bbox->min.y) / 2.0;
+        COND_JUMP(chebyshev_legendre_init(s, xorder, yorder, xterms, bbox, error), fail);
         break;
 
     case surface_type_polynomial:
-        s->xorder = xorder;
-        s->yorder = yorder;
-        s->nxcoeff = xorder;
-        s->nycoeff = yorder;
-        s->xterms = xterms;
-        switch (xterms) {
-        case xterms_none:
-            s->ncoeff = xorder + yorder - 1;
-            break;
-        case xterms_half:
-            order = MIN(xorder, yorder);
-            s->ncoeff = xorder * yorder - order * (order - 1) / 2;
-            break;
-        case xterms_full:
-            s->ncoeff = xorder * yorder;
-            break;
-        default:
-            stimage_error_set_message(error, "Invalid surface xterms value");
-            goto fail;
-        }
-        s->xrange = 1.0;
-        s->xmaxmin = 0.0;
-        s->yrange = 1.0;
-        s->ymaxmin = 0.0;
+        COND_JUMP(polynomial_init(s, xorder, yorder, xterms, error), fail);
         break;
 
     default:
@@ -252,31 +282,31 @@ surface_zero(
     assert(s->matrix);
 
     switch (s->type) {
-    case surface_type_legendre:
-    case surface_type_polynomial:
-    case surface_type_chebyshev:
-        /* s->npoints = 0; */
+        case surface_type_legendre:
+        case surface_type_polynomial:
+        case surface_type_chebyshev:
+            /* s->npoints = 0; */
 
-        for (i = 0; i < s->ncoeff; ++i) {
-            s->vector[i] = 0.0;
-        }
+            for (i = 0; i < s->ncoeff; ++i) {
+                s->vector[i] = 0.0;
+            }
 
-        for (i = 0; i < s->ncoeff; ++i) {
-            s->coeff[i] = 0.0;
-        }
+            for (i = 0; i < s->ncoeff; ++i) {
+                s->coeff[i] = 0.0;
+            }
 
-        for (i = 0; i < s->ncoeff * s->ncoeff; ++i) {
-            s->matrix[i] = 0.0;
-        }
+            for (i = 0; i < s->ncoeff * s->ncoeff; ++i) {
+                s->matrix[i] = 0.0;
+            }
 
-        for (i = 0; i < s->ncoeff * s->ncoeff; ++i) {
-            s->cholesky_fact[i] = 0.0;
-        }
+            for (i = 0; i < s->ncoeff * s->ncoeff; ++i) {
+                s->cholesky_fact[i] = 0.0;
+            }
 
-        break;
-    default:
-        stimage_error_set_message(error, "Unknown surface type");
-        return 1;
+            break;
+        default:
+            stimage_error_set_message(error, "Unknown surface type");
+            return 1;
     }
 
     return 0;
