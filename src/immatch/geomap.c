@@ -639,11 +639,11 @@ geo_fit_linear(
         stimage_error_t* error)
 {
     bbox_t  bbox;
-    double  sw      = 0.0;
-    coord_t sr      = {0.0, 0.0};
-    coord_t si      = {0.0, 0.0};
-    coord_t r0      = {0.0, 0.0};
-    coord_t i0      = {0.0, 0.0};
+    double  sw      = 0.0;          /* Sum of weights */
+    coord_t sr      = {0.0, 0.0};   /* Sum of weighted references */
+    coord_t si      = {0.0, 0.0};   /* Sum of weighted inputs */
+    coord_t r0      = {0.0, 0.0};   /* Reference weights sums divided by sum of weights */
+    coord_t i0      = {0.0, 0.0};   /* Input weights sums divided by sum of weights */
     double  sxrxr   = 0.0;
     double  syryr   = 0.0;
     double  syrxi   = 0.0;
@@ -689,6 +689,7 @@ geo_fit_linear(
         goto exit;
     }
 
+    /* XXX - Where did these equations come from? */
     r0.x = sr.x / sw;
     r0.y = sr.y / sw;
     i0.x = si.x / sw;
@@ -951,6 +952,7 @@ geo_fit_xy(
 
             case geomap_fit_xyscale:
                 /* XXX Move everything to a function */
+                // 808
                 if (surface_init(sf1, fit->function, 1, 2, xterms_none, &bbox, error)) {
                     goto exit;
                 }
@@ -1585,29 +1587,35 @@ initialize_bbox(
     } else {
         bbox_copy(bbox, tbbox);
     }
+    return 0;
 }
 
+/* 
+ * Computes the transformation required to map the reference coordinate system
+ * to the input coordinate system.  Fills out the output, result structure and
+ * error structure.
+ */
 int
 geomap(
-        const size_t ninput, const coord_t* const input,
-        const size_t nref, const coord_t* const ref,
-        const bbox_t* const bbox,
-        const geomap_fit_e fit_geometry,
-        const surface_type_e function,
-        const size_t xxorder,
-        const size_t xyorder,
-        const size_t yxorder,
-        const size_t yyorder,
-        const xterms_e xxterms,
-        const xterms_e yxterms,
-        const size_t maxiter,
-        const double reject,
+        const size_t ninput, const coord_t* const input, /* Input coordinates and the size */
+        const size_t nref, const coord_t* const ref,     /* Reference coordinates and the size */
+        const bbox_t* const bbox,           /* The bounding box for coordinates */
+        const geomap_fit_e fit_geometry,    /* Choice of geometry for fitting */
+        const surface_type_e function,      /* type of surface to use */
+        const size_t xxorder,               /* Order for xx polynomials */
+        const size_t xyorder,               /* Order for xy polynomials */
+        const size_t yxorder,               /* Order for yx polynomials */
+        const size_t yyorder,               /* Order for yy polynomials */
+        const xterms_e xxterms,             /* Types of xx terms in polynomial */
+        const xterms_e yxterms,             /* Types of yy terms in polynomial */
+        const size_t maxiter,               /* Max number of iterations */
+        const double reject,                /* Rejections threshhold in terms of sigman */
         /* Input/Output */
-        size_t* const noutput,
+        size_t* const noutput,  /* The number of output records */
         /* Output */
-        geomap_output_t* const output, /* [MAX(ninput, nref)] */
-        geomap_result_t* const result,
-        stimage_error_t* const error)
+        geomap_output_t* const output,  /* Array of output records */
+        geomap_result_t* const result,  /* The fit found */
+        stimage_error_t* const error)   /* Error structure */
 {
     geomap_fit_t     fit;
     bbox_t           tbbox;
@@ -1631,6 +1639,7 @@ geomap(
         goto exit;
     }
 
+    // ------------------------------------------------------------------------
     /* XXX Initialize */
     initialize_surfaces(&sx1, &sy1, &sx2, &sy2);
 
@@ -1664,7 +1673,9 @@ geomap(
                 ninput, input, ref, &tbbox, input_in_bbox, ref_in_bbox);
     }
     /* XXX End Initialize */
+    // ------------------------------------------------------------------------
 
+    // ------------------------------------------------------------------------
     /* XXX Precomputations */
     /* Compute the mean of the reference and input coordinates */
     compute_mean_coord(nref_in_bbox, ref_in_bbox, &fit.oref);
@@ -1699,7 +1710,10 @@ geomap(
     determine_bbox(nref_in_bbox, ref_in_bbox, &tbbox);
     bbox_copy(&tbbox, &fit.bbox);
     /* XXX End Precomputations */
+    // ------------------------------------------------------------------------
 
+    // ------------------------------------------------------------------------
+    // XXX Compute fit
     if (geofit(&fit, &sx1, &sy1, &sx2, &sy2, &has_sx2, &has_sy2, ninput_in_bbox,
                input_in_bbox, ref_in_bbox, weights, error))
     {
@@ -1716,9 +1730,12 @@ geomap(
     if (geo_get_results(&fit, &sx1, &sy1, &sx2, &sy2, has_sx2, has_sy2, result,error)) {
         goto exit;
     }
+    // ------------------------------------------------------------------------
 
     /* DIFF: This section is from geo_plistd */
 
+    // ------------------------------------------------------------------------
+    // XXX Setup outputs
     /* Copy the results to the output buffer */
     tweights = malloc_with_error(ninput_in_bbox * sizeof(double), error);
     if (tweights == NULL) {
@@ -1759,6 +1776,7 @@ geomap(
     *noutput = ninput_in_bbox;
 
     status = 0;
+    // ------------------------------------------------------------------------
 
  exit:
 
