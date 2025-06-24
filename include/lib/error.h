@@ -51,6 +51,8 @@ DAMAGE.
 
 #define PRINT_DELIM print_delim('=', 50, 1)
 
+#define COND_JUMP(C, L) if (C) { goto L; }
+
 void
 print_delim(char c, int nlen, int nret);
 
