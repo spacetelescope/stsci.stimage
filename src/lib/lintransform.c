@@ -44,6 +44,8 @@ DAMAGE.
 #include "lib/lintransform.h"
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 static void
 dbg_print_lintransform(lintransform_t* coeffs) {
     PRINT_DELIM;
@@ -70,6 +72,7 @@ dbg_print_args(const coord_t in, const coord_t mag, const coord_t rot, const coo
 
     PRINT_DELIM;
 }
+#pragma GCC diagnostic pop
 
 /* Consider changing to pointers */
 void
