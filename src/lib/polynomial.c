@@ -82,7 +82,7 @@ eval_1dpoly(
     }
 
     tmp = malloc_with_error(ncoord * sizeof(double), error);
-    if (tmp == NULL) goto exit;
+    COND_JUMP(NULL==tmp, exit);
 
     for (i = 0; i < ncoord; ++i) {
         tmp[i] = x[i<<1];
@@ -143,6 +143,9 @@ eval_1dchebyshev(
     c1 = k2 * coeff[1];
     c2 = c1 * k1 + coeff[0];
     for (i = 0; i < ncoord; ++i) {
+        // XXX How is (i<<1) guaranteed to be in the index space?
+        //     Is this even correct?  Is the multiplication by 2
+        //         in the index or of the coefficient x?
         zfit[i] = x[i<<1] * c1 + c2;
     }
 
@@ -151,16 +154,16 @@ eval_1dchebyshev(
     }
 
     sx = malloc_with_error(ncoord * sizeof(double), error);
-    if (sx == NULL) goto exit;
+    COND_JUMP(NULL==sx, exit);
 
     pn = malloc_with_error(ncoord * sizeof(double), error);
-    if (pn == NULL) goto exit;
+    COND_JUMP(NULL==pn, exit);
 
     pnm1 = malloc_with_error(ncoord * sizeof(double), error);
-    if (pnm1 == NULL) goto exit;
+    COND_JUMP(NULL==pnm1, exit);
 
     pnm2 = malloc_with_error(ncoord * sizeof(double), error);
-    if (pnm2 == NULL) goto exit;
+    COND_JUMP(NULL==pnm2, exit);
 
     for (i = 0; i < ncoord; ++i) {
         pnm2[i] = 1.0;
@@ -246,16 +249,16 @@ eval_1dlegendre(
     }
 
     sx = malloc_with_error(ncoord * sizeof(double), error);
-    if (sx == NULL) goto exit;
+    COND_JUMP(NULL==sx, exit);
 
     pn = malloc_with_error(ncoord * sizeof(double), error);
-    if (pn == NULL) goto exit;
+    COND_JUMP(NULL==pn, exit);
 
     pnm1 = malloc_with_error(ncoord * sizeof(double), error);
-    if (pnm1 == NULL) goto exit;
+    COND_JUMP(NULL==pnm1, exit);
 
     pnm2 = malloc_with_error(ncoord * sizeof(double), error);
-    if (pnm2 == NULL) goto exit;
+    COND_JUMP(NULL==pnm2, exit);
 
     for (i = 0; i < ncoord; ++i) {
         pnm2[i] = 1.0;
@@ -515,15 +518,17 @@ eval_poly_generic(
     }
 
     xb = malloc_with_error(xorder * ncoord * sizeof(double), error);
-    if (xb == NULL) goto exit;
+    COND_JUMP(NULL==xb, exit);
+
     yb = malloc_with_error(yorder * ncoord * sizeof(double), error);
-    if (yb == NULL) goto exit;
+    COND_JUMP(NULL==yb, exit);
+
     accum = malloc_with_error(ncoord * sizeof(double), error);
-    if (accum == NULL) goto exit;
+    COND_JUMP(NULL==accum, exit);
 
     /* Calculate basis functions */
-    if (basis_function(ncoord, 0, ref, xorder, k1x, k2x, xb, error)) goto exit;
-    if (basis_function(ncoord, 1, ref, yorder, k1y, k2y, yb, error)) goto exit;
+    COND_JUMP(basis_function(ncoord, 0, ref, xorder, k1x, k2x, xb, error), exit);
+    COND_JUMP(basis_function(ncoord, 1, ref, yorder, k1y, k2y, yb, error), exit);
 
     /* Accumulate the output vector */
     for (i = 0; i < ncoord; ++i) {
