@@ -128,16 +128,17 @@ surface_init(
     s->type = function;
     bbox_copy(bbox, &s->bbox);
 
-    s->matrix =
-        malloc_with_error(s->ncoeff * s->ncoeff * sizeof(double), error);
-    if (s->matrix == NULL) goto fail;
-    s->cholesky_fact =
-        malloc_with_error(s->ncoeff * s->ncoeff * sizeof(double), error);
-    if (s->cholesky_fact == NULL) goto fail;
+    s->matrix = malloc_with_error(s->ncoeff * s->ncoeff * sizeof(double), error);
+    COND_JUMP(s->matrix == NULL, fail);
+
+    s->cholesky_fact = malloc_with_error(s->ncoeff * s->ncoeff * sizeof(double), error);
+    COND_JUMP(s->cholesky_fact == NULL, fail);
+
     s->vector = malloc_with_error(s->ncoeff * sizeof(double), error);
-    if (s->vector == NULL) goto fail;
+    COND_JUMP(s->vector == NULL, fail);
+
     s->coeff = malloc_with_error(s->ncoeff * sizeof(double), error);
-    if (s->coeff == NULL) goto fail;
+    COND_JUMP(s->coeff == NULL, fail);
 
     if (surface_zero(s, error)) {
         return 1;
@@ -224,14 +225,10 @@ surface_copy(
 
     bbox_copy(&s->bbox, &d->bbox);
 
-    if (surface_copy_vector(
-                s->ncoeff * s->ncoeff, s->matrix, &d->matrix, error) ||
-        surface_copy_vector(
-                s->ncoeff * s->ncoeff, s->cholesky_fact, &d->cholesky_fact, error) ||
-        surface_copy_vector(
-                s->ncoeff, s->vector, &d->vector, error) ||
-        surface_copy_vector(
-                s->ncoeff, s->coeff, &d->coeff, error)) {
+    if (surface_copy_vector(s->ncoeff * s->ncoeff, s->matrix, &d->matrix, error)
+        || surface_copy_vector(s->ncoeff * s->ncoeff, s->cholesky_fact, &d->cholesky_fact, error)
+        || surface_copy_vector(s->ncoeff, s->vector, &d->vector, error)
+        || surface_copy_vector(s->ncoeff, s->coeff, &d->coeff, error)) {
         goto fail;
     }
 
