@@ -45,12 +45,14 @@ DAMAGE.
 #include "surface/fit.h"
 #include "surface/vector.h"
 
-/** DIFF
-
-The argument 'calctype' to choose between real and double calculations
-is gone.  It's always double now.
+/** 
+ * DIFF
+ *
+ * The argument 'calctype' to choose between real and double calculations
+ * is gone.  It's always double now.
+ *
+ * XXX - add comments to flesh this out
  */
-
 typedef struct {
     size_t initialized;
 
@@ -77,11 +79,13 @@ typedef struct {
     coord_t oin;
     coord_t refpt;
     bbox_t  bbox;
+
     size_t  n_zero_weighted;
     size_t  ncoord;
 } geomap_fit_t;
 
 /* was geo_minit */
+// XXX flesh out comments.  Possibly use struct(s).
 static void
 geomap_fit_init(
         geomap_fit_t* fit,
@@ -142,6 +146,7 @@ geomap_fit_free(
 }
 #pragma GCC diagnostic pop
 
+// XXX flesh out comments.
 static void
 compute_sums(
         const size_t ncoord,
@@ -176,6 +181,7 @@ compute_sums(
     }
 }
 
+// XXX flesh out comments.
 static int
 compute_surface_coefficients(
         const surface_type_e function,
@@ -200,9 +206,7 @@ compute_surface_coefficients(
     assert(error);
 
     /* Compute the x fit coefficients */
-    if (surface_init(sx1, function, 2, 2, xterms_none, bbox, error)) {
-        goto exit;
-    }
+    COND_JUMP(surface_init(sx1, function, 2, 2, xterms_none, bbox, error), exit);
 
     if (function == surface_type_polynomial) {
         sx1->coeff[0] = i0->x - (r0->x*cthetac->x + r0->y*sthetac->x);
@@ -217,9 +221,7 @@ compute_surface_coefficients(
     }
 
     /* Compute the y fit coefficients */
-    if (surface_init(sy1, function, 2, 2, xterms_none, bbox, error)) {
-        goto exit;
-    }
+    COND_JUMP(surface_init(sy1, function, 2, 2, xterms_none, bbox, error), exit);
 
     if (function == surface_type_polynomial) {
         sy1->coeff[0] = i0->y - (-r0->x*sthetac->y + r0->y*cthetac->y);
@@ -241,6 +243,7 @@ compute_surface_coefficients(
     return status;
 }
 
+// XXX flesh out comments.
 static int
 compute_residuals(
         const surface_t* const sx1,
@@ -263,13 +266,8 @@ compute_residuals(
     assert(residual_y);
     assert(error);
 
-    if (surface_vector(sx1, ncoord, ref, residual_x, error)) {
-        return 1;
-    }
-
-    if (surface_vector(sy1, ncoord, ref, residual_y, error)) {
-        return 1;
-    }
+    COND_RET(surface_vector(sx1, ncoord, ref, residual_x, error), 1);
+    COND_RET(surface_vector(sy1, ncoord, ref, residual_y, error), 1);
 
     for (i = 0; i < ncoord; ++i) {
         residual_x[i] = input[i].x - residual_x[i];
