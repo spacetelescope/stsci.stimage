@@ -40,6 +40,11 @@ DAMAGE.
 #include "lib/xybbox.h"
 #include "surface/surface.h"
 
+/*
+ * Fit types of transformations.  The reference pixels can be several different
+ * types of trasnforms of the input pixesl (and vice versa), such as translation
+ * (shift), magnification (scale), rotation, etc.
+ */
 typedef enum {
     geomap_fit_shift,
     geomap_fit_xyscale,
@@ -50,6 +55,9 @@ typedef enum {
     geomap_fit_LAST
 } geomap_fit_e;
 
+/*
+ * XXX Unclear what geomap projections are.
+ */
 typedef enum {
     geomap_proj_none,
     geomap_proj_lin,
@@ -83,6 +91,12 @@ typedef enum {
     geomap_proj_LAST
 } geomap_proj_e;
 
+/*
+ * Geomap determines a transormation between a list of input and reference 
+ * pixels.
+ * XXX maybe fit is the list of refernce transforms using the determined transformation.
+ * XXX maybe residual is the difference between the transformations and actual pixels.
+ */
 typedef struct {
     coord_t input;
     coord_t ref;
@@ -90,21 +104,35 @@ typedef struct {
     coord_t residual;
 } geomap_output_t;
 
+/*
+ * XXX Flesh out comments for each parameter.
+ */
 typedef struct {
     geomap_fit_e fit_geometry;
     surface_type_e function;
+
+    // XXX What is this?
     coord_t rms;
+
+    // The mean pixel of the input and reference pixels.
     coord_t mean_ref;
     coord_t mean_input;
+
+    // Type of transformations detected.
     coord_t shift;
     coord_t mag;
     coord_t rotation;
+
+    // Coefficients of x^k terms, y^k terms, and x^k * y^m
     size_t nxcoeff;
     double* xcoeff;
+
     size_t nycoeff;
     double* ycoeff;
+
     size_t nx2coeff;
     double* x2coeff;
+
     size_t ny2coeff;
     double* y2coeff;
 } geomap_result_t;
@@ -113,15 +141,13 @@ typedef struct {
 Initialize the geomap_result object.
 */
 void
-geomap_result_init(
-        geomap_result_t* const r);
+geomap_result_init(geomap_result_t* const r);
 
 /**
 Free the dynamically allocated arrays in the geomap_result_t object.
 */
 void
-geomap_result_free(
-        geomap_result_t* const r);
+geomap_result_free(geomap_result_t* const r);
 
 /**
 `geomap` computes the transformation required to map the reference
@@ -242,6 +268,7 @@ coordinate system to the input coordinate system.
 
 @return Non-zero on error
  */
+// XXX Maybe clean this up using a struct.  There are too many parameters.
 int
 geomap(
         const size_t ninput, const coord_t* const input,
@@ -265,7 +292,6 @@ geomap(
         stimage_error_t* const error);
 
 void
-geomap_result_print(
-        const geomap_result_t* const result);
+geomap_result_print(const geomap_result_t* const result);
 
 #endif /* _STIMAGE_GEOMAP_H_ */
