@@ -75,6 +75,7 @@ typedef struct {
     size_t nreject;
     int*   rej;
 
+    // XXX not sure
     coord_t oref;
     coord_t oin;
     coord_t refpt;
@@ -174,8 +175,10 @@ compute_sums(
     sr->y = 0.0;
     for (i = 0; i < ncoord; ++i) {
         *sw   += weights[i];
+
         si->x += weights[i] * input[i].x;
         si->y += weights[i] * input[i].y;
+
         sr->x += weights[i] * ref[i].x;
         sr->y += weights[i] * ref[i].y;
     }
@@ -362,6 +365,7 @@ geo_fit_theta(
     coord_t sthetac = {0.0, 0.0};
     size_t  i       = 0;
     int     status  = 1;
+    int     ans;
 
     assert(fit);
     assert(sx1);
@@ -445,14 +449,13 @@ geo_fit_theta(
     cthetac.y = ctheta;
 
     /* Compute the X and Y fit coefficients */
-    if (compute_surface_coefficients(fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error)) {
-        goto exit;
-    }
+
+    ans = compute_surface_coefficients(fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error);
+    COND_JUMP(ans, exit);
 
     /* Compute the residuals */
-    if (compute_residuals(sx1, sy1, ncoord, input, ref, residual_x, residual_y, error)) {
-        goto exit;
-    }
+    ans = compute_residuals(sx1, sy1, ncoord, input, ref, residual_x, residual_y, error);
+    COND_JUMP(ans, exit);
 
     /* Compute the number of zero-weighted points */
     fit->n_zero_weighted = count_zero_weighted(ncoord, weights);
@@ -506,6 +509,7 @@ geo_fit_magnify(
     coord_t sthetac = {0.0, 0.0};
     size_t  i       = 0;
     int     status  = 1;
+    int     ans;
 
     assert(fit);
     assert(sx1);
@@ -598,14 +602,12 @@ geo_fit_magnify(
     cthetac.y = mag * ctheta;
 
     /* Compute the X fit coefficients */
-    if (compute_surface_coefficients(fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error)) {
-        goto exit;
-    }
+    ans = compute_surface_coefficients(fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error);
+    COND_JUMP(ans, exit);
 
     /* Compute the residuals */
-    if (compute_residuals(sx1, sy1, ncoord, input, ref, residual_x, residual_y, error)) {
-        goto exit;
-    }
+    ans = compute_residuals(sx1, sy1, ncoord, input, ref, residual_x, residual_y, error);
+    COND_JUMP(ans, exit);
 
     /* Compute the number of zero-weighted points */
     fit->n_zero_weighted = count_zero_weighted(ncoord, weights);
@@ -659,6 +661,7 @@ geo_fit_linear(
     double  ymag    = 0.0;
     size_t  i       = 0;
     int     status  = 1;
+    int     ans;
 
     assert(fit);
     assert(sx1);
@@ -742,14 +745,12 @@ geo_fit_linear(
     cthetac.x = ymag * ctheta;
 
     /* Compute the X and Y fit coefficients */
-    if (compute_surface_coefficients(fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error)) {
-        goto exit;
-    }
+    ans = compute_surface_coefficients(fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error);
+    COND_JUMP(ans, exit);
 
     /* Compute the residuals */
-    if (compute_residuals(sx1, sy1, ncoord, input, ref, residual_x, residual_y, error)) {
-        goto exit;
-    }
+    ans = compute_residuals(sx1, sy1, ncoord, input, ref, residual_x, residual_y, error);
+    COND_JUMP(ans, exit);
 
     /* Compute the number of zero-weighted points */
     fit->n_zero_weighted = count_zero_weighted(ncoord, weights);
@@ -822,6 +823,7 @@ geo_fit_xy(
     surface_fit_error_e fit_error = surface_fit_error_ok;
     size_t              i         = 0;
     int                 status    = 1;
+    int                 ans;
 
     assert(fit);
     assert(sf1);
@@ -840,9 +842,7 @@ geo_fit_xy(
     *has_secondary = 1;
 
     zfit = malloc_with_error(ncoord * sizeof(double), error);
-    if (zfit == NULL) {
-        goto exit;
-    }
+    COND_JUMP(NULL==zfit, exit);
 
     bbox_copy(&fit->bbox, &bbox);
     bbox_make_nonsingular(&bbox);
@@ -851,20 +851,16 @@ geo_fit_xy(
         switch(fit->fit_geometry) {
             case geomap_fit_shift:
                 /* XXX Move everything to a function */
-                if (surface_init(&savefit, fit->function, 2, 2, xterms_none, &bbox, error)) {
-                    goto exit;
-                }
+                COND_JUMP(surface_init(&savefit, fit->function, 2, 2, xterms_none, &bbox, error), exit);
                 surface_free(sf1);
-                if (surface_init(sf1, fit->function, 1, 1, xterms_none, &bbox, error)) {
-                    goto exit;
-                }
+
+                COND_JUMP(surface_init(sf1, fit->function, 1, 1, xterms_none, &bbox, error), exit);
                 for (i = 0; i < ncoord; ++i) {
                     zfit[i] = z[i<<1] - ref[i].x;
                 }
 
-                if (surface_fit(sf1, ncoord, ref, zfit, weights, surface_fit_weight_user, &fit_error, error)) {
-                    goto exit;
-                }
+                ans = surface_fit(sf1, ncoord, ref, zfit, weights, surface_fit_weight_user, &fit_error, error);
+                COND_JUMP(ans, exit);
 
                 if (fit->function == surface_type_polynomial) {
                     savefit.coeff[0] = sf1->coeff[0];
@@ -876,33 +872,25 @@ geo_fit_xy(
                     savefit.coeff[2] = 0.0;
                 }
                 surface_free(sf1);
-                if (surface_copy(&savefit, sf1, error)) {
-                    goto exit;
-                }
+                COND_JUMP(surface_copy(&savefit, sf1, error), exit);
                 *has_secondary = 0;
                 break;
 
             case geomap_fit_xyscale:
                 /* XXX Move everything to a function */
-                if (surface_init(sf1, fit->function, 2, 1, xterms_none, &bbox, error)) {
-                    goto exit;
-                }
-                if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
-                    goto exit;
-                }
+                COND_JUMP(surface_init(sf1, fit->function, 2, 1, xterms_none, &bbox, error), exit);
+                ans = surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error);
+                COND_JUMP(ans, exit);
                 *has_secondary = 0;
                 break;
 
             default:
-                if (surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error)) {
-                    goto exit;
-                }
-                if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
-                    goto exit;
-                }
+                COND_JUMP(surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error), exit);
+                ans = surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error);
+                COND_JUMP(ans, exit);
 
-                if (fit->xxorder > 2 || fit->xyorder > 2 ||
-                    fit->xxterms == xterms_full) {
+                if (fit->xxorder > 2 || fit->xyorder > 2 || fit->xxterms == xterms_full)
+                {
                     if (surface_init(sf2, fit->function, fit->xxorder, fit->xyorder,
                                      fit->xxterms, &fit->bbox, error))
                     {
@@ -918,19 +906,16 @@ geo_fit_xy(
         switch(fit->fit_geometry) {
             case geomap_fit_shift:
                 /* XXX Move everything to a function */
-                if (surface_init(&savefit, fit->function, 2, 2, xterms_none, &bbox, error)) {
-                    goto exit;
-                }
+                COND_JUMP(surface_init(&savefit, fit->function, 2, 2, xterms_none, &bbox, error), exit);
                 surface_free(sf1);
-                if (surface_init(sf1, fit->function, 1, 1, xterms_none, &bbox, error)) {
-                    goto exit;
-                }
+
+                COND_JUMP(surface_init(sf1, fit->function, 1, 1, xterms_none, &bbox, error), exit);
                 for (i = 0; i < ncoord; ++i) {
                     zfit[i] = z[i<<1] - ref[i].y;
                 }
-                if (surface_fit(sf1, ncoord, ref, zfit, weights, surface_fit_weight_user, &fit_error, error)) {
-                    goto exit;
-                }
+
+                ans = surface_fit(sf1, ncoord, ref, zfit, weights, surface_fit_weight_user, &fit_error, error);
+                COND_JUMP(ans, exit);
                 if (fit->function == surface_type_polynomial) {
                     savefit.coeff[0] = sf1->coeff[0];
                     savefit.coeff[1] = 0.0;
@@ -941,39 +926,29 @@ geo_fit_xy(
                     savefit.coeff[2] = (bbox.max.y - bbox.min.y) / 2.0;
                 }
                 surface_free(sf1);
-                if (surface_copy(&savefit, sf1, error)) {
-                    goto exit;
-                }
-
+                COND_JUMP(surface_copy(&savefit, sf1, error), exit);
                 *has_secondary = 0;
                 break;
 
             case geomap_fit_xyscale:
                 /* XXX Move everything to a function */
                 // 808
-                if (surface_init(sf1, fit->function, 1, 2, xterms_none, &bbox, error)) {
-                    goto exit;
-                }
-                if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
-                    goto exit;
-                }
+                COND_JUMP(surface_init(sf1, fit->function, 1, 2, xterms_none, &bbox, error), exit);
+                ans = surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error);
+                COND_JUMP(ans, exit);
                 *has_secondary = 0;
                 break;
 
             default:
-                if (surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error)) {
-                    goto exit;
-                }
-                if (surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error)) {
-                    goto exit;
-                }
+                COND_JUMP(surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error), exit);
+                ans = surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error);
+                COND_JUMP(ans, exit);
                 if (fit->yxorder > 2 || fit->yyorder > 2 ||
-                    fit->yxterms == xterms_full) {
-                    if (surface_init(sf2, fit->function, fit->yxorder, fit->yyorder,
-                                     fit->yxterms, &bbox, error))
-                    {
-                        goto exit;
-                    }
+                    fit->yxterms == xterms_full)
+                {
+                    ans = surface_init(
+                            sf2, fit->function, fit->yxorder, fit->yyorder, fit->yxterms, &bbox, error);
+                    COND_JUMP(ans, exit);
                 } else {
                     *has_secondary = 0;
                 }
@@ -982,29 +957,20 @@ geo_fit_xy(
         }
     }
 
-    if (_geo_fit_xy_validate_fit_error(fit_error, xfit, fit->projection, error)) {
-        goto exit;
-    }
+    COND_JUMP(_geo_fit_xy_validate_fit_error(fit_error, xfit, fit->projection, error), exit);
 
-    if (surface_vector(sf1, ncoord, ref, residual, error)) {
-        goto exit;
-    }
+    COND_JUMP(surface_vector(sf1, ncoord, ref, residual, error), exit);
     for (i = 0; i < ncoord; ++i) {
         residual[i] = z[i<<1] - residual[i];
     }
 
     /* Calculate the higher-order fit */
     if (*has_secondary) {
-        if (surface_fit(sf2, ncoord, ref, residual, weights, surface_fit_weight_user, &fit_error, error)) {
-            goto exit;
-        }
-        if (_geo_fit_xy_validate_fit_error(fit_error, xfit, fit->projection, error)) {
-            goto exit;
-        }
+        ans = surface_fit(sf2, ncoord, ref, residual, weights, surface_fit_weight_user, &fit_error, error);
+        COND_JUMP(ans, exit);
+        COND_JUMP(_geo_fit_xy_validate_fit_error(fit_error, xfit, fit->projection, error), exit);
 
-        if (surface_vector(sf2, ncoord, ref, zfit, error)) {
-            goto exit;
-        }
+        COND_JUMP(surface_vector(sf2, ncoord, ref, zfit, error), exit);
         for (i = 0; i < ncoord; ++i) {
             residual[i] = zfit[i] - residual[i];
         }
@@ -1063,6 +1029,7 @@ geo_fit_reject(
     double  cuty     = 0.0;
     size_t  i        = 0;
     int     status   = 1;
+    int     ans;
 
     assert(fit);
     assert(sx1);
@@ -1077,17 +1044,13 @@ geo_fit_reject(
     assert(error);
 
     tweights = malloc_with_error(ncoord * sizeof(double), error);
-    if (tweights == NULL) {
-        goto exit;
-    }
+    COND_JUMP(NULL==tweights, exit);
 
     if (fit->rej != NULL) {
         free(fit->rej);
     }
     fit->rej = malloc_with_error(ncoord * sizeof(int), error);
-    if (fit->rej == NULL) {
-        goto exit;
-    }
+    COND_JUMP(NULL==fit->rej, exit);
 
     fit->nreject = 0;
 
@@ -1130,25 +1093,19 @@ geo_fit_reject(
         /* Recompute the X and Y fit */
         switch (fit->fit_geometry) {
             case geomap_fit_rotate:
-                if (geo_fit_theta(fit, sx1, sy1, ncoord, input, ref, tweights,
-                                  residual_x, residual_y, error)) 
-                {
-                    goto exit;
-                }
+                ans = geo_fit_theta(
+                        fit, sx1, sy1, ncoord, input, ref, tweights, residual_x, residual_y, error);
+                COND_JUMP(ans, exit);
                 break;
             case geomap_fit_rscale:
-                if (geo_fit_magnify(fit, sx1, sy1, ncoord, input, ref, tweights,
-                                    residual_x, residual_y, error)) 
-                {
-                    goto exit;
-                }
+                ans = geo_fit_magnify(fit, sx1, sy1, ncoord, input, ref, tweights,
+                                    residual_x, residual_y, error);
+                COND_JUMP(ans, exit);
                 break;
             case geomap_fit_rxyscale:
-                if (geo_fit_linear(fit, sx1, sy1, ncoord, input, ref, tweights,
-                                   residual_x, residual_y, error)) 
-                {
-                    goto exit;
-                }
+                ans = geo_fit_linear(fit, sx1, sy1, ncoord, input, ref, tweights,
+                                   residual_x, residual_y, error);
+                COND_JUMP(ans, exit);
                 break;
             default:
                 if (geo_fit_xy(fit, sx1, sx2, ncoord, 1, input, ref, has_sx2, tweights, residual_x, error)
@@ -1192,6 +1149,7 @@ geofit(
     double* residual_x = NULL;
     double* residual_y = NULL;
     int status = 1;
+    int ans;
 
     assert(fit);
     assert(sx1);
@@ -1209,36 +1167,26 @@ geofit(
     *has_sy2 = 0;
 
     residual_x = malloc_with_error(ncoord * sizeof(double), error);
-    if (residual_x == NULL) {
-        goto exit;
-    }
+    COND_JUMP(NULL==residual_x, exit);
 
     residual_y = malloc_with_error(ncoord * sizeof(double), error);
-    if (residual_y == NULL) {
-        goto exit;
-    }
+    COND_JUMP(NULL==residual_y, exit);
 
     switch(fit->fit_geometry) {
         case geomap_fit_rotate:
-            if (geo_fit_theta(fit, sx1, sy1, ncoord, input, ref, weights,
-                              residual_x, residual_y, error)) 
-            {
-                goto exit;
-            }
+            ans = geo_fit_theta(fit, sx1, sy1, ncoord, input, ref, weights,
+                              residual_x, residual_y, error);
+            COND_JUMP(ans, exit);
             break;
         case geomap_fit_rscale:
-            if (geo_fit_magnify(fit, sx1, sy1, ncoord, input, ref, weights,
-                                residual_x, residual_y, error))
-            {
-                goto exit;
-            }
+            ans = geo_fit_magnify(fit, sx1, sy1, ncoord, input, ref, weights,
+                                residual_x, residual_y, error);
+            COND_JUMP(ans, exit);
             break;
         case geomap_fit_rxyscale:
-            if (geo_fit_linear(fit, sx1, sy1, ncoord, input, ref, weights,
-                               residual_x, residual_y, error))
-            {
-                goto exit;
-            }
+            ans = geo_fit_linear(fit, sx1, sy1, ncoord, input, ref, weights,
+                               residual_x, residual_y, error);
+            COND_JUMP(ans, exit);
             break;
         default:
             if (geo_fit_xy(fit, sx1, sx2, ncoord, 0, input, ref, has_sx2, weights, residual_x, error)
@@ -1252,11 +1200,9 @@ geofit(
     if (fit->maxiter <= 0 || !isfinite(fit->reject)) {
         fit->nreject = 0;
     } else {
-        if (geo_fit_reject(fit, sx1, sy1, sx2, sy2, has_sx2, has_sy2, ncoord, input,
-                           ref, weights, residual_x, residual_y, error))
-        {
-            goto exit;
-        }
+        ans = geo_fit_reject(fit, sx1, sy1, sx2, sy2, has_sx2, has_sy2, ncoord, input,
+                           ref, weights, residual_x, residual_y, error);
+        COND_JUMP(ans, exit);
     }
 
     status = 0;
@@ -1297,30 +1243,20 @@ geoeval(
 
     if (has_sx2 || has_sy2) {
         tmp = malloc_with_error(ncoord * sizeof(double), error);
-        if (tmp == NULL) {
-            goto exit;
-        }
+        COND_JUMP(NULL==tmp, exit);
     }
 
-    if (surface_vector(sx1, ncoord, ref, xfit, error)) {
-        goto exit;
-    }
+    COND_JUMP(surface_vector(sx1, ncoord, ref, xfit, error), exit);
     if (has_sx2) {
-        if (surface_vector(sx2, ncoord, ref, tmp, error)) {
-            goto exit;
-        }
+        COND_JUMP(surface_vector(sx2, ncoord, ref, tmp, error), exit);
         for (i = 0; i < ncoord; ++i) {
             xfit[i] += tmp[i];
         }
     }
 
-    if (surface_vector(sy1, ncoord, ref, yfit, error)) {
-        goto exit;
-    }
+    COND_JUMP(surface_vector(sy1, ncoord, ref, yfit, error), exit);
     if (has_sy2) {
-        if (surface_vector(sy2, ncoord, ref, tmp, error)) {
-            goto exit;
-        }
+        COND_JUMP(surface_vector(sy2, ncoord, ref, tmp, error), exit);
         for (i = 0; i < ncoord; ++i) {
             yfit[i] += tmp[i];
         }
@@ -1342,8 +1278,7 @@ geo_get_coeff(
         /* Output */
         coord_t* const shift,
         coord_t* const scale,
-        coord_t* const rot,
-        stimage_error_t* const error)
+        coord_t* const rot)
 {
     size_t nxxcoeff, nxycoeff, nyxcoeff, nyycoeff;
     double xxrange  = 1.0;
@@ -1365,8 +1300,6 @@ geo_get_coeff(
     assert(sy->coeff);
     assert(sx->ncoeff >= 3);
     assert(sy->ncoeff >= 3);
-
-    PARAM_UNUSED(error); // Suppress unused parameter warning
 
     nxxcoeff = nyxcoeff = sx->nxcoeff;
     nxycoeff = nyycoeff = sy->nycoeff;
@@ -1481,9 +1414,7 @@ geo_get_results(
         result->rms.y = sqrt(fit->yrms / (double)(ngood - 1));
     }
 
-    if (geo_get_coeff(
-                sx1, sy1, &result->shift, &result->mag, &result->rotation,
-                error)) goto exit;
+    COND_JUMP(geo_get_coeff(sx1, sy1, &result->shift, &result->mag, &result->rotation), exit);
 
     result->mean_ref.x   = fit->oref.x;
     result->mean_ref.y   = fit->oref.y;
@@ -1492,14 +1423,14 @@ geo_get_results(
 
     result->nxcoeff = sx1->ncoeff;
     result->xcoeff = malloc_with_error(result->nxcoeff * sizeof(double), error);
-    if (result->xcoeff == NULL) goto exit;
+    COND_JUMP(result->xcoeff == NULL, exit);
     for (i = 0; i < result->nxcoeff; ++i) {
         result->xcoeff[i] = sx1->coeff[i];
     }
 
     result->nycoeff = sy1->ncoeff;
     result->ycoeff = malloc_with_error(result->nycoeff * sizeof(double), error);
-    if (result->ycoeff == NULL) goto exit;
+    COND_JUMP(result->ycoeff == NULL, exit);
     for (i = 0; i < result->nycoeff; ++i) {
         result->ycoeff[i] = sy1->coeff[i];
     }
@@ -1508,7 +1439,7 @@ geo_get_results(
         result->nx2coeff = sx2->ncoeff;
         result->x2coeff = malloc_with_error(
                 result->nx2coeff * sizeof(double), error);
-        if (result->x2coeff == NULL) goto exit;
+        COND_JUMP(result->x2coeff == NULL, exit);
         for (i = 0; i < result->nx2coeff; ++i) {
             result->x2coeff[i] = sx2->coeff[i];
         }
@@ -1520,9 +1451,8 @@ geo_get_results(
 
     if (has_sy2) {
         result->ny2coeff = sy2->ncoeff;
-        result->y2coeff = malloc_with_error(
-                result->ny2coeff * sizeof(double), error);
-        if (result->y2coeff == NULL) goto exit;
+        result->y2coeff = malloc_with_error(result->ny2coeff * sizeof(double), error);
+        COND_JUMP(result->y2coeff == NULL, exit);
         for (i = 0; i < result->ny2coeff; ++i) {
             result->y2coeff[i] = sy2->coeff[i];
         }
@@ -1632,10 +1562,9 @@ geomap(
     size_t           i              = 0;
     double           my_nan         = fmod(1.0, 0.0);
     int              status         = 1;
+    int              ans;
 
-    if (verify_geomap_inputs(ninput, input, nref, ref, error)) {
-        goto exit;
-    }
+    COND_JUMP(verify_geomap_inputs(ninput, input, nref, ref, error), exit);
 
     // ------------------------------------------------------------------------
     /* XXX Initialize */
@@ -1660,15 +1589,15 @@ geomap(
     } else {
         input_in_bbox = malloc_with_error(
                 ninput * sizeof(coord_t), error);
-        if (input_in_bbox == NULL) goto exit;
+        COND_JUMP(input_in_bbox == NULL, exit);
 
         ref_in_bbox = malloc_with_error(
                 nref * sizeof(coord_t), error);
-        if (ref_in_bbox == NULL) goto exit;
+        COND_JUMP(ref_in_bbox == NULL, exit);
 
         /* Reduce data to only those in the bbox */
-        ninput_in_bbox = nref_in_bbox = limit_to_bbox(
-                ninput, input, ref, &tbbox, input_in_bbox, ref_in_bbox);
+        nref_in_bbox = limit_to_bbox(ninput, input, ref, &tbbox, input_in_bbox, ref_in_bbox);
+        ninput_in_bbox = nref_in_bbox;
     }
     /* XXX End Initialize */
     // ------------------------------------------------------------------------
@@ -1685,20 +1614,14 @@ geomap(
 
     /* Allocate some memory */
     xfit = malloc_with_error(ninput_in_bbox * sizeof(double), error);
-    if (xfit == NULL) {
-        goto exit;
-    }
+    COND_JUMP(NULL==xfit, exit);
 
     yfit = malloc_with_error(ninput_in_bbox * sizeof(double), error);
-    if (yfit == NULL) {
-        goto exit;
-    }
+    COND_JUMP(NULL==yfit, exit);
 
     /* Compute the weights */
     weights = malloc_with_error(ninput_in_bbox * sizeof(double), error);
-    if (weights == NULL) {
-        goto exit;
-    }
+    COND_JUMP(NULL==weights, exit);
 
     for (i = 0; i < ninput_in_bbox; ++i) {
         weights[i] = 1.0;
@@ -1712,22 +1635,17 @@ geomap(
 
     // ------------------------------------------------------------------------
     // XXX Compute fit
-    if (geofit(&fit, &sx1, &sy1, &sx2, &sy2, &has_sx2, &has_sy2, ninput_in_bbox,
-               input_in_bbox, ref_in_bbox, weights, error))
-    {
-        goto exit;
-    }
+    ans = geofit(&fit, &sx1, &sy1, &sx2, &sy2, &has_sx2, &has_sy2, ninput_in_bbox,
+               input_in_bbox, ref_in_bbox, weights, error);
+    COND_JUMP(ans, exit);
 
     /* Compute the fitted x and y values */
-    if (geoeval(&sx1, &sy1, &sx2, &sy2, has_sx2, has_sy2, ninput_in_bbox,
-                ref_in_bbox, xfit, yfit, error))
-    {
-        goto exit;
-    }
+    ans = geoeval(&sx1, &sy1, &sx2, &sy2, has_sx2, has_sy2, ninput_in_bbox,
+                ref_in_bbox, xfit, yfit, error);
+    COND_JUMP(ans, exit);
 
-    if (geo_get_results(&fit, &sx1, &sy1, &sx2, &sy2, has_sx2, has_sy2, result,error)) {
-        goto exit;
-    }
+    ans = geo_get_results(&fit, &sx1, &sy1, &sx2, &sy2, has_sx2, has_sy2, result,error);
+    COND_JUMP(ans, exit);
     // ------------------------------------------------------------------------
 
     /* DIFF: This section is from geo_plistd */
@@ -1736,9 +1654,7 @@ geomap(
     // XXX Setup outputs
     /* Copy the results to the output buffer */
     tweights = malloc_with_error(ninput_in_bbox * sizeof(double), error);
-    if (tweights == NULL) {
-        goto exit;
-    }
+    COND_JUMP(NULL==tweights, exit);
 
     for (i = 0; i < ninput_in_bbox; ++i) {
         tweights[i] = weights[i];
