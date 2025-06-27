@@ -45,6 +45,8 @@ vector_dot_product(
     size_t i;
     double sum = 0.0;
 
+    PRINT_FUNC;
+
     for (i = 0; i < n; ++i) {
         sum += a[i] * b[i];
     }
