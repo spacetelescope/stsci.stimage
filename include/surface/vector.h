@@ -39,10 +39,11 @@ DAMAGE.
 #include "surface.h"
 
 /*
-  was dgsvector
-
-Evaluate the fitted surface at an array of points.
-*/
+ * was dgsvector
+ * Evaluate the fitted surface at an array of points.
+ *
+ * XXX Expand comments.  
+ */
 int
 surface_vector(
         const surface_t* const s,
