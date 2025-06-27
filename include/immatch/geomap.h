@@ -111,8 +111,7 @@ typedef struct {
     geomap_fit_e fit_geometry;
     surface_type_e function;
 
-    // XXX What is this?
-    coord_t rms;
+    coord_t rms;  // The root mean square
 
     // The mean pixel of the input and reference pixels.
     coord_t mean_ref;
