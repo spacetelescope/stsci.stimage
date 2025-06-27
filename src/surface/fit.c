@@ -102,7 +102,6 @@ surface_fit_add_points(
     /* Calculate weights */
     switch (weight_type) {
         case surface_fit_weight_spacing:
-            dbg_print("surface_fit_weight_spacing\n");
             if (ncoord == 1) {
                 w[0] = 1.0;
             } else {
@@ -120,11 +119,9 @@ surface_fit_add_points(
             }
             break;
         case surface_fit_weight_user:
-            dbg_print("surface_fit_weight_user\n");
             /* User supplied-weights: don't touch the w vector */
             break;
         default:
-            dbg_print("default\n");
             for (i = 0; i < ncoord; ++i) {
                 w[i] = 1.0;
             }
@@ -140,7 +137,6 @@ surface_fit_add_points(
     /* Calculate the non-zero basis functions */
     switch (s->type) {
         case surface_type_polynomial:
-            dbg_print("surface_type_polynomial\n");
             ans = basis_poly(ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange, xbasis, error);
             COND_JUMP(ans, exit);
 
@@ -148,7 +144,6 @@ surface_fit_add_points(
             COND_JUMP(ans, exit);
             break;
         case surface_type_chebyshev:
-            dbg_print("surface_type_chebyshev\n");
             ans = basis_chebyshev(ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange, xbasis, error);
             COND_JUMP(ans, exit);
 
@@ -156,7 +151,6 @@ surface_fit_add_points(
             COND_JUMP(ans, exit);
             break;
         case surface_type_legendre:
-            dbg_print("surface_type_legendre\n");
             ans = basis_legendre(ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange, xbasis, error);
             COND_JUMP(ans, exit);
 
@@ -164,7 +158,6 @@ surface_fit_add_points(
             COND_JUMP(ans, exit);
             break;
         default:
-            dbg_print("default\n");
             stimage_error_set_message(error, "Illegal curve type");
             goto exit;
     }

@@ -886,10 +886,8 @@ geo_fit_xy(
     bbox_make_nonsingular(&bbox);
 
     if (xfit) {
-        dbg_print("xfit\n");
         switch(fit->fit_geometry) {
             case geomap_fit_shift:
-                dbg_print("geomap_fit_shift\n");
                 /* XXX Move everything to a function */
                 COND_JUMP(surface_init(&savefit, fit->function, 2, 2, xterms_none, &bbox, error), exit);
                 surface_free(sf1);
@@ -917,7 +915,6 @@ geo_fit_xy(
                 break;
 
             case geomap_fit_xyscale:
-                dbg_print("geomap_fit_xyscale\n");
                 /* XXX Move everything to a function */
                 COND_JUMP(surface_init(sf1, fit->function, 2, 1, xterms_none, &bbox, error), exit);
                 ans = surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error);
@@ -926,13 +923,10 @@ geo_fit_xy(
                 break;
 
             default:
-                dbg_print("default\n");
                 ans = surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error);
-                dbg_print("ans = %d\n", ans);
                 COND_JUMP(ans, exit);
 
                 ans = surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error);
-                dbg_print("ans = %d\n", ans);
                 COND_JUMP(ans, exit);
 
                 if (fit->xxorder > 2 || fit->xyorder > 2 || fit->xxterms == xterms_full)
@@ -949,10 +943,8 @@ geo_fit_xy(
                 break;
         }
     } else {
-        dbg_print("not xfit\n");
         switch(fit->fit_geometry) {
             case geomap_fit_shift:
-                dbg_print("geomap_fit_shift\n");
                 /* XXX Move everything to a function */
                 COND_JUMP(surface_init(&savefit, fit->function, 2, 2, xterms_none, &bbox, error), exit);
                 surface_free(sf1);
@@ -979,7 +971,6 @@ geo_fit_xy(
                 break;
 
             case geomap_fit_xyscale:
-                dbg_print("geomap_fit_xyscale\n");
                 /* XXX Move everything to a function */
                 // 808
                 COND_JUMP(surface_init(sf1, fit->function, 1, 2, xterms_none, &bbox, error), exit);
@@ -989,7 +980,6 @@ geo_fit_xy(
                 break;
 
             default:
-                dbg_print("default\n");
                 COND_JUMP(surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error), exit);
                 ans = surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error);
                 COND_JUMP(ans, exit);
@@ -1228,25 +1218,21 @@ geofit(
 
     switch(fit->fit_geometry) {
         case geomap_fit_rotate:
-            dbg_print("geomap_fit_rotate\n");
             ans = geo_fit_theta(fit, sx1, sy1, ncoord, input, ref, weights,
                               residual_x, residual_y, error);
             COND_JUMP(ans, exit);
             break;
         case geomap_fit_rscale:
-            dbg_print("geomap_fit_rscale\n");
             ans = geo_fit_magnify(fit, sx1, sy1, ncoord, input, ref, weights,
                                 residual_x, residual_y, error);
             COND_JUMP(ans, exit);
             break;
         case geomap_fit_rxyscale:
-            dbg_print("geomap_fit_rxyscale\n");
             ans = geo_fit_linear(fit, sx1, sy1, ncoord, input, ref, weights,
                                residual_x, residual_y, error);
             COND_JUMP(ans, exit);
             break;
         default:
-            dbg_print("default\n");
             if (geo_fit_xy(fit, sx1, sx2, ncoord, 0, input, ref, has_sx2, weights, residual_x, error)
                 || geo_fit_xy(fit, sy1, sy2, ncoord, 1, input, ref, has_sy2, weights, residual_y, error))
             {
@@ -1258,7 +1244,6 @@ geofit(
     if (fit->maxiter <= 0 || !isfinite(fit->reject)) {
         fit->nreject = 0;
     } else {
-        dbg_print("geo_fit_reject\n");
         ans = geo_fit_reject(fit, sx1, sy1, sx2, sy2, has_sx2, has_sy2, ncoord, input,
                            ref, weights, residual_x, residual_y, error);
         COND_JUMP(ans, exit);
