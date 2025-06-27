@@ -84,6 +84,8 @@ surface_fit_add_points(
     int status = 1;
     int ans;
 
+    PRINT_FUNC;
+
     assert(s);
     assert(coord);
     assert(z);
@@ -188,6 +190,9 @@ surface_fit_add_points(
         bxp = xbasis;
 
         // XXX Nested for loops are a bad idea.
+        //     Indents grow unnecessarily long.  Further, the loop
+        //     has clear logical chunks that could be put into functions
+        //     making the code easie to read.
         for (k = 1; k <= (size_t)xorder; ++k) {
             for (i = 0; i < ncoord; ++i) {
                 bw[i] = byw[i] * bxp[i];
@@ -245,7 +250,8 @@ surface_fit_add_points(
                 xorder = 1;
                 break;
             case xterms_half:
-                if ((int) (l + s->xorder + 1) > maxorder) {
+                if ((int) (l + s->xorder + 1) > maxorder)
+                {
                     --xorder;
                 }
                 break;
@@ -278,6 +284,8 @@ surface_fit_solve(
 {
     int nfree;
 
+    PRINT_FUNC;
+
     assert(s);
     assert(error_type);
     assert(error);
@@ -300,10 +308,16 @@ surface_fit_solve(
     case surface_type_legendre:
         if (cholesky_factorization(
                     s->ncoeff, s->ncoeff, s->matrix, s->cholesky_fact,
-                    error_type, error)) return 1;
+                    error_type, error))
+        {
+            return 1;
+        }
         if (cholesky_solve(
                     s->ncoeff, s->ncoeff, s->cholesky_fact, s->vector,
-                    s->coeff, error)) return 1;
+                    s->coeff, error))
+        {
+            return 1;
+        }
         break;
 
     default:
@@ -328,28 +342,25 @@ surface_fit(
         surface_fit_error_e* const error_type,
         stimage_error_t* const error)
 {
-    int ans;
-
     assert(s);
     assert(coord);
     assert(z);
     assert(w);
     assert(error);
 
-    ans = surface_zero(s, error);
-    if (ans)
+    PRINT_FUNC;
+
+    if (surface_zero(s, error))
     {
         return 1;
     }
 
-    ans = surface_fit_add_points(s, ncoord, coord, z, w, weight_type, error);
-    if (ans)
+    if (surface_fit_add_points(s, ncoord, coord, z, w, weight_type, error))
     {
         return 1;
     }
 
-    ans = surface_fit_solve(s, error_type, error);
-    if (ans)
+    if (surface_fit_solve(s, error_type, error))
     {
         return 1;
     }
