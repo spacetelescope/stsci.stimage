@@ -45,6 +45,8 @@ surface_vector(
 {
     int status;
 
+    PRINT_FUNC;
+
     assert(s);
     assert(ref);
     assert(zfit);
@@ -68,11 +70,11 @@ surface_vector(
 
         case surface_type_chebyshev:
             if (s->xorder == 1) {
-                status = eval_1dchebyshev(
-                        s->yorder, s->coeff, ncoord, 1, ref, s->ymaxmin, s->yrange, zfit, error);
+                status = eval_1dchebyshev(s->yorder, s->coeff, ncoord, 1, ref,
+                                          s->ymaxmin, s->yrange, zfit, error);
             } else if (s->yorder == 1) {
-                status = eval_1dchebyshev(
-                        s->xorder, s->coeff, ncoord, 0, ref, s->xmaxmin, s->xrange, zfit, error);
+                status = eval_1dchebyshev(s->xorder, s->coeff, ncoord, 0, ref,
+                                          s->xmaxmin, s->xrange, zfit, error);
             } else {
                 status = eval_chebyshev(
                         s->xorder, s->yorder, s->coeff,
@@ -85,11 +87,11 @@ surface_vector(
 
         case surface_type_legendre:
             if (s->xorder == 1) {
-                status = eval_1dlegendre(
-                        s->yorder, s->coeff, ncoord, 1, ref, s->ymaxmin, s->yrange, zfit, error);
+                status = eval_1dlegendre(s->yorder, s->coeff, ncoord, 1, ref,
+                                         s->ymaxmin, s->yrange, zfit, error);
             } else if (s->yorder == 1) {
-                status = eval_1dlegendre(
-                        s->xorder, s->coeff, ncoord, 0, ref, s->xmaxmin, s->xrange, zfit, error);
+                status = eval_1dlegendre(s->xorder, s->coeff, ncoord, 0, ref,
+                                         s->xmaxmin, s->xrange, zfit, error);
             } else {
                 status = eval_legendre(
                         s->xorder, s->yorder, s->coeff,
