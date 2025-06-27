@@ -59,7 +59,7 @@ eval_1dpoly(
     const double* x      = (double *)ref + axis;
     double*       tmp    = NULL;
     int           status = 1;
-    double tmp1;
+    // double tmp1;
 
     PRINT_FUNC;
 
