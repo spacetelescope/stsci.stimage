@@ -59,6 +59,9 @@ eval_1dpoly(
     const double* x      = (double *)ref + axis;
     double*       tmp    = NULL;
     int           status = 1;
+    double tmp1;
+
+    PRINT_FUNC;
 
     assert(coeff);
     assert(ref);
@@ -81,6 +84,7 @@ eval_1dpoly(
         return 0;
     }
 
+    // XXX Not sure a tmp array is needed.
     tmp = malloc_with_error(ncoord * sizeof(double), error);
     COND_JUMP(NULL==tmp, exit);
 
@@ -92,6 +96,12 @@ eval_1dpoly(
         for (i = 0; i < ncoord; ++i) {
             tmp[i] *= x[i<<1];
             zfit[i] += tmp[i] * coeff[j];
+#if 0
+            // Possible non-array computation.
+            tmp1 = x[i<<1];
+            tmp1 *= tmp1;
+            zfit[i] = tmp1 * coeff[j];
+#endif
         }
     }
 
@@ -109,10 +119,10 @@ eval_1dchebyshev(
         const int order,
         const double* const coeff,
         const size_t ncoord,
-        const size_t axis,
+        const size_t axis,  // Using X or Y?
         const coord_t* const ref,
-        const double k1,
-        const double k2,
+        const double k1,  // xmaxmin or ymaxmin, depending on axis
+        const double k2,  // xrange or yrange, depending on axis
         double* const zfit,
         stimage_error_t* const error)
 {
@@ -143,9 +153,8 @@ eval_1dchebyshev(
     c1 = k2 * coeff[1];
     c2 = c1 * k1 + coeff[0];
     for (i = 0; i < ncoord; ++i) {
-        // XXX How is (i<<1) guaranteed to be in the index space?
-        //     Is this even correct?  Is the multiplication by 2
-        //         in the index or of the coefficient x?
+        // if axis = 0, then x[i<<1] = ref[i].x
+        // if axis = 1, then x[i<<1] = ref[i].y
         zfit[i] = x[i<<1] * c1 + c2;
     }
 
@@ -167,10 +176,13 @@ eval_1dchebyshev(
 
     for (i = 0; i < ncoord; ++i) {
         pnm2[i] = 1.0;
-        pnm1[i] = sx[i] = (x[i<<1] + k1) * k2;
+        sx[i] = (x[i<<1] + k1) * k2;
+        pnm1[i] = sx[i];
         sx[i] *= 2;
     }
 
+    // XXX These variable names can be more descriptive.  Not really
+    //     sure what's going on here.
     for (j = 2; j < order; ++j) {
         for (i = 0; i < ncoord; ++i) {
             pn[i] = (sx[i] * pnm1[i]) - pnm2[i];
@@ -206,10 +218,10 @@ eval_1dlegendre(
         const int order,
         const double* const coeff,
         const size_t ncoord,
-        const size_t axis,
+        const size_t axis, // Evaluating X or Y?
         const coord_t* const ref,
-        const double k1,
-        const double k2,
+        const double k1,  // xmaxmin or ymaxmin, depending on axis
+        const double k2,  // xrange or yrange, depending on axis
         double* const zfit,
         stimage_error_t* const error)
 {
@@ -265,6 +277,8 @@ eval_1dlegendre(
         pnm1[i] = sx[i] = (x[i<<1] + k1) * k2;
     }
 
+    // XXX These variable names can be more descriptive.  Not sure
+    //     what's going on here.
     for (j = 2; j < order; ++j) {
         ri = (double)j + 1.0;
         ri1 = (2.0 * ri - 3.0) / (ri - 1.0);
@@ -316,6 +330,8 @@ basis_poly(
     const double* const x  = (double*)ref + axis;
     double*             bp = basis;
 
+    PRINT_FUNC;
+
     assert(ref);
     assert(basis);
     assert(error);
@@ -332,12 +348,16 @@ basis_poly(
             }
         } else if (k == 1) {
             for (i = 0; i < ncoord; ++i) {
+                // if axis = 0, then x[i<<1] = ref[i].x
+                // if axis = 1, then x[i<<1] = ref[i].y
                 bp[i] = x[i<<1];
             }
         } else {
             for (i = 0; i < ncoord; ++i) {
                 assert(((bp - basis) + i - ncoord) > 0);
                 assert(((bp - basis) + i - ncoord) < ncoord * order);
+                // if axis = 0, then x[i<<1] = ref[i].x
+                // if axis = 1, then x[i<<1] = ref[i].y
                 bp[i] = x[i<<1] * bp[i - ncoord];
             }
         }
@@ -351,10 +371,10 @@ basis_poly(
 int
 basis_chebyshev(
         const size_t ncoord,
-        const size_t axis,
+        const size_t axis, // Using X or Y?
         const coord_t* const ref,
         const int order,
-        const double k1,
+        const double k1, 
         const double k2,
         double* const basis,
         stimage_error_t* const error)
@@ -375,6 +395,8 @@ basis_chebyshev(
             }
         } else if (k == 1) {
             for (i = 0; i < ncoord; ++i) {
+                // if axis = 0, then x[i<<1] = ref[i].x
+                // if axis = 1, then x[i<<1] = ref[i].y
                 bp[i] = (x[i<<1] + k1) * k2;
             }
         } else {
@@ -425,6 +447,8 @@ basis_legendre(
             }
         } else if (k == 1) {
             for (i = 0; i < ncoord; ++i) {
+                // if axis = 0, then x[i<<1] = ref[i].x
+                // if axis = 1, then x[i<<1] = ref[i].y
                 bp[i] = (x[i<<1] + k1) * k2;
             }
         } else {
@@ -448,6 +472,8 @@ basis_legendre(
     return 0;
 }
 
+// Needs meaninful comments to describe what's going on and
+// what the parameters are.
 static int
 eval_poly_generic(
         const int xorder,
@@ -465,6 +491,7 @@ eval_poly_generic(
         double* const zfit,
         stimage_error_t* const error)
 {
+    // Refactor long function.
     size_t       i        = 0;
     int          j        = 0;
     int          k        = 0;
@@ -526,7 +553,11 @@ eval_poly_generic(
     accum = malloc_with_error(ncoord * sizeof(double), error);
     COND_JUMP(NULL==accum, exit);
 
-    /* Calculate basis functions */
+    /* 
+     * Calculate basis functions 
+     *     axis = 0 evaluates X coordinates
+     *     axis = 1 evaluates Y coordinates
+     */
     COND_JUMP(basis_function(ncoord, 0, ref, xorder, k1x, k2x, xb, error), exit);
     COND_JUMP(basis_function(ncoord, 1, ref, yorder, k1y, k2y, yb, error), exit);
 
@@ -535,6 +566,7 @@ eval_poly_generic(
         zfit[i] = 0.0;
     }
 
+    // Cryptic.  Not sure exactly what's going on in the details.
     if (xterms != xterms_none) {
         xincr = xorder;
         ybp = yb;
@@ -593,6 +625,9 @@ eval_poly_generic(
     return status;
 }
 
+// -------------------------------------------------------------------------
+// Wrappers for different types of polynomials.  Use a callback function for
+// the different types of polynomials.
 int
 eval_poly(
         const int xorder,
