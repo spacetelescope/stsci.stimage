@@ -45,6 +45,8 @@ polynomial_init(
 {
     int order;
 
+    PRINT_FUNC;
+
     s->xorder = xorder;
     s->yorder = yorder;
     s->nxcoeff = xorder;
@@ -85,6 +87,8 @@ chebyshev_legendre_init(
 {
     int order;
 
+    PRINT_FUNC;
+
     s->xorder = xorder;
     s->yorder = yorder;
     s->nxcoeff = xorder;
@@ -123,6 +127,8 @@ surface_init(
         const bbox_t* const bbox,
         stimage_error_t* const error)
 {
+    PRINT_FUNC;
+
     assert(s);
     assert(bbox);
     assert(error);
@@ -188,6 +194,9 @@ int
 surface_new(
         surface_t* const s)
 {
+
+    PRINT_FUNC;
+
     memset(s, 0, sizeof(surface_t));
 
     surface_free(s);
@@ -200,6 +209,8 @@ surface_free(
         surface_t* const s)
 {
     assert(s);
+
+    PRINT_FUNC;
 
     free(s->matrix); s->matrix = NULL;
     free(s->cholesky_fact); s->cholesky_fact = NULL;
@@ -216,10 +227,15 @@ surface_copy_vector(
 {
     size_t i;
 
+    PRINT_FUNC;
+
     if (s != NULL) {
         free(*d);
         *d = malloc_with_error(size * sizeof(double), error);
-        if (*d == NULL) return 1;
+        if (*d == NULL)
+        {
+            return 1;
+        }
         for (i = 0; i < size; ++i) {
             (*d)[i] = s[i];
         }
@@ -237,6 +253,8 @@ surface_copy(
     assert(s);
     assert(d);
     assert(error);
+
+    PRINT_FUNC;
 
     surface_new(d);
 
@@ -258,7 +276,8 @@ surface_copy(
     if (surface_copy_vector(s->ncoeff * s->ncoeff, s->matrix, &d->matrix, error)
         || surface_copy_vector(s->ncoeff * s->ncoeff, s->cholesky_fact, &d->cholesky_fact, error)
         || surface_copy_vector(s->ncoeff, s->vector, &d->vector, error)
-        || surface_copy_vector(s->ncoeff, s->coeff, &d->coeff, error)) {
+        || surface_copy_vector(s->ncoeff, s->coeff, &d->coeff, error))
+    {
         goto fail;
     }
 
@@ -276,6 +295,8 @@ surface_zero(
         stimage_error_t* const error)
 {
     size_t i;
+
+    PRINT_FUNC;
 
     assert(s);
     assert(s->vector);
