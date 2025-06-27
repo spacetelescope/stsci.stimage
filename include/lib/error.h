@@ -50,6 +50,7 @@ DAMAGE.
 #define print_start_func dbg_print(" --> Starting function: %s\n", __FUNCTION__)
 
 #define PRINT_DELIM print_delim('=', 50, 1)
+#define PRINT_FUNC dbg_print("    ----> %s\n", __FUNCTION__)
 
 #define COND_JUMP(C, L) if (C) { goto L; }
 #define COND_RET(C, V) if (C) { return (V); }
