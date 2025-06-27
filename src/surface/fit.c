@@ -63,6 +63,7 @@ surface_fit_add_points(
         const surface_fit_weight_e weight_type,
         stimage_error_t* const error)
 {
+    // XXX function is too long; refactor
     size_t i, j, k, l, ii, jj, ll;
     double* byw = NULL;
     double* bw = NULL;
@@ -81,6 +82,7 @@ surface_fit_add_points(
     int maxorder;
     size_t ntimes;
     int status = 1;
+    int ans;
 
     assert(s);
     assert(coord);
@@ -95,67 +97,72 @@ surface_fit_add_points(
 
     /* Calculate weights */
     switch (weight_type) {
-    case surface_fit_weight_spacing:
-        if (ncoord == 1) {
-            w[0] = 1.0;
-        } else {
-            w[0] = ABS(coord[1].x - coord[0].x);
-        }
+        case surface_fit_weight_spacing:
+            dbg_print("surface_fit_weight_spacing\n");
+            if (ncoord == 1) {
+                w[0] = 1.0;
+            } else {
+                w[0] = ABS(coord[1].x - coord[0].x);
+            }
 
-        for (i = 1; i < ncoord - 1; ++i) {
-            w[i] = ABS(coord[i+1].x - coord[i-1].x);
-        }
+            for (i = 1; i < ncoord - 1; ++i) {
+                w[i] = ABS(coord[i+1].x - coord[i-1].x);
+            }
 
-        if (ncoord == 1) {
-            w[ncoord-1] = 1.0;
-        } else {
-            w[ncoord-1] = ABS(coord[ncoord-1].x - coord[ncoord-2].x);
-        }
-        break;
-    case surface_fit_weight_user:
-        /* User supplied-weights: don't touch the w vector */
-        break;
-    default:
-        for (i = 0; i < ncoord; ++i) {
-            w[i] = 1.0;
-        }
-        break;
+            if (ncoord == 1) {
+                w[ncoord-1] = 1.0;
+            } else {
+                w[ncoord-1] = ABS(coord[ncoord-1].x - coord[ncoord-2].x);
+            }
+            break;
+        case surface_fit_weight_user:
+            dbg_print("surface_fit_weight_user\n");
+            /* User supplied-weights: don't touch the w vector */
+            break;
+        default:
+            dbg_print("default\n");
+            for (i = 0; i < ncoord; ++i) {
+                w[i] = 1.0;
+            }
+            break;
     }
 
     xbasis = malloc_with_error(ncoord * s->xorder * sizeof(double), error);
-    if (xbasis == NULL) goto exit;
+    COND_JUMP(NULL==xbasis, exit);
+
     ybasis = malloc_with_error(ncoord * s->yorder * sizeof(double), error);
-    if (ybasis == NULL) goto exit;
+    COND_JUMP(NULL==ybasis, exit);
 
     /* Calculate the non-zero basis functions */
     switch (s->type) {
-    case surface_type_polynomial:
-        if (basis_poly(
-                    ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange,
-                    xbasis, error)) goto exit;
-        if (basis_poly(
-                    ncoord, 1, coord, s->yorder, s->ymaxmin, s->yrange,
-                    ybasis, error)) goto exit;
-        break;
-    case surface_type_chebyshev:
-        if (basis_chebyshev(
-                    ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange,
-                    xbasis, error)) goto exit;
-        if (basis_chebyshev(
-                    ncoord, 1, coord, s->yorder, s->ymaxmin, s->yrange,
-                    ybasis, error)) goto exit;
-        break;
-    case surface_type_legendre:
-        if (basis_legendre(
-                    ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange,
-                    xbasis, error)) goto exit;
-        if (basis_legendre(
-                    ncoord, 1, coord, s->yorder, s->ymaxmin, s->yrange,
-                    ybasis, error)) goto exit;
-        break;
-    default:
-        stimage_error_set_message(error, "Illegal curve type");
-        goto exit;
+        case surface_type_polynomial:
+            dbg_print("surface_type_polynomial\n");
+            ans = basis_poly(ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange, xbasis, error);
+            COND_JUMP(ans, exit);
+
+            ans = basis_poly(ncoord, 1, coord, s->yorder, s->ymaxmin, s->yrange, ybasis, error);
+            COND_JUMP(ans, exit);
+            break;
+        case surface_type_chebyshev:
+            dbg_print("surface_type_chebyshev\n");
+            ans = basis_chebyshev(ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange, xbasis, error);
+            COND_JUMP(ans, exit);
+
+            ans = basis_chebyshev(ncoord, 1, coord, s->yorder, s->ymaxmin, s->yrange, ybasis, error);
+            COND_JUMP(ans, exit);
+            break;
+        case surface_type_legendre:
+            dbg_print("surface_type_legendre\n");
+            ans = basis_legendre(ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange, xbasis, error);
+            COND_JUMP(ans, exit);
+
+            ans = basis_legendre(ncoord, 1, coord, s->yorder, s->ymaxmin, s->yrange, ybasis, error);
+            COND_JUMP(ans, exit);
+            break;
+        default:
+            dbg_print("default\n");
+            stimage_error_set_message(error, "Illegal curve type");
+            goto exit;
     }
 
     /* Allocate temporary space for matrix accumulation */
@@ -172,6 +179,7 @@ surface_fit_add_points(
     maxorder = MAX(s->xorder + 1, s->yorder + 1);
     xorder = s->xorder;
     ntimes = 0;
+    // XXX This loop should be its own function and it's also too long.
     for (l = 1; l <= s->yorder; ++l) {
         for (i = 0; i < ncoord; ++i) {
             byw[i] = w[i] * byp[i];
@@ -179,6 +187,7 @@ surface_fit_add_points(
 
         bxp = xbasis;
 
+        // XXX Nested for loops are a bad idea.
         for (k = 1; k <= (size_t)xorder; ++k) {
             for (i = 0; i < ncoord; ++i) {
                 bw[i] = byw[i] * bxp[i];
@@ -207,16 +216,16 @@ surface_fit_add_points(
                     bbxp = xbasis;
                     bbyp += ncoord;
                     switch (s->xterms) {
-                    case xterms_none:
-                        xxorder = 1;
-                        break;
-                    case xterms_half:
-                        if ((int) (ll + s->xorder) > maxorder) {
-                            --xxorder;
-                        }
-                        break;
-                    default:
-                        break;
+                        case xterms_none:
+                            xxorder = 1;
+                            break;
+                        case xterms_half:
+                            if ((int) (ll + s->xorder) > maxorder) {
+                                --xxorder;
+                            }
+                            break;
+                        default:
+                            break;
                     }
                 } else {
                     ++jj;
@@ -232,16 +241,16 @@ surface_fit_add_points(
         ntimes += xorder;
 
         switch (s->xterms) {
-        case xterms_none:
-            xorder = 1;
-            break;
-        case xterms_half:
-            if ((int) (l + s->xorder + 1) > maxorder) {
-                --xorder;
-            }
-            break;
-        default:
-            break;
+            case xterms_none:
+                xorder = 1;
+                break;
+            case xterms_half:
+                if ((int) (l + s->xorder + 1) > maxorder) {
+                    --xorder;
+                }
+                break;
+            default:
+                break;
         }
         byp += ncoord;
     }
@@ -319,15 +328,29 @@ surface_fit(
         surface_fit_error_e* const error_type,
         stimage_error_t* const error)
 {
+    int ans;
+
     assert(s);
     assert(coord);
     assert(z);
     assert(w);
     assert(error);
 
-    if (surface_zero(s, error) ||
-        surface_fit_add_points(s, ncoord, coord, z, w, weight_type, error) ||
-        surface_fit_solve(s, error_type, error)) {
+    ans = surface_zero(s, error);
+    if (ans)
+    {
+        return 1;
+    }
+
+    ans = surface_fit_add_points(s, ncoord, coord, z, w, weight_type, error);
+    if (ans)
+    {
+        return 1;
+    }
+
+    ans = surface_fit_solve(s, error_type, error);
+    if (ans)
+    {
         return 1;
     }
 
