@@ -102,6 +102,8 @@ geomap_fit_init(
         const size_t maxiter,
         const double reject)
 {
+    PRINT_FUNC;
+
     assert(fit);
     assert(fit_geometry < geomap_fit_LAST);
     assert(function < surface_type_LAST);
@@ -134,6 +136,8 @@ static void
 geomap_fit_new(
         geomap_fit_t* fit)
 {
+    PRINT_FUNC;
+
     fit->initialized = 0;
     fit->rej = NULL;
 }
@@ -142,6 +146,8 @@ static void
 geomap_fit_free(
         geomap_fit_t* fit)
 {
+    PRINT_FUNC;
+
     free(fit->rej); fit->rej = NULL;
     fit->initialized = 0;
 }
@@ -160,6 +166,8 @@ compute_sums(
         coord_t* const sr)
 {
     size_t i = 0;
+
+    PRINT_FUNC;
 
     assert(input);
     assert(ref);
@@ -198,6 +206,8 @@ compute_surface_coefficients(
         stimage_error_t* const error)
 {
     int status = 1;
+
+    PRINT_FUNC;
 
     assert(bbox);
     assert(i0);
@@ -261,6 +271,8 @@ compute_residuals(
 {
     size_t i = 0;
 
+    PRINT_FUNC;
+
     assert(sx1);
     assert(sy1);
     assert(input);
@@ -292,6 +304,8 @@ compute_rms(
 {
     size_t i = 0;
 
+    PRINT_FUNC;
+
     assert(weights);
     assert(residual_x);
     assert(residual_y);
@@ -315,6 +329,8 @@ count_zero_weighted(
     size_t count = 0;
     size_t i     = 0;
 
+    PRINT_FUNC;
+
     assert(weights);
 
     for (i = 0; i < ncoord; ++i) {
@@ -328,9 +344,13 @@ count_zero_weighted(
 
 /** DIFF: was geo_fthetad */
 
-/* Compute the shift and rotation angle required to match one set of
-   coordinates to another.  The result is stored in the fit
-   structure. */
+/* 
+ * Compute the shift and rotation angle required to match one set of
+ * coordinates to another.  The result is stored in the fit
+ * structure. 
+ *
+ * XXX What algorithm is this?
+ */
 static int
 geo_fit_theta(
         geomap_fit_t* const fit,
@@ -345,27 +365,30 @@ geo_fit_theta(
         double* const residual_y,
         stimage_error_t* error)
 {
+    // XXX this function is too long and needs to be refactored.
     bbox_t  bbox;
-    double  sw      = 0.0;
-    coord_t sr      = {0.0, 0.0};
-    coord_t si      = {0.0, 0.0};
-    coord_t r0      = {0.0, 0.0};
-    coord_t i0      = {0.0, 0.0};
-    double  syrxi   = 0.0;
-    double  sxryi   = 0.0;
-    double  sxrxi   = 0.0;
-    double  syryi   = 0.0;
-    double  num     = 0.0;
-    double  denom   = 0.0;
-    double  det     = 0.0;
-    double  theta   = 0.0;
-    double  ctheta  = 0.0;
-    double  stheta  = 0.0;
-    coord_t cthetac = {0.0, 0.0};
-    coord_t sthetac = {0.0, 0.0};
-    size_t  i       = 0;
-    int     status  = 1;
-    int     ans;
+    double  sw      = 0.0;          // sum of weights
+    coord_t sr      = {0.0, 0.0};   // sum of weighted reference points
+    coord_t si      = {0.0, 0.0};   // sum of weighted input points
+    coord_t r0      = {0.0, 0.0};   // weighted average of reference points
+    coord_t i0      = {0.0, 0.0};   // weighted average of input points
+    double  syrxi   = 0.0;  // Sum of reference y and input x
+    double  sxryi   = 0.0;  // Sum of reference x and input y
+    double  sxrxi   = 0.0;  // Sum of reference x and input x
+    double  syryi   = 0.0;  // Sum of reference y and input y
+    double  num     = 0.0;  // Numerator for angle computation
+    double  denom   = 0.0;  // Denominator for angle computation
+    double  det     = 0.0;  // Determinant?
+    double  theta   = 0.0;  // Angle computed between input and reference pixels
+    double  ctheta  = 0.0;  // Cosine of theta
+    double  stheta  = 0.0;  // Sine of theta
+    coord_t cthetac = {0.0, 0.0};  // XXX I think this is a rotation matrix
+    coord_t sthetac = {0.0, 0.0};  // XXX I think this works with ctheta to be a rotation matrix
+    size_t  i       = 0;  // an index
+    int     status  = 1;  // return status
+    int     ans; // intermediate value
+
+    PRINT_FUNC;
 
     assert(fit);
     assert(sx1);
@@ -398,10 +421,12 @@ geo_fit_theta(
     }
 
     /* Compute the sums required to compute the rotation angle */
-    r0.x = sr.x / sw;
+    r0.x = sr.x / sw;   // Weighted reference average
     r0.y = sr.y / sw;
-    i0.x = si.x / sw;
+    i0.x = si.x / sw;   // Weighted input average
     i0.y = si.y / sw;
+
+    // Sums of weighted residuals (average - point[i]).
     for (i = 0; i < ncoord; ++i) {
         syrxi += weights[i] * (ref[i].y - r0.y) * (input[i].x - i0.x);
         sxryi += weights[i] * (ref[i].x - r0.x) * (input[i].y - i0.y);
@@ -449,8 +474,8 @@ geo_fit_theta(
     cthetac.y = ctheta;
 
     /* Compute the X and Y fit coefficients */
-
-    ans = compute_surface_coefficients(fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error);
+    ans = compute_surface_coefficients(
+            fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error);
     COND_JUMP(ans, exit);
 
     /* Compute the residuals */
@@ -486,6 +511,7 @@ geo_fit_magnify(
         double* const residual_y,
         stimage_error_t* error)
 {
+    // XXX This function is too long and needs to be refactored.
     bbox_t  bbox;
     double  sw      = 0.0;
     coord_t sr      = {0.0, 0.0};
@@ -510,6 +536,8 @@ geo_fit_magnify(
     size_t  i       = 0;
     int     status  = 1;
     int     ans;
+
+    PRINT_FUNC;
 
     assert(fit);
     assert(sx1);
@@ -602,7 +630,8 @@ geo_fit_magnify(
     cthetac.y = mag * ctheta;
 
     /* Compute the X fit coefficients */
-    ans = compute_surface_coefficients(fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error);
+    ans = compute_surface_coefficients(
+            fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error);
     COND_JUMP(ans, exit);
 
     /* Compute the residuals */
@@ -638,6 +667,7 @@ geo_fit_linear(
         double* const residual_y,
         stimage_error_t* error)
 {
+    // XXX This function is too long and needs to be refactored.
     bbox_t  bbox;
     double  sw      = 0.0;          /* Sum of weights */
     coord_t sr      = {0.0, 0.0};   /* Sum of weighted references */
@@ -662,6 +692,8 @@ geo_fit_linear(
     size_t  i       = 0;
     int     status  = 1;
     int     ans;
+
+    PRINT_FUNC;
 
     assert(fit);
     assert(sx1);
@@ -745,7 +777,8 @@ geo_fit_linear(
     cthetac.x = ymag * ctheta;
 
     /* Compute the X and Y fit coefficients */
-    ans = compute_surface_coefficients(fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error);
+    ans = compute_surface_coefficients(
+            fit->function, &bbox, &i0, &r0, &cthetac, &sthetac, sx1, sy1, error);
     COND_JUMP(ans, exit);
 
     /* Compute the residuals */
@@ -774,6 +807,8 @@ _geo_fit_xy_validate_fit_error(
         const geomap_proj_e projection,
         stimage_error_t* error)
 {
+    PRINT_FUNC;
+
     assert(error);
 
     switch (error_type) {
@@ -816,6 +851,7 @@ geo_fit_xy(
         double* const residual,
         stimage_error_t* error)
 {
+    // XXX This function is too long and needs to be refactored.
     bbox_t              bbox;
     double*             zfit      = NULL;
     const double* const z = (double*)input + (xfit ? 0 : 1);
@@ -824,6 +860,8 @@ geo_fit_xy(
     size_t              i         = 0;
     int                 status    = 1;
     int                 ans;
+
+    PRINT_FUNC;
 
     assert(fit);
     assert(sf1);
@@ -848,8 +886,10 @@ geo_fit_xy(
     bbox_make_nonsingular(&bbox);
 
     if (xfit) {
+        dbg_print("xfit\n");
         switch(fit->fit_geometry) {
             case geomap_fit_shift:
+                dbg_print("geomap_fit_shift\n");
                 /* XXX Move everything to a function */
                 COND_JUMP(surface_init(&savefit, fit->function, 2, 2, xterms_none, &bbox, error), exit);
                 surface_free(sf1);
@@ -877,6 +917,7 @@ geo_fit_xy(
                 break;
 
             case geomap_fit_xyscale:
+                dbg_print("geomap_fit_xyscale\n");
                 /* XXX Move everything to a function */
                 COND_JUMP(surface_init(sf1, fit->function, 2, 1, xterms_none, &bbox, error), exit);
                 ans = surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error);
@@ -885,8 +926,13 @@ geo_fit_xy(
                 break;
 
             default:
-                COND_JUMP(surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error), exit);
+                dbg_print("default\n");
+                ans = surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error);
+                dbg_print("ans = %d\n", ans);
+                COND_JUMP(ans, exit);
+
                 ans = surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error);
+                dbg_print("ans = %d\n", ans);
                 COND_JUMP(ans, exit);
 
                 if (fit->xxorder > 2 || fit->xyorder > 2 || fit->xxterms == xterms_full)
@@ -903,8 +949,10 @@ geo_fit_xy(
                 break;
         }
     } else {
+        dbg_print("not xfit\n");
         switch(fit->fit_geometry) {
             case geomap_fit_shift:
+                dbg_print("geomap_fit_shift\n");
                 /* XXX Move everything to a function */
                 COND_JUMP(surface_init(&savefit, fit->function, 2, 2, xterms_none, &bbox, error), exit);
                 surface_free(sf1);
@@ -931,6 +979,7 @@ geo_fit_xy(
                 break;
 
             case geomap_fit_xyscale:
+                dbg_print("geomap_fit_xyscale\n");
                 /* XXX Move everything to a function */
                 // 808
                 COND_JUMP(surface_init(sf1, fit->function, 1, 2, xterms_none, &bbox, error), exit);
@@ -940,6 +989,7 @@ geo_fit_xy(
                 break;
 
             default:
+                dbg_print("default\n");
                 COND_JUMP(surface_init(sf1, fit->function, 2, 2, xterms_none, &bbox, error), exit);
                 ans = surface_fit(sf1, ncoord, ref, z, weights, surface_fit_weight_user, &fit_error, error);
                 COND_JUMP(ans, exit);
@@ -1030,6 +1080,8 @@ geo_fit_reject(
     size_t  i        = 0;
     int     status   = 1;
     int     ans;
+
+    PRINT_FUNC;
 
     assert(fit);
     assert(sx1);
@@ -1151,6 +1203,8 @@ geofit(
     int status = 1;
     int ans;
 
+    PRINT_FUNC;
+
     assert(fit);
     assert(sx1);
     assert(sy1);
@@ -1174,21 +1228,25 @@ geofit(
 
     switch(fit->fit_geometry) {
         case geomap_fit_rotate:
+            dbg_print("geomap_fit_rotate\n");
             ans = geo_fit_theta(fit, sx1, sy1, ncoord, input, ref, weights,
                               residual_x, residual_y, error);
             COND_JUMP(ans, exit);
             break;
         case geomap_fit_rscale:
+            dbg_print("geomap_fit_rscale\n");
             ans = geo_fit_magnify(fit, sx1, sy1, ncoord, input, ref, weights,
                                 residual_x, residual_y, error);
             COND_JUMP(ans, exit);
             break;
         case geomap_fit_rxyscale:
+            dbg_print("geomap_fit_rxyscale\n");
             ans = geo_fit_linear(fit, sx1, sy1, ncoord, input, ref, weights,
                                residual_x, residual_y, error);
             COND_JUMP(ans, exit);
             break;
         default:
+            dbg_print("default\n");
             if (geo_fit_xy(fit, sx1, sx2, ncoord, 0, input, ref, has_sx2, weights, residual_x, error)
                 || geo_fit_xy(fit, sy1, sy2, ncoord, 1, input, ref, has_sy2, weights, residual_y, error))
             {
@@ -1200,6 +1258,7 @@ geofit(
     if (fit->maxiter <= 0 || !isfinite(fit->reject)) {
         fit->nreject = 0;
     } else {
+        dbg_print("geo_fit_reject\n");
         ans = geo_fit_reject(fit, sx1, sy1, sx2, sy2, has_sx2, has_sy2, ncoord, input,
                            ref, weights, residual_x, residual_y, error);
         COND_JUMP(ans, exit);
@@ -1231,6 +1290,8 @@ geoeval(
     double* tmp    = NULL;
     size_t  i      = 0;
     int     status = 1;
+
+    PRINT_FUNC;
 
     assert(sx1);
     assert(sy1);
@@ -1280,6 +1341,7 @@ geo_get_coeff(
         coord_t* const scale,
         coord_t* const rot)
 {
+    // XXX This function is too long and needs to be refactored.
     size_t nxxcoeff, nxycoeff, nyxcoeff, nyycoeff;
     double xxrange  = 1.0;
     double xyrange  = 1.0;
@@ -1290,6 +1352,8 @@ geo_get_coeff(
     double yxmaxmin = 1.0;
     double yymaxmin = 1.0;
     double a, b, c, d;
+
+    PRINT_FUNC;
 
     assert(sx);
     assert(sy);
@@ -1305,14 +1369,16 @@ geo_get_coeff(
     nxycoeff = nyycoeff = sy->nycoeff;
 
     /* Get the data range */
-    if (sx->type != surface_type_polynomial) {
+    if (sx->type != surface_type_polynomial)
+    {
         xxrange = (sx->bbox.max.x - sx->bbox.min.x) / 2.0;
         xxmaxmin = -(sx->bbox.max.x - sx->bbox.min.x) / 2.0;
         xyrange = (sx->bbox.max.y - sx->bbox.min.y) / 2.0;
         xymaxmin = (sx->bbox.max.y - sx->bbox.min.y) / 2.0;
     }
 
-    if (sy->type != surface_type_polynomial) {
+    if (sy->type != surface_type_polynomial)
+    {
         yxrange = (sy->bbox.max.x - sy->bbox.min.x) / 2.0;
         yxmaxmin = (sy->bbox.max.x - sy->bbox.min.x) / 2.0;
         yyrange = (sy->bbox.max.y - sy->bbox.min.y) / 2.0;
@@ -1393,6 +1459,8 @@ geo_get_results(
     size_t i      = 0;
     int    status = 1;
 
+    PRINT_FUNC;
+
     assert(fit);
     assert(result);
     assert(error);
@@ -1449,11 +1517,14 @@ geo_get_results(
         result->x2coeff = NULL;
     }
 
-    if (has_sy2) {
+    if (has_sy2)
+    {
         result->ny2coeff = sy2->ncoeff;
         result->y2coeff = malloc_with_error(result->ny2coeff * sizeof(double), error);
         COND_JUMP(result->y2coeff == NULL, exit);
-        for (i = 0; i < result->ny2coeff; ++i) {
+
+        for (i = 0; i < result->ny2coeff; ++i)
+        {
             result->y2coeff[i] = sy2->coeff[i];
         }
     } else {
@@ -1482,6 +1553,8 @@ verify_geomap_inputs(
 {
     int ret = 0;
 
+    PRINT_FUNC;
+
     assert(input);
     assert(ref);
     assert(error);
@@ -1498,6 +1571,8 @@ verify_geomap_inputs(
 static void
 initialize_surfaces(surface_t * sx1, surface_t * sy1, surface_t * sx2, surface_t * sy2)
 {
+    PRINT_FUNC;
+
     surface_new(sx1);
     surface_new(sy1);
     surface_new(sx2);
@@ -1510,6 +1585,8 @@ initialize_bbox(
         bbox_t * tbbox
         )
 {
+    PRINT_FUNC;
+
     if (bbox == NULL) {
         bbox_init(tbbox);
     } else {
@@ -1538,13 +1615,16 @@ geomap(
         const xterms_e yxterms,             /* Types of yy terms in polynomial */
         const size_t maxiter,               /* Max number of iterations */
         const double reject,                /* Rejections threshhold in terms of sigman */
+
         /* Input/Output */
         size_t* const noutput,  /* The number of output records */
+
         /* Output */
         geomap_output_t* const output,  /* Array of output records */
         geomap_result_t* const result,  /* The fit found */
         stimage_error_t* const error)   /* Error structure */
 {
+    // XXX This function is too long and needs to be refactored.
     geomap_fit_t     fit;
     bbox_t           tbbox;
     size_t           ninput_in_bbox = ninput;
@@ -1563,6 +1643,8 @@ geomap(
     double           my_nan         = fmod(1.0, 0.0);
     int              status         = 1;
     int              ans;
+
+    PRINT_FUNC;
 
     COND_JUMP(verify_geomap_inputs(ninput, input, nref, ref, error), exit);
 
@@ -1634,7 +1716,7 @@ geomap(
     // ------------------------------------------------------------------------
 
     // ------------------------------------------------------------------------
-    // XXX Compute fit
+    // XXX Compute fit.  This is where the work is done.
     ans = geofit(&fit, &sx1, &sy1, &sx2, &sy2, &has_sx2, &has_sy2, ninput_in_bbox,
                input_in_bbox, ref_in_bbox, weights, error);
     COND_JUMP(ans, exit);
@@ -1716,6 +1798,8 @@ void
 geomap_result_init(
         geomap_result_t* const r)
 {
+    PRINT_FUNC;
+
     r->xcoeff = NULL;
     r->ycoeff = NULL;
     r->x2coeff = NULL;
@@ -1726,6 +1810,8 @@ void
 geomap_result_free(
         geomap_result_t* const r)
 {
+    PRINT_FUNC;
+
     free(r->xcoeff); r->xcoeff = NULL;
     free(r->ycoeff); r->ycoeff = NULL;
     free(r->x2coeff); r->x2coeff = NULL;
@@ -1739,6 +1825,8 @@ geomap_result_print(
     char*  fit_geometry;
     char*  function;
     size_t i;
+
+    PRINT_FUNC;
 
     assert(r);
 
