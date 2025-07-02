@@ -283,8 +283,10 @@ geomap(
         const xterms_e yxterms,
         const size_t maxiter,
         const double reject,
+
         /* Input/output */
         size_t* const noutput,
+
         /* Output */
         geomap_output_t* const output, /* [MAX(ninput, nref)] */
         geomap_result_t* const result,
@@ -292,5 +294,8 @@ geomap(
 
 void
 geomap_result_print(const geomap_result_t* const result);
+
+void
+geomap_output_print(const geomap_output_t* const output);
 
 #endif /* _STIMAGE_GEOMAP_H_ */
