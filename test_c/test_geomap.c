@@ -260,7 +260,7 @@ int test_same(void)
     return 0;
 }
 
-int test_rotation(void)
+int base_rotation_deg(double deg)
 {
     coord_t in_arr[ncoords] = {0};
     coord_t ref_arr[ncoords] = {0};
@@ -273,7 +273,10 @@ int test_rotation(void)
     geomap_result_t result;
     stimage_error_t error;
     coord_t rotate;
-    double deg = 30;
+
+    print_delim('-', 40, 1);
+    printf("TEST: %s (Degree: %.2f)\n", __FUNCTION__, deg);
+    print_delim('-', 40, 1);
 
     stimage_error_init(&error);
     geomap_result_init(&result);
@@ -286,9 +289,18 @@ int test_rotation(void)
     coords_rotate(&ref, &rotate);
 
     base_test(__FUNCTION__, &in, &ref, fgeom, stype, &noutput, output, &result, &error);
-    // base_test(__FUNCTION__, &ref, &in, fgeom, stype, &noutput, output, &result, &error);
+
     geomap_result_print(&result);
     geomap_result_free(&result);
+
+    return 0;
+}
+
+int test_rotation(void)
+{
+    base_rotation_deg(30.0);
+    base_rotation_deg(45.0);
+    base_rotation_deg(90.0);
 
     return 0;
 }
