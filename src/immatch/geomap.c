@@ -1711,7 +1711,7 @@ geomap(
                 ref_in_bbox, xfit, yfit, error);
     COND_JUMP(ans, exit);
 
-    ans = geo_get_results(&fit, &sx1, &sy1, &sx2, &sy2, has_sx2, has_sy2, result,error);
+    ans = geo_get_results(&fit, &sx1, &sy1, &sx2, &sy2, has_sx2, has_sy2, result, error);
     COND_JUMP(ans, exit);
     // ------------------------------------------------------------------------
 
@@ -1905,3 +1905,14 @@ geomap_result_print(
     }
     printf("\n");
 }
+
+void
+geomap_output_print(
+        const geomap_output_t* const output)
+{
+    printf("    input = (%10.4f, %10.4f)\n", output->input.x, output->input.y);
+    printf("    ref   = (%10.4f, %10.4f)\n", output->ref.x, output->ref.y);
+    printf("    fit   = (%10.4f, %10.4f)\n", output->fit.x, output->fit.y);
+    printf("    res   = (%10.4f, %10.4f)\n", output->residual.x, output->residual.y);
+}
+
