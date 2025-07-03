@@ -200,6 +200,69 @@ struct coord_list {
 };
 #endif
 
+int
+check_coord(coord_t result, coord_t check, double tol, const char * label)
+{
+    double xd, yd;
+
+    xd = fabs(result.x - check.x);
+    yd = fabs(result.y - check.y);
+    if ((xd>tol) || (yd>tol))
+    {
+        printf("Fail: %s\n", label);
+        return 1;
+    }
+    return 0;
+}
+
+int
+check_integer(int result, int check, const char * label)
+{
+    if (result != check)
+    {
+        printf("Fail: %s\n", label);
+        return 1;
+    }
+    return 0;
+}
+
+void
+result_check(geomap_result_t * result, geomap_result_t * check, const char * tname)
+{
+    double tol = 1.0e-4;
+    int fail = 0;
+
+    printf("    Test: %s\n", tname);
+
+    if (result->fit_geometry != check->fit_geometry)
+    {
+        printf("Fail: Fit Geometry\n");
+        fail++;
+    }
+    if (result->function != check->function)
+    {
+        printf("Fail: Function\n");
+        fail++;
+    }
+
+    fail += check_coord(result->rms, check->rms, tol, "Root Mean Square");
+    fail += check_coord(result->mean_input, check->mean_input, tol, "Mean Input");
+    fail += check_coord(result->mean_ref, check->mean_ref, tol, "Mean Reference");
+    fail += check_coord(result->shift, check->shift, tol, "Shift");
+    fail += check_coord(result->mag, check->mag, tol, "Magnitude");
+    fail += check_coord(result->rotation, check->rotation, tol, "rotation");
+    fail += check_integer(result->nxcoeff, check->nxcoeff, "nxcoeff");
+    fail += check_integer(result->nycoeff, check->nycoeff, "nycoeff");
+
+    if (0==fail)
+    {
+        printf(".... Pass\n");
+    } else {
+        printf(".... Failed %d checks\n", fail);
+    }
+    printf("\n");
+}
+
 int base_test(
         const char * test_name,
         struct coord_list * in,             /* Input list */
@@ -234,6 +297,36 @@ int base_test(
     return 0;
 }
 
+void
+same_result(geomap_result_t * result)
+{
+    memset(result, 0, sizeof(*result));
+
+    result->fit_geometry = geomap_fit_general;
+    result->function = surface_type_polynomial;
+
+    result->rms.x = 645.265145;
+    result->rms.y = 859.820076;
+
+    result->mean_input.x = 64.790287;
+    result->mean_input.y = 2.747533;
+
+    result->mean_ref.x = 64.790287;
+    result->mean_ref.y = 2.747533;
+
+    result->shift.x = -18641051.962848;
+    result->shift.y = -8745863.542405;
+
+    result->mag.x = 3.132711;
+    result->mag.y = 0.162293;
+
+    result->rotation.x = 135.000000;
+    result->rotation.y = 37.222253;
+
+    result->nxcoeff = 3;
+    result->nycoeff = 3;
+}
+
 int test_same(void)
 {
     coord_t in_arr[ncoords] = {0};
@@ -245,22 +338,138 @@ int test_same(void)
     size_t noutput;
     geomap_output_t output[ncoords];
     geomap_result_t result;
+    geomap_result_t check;
     stimage_error_t error;
 
     stimage_error_init(&error);
     geomap_result_init(&result);
+    geomap_result_init(&check);
+    same_result(&check);
 
     get_input(&in);
     get_input(&ref);
 
     base_test(__FUNCTION__, &in, &ref, fgeom, stype, &noutput, output, &result, &error);
-    geomap_result_print(&result);
+    result_check(&result, &check, __FUNCTION__);
+
     geomap_result_free(&result);
 
     return 0;
 }
 
-int base_rotation_deg(double deg)
+void
+rotation_30_result(geomap_result_t * result)
+{
+    memset(result, 0, sizeof(*result));
+
+    result->fit_geometry = geomap_fit_rotate;
+    result->function = surface_type_polynomial;
+
+    result->rms.x = 386.205840;
+    result->rms.y = 336.900542;
+
+    result->mean_input.x = 64.790287;
+    result->mean_input.y = 2.747533;
+
+    result->mean_ref.x = 54.736268;
+    result->mean_ref.y = 34.774577;
+
+    result->shift.x = 71.040012;
+    result->shift.y = -60.235758;
+
+    result->mag.x = 0.866809;
+    result->mag.y = 1.000000;
+
+    result->rotation.x = 135.000000;
+    result->rotation.y = 52.198604;
+
+    result->nxcoeff = 3;
+    result->nycoeff = 3;
+}
+
+void
+rotation_45_result(geomap_result_t * result)
+{
+    memset(result, 0, sizeof(*result));
+
+    result->fit_geometry = geomap_fit_rotate;
+    result->function = surface_type_polynomial;
+
+    result->rms.x = 356.934127;
+    result->rms.y = 363.123531;
+
+    result->mean_input.x = 64.790287;
+    result->mean_input.y = 2.747533;
+
+    result->mean_ref.x = 43.870852;
+    result->mean_ref.y = 47.756451;
+
+    result->shift.x = 60.953716;
+    result->shift.y = -60.547634;
+
+    result->mag.x = 0.982662;
+    result->mag.y = 1.000000;
+
+    result->rotation.x = 135.000000;
+    result->rotation.y = 45.984971;
+
+    result->nxcoeff = 3;
+    result->nycoeff = 3;
+}
+
+void
+rotation_90_result(geomap_result_t * result)
+{
+    memset(result, 0, sizeof(*result));
+
+    result->fit_geometry = geomap_fit_rotate;
+    result->function = surface_type_polynomial;
+
+    result->rms.x = 49.354636;
+    result->rms.y = 48.276783;
+
+    result->mean_input.x = 64.790287;
+    result->mean_input.y = 2.747533;
+
+    result->mean_ref.x = -2.747534;
+    result->mean_ref.y = 64.790287;
+
+    result->shift.x = 2.323053;
+    result->shift.y = -9.874069;
+
+    result->mag.x = 0.216232;
+    result->mag.y = 1.000000;
+
+    result->rotation.x = 315.000000;
+    result->rotation.y = 81.205030;
+
+    result->nxcoeff = 3;
+    result->nycoeff = 3;
+}
+
+int
+rotation_result(int deg, geomap_result_t * result)
+{
+    switch(deg)
+    {
+        case 30:
+            rotation_30_result(result);
+            break;
+        case 45:
+            rotation_45_result(result);
+            break;
+        case 90:
+            rotation_90_result(result);
+            break;
+        default:
+            printf("Error: Invalid angle for rotation test\n");
+            return 1;
+            break;
+    }
+    return 0;
+}
+
+int base_rotation_deg(int ideg)
 {
     coord_t in_arr[ncoords] = {0};
     coord_t ref_arr[ncoords] = {0};
@@ -271,8 +480,10 @@ int base_rotation_deg(double deg)
     size_t noutput;
     geomap_output_t output[ncoords];
     geomap_result_t result;
+    geomap_result_t check;
     stimage_error_t error;
     coord_t rotate;
+    double deg = (double)ideg;
 
     print_delim('-', 40, 1);
     printf("TEST: %s (Degree: %.2f)\n", __FUNCTION__, deg);
@@ -280,6 +491,9 @@ int base_rotation_deg(double deg)
 
     stimage_error_init(&error);
     geomap_result_init(&result);
+    geomap_result_init(&check);
+    rotation_result(ideg, &check);
+
 
     get_input(&in);
     get_input(&ref);
@@ -289,8 +503,9 @@ int base_rotation_deg(double deg)
     coords_rotate(&ref, &rotate);
 
     base_test(__FUNCTION__, &in, &ref, fgeom, stype, &noutput, output, &result, &error);
+    result_check(&result, &check, __FUNCTION__);
 
-    geomap_result_print(&result);
+    // geomap_result_print(&result);
     geomap_result_free(&result);
 
     return 0;
@@ -298,11 +513,42 @@ int base_rotation_deg(double deg)
 
 int test_rotation(void)
 {
-    base_rotation_deg(30.0);
-    base_rotation_deg(45.0);
-    base_rotation_deg(90.0);
+    base_rotation_deg(30);
+    base_rotation_deg(45);
+    base_rotation_deg(90);
 
     return 0;
+}
+
+void
+translate_result(geomap_result_t * result)
+{
+    memset(result, 0, sizeof(*result));
+
+    result->fit_geometry = geomap_fit_shift;
+    result->function = surface_type_polynomial;
+
+    result->rms.x = 5.129892;
+    result->rms.y = 9.233805;
+
+    result->mean_input.x = 64.790287;
+    result->mean_input.y = 2.747533;
+
+    result->mean_ref.x = 69.790287;
+    result->mean_ref.y = 11.747533;
+
+    result->shift.x = -8.000000;
+    result->shift.y = -3.000000;
+
+    result->mag.x = 0.000000;
+    result->mag.y = 1.000000;
+
+
+    result->rotation.x = 0.000000;
+    result->rotation.y = 90.000000;
+
+    result->nxcoeff = 3;
+    result->nycoeff = 3;
 }
 
 int test_translation(void)
@@ -316,11 +562,14 @@ int test_translation(void)
     size_t noutput;
     geomap_output_t output[ncoords];
     geomap_result_t result;
+    geomap_result_t check;
     stimage_error_t error;
     coord_t translate = {.x=5.0, .y=9.0};
 
     stimage_error_init(&error);
     geomap_result_init(&result);
+    geomap_result_init(&check);
+    translate_result(&check);
 
     get_input(&in);
     get_input(&ref);
@@ -328,23 +577,20 @@ int test_translation(void)
     coords_translate(&ref, &translate);
 
     base_test(__FUNCTION__, &in, &ref, fgeom, stype, &noutput, output, &result, &error);
-    geomap_result_print(&result);
+    result_check(&result, &check, __FUNCTION__);
+    //geomap_result_print(&result);
     geomap_result_free(&result);
 
     return 0;
     return 0;
 }
 
-int test_mag_fit_params(geomap_fit_e fgeom, surface_type_e stype)
+int test_mag_fit_params(geomap_fit_e fgeom, surface_type_e stype, geomap_result_t * check, const char * label)
 {
     coord_t in_arr[ncoords] = {0};
     coord_t ref_arr[ncoords] = {0};
     struct coord_list in = {INITIALIZED, in_arr, ncoords, 0};
     struct coord_list ref = {INITIALIZED, ref_arr, ncoords, 0};
-
-    // geomap_fit_e fgeom = geomap_fit_rscale;  // Magnification
-    // surface_type_e stype = surface_type_polynomial;
-    // surface_type_e stype = surface_type_legendre;
 
     size_t noutput;
     geomap_output_t output[ncoords];
@@ -360,23 +606,125 @@ int test_mag_fit_params(geomap_fit_e fgeom, surface_type_e stype)
 
     coords_magnify(&ref, magnify);
 
+    print_delim('-', 40, 1);
+    printf("TEST: %s - type: %s\n", __FUNCTION__, label);
+    print_delim('-', 40, 1);
+
     base_test(__FUNCTION__, &in, &ref, fgeom, stype, &noutput, output, &result, &error);
-    geomap_result_print(&result);
+    result_check(&result, check, __FUNCTION__);
+    // geomap_result_print(&result);
     geomap_result_free(&result);
 
     return 0;
 }
 
+void
+mag_poly_result(geomap_result_t * result)
+{
+    memset(result, 0, sizeof(*result));
+
+    result->fit_geometry = geomap_fit_rscale;
+    result->function = surface_type_polynomial;
+
+    result->rms.x = 0.000000;
+    result->rms.y = 0.000000;
+
+    result->mean_input.x = 64.790287;
+    result->mean_input.y = 2.747533;
+
+    result->mean_ref.x = 323.951435;
+    result->mean_ref.y = 13.737667;
+
+    result->shift.x = 0.200000;
+    result->shift.y = -0.000000;
+
+    result->mag.x = 0.282843;
+    result->mag.y = 0.200000;
+
+    result->rotation.x = 315.000000;
+    result->rotation.y = 360.000000;
+
+    result->nxcoeff = 3;
+    result->nycoeff = 3;
+}
+
+void
+mag_legendre_result(geomap_result_t * result)
+{
+    memset(result, 0, sizeof(*result));
+
+
+    result->fit_geometry = geomap_fit_rscale;
+    result->function = surface_type_legendre;
+
+    result->rms.x = 700111.549164;
+    result->rms.y = 748496.099203;
+
+    result->mean_input.x = 64.790287;
+    result->mean_input.y = 2.747533;
+
+    result->mean_ref.x = 323.951435;
+    result->mean_ref.y = 13.737667;
+
+    result->shift.x = -407.121700;
+    result->shift.y = 13.796240;
+
+    result->mag.x = 0.282843;
+    result->mag.y = 0.200000;
+
+    result->rotation.x = 315.000000;
+    result->rotation.y = 360.000000;
+
+    result->nxcoeff = 3;
+    result->nycoeff = 3;
+}
+
+void
+mag_chebyshev_result(geomap_result_t * result)
+{
+    memset(result, 0, sizeof(*result));
+
+    result->fit_geometry = geomap_fit_rscale;
+    result->function = surface_type_chebyshev;
+
+    result->rms.x = 700111.549164;
+    result->rms.y = 748496.099203;
+
+    result->mean_input.x = 64.790287;
+    result->mean_input.y = 2.747533;
+
+    result->mean_ref.x = 323.951435;
+    result->mean_ref.y = 13.737667;
+
+    result->shift.x = -407.121700;
+    result->shift.y = 13.796240;
+
+    result->mag.x = 0.282843;
+    result->mag.y = 0.200000;
+
+    result->rotation.x = 315.000000;
+    result->rotation.y = 360.000000;
+
+    result->nxcoeff = 3;
+    result->nycoeff = 3;
+}
+
 int test_magnification(void)
 {
     geomap_fit_e fgeom = geomap_fit_rscale;
+    geomap_result_t check;
 
     print_delim('-', 30, 1);
-    test_mag_fit_params(fgeom, surface_type_polynomial);
+    mag_poly_result(&check);
+    test_mag_fit_params(fgeom, surface_type_polynomial, &check, "poly");
     print_delim('-', 30, 1);
-    test_mag_fit_params(fgeom, surface_type_legendre);
+
+    mag_legendre_result(&check);
+    test_mag_fit_params(fgeom, surface_type_legendre, &check, "legendre");
     print_delim('-', 30, 1);
-    test_mag_fit_params(fgeom, surface_type_chebyshev);
+
+    mag_chebyshev_result(&check);
+    test_mag_fit_params(fgeom, surface_type_chebyshev, &check, "chebyshev");
     print_delim('-', 30, 1);
 
     return 0;
@@ -418,7 +766,6 @@ int main(int argc, char * argv[])
     {
         tests = which_tests(argv[1]);
     }
-    dbg_print("tests = %d\n", tests);
 
     PRINT_DELIM;
     if (same_test==tests || all_tests==tests)
