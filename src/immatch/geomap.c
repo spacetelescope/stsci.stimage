@@ -1874,6 +1874,10 @@ geomap_result_print(
     printf("  shift:        (%f, %f)\n", r->shift.x, r->shift.y);
     printf("  mag:          (%f, %f)\n", r->mag.x, r->mag.y);
     printf("  rotation:     (%f, %f)\n", r->rotation.x, r->rotation.y);
+    printf("  nxcoeff:      %zu\n", r->nxcoeff);
+    printf("  nycoeff:      %zu\n", r->nycoeff);
+    printf("  nx2coeff:     %zu\n", r->nx2coeff);
+    printf("  ny2oeff:      %zu\n", r->ny2coeff);
 
     if (r->nxcoeff && r->xcoeff) {
         printf("  xcoeff:       ");
