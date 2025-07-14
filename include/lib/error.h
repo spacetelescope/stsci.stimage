@@ -38,8 +38,35 @@ DAMAGE.
 
 #define STIMAGE_MAX_ERROR_LEN 512
 
+#include <limits.h>
+#include <stdio.h>
+
+#define DBL "10.4f"
+
+#define PARAM_UNUSED(X) (void)(X)  // Used for unused parameter warnings
+
+#define dbg_print(...) do{printf("DEBUG - [%s,%d]: ", __FILE__, __LINE__); printf(__VA_ARGS__);}while(0)
+#define err_print(...) do{fprintf(stderr, "ERROR - [%s,%d]: ", __FILE__, __LINE__); fprintf(stderr, __VA_ARGS__);}while(0)
+#define print_start_func dbg_print(" --> Starting function: %s\n", __FUNCTION__)
+
+#define PRINT_DELIM print_delim('=', 50, 1)
+
+#if 0
+#define PRINT_FUNC dbg_print("    ----> %s\n", __FUNCTION__)
+#else
+#define PRINT_FUNC
+#endif
+
+#define COND_JUMP(C, L) if (C) { goto L; }
+#define COND_RET(C, V) if (C) { return (V); }
+
+void
+print_delim(char c, int nlen, int nret);
+
+
+/* Message structure */
 typedef struct {
-  char message[STIMAGE_MAX_ERROR_LEN];
+    char message[STIMAGE_MAX_ERROR_LEN];
 } stimage_error_t;
 
 /*
@@ -52,7 +79,9 @@ stimage_error_init(stimage_error_t* const error);
  Set the message in the error object to the given string.
  */
 void
-stimage_error_set_message(stimage_error_t* error, const char* message);
+stimage_error_set_message_func(char * fname, int line, stimage_error_t* error, const char* message);
+
+#define stimage_error_set_message(E, M) stimage_error_set_message_func(__FILE__, __LINE__, E, M)
 
 /**
  Set the message in the error object using printf-style formatting

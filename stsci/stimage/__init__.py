@@ -31,6 +31,7 @@ from __future__ import absolute_import
 from ._version import version as __version__
 from . import _stimage
 
+import numpy as np
 
 def xyxymatch(input,
               ref,
@@ -246,6 +247,47 @@ def xyxymatch(input,
         nmatch,
         maxratio,
         nreject)
+
+
+def ndarray_str(arr):
+    return np.array2string(arr, separator=", ", precision=4, max_line_width=np.nan)
+
+
+class GeomapResults:
+    def __init__(self):
+        """Initialize attributes needed."""
+        self.fit_geometry = "Nothing"
+        self.function = "No function"
+
+        self.rms = np.array([0.0, 0.0], dtype=np.float32)
+        self.mean_ref = np.array([0.0, 0.0], dtype=np.float32)
+        self.mean_input = np.array([0.0, 0.0], dtype=np.float32)
+        self.shift = np.array([0.0, 0.0], dtype=np.float32)
+        self.mag = np.array([0.0, 0.0], dtype=np.float32)
+        self.rotation = np.array([0.0, 0.0], dtype=np.float32)
+
+        self.xcoeff = None
+        self.ycoeff = None
+        self.x2coeff = None
+        self.y2coeff = None
+
+    def __repr__(self):
+        rstr = "    GeomapResults:\n"
+        rstr += f".fit_geometry     = {self.fit_geometry}\n"
+        rstr += f".function         = {self.function}\n"
+
+        rstr += f".rms              = {ndarray_str(self.rms)}\n"
+        rstr += f".mean_ref         = {ndarray_str(self.mean_ref)}\n"
+        rstr += f".mean_input       = {ndarray_str(self.mean_input)}\n"
+        rstr += f".shift            = {ndarray_str(self.shift)}\n"
+        rstr += f".mag              = {ndarray_str(self.mag)}\n"
+        rstr += f".rotation         = {ndarray_str(self.rotation)}\n"
+
+        rstr += f".xcoeff           = {ndarray_str(self.xcoeff)}\n"
+        rstr += f".ycoeff           = {ndarray_str(self.ycoeff)}\n"
+        rstr += f".x2coeff          = {ndarray_str(self.x2coeff)}\n"
+        rstr += f".y2coeff          = {ndarray_str(self.y2coeff)}\n"
+        return rstr
 
 
 def geomap(input,
@@ -572,7 +614,9 @@ def geomap(input,
       - *resid_x*
       - *resid_y*
     """
+    fit_obj = GeomapResults()
     return _stimage.geomap(
+        fit_obj,
         input,
         ref,
         bbox,

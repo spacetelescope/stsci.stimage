@@ -34,11 +34,48 @@ DAMAGE.
 */
 
 #include <assert.h>
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "lib/error.h"
+
+#define MAX_MSG 4096
+
+/*
+ * Prints a line of delimiters for visual cues.
+ *
+ * Primarily used for debugging.
+ */
+void
+print_delim(
+        char c,     /**< The character to use as a delimiter  */
+        int nlen,   /**< The number of c to print. */
+        int nret)   /**< The number of returns after the line of delimiters. */
+{
+    char delim_char = '=';  /* The default character */
+    int k;
+
+    if (nlen < 1) {
+        return;
+    }
+    if (isprint(c)) {
+        delim_char = c;
+    }
+    for (k=0; k<nlen; ++k) {
+        printf("%c", delim_char);
+    }
+    if (nret < 1) {
+        return;
+    }
+    if (nret > 5) {
+        nret = 5;
+    }
+    for (k=0; k<nret; ++k) {
+        printf("\n");
+    }
+}
 
 void
 stimage_error_init(
@@ -52,19 +89,21 @@ stimage_error_init(
 }
 
 void
-stimage_error_set_message(
-    stimage_error_t* error,
-    const char* message) {
+stimage_error_set_message_func(char * fname, int line, stimage_error_t* error, const char* message) {
+    char msg[STIMAGE_MAX_ERROR_LEN];
 
-  assert(error);
-  assert(message);
+    assert(error);
+    assert(message);
 
-  strncpy(error->message, message, STIMAGE_MAX_ERROR_LEN);
+    memset(msg, 0, STIMAGE_MAX_ERROR_LEN);
+    snprintf(msg, STIMAGE_MAX_ERROR_LEN-1, "[%s:%d] %s", fname, line, message);
 
-  #if DEBUG
+    strncpy(error->message, msg, STIMAGE_MAX_ERROR_LEN);
+
+#if DEBUG
     printf("ERROR RAISED:\n%s\n", error->message);
     assert(0);
-  #endif
+#endif
 }
 
 void
@@ -73,9 +112,11 @@ stimage_error_format_message(
     const char* format,
     ...) {
 
-  /* See http://c-faq.com/varargs/vprintf.html
-     for an explanation of how all this variable length argument list stuff
-     works. */
+  /* 
+   * See http://c-faq.com/varargs/vprintf.html
+   * for an explanation of how all this variable length argument list stuff
+   * works.
+   */
   va_list argp;
 
   assert(error);
