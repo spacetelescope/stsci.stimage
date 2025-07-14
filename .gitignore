@@ -17,3 +17,9 @@ waf
 .lock-waf*
 .coverage
 *version.py
+
+# Temp files
+*.*.swp
+
+# VSCode stuff
+.vscode
