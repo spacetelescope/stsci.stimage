@@ -81,6 +81,7 @@ def assert_check_result(check, result):
     np.testing.assert_allclose(check.rms, result.rms, rtol=tol, atol=tol)
     np.testing.assert_allclose(check.mean_ref, result.mean_ref, rtol=tol, atol=tol)
     np.testing.assert_allclose(check.mean_input, result.mean_input, rtol=tol, atol=tol)
+
     np.testing.assert_allclose(check.shift, result.shift, rtol=tol, atol=tol)
     np.testing.assert_allclose(check.mag, result.mag, rtol=tol, atol=tol)
     np.testing.assert_allclose(check.rotation, result.rotation, rtol=tol, atol=tol)
@@ -94,14 +95,15 @@ def check_test_same():
 
     fit_geometry     = "general"
     function         = "polynomial"
+
     rms              = [645.2651, 859.8201]
     mean_ref         = [64.7903,  2.7475]
     mean_input       = [64.7903,  2.7475]
+
     shift            = [-1.8641052e+07, -8.7458640e+06]
     mag              = [3.1327, 0.1623]
     rotation         = [135.    ,  37.2223]
 
-    # XXX These are failing for some reason
     xcoeff           = [-1.86410498e+07, -2.21516146e+00, 9.81723195e-02]
     ycoeff           = [-8.74586261e+06, -1.03555084e+00, 1.29232998e-01]
 
@@ -140,10 +142,6 @@ def rotation_matrix(theta):
     return cos_theta, sin_theta
 
 
-'''
-    ref[:, 0] = np.array(tx)
-    ref[:, 1] = np.array(ty)
-'''
 def rotate_points(points, rot_mat):
     """Using rotation matrix rotate a set of points."""
     cos_th, sin_th = rot_mat
@@ -168,14 +166,15 @@ def check_test_rotate_45():
 
     fit_geometry     = "rotate"
     function         = "polynomial"
+
     rms              = [356.9341, 363.1235]
     mean_ref         = [43.8709, 47.7565]
     mean_input       = [64.7903,  2.7475]
+
     shift            = [ 60.9537, -60.5476]
     mag              = [0.9827, 1.    ]
     rotation         = [135.   ,  45.985]
 
-    # XXX These are failing for some reason
     xcoeff           = [60.9294, -0.6948,  0.7192]
     ycoeff           = [-61.9859,   0.7192,   0.6948]
 
@@ -196,8 +195,6 @@ def check_test_rotate_45():
     return check
 
 
-# XXX Finish for different degrees
-# @pytest.mark.parametrize("deg", [45.0, 60.0, 90.0, 150.0])
 @pytest.mark.parametrize("deg", [45])
 def test_rotation(deg):
     inp, ref = input_reference_points()
@@ -227,6 +224,7 @@ def check_test_translate():
     rms              = [5.1299, 9.2338]
     mean_ref         = [69.7903, 11.7475]
     mean_input       = [64.7903,  2.7475]
+
     shift            = [-8., -3.]
     mag              = [0., 1.]
     rotation         = [ 0., 90.]
@@ -274,6 +272,7 @@ def check_test_magnify():
     rms              = [1.2594e-13, 8.3502e-14]
     mean_ref         = [323.9514,  13.7377]
     mean_input       = [64.7903,  2.7475]
+
     shift            = [ 2.0000e-01, -1.3323e-14]
     mag              = [0.2828, 0.2   ]
     rotation         = [315., 360.]
