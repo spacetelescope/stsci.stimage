@@ -28,9 +28,8 @@
 # DAMAGE.
 
 import pytest
-import math
-import sys
 
+import math
 import numpy as np
 import stsci.stimage as stimage
 
@@ -264,7 +263,7 @@ def test_translate():
 
     check = check_test_translate()
     assert_check_result(check, result)
-    
+
 
 def check_test_magnify():
     check = stimage.GeomapResults()
@@ -299,8 +298,76 @@ def check_test_magnify():
     return check
 
 
-# XXX paramatrize for different polynomials
-def test_magnification():
+def check_test_magnify_legendre():
+    check = stimage.GeomapResults()
+
+    fit_geometry     = "rscale"
+    function         = "legendre"
+
+    rms              = [700111.549164, 748496.099203]
+    mean_ref         = [323.951435, 13.737667]
+    mean_input       = [64.790287, 2.747533]
+
+    shift            = [-407.121700, 13.796240]
+    mag              = [0.282843, 0.200000]
+    rotation         = [315., 360.]
+
+    xcoeff           = [ 2.5765e+01,  4.3289e+02, -1.1719e-13]
+    ycoeff           = [1.3796e+01, 1.0603e-13, 4.7848e+02]
+
+    check.fit_geometry     = fit_geometry
+    check.function         = function
+
+    check.rms              = np.array(rms, dtype=np.float32)
+    check.mean_ref         = np.array(mean_ref, dtype=np.float32)
+    check.mean_input       = np.array(mean_input, dtype=np.float32)
+
+    check.shift            = np.array(shift, dtype=np.float32)
+    check.mag              = np.array(mag, dtype=np.float32)
+    check.rotation         = np.array(rotation, dtype=np.float32)
+
+    check.xcoeff           = np.array(xcoeff, dtype=float)
+    check.ycoeff           = np.array(ycoeff, dtype=float)
+
+    return check
+
+
+def check_test_magnify_chebyshev():
+    check = stimage.GeomapResults()
+
+    fit_geometry     = "rscale"
+    function         = "chebyshev"
+
+    rms              = [700111.56, 748496.1 ]
+    mean_ref         = [323.9514,  13.7377]
+    mean_input       = [64.7903,  2.7475]
+
+    shift            = [-407.1217,   13.7962]
+    mag              = [0.2828, 0.2   ]
+    rotation         = [315., 360.]
+
+    xcoeff           = [ 2.5765e+01,  4.3289e+02, -1.1719e-13]
+    ycoeff           = [1.3796e+01, 1.0603e-13, 4.7848e+02]
+
+    check.fit_geometry     = fit_geometry
+    check.function         = function
+
+    check.rms              = np.array(rms, dtype=np.float32)
+    check.mean_ref         = np.array(mean_ref, dtype=np.float32)
+    check.mean_input       = np.array(mean_input, dtype=np.float32)
+
+    check.shift            = np.array(shift, dtype=np.float32)
+    check.mag              = np.array(mag, dtype=np.float32)
+    check.rotation         = np.array(rotation, dtype=np.float32)
+
+    check.xcoeff           = np.array(xcoeff, dtype=float)
+    check.ycoeff           = np.array(ycoeff, dtype=float)
+
+    return check
+
+
+@pytest.mark.parametrize("poly", ["polynomial", "legendre", "chebyshev"])
+def test_magnification(poly):
     """Test magnification fitting."""
     inp, ref = input_reference_points()
 
@@ -308,9 +375,14 @@ def test_magnification():
     ref[:, 0] *= 5.0
     ref[:, 1] *= 5.0
 
-    r = stimage.geomap(inp, ref, fit_geometry='rscale', function='polynomial')
+    r = stimage.geomap(inp, ref, fit_geometry="rscale", function=poly)
     result = r[0]
-    # print(result)
 
-    check = check_test_magnify()
+    if poly=="polynomial":
+        check = check_test_magnify()
+    elif poly=="legendre":
+        check = check_test_magnify_legendre()
+    elif poly=="chebyshev":
+        check = check_test_magnify_chebyshev()
+
     assert_check_result(check, result)
