@@ -50,7 +50,6 @@ static PyMethodDef module_methods[] = {
 #pragma clang diagnostic pop
 #pragma GCC diagnostic pop
 
-#if PY_MAJOR_VERSION >= 3
 static struct PyModuleDef moduledef = {
   PyModuleDef_HEAD_INIT,
   "_stimage",          /* m_name */
@@ -62,27 +61,28 @@ static struct PyModuleDef moduledef = {
   NULL,                /* m_clear */
   NULL,                /* m_free */
 };
-#endif
 
 PyMODINIT_FUNC
-#if PY_MAJOR_VERSION >= 3
 PyInit__stimage(void)
-#else
-init_stimage(void)
-#endif
 {
     PyObject* m;
 
+    SIZE_T_D = sizeof(size_t) == 8 ? "u8" : "u4";
+    m = PyModule_Create(&moduledef);
+
     import_array();
 
-    SIZE_T_D = sizeof(size_t) == 8 ? "u8" : "u4";
+    /* Check for errors */
+    if (PyErr_Occurred()) {
+      Py_FatalError("can't initialize module cdrizzle");
+    }
 
-#if PY_MAJOR_VERSION >= 3
-    m = PyModule_Create(&moduledef);
-	return m;
-#else
-    m = Py_InitModule3("_stimage", module_methods,
-                       "Example module that creates an extension type.");
-	return;
-#endif
-}
+    if (m != NULL && _setup_geomap_results_type(m) < 0) {
+        Py_DECREF(m);
+        return NULL;
+    }
+
+    return m;
+  }
+
+

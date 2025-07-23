@@ -59,10 +59,7 @@ typedef struct {
 static PyObject *
 geomap_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    geomap_object *self;
-    self = (geomap_object *)type->tp_alloc(type, 0);
-
-    return (PyObject *)self;
+    return (PyObject *)type->tp_alloc(type, 0);
 }
 
 static PyArrayObject *
@@ -81,13 +78,8 @@ geomap_array_init(void) {
 static int
 geomap_init(geomap_object *self, PyObject *args, PyObject *kwds)
 {
-#if PY_MAJOR_VERSION >= 3
     self->fit_geometry = PyUnicode_FromString("");
     self->function = PyUnicode_FromString("");
-#else
-    self->fit_geometry = PyString_FromString("");
-    self->function = PyString_FromString("");
-#endif
 
     self->rms = geomap_array_init();
     if (self->rms == NULL) return -1;
@@ -204,6 +196,8 @@ static PyTypeObject geomap_class = {
     0,                         /* tp_alloc */
     geomap_new,                /* tp_new */
 };
+
+
 #pragma clang diagnostic pop
 #pragma GCC diagnostic pop
 
@@ -350,7 +344,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
 
     #define ADD_ARR_ATTR(func, member, name) \
     if ((func)((member), &tmp_arr)) goto exit;      \
-    PyObject_SetAttrString(fit_obj, (name), tmp);       \
+    PyObject_SetAttrString(fit_obj, (name), tmp_arr);       \
     Py_DECREF(tmp_arr);
 
     #define ADD_ARRAY(size, member, name) \
@@ -389,47 +383,12 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
     return result;
 }
 
-#if PY_MAJOR_VERSION >= 3
-
-static PyModuleDef geomap_module = {
-    PyModuleDef_HEAD_INIT,
-    "geomap_results",
-    "Python object to hold the results of geomap",
-    -1,
-    NULL, NULL, NULL, NULL, NULL
-};
-
-PyMODINIT_FUNC
-PyInit_geomap_results(void)
+int _setup_geomap_results_type(PyObject* m)
 {
-    PyObject* m;
-
-    geomap_class.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&geomap_class) < 0)
-        return NULL;
-
-    m = PyModule_Create(&geomap_module);
-    if (m == NULL)
-        return NULL;
-
+    if (PyType_Ready(&geomap_class) < 0) {
+        return -1;
+    }
     Py_INCREF(&geomap_class);
     PyModule_AddObject(m, "GeomapResults", (PyObject *)&geomap_class);
-    return m;
+    return 0;
 }
-
-#else
-PyMODINIT_FUNC
-initgeomap_results(void)
-{
-    PyObject* m;
-
-    geomap_class.tp_new = PyType_GenericNew;
-    if (PyType_Ready(&geomap_class) < 0)
-        return;
-
-    m = Py_InitModule("GeomapResults", geomap_methods);
-
-    Py_INCREF(&geomap_class);
-    PyModule_AddObject(m, "GeomapResults", (PyObject *)&geomap_class);
-}
-#endif
