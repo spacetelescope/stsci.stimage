@@ -36,6 +36,8 @@ DAMAGE.
 #ifndef _STIMAGE_GEOMAP_H_
 #define _STIMAGE_GEOMAP_H_
 
+#include <Python.h>
+
 #include "lib/util.h"
 #include "lib/xybbox.h"
 #include "surface/surface.h"
@@ -267,5 +269,7 @@ geomap(
 void
 geomap_result_print(
         const geomap_result_t* const result);
+
+int _setup_geomap_results_type(PyObject* m);
 
 #endif /* _STIMAGE_GEOMAP_H_ */

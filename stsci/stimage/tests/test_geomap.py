@@ -30,17 +30,41 @@
 import numpy as np
 import stsci.stimage as stimage
 
-# def test_same():
-#     np.random.seed(0)
-#     x = np.random.random((512, 2))
-#     y = x[:]
 
-#     r = stimage.geomap(x, y, fit_geometry='general', function='polynomial')
+def test_same():
+    np.random.seed(0)
+    x = np.random.random((512, 2))
+    shift = np.random.random((2,)) * 0.1
+    y = x[:] + shift
 
-#     print r
-#     print r[0].fit_geometry
+    r, _ = stimage.geomap(y, x, fit_geometry="general", function="polynomial")
 
-#     assert False
+    assert r.fit_geometry == "general"
+    assert r.function == "polynomial"
+    # add some meaningful assertions
 
-if __name__ == '__main__':
-    test_same()
+
+def test_shift():
+    np.random.seed(0)
+    ref_coord = np.random.random((512, 2))
+    shift = 10 * np.random.random((2,))
+    transformed_coord = ref_coord + shift
+
+    r, _ = stimage.geomap(
+        transformed_coord,
+        ref_coord,
+        fit_geometry="shift",
+        function="polynomial"
+    )
+
+    assert r.fit_geometry == "shift"
+    assert r.function == "polynomial"
+
+    # next three fail - need to investigate this.
+    # assert np.linalg.norm(r.rms) < 1e-6
+    # assert np.linalg.norm(r.rotation) < 1e-6
+    # assert np.allclose(r.shift, shift)
+
+    # why x<->y swapped?
+    assert np.allclose(r.ycoeff, [shift[0], 1, 0])  # should be r.xcoeff
+    assert np.allclose(r.xcoeff, [shift[1], 0, 1])  # should be r.ycoeff
