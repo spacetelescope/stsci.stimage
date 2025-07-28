@@ -144,12 +144,14 @@ def rotation_matrix(theta):
 def rotate_points(points, rot_mat):
     """Using rotation matrix rotate a set of points."""
     cos_th, sin_th = rot_mat
-    for k in range(len(points)):
+    new_points = np.zeros(shape=points.shape, dtype=points.dtype)
+    npoints = len(points[:, 0])
+    for k in range(npoints):
         x, y = points[k, 0], points[k, 1]
         rx = cos_th * x - sin_th * y
         ry = sin_th * x + cos_th * y
-        points[k, 0], points[k, 1] = rx, ry
-    return points
+        new_points[k, 0], new_points[k, 1] = rx, ry
+    return new_points
 
 
 def check_test_rotate_45():
