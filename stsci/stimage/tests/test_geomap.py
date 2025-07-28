@@ -362,8 +362,7 @@ def test_magnification(poly):
     inp, ref = input_reference_points()
 
     # Magnify inputs by
-    ref[:, 0] *= 5.0
-    ref[:, 1] *= 5.0
+    ref *= 5.0
 
     r = stimage.geomap(inp, ref, fit_geometry="rscale", function=poly)
     result = r[0]
