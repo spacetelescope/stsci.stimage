@@ -33,29 +33,7 @@ import pytest
 import math
 import numpy as np
 import stsci.stimage as stimage
-
-
-DELIM = "=" * 80
-
-
-
-class GeomapResults:
-    def __init__(self):
-        """Initialize attributes needed."""
-        self.fit_geometry = "Nothing"
-        self.function = "No function"
-
-        self.rms = np.array([0.0, 0.0], dtype=np.float32)
-        self.mean_ref = np.array([0.0, 0.0], dtype=np.float32)
-        self.mean_input = np.array([0.0, 0.0], dtype=np.float32)
-        self.shift = np.array([0.0, 0.0], dtype=np.float32)
-        self.mag = np.array([0.0, 0.0], dtype=np.float32)
-        self.rotation = np.array([0.0, 0.0], dtype=np.float32)
-
-        self.xcoeff = None
-        self.ycoeff = None
-        self.x2coeff = None
-        self.y2coeff = None
+from stsci.stimage._stimage import GeomapResults
 
 
 def base_xy():
@@ -173,14 +151,6 @@ def rotate_points(points, rot_mat):
         points[k, 0], points[k, 1] = rx, ry
     return points
 
-
-def print_points(p):
-    print(DELIM)
-    for k in range(len(p[:, 0])):
-        mod2 = p[k, 0]**2 + p[k, 1]**2
-        print(f"[{k}] {p[k, :]}, {mod2 = }")
-    print(DELIM)
-    
 
 def check_test_rotate_45():
     check = GeomapResults()
