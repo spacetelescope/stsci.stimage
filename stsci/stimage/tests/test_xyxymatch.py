@@ -41,12 +41,27 @@ def rotation_matrix(theta):
     return cos_theta, sin_theta
 
 
+def rotate_points_np(x, y, theta_deg):
+    """Using rotation matrix rotate a set of points."""
+    rot_theta = theta_deg * np.pi / 180.0
+    cos_th, sin_th = rotation_matrix(rot_theta)
+    rx = cos_th * x - sin_th * y
+    ry = sin_th * x + cos_th * y
+    return rx, ry
+
+
 def rotate_points(x, y, rot_mat):
     """Using rotation matrix rotate a set of points."""
     cos_th, sin_th = rot_mat
     rx = [cos_th * x[k] - sin_th * y[k] for k in range(len(x))]
     ry = [sin_th * x[k] + cos_th * y[k] for k in range(len(x))]
     return rx, ry
+
+
+def translate_points_np(x, y, point):
+    tx = x + point[0]
+    ty = y + point[1]
+    return tx, ty
 
 
 def translate_points(x, y, point):
@@ -56,11 +71,22 @@ def translate_points(x, y, point):
     return tx, ty
 
 
+def magnify_points_np(x, y, mag):
+    mx = x * mag
+    my = y * mag
+    return mx, my
+
+
 def magnify_points(x, y, mag):
     """Magnification of points."""
     mx = [el * mag for el in x]
     my = [el * mag for el in y]
     return mx, my
+
+
+def flip_points_np(x, y):
+    my = y * -1.
+    return x,my
 
 
 def flip_points(x, y):
@@ -94,12 +120,28 @@ def extra_xy_5():
     return x1, y1, x2, y2
 
 
-def test_triangles_15_points_same():
-    """
-    The input and reference lists will have the same first 15 points.  An
-    additional 5 random points are added, for a total of 20 points in each
-    list of points.
-    """
+def all_transforms_np(x, y, transform):
+    '''
+    transforms = {"deg": 150., "mag": 10., "trans": (-12., 21.)}
+
+    rot
+    mag
+    flip
+    trans
+
+            x, y = rotate_points_np(x, y, degs)
+            x, y = magnify_points_np(x, y, mag)
+            x, y = flip_points_np(x, y)
+            x, y = translate_points_np(x, y, point)
+    '''
+    x, y = rotate_points_np(x, y, transform["deg"])
+    x, y = magnify_points_np(x, y, transform["mag"])
+    x, y = flip_points_np(x, y)
+    x, y = translate_points_np(x, y, transform["trans"])
+    return x, y
+
+
+def get_ndarrays(transform=None, args=None):
     x, y = base_xy_15()
     tx = x.copy()
     ty = y.copy()
@@ -108,18 +150,47 @@ def test_triangles_15_points_same():
     x += x1; y += y1
     tx += x2; ty += y2
 
+    x, y, tx, ty = np.array(x), np.array(y), np.array(tx), np.array(ty)
+
+    if transform is not None:
+        if "rotation" == transform:
+            degs = args
+            x, y = rotate_points_np(x, y, degs)
+        if "translate" == transform:
+            point = args
+            x, y = translate_points_np(x, y, point)
+        if "flip" == transform:
+            x, y = flip_points_np(x, y)
+        if "magnify" == transform:
+            mag = args
+            x, y = magnify_points_np(x, y, mag)
+        if "all" == transform:
+            x, y = all_transforms_np(x, y, args)
+
     inp = np.zeros(shape=(20, 2), dtype=float)
-    inp[:, 0] = np.array(x)
-    inp[:, 1] = np.array(y)
+    inp[:, 0] = x
+    inp[:, 1] = y
 
     ref = np.zeros(shape=(20, 2), dtype=float)
-    ref[:, 0] = np.array(tx)
-    ref[:, 1] = np.array(ty)
+    ref[:, 0] = tx
+    ref[:, 1] = ty
+
+    return inp, ref, 15
+
+
+
+def test_triangles_15_points_same():
+    """
+    The input and reference lists will have the same first 15 points.  An
+    additional 5 random points are added, for a total of 20 points in each
+    list of points.
+    """
+    inp, ref, elen = get_ndarrays()
 
     r = stimage.xyxymatch(inp, ref, algorithm="triangles", tolerance=0.01)
 
     # All 15 base points should be matched.  The 5 extra random points should not be.
-    assert len(r) == (len(x) - len(x1))
+    assert len(r) == elen
 
 
 @pytest.mark.parametrize("theta_deg", [45.0, 60.0, 90.0, 150.0])
@@ -132,31 +203,12 @@ def test_triangles_15_points_rotated(theta_deg):
 
     The input points will be rotated by various degrees.
     """
-    x, y = base_xy_15()
-    tx = x.copy()
-    ty = y.copy()
-
-    x1, y1, x2, y2 = extra_xy_5()
-    x += x1; y += y1
-    tx += x2; ty += y2
-
-    # Rotate input points by theta_deg degrees
-    rot_theta = theta_deg * np.pi / 180.0
-    rot_mat = rotation_matrix(rot_theta)
-    x, y = rotate_points(x, y, rot_mat)
-
-    inp = np.zeros(shape=(20, 2), dtype=float)
-    inp[:, 0] = np.array(x)
-    inp[:, 1] = np.array(y)
-
-    ref = np.zeros(shape=(20, 2), dtype=float)
-    ref[:, 0] = np.array(tx)
-    ref[:, 1] = np.array(ty)
+    inp, ref, elen = get_ndarrays("rotation", theta_deg)
 
     r = stimage.xyxymatch(inp, ref, algorithm="triangles", tolerance=0.01)
 
     # All 15 base points should be matched.  The 5 extra random points should not be.
-    assert len(r) == (len(x) - len(x1))
+    assert len(r) == elen
 
 
 def test_triangles_15_points_translated():
@@ -168,30 +220,12 @@ def test_triangles_15_points_translated():
 
     The input points will be translated by (-12, 21)
     """
-    x, y = base_xy_15()
-    tx = x.copy()
-    ty = y.copy()
-
-    x1, y1, x2, y2 = extra_xy_5()
-    x += x1; y += y1
-    tx += x2; ty += y2
-
-    # Translate input points using vector (-12, 21)
-    point = [-12., 21.]
-    x, y = translate_points(x, y, point)
-
-    inp = np.zeros(shape=(20, 2), dtype=float)
-    inp[:, 0] = np.array(x)
-    inp[:, 1] = np.array(y)
-
-    ref = np.zeros(shape=(20, 2), dtype=float)
-    ref[:, 0] = np.array(tx)
-    ref[:, 1] = np.array(ty)
+    inp, ref, elen = get_ndarrays("translate", (-12., 21.))
 
     r = stimage.xyxymatch(inp, ref, algorithm="triangles", tolerance=0.01)
 
     # All 15 base points should be matched.  The 5 extra random points should not be.
-    assert len(r) == (len(x) - len(x1))
+    assert len(r) == elen
 
 
 def test_triangles_15_points_flipped():
@@ -203,29 +237,12 @@ def test_triangles_15_points_flipped():
 
     The input points will be flipped around the X-axis.
     """
-    x, y = base_xy_15()
-    tx = x.copy()
-    ty = y.copy()
-
-    x1, y1, x2, y2 = extra_xy_5()
-    x += x1; y += y1
-    tx += x2; ty += y2
-
-    # Flip the points around the X-axis
-    x, y = flip_points(x, y)
-
-    inp = np.zeros(shape=(20, 2), dtype=float)
-    inp[:, 0] = np.array(x)
-    inp[:, 1] = np.array(y)
-
-    ref = np.zeros(shape=(20, 2), dtype=float)
-    ref[:, 0] = np.array(tx)
-    ref[:, 1] = np.array(ty)
+    inp, ref, elen = get_ndarrays("flip")
 
     r = stimage.xyxymatch(inp, ref, algorithm="triangles", tolerance=0.01)
 
     # All 15 base points should be matched.  The 5 extra random points should not be.
-    assert len(r) == (len(x) - len(x1))
+    assert len(r) == elen
 
 
 @pytest.mark.parametrize("mag", [0.2, 0.5, 10.])
@@ -238,33 +255,17 @@ def test_triangles_15_points_magnified(mag):
 
     The input points will be magnified by mag
     """
-    x, y = base_xy_15()
-    tx = x.copy()
-    ty = y.copy()
-
-    x1, y1, x2, y2 = extra_xy_5()
-    x += x1; y += y1
-    tx += x2; ty += y2
-
-    # Magnify points
-    x, y = magnify_points(x, y, mag)
-
-    inp = np.zeros(shape=(20, 2), dtype=float)
-    inp[:, 0] = np.array(x)
-    inp[:, 1] = np.array(y)
-
-    ref = np.zeros(shape=(20, 2), dtype=float)
-    ref[:, 0] = np.array(tx)
-    ref[:, 1] = np.array(ty)
+    inp, ref, elen = get_ndarrays("magnify", mag)
 
     r = stimage.xyxymatch(inp, ref, algorithm="triangles", tolerance=0.01)
 
+    # All 15 base points should be matched.  The 5 extra random points should not be.
     if mag > 0.3:
         # All 15 base points should be matched.  The 5 extra random points should not be.
-        assert len(r) == (len(x) - len(x1))
+        assert len(r) == elen
     else:
         # Due to separation tolerances, few are matched
-        assert len(r) < (len(x) - len(x1))
+        assert len(r) < elen
 
 
 def test_triangles_15_points_all_transforms():
@@ -276,41 +277,13 @@ def test_triangles_15_points_all_transforms():
 
     The input points will be rotated, magnified, flipped, and translated.
     """
-    x, y = base_xy_15()
-    tx = x.copy()
-    ty = y.copy()
-
-    x1, y1, x2, y2 = extra_xy_5()
-    x += x1; y += y1
-    tx += x2; ty += y2
-
-    # Rotate input points.
-    rot_theta = 150.0 * np.pi / 180.0
-    rot_mat = rotation_matrix(rot_theta)
-    x, y = rotate_points(x, y, rot_mat)
-
-    # Magnify points.
-    x, y = magnify_points(x, y, 10.)
-
-    # Flip the points around the X-axis.
-    x, y = flip_points(x, y)
-
-    # Translate input points.
-    point = [-12., 21.]
-    x, y = translate_points(x, y, point)
-
-    inp = np.zeros(shape=(20, 2), dtype=float)
-    inp[:, 0] = np.array(x)
-    inp[:, 1] = np.array(y)
-
-    ref = np.zeros(shape=(20, 2), dtype=float)
-    ref[:, 0] = np.array(tx)
-    ref[:, 1] = np.array(ty)
+    transforms = {"deg": 150., "mag": 10., "trans": (-12., 21.)}
+    inp, ref, elen = get_ndarrays("all", transforms)
 
     r = stimage.xyxymatch(inp, ref, algorithm="triangles", tolerance=0.01)
 
     # All 15 base points should be matched.  The 5 extra random points should not be.
-    assert len(r) == (len(x) - len(x1))
+    assert len(r) == elen
 
 
 def test_tolerance_15_points_same():
@@ -319,26 +292,12 @@ def test_tolerance_15_points_same():
     additional 5 random points are added, for a total of 20 points in each
     list of points.
     """
-    x, y = base_xy_15()
-    tx = x.copy()
-    ty = y.copy()
-
-    x1, y1, x2, y2 = extra_xy_5()
-    x += x1; y += y1
-    tx += x2; ty += y2
-
-    inp = np.zeros(shape=(20, 2), dtype=float)
-    inp[:, 0] = np.array(x)
-    inp[:, 1] = np.array(y)
-
-    ref = np.zeros(shape=(20, 2), dtype=float)
-    ref[:, 0] = np.array(tx)
-    ref[:, 1] = np.array(ty)
+    inp, ref, elen = get_ndarrays()
 
     r = stimage.xyxymatch(inp, ref, algorithm="tolerance", tolerance=0.01)
 
     # All 15 base points should be matched.  The 5 extra random points should not be.
-    assert len(r) == (len(x) - len(x1))
+    assert len(r) == elen
 
 
 @pytest.mark.parametrize("theta_deg", [45.0, 60.0, 90.0, 150.0])
