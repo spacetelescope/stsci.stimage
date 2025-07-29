@@ -145,12 +145,8 @@ def rotate_points(points, rot_mat):
     """Using rotation matrix rotate a set of points."""
     cos_th, sin_th = rot_mat
     new_points = np.zeros(shape=points.shape, dtype=points.dtype)
-    npoints = len(points[:, 0])
-    for k in range(npoints):
-        x, y = points[k, 0], points[k, 1]
-        rx = cos_th * x - sin_th * y
-        ry = sin_th * x + cos_th * y
-        new_points[k, 0], new_points[k, 1] = rx, ry
+    new_points[:, 0] = cos_th * points[:, 0] - sin_th * points[:, 1]
+    new_points[:, 1] = sin_th * points[:, 0] + cos_th * points[:, 1]
     return new_points
 
 
