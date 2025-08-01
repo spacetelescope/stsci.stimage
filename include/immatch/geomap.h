@@ -265,9 +265,6 @@ geomap(
         stimage_error_t* const error);
 
 void
-geomap_result_print(
-        const geomap_result_t* const result);
-
-int _setup_geomap_results_type(PyObject* m);
+geomap_result_print(const geomap_result_t* const result);
 
 #endif /* _STIMAGE_GEOMAP_H_ */
