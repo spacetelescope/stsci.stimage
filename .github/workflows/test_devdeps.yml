@@ -21,12 +21,16 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  CODECOV: $(codecov)
-
 jobs:
   test_devdeps:
-    if: (github.repository == 'spacetelescope/stsci.stimage' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run devdeps tests')))
+    if: >
+    github.repository == 'spacetelescope/stsci.stimage' &&
+    (
+      github.event_name == 'schedule' ||
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && contains(join(github.event.pull_request.labels.*.name, ','), 'run devdeps tests'))
+    )
     name: tests (Python ${{ matrix.python }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -42,7 +46,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           cache: 'pip'
-          cache-dependencies-path: pyproject.toml
+          cache-dependency-path: pyproject.toml
       - run: pip install "numpy>=0.0.0" --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple --pre -U
       - run: pip install -e ".[test]"
       - run: pip freeze
