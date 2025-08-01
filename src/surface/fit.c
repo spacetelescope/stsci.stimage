@@ -248,7 +248,7 @@ surface_fit_add_points(
 
     status = 0;
 
-    surface_print(s);
+    // surface_print(s);
 
  exit:
 
@@ -302,7 +302,7 @@ surface_fit_solve(
         return 1;
     }
 
-    surface_print(s);
+    // surface_print(s);
 
     return 0;
 }
