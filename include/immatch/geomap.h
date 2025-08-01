@@ -36,8 +36,6 @@ DAMAGE.
 #ifndef _STIMAGE_GEOMAP_H_
 #define _STIMAGE_GEOMAP_H_
 
-#include <Python.h>
-
 #include "lib/util.h"
 #include "lib/xybbox.h"
 #include "surface/surface.h"
