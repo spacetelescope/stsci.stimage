@@ -108,4 +108,6 @@ from_xterms_e(
         const xterms_e e,
         PyObject** o);
 
+int _setup_geomap_results_type(PyObject* m);
+
 #endif

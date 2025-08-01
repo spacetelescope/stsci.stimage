@@ -336,7 +336,7 @@ py_geomap(PyObject* self, PyObject* args, PyObject* kwds) {
 
     #define ADD_ARR_ATTR(func, member, name) \
     if ((func)((member), &tmp_arr)) goto exit;      \
-    PyObject_SetAttrString(fit_obj, (name), tmp_arr);       \
+    PyObject_SetAttrString(fit_obj, (name), (PyObject *)tmp_arr);       \
     Py_DECREF(tmp_arr);
 
     #define ADD_ARRAY(size, member, name) \
