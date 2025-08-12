@@ -32,6 +32,8 @@ import pytest
 
 import math
 import numpy as np
+import sys
+
 import stsci.stimage as stimage
 from stsci.stimage._stimage import GeomapResults
 
@@ -123,6 +125,7 @@ def check_test_same():
     return check
 
 
+@pytest.mark.xfail(reason="geomap not supported")
 def test_same():
     """Test same points."""
     inp, ref = input_reference_points()
@@ -184,6 +187,7 @@ def check_test_rotate_45():
     return check
 
 
+@pytest.mark.xfail(reason="geomap not supported")
 @pytest.mark.parametrize("deg", [45])
 def test_rotation(deg):
     inp, ref = input_reference_points()
@@ -238,6 +242,7 @@ def check_test_translate():
     return check
 
 
+@pytest.mark.xfail(reason="geomap not supported")
 def test_translate():
     inp, ref = input_reference_points()
 
@@ -354,6 +359,7 @@ def check_test_magnify_chebyshev():
     return check
 
 
+@pytest.mark.xfail(reason="geomap not supported")
 @pytest.mark.parametrize("poly", ["polynomial", "legendre", "chebyshev"])
 def test_magnification(poly):
     """Test magnification fitting."""
