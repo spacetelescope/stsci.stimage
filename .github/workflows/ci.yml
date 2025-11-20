@@ -90,7 +90,7 @@ jobs:
       - run: pip install -e ".[test]"
       - run: pip freeze
       - run: pytest -vvv -rsv --cov=./ --cov-report=xml --cov-report term-missing
-      - uses: codecov/codecov-action@13ce06bfc6bbe3ecf90edbbf1bc32fe5978ca1d3  # v5.3.1
+      - uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7  # v5.5.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
