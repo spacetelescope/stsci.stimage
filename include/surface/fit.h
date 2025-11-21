@@ -83,14 +83,9 @@ used to solve for the s->ncoeff-vector coeff.
 */
 int
 surface_fit(
-        surface_t* const s,
-        const size_t ncoord,
-        const coord_t* const coord,
-        const double* const z,
-        double* const w,
-        const surface_fit_weight_e weight_type,
-        /* Output */
-        surface_fit_error_e* const error_type,
-        stimage_error_t* const error);
+    surface_t *const s, const size_t ncoord, const coord_t *const coord, const double *const z,
+    double *const w, const surface_fit_weight_e weight_type,
+    /* Output */
+    surface_fit_error_e *const error_type, stimage_error_t *const error);
 
 #endif

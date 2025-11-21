@@ -84,7 +84,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3  # v5.2.0
         with:
-          python-version: '3.11'
+          python-version: '3.13'
           cache: 'pip'
           cache-dependency-path: pyproject.toml
       - run: pip install -e ".[test]"
@@ -99,6 +99,11 @@ jobs:
   test_downstream:
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@v1
     with:
+      setenv: |
+        CRDS_PATH: /tmp/data/crds_cache
+        CRDS_CLIENT_RETRY_COUNT: 3
+        CRDS_CLIENT_RETRY_DELAY_SECONDS: 20
       envs: |
         - linux: jwst
+          python-version: '3.13'
         - linux: tweakwcs

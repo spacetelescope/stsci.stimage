@@ -47,33 +47,29 @@ typedef struct {
  Initializes a bbox by filling it with NaNs
 */
 void
-bbox_init(
-        bbox_t* const bbox);
+bbox_init(bbox_t *const bbox);
 
 /**
  Print the value of the bbox to stdout
 */
 void
-bbox_print(
-        const bbox_t* const bbox);
+bbox_print(const bbox_t *const bbox);
 
 /**
 Check that the bbox is valid, that is min <= max
 */
 static inline int
-bbox_is_valid(
-    const bbox_t* const b) {
-    return (b->min.x <= b->max.x &&
-            b->min.y <= b->max.y);
+bbox_is_valid(const bbox_t *const b)
+{
+    return (b->min.x <= b->max.x && b->min.y <= b->max.y);
 }
 
 /**
 Copies the contents of one bbox to another
 */
 static inline void
-bbox_copy(
-    const bbox_t* const src,
-    bbox_t* const dest) {
+bbox_copy(const bbox_t *const src, bbox_t *const dest)
+{
     dest->min.x = src->min.x;
     dest->min.y = src->min.y;
     dest->max.x = src->max.x;
@@ -84,11 +80,9 @@ bbox_copy(
 Determines if a coordinate is within a bbox.
 */
 static inline int
-coord_in_bbox(
-    const coord_t* const c,
-    const bbox_t* const b) {
-    return (c->x >= b->min.x && c->x <= b->max.x &&
-            c->y >= b->min.y && c->y <= b->max.y);
+coord_in_bbox(const coord_t *const c, const bbox_t *const b)
+{
+    return (c->x >= b->min.x && c->x <= b->max.x && c->y >= b->min.y && c->y <= b->max.y);
 }
 
 /**
@@ -101,12 +95,8 @@ coordinates.
  */
 size_t
 limit_to_bbox(
-    size_t ncoord,
-    const coord_t* const input,
-    const coord_t* const ref,
-    const bbox_t* const bbox,
-    coord_t* const input_in_bbox,
-    coord_t* const ref_in_bbox);
+    size_t ncoord, const coord_t *const input, const coord_t *const ref, const bbox_t *const bbox,
+    coord_t *const input_in_bbox, coord_t *const ref_in_bbox);
 
 /**
 Determines the that contains the given set of coordinates.
@@ -115,16 +105,12 @@ Any finite values in the bbox will be maintained, so to use this from
 scratch, you will usually want to set all values to NaN.
  */
 void
-determine_bbox(
-    size_t n,
-    const coord_t* const a,
-    bbox_t* const bbox);
+determine_bbox(size_t n, const coord_t *const a, bbox_t *const bbox);
 
 /**
 Makes the bbox non-singular
  */
 void
-bbox_make_nonsingular(
-    bbox_t* const bbox);
+bbox_make_nonsingular(bbox_t *const bbox);
 
 #endif /* _STIMAGE_XYBBOX_H_ */

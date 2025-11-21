@@ -35,30 +35,20 @@ DAMAGE.
 #include "lib/polynomial.h"
 
 typedef int (*basis_function_t)(
-        const size_t,
-        const size_t,
-        const coord_t* const,
-        const int,
-        const double,
-        const double,
-        double* const,
-        stimage_error_t* const);
+    const size_t, const size_t, const coord_t *const, const int, const double, const double,
+    double *const, stimage_error_t *const);
 
 int
 eval_1dpoly(
-        const int order,
-        const double* const coeff,
-        const size_t ncoord,
-        const size_t axis,
-        const coord_t* const ref,
-        double* const zfit,
-        stimage_error_t* const error) {
+    const int order, const double *const coeff, const size_t ncoord, const size_t axis,
+    const coord_t *const ref, double *const zfit, stimage_error_t *const error)
+{
 
-    size_t        i      = 0;
-    int           j      = 0;
-    const double* x      = (double *)ref + axis;
-    double*       tmp    = NULL;
-    int           status = 1;
+    size_t i = 0;
+    int j = 0;
+    const double *x = (double *) ref + axis;
+    double *tmp = NULL;
+    int status = 1;
 
     assert(coeff);
     assert(ref);
@@ -74,7 +64,7 @@ eval_1dpoly(
     }
 
     for (i = 0; i < ncoord; ++i) {
-        zfit[i] += (x[i<<1] * coeff[1]);
+        zfit[i] += (x[i << 1] * coeff[1]);
     }
 
     if (order == 2) {
@@ -82,22 +72,24 @@ eval_1dpoly(
     }
 
     tmp = malloc_with_error(ncoord * sizeof(double), error);
-    if (tmp == NULL) goto exit;
+    if (tmp == NULL) {
+        goto exit;
+    }
 
     for (i = 0; i < ncoord; ++i) {
-        tmp[i] = x[i<<1];
+        tmp[i] = x[i << 1];
     }
 
     for (j = 2; j < order; ++j) {
         for (i = 0; i < ncoord; ++i) {
-            tmp[i] *= x[i<<1];
+            tmp[i] *= x[i << 1];
             zfit[i] += tmp[i] * coeff[j];
         }
     }
 
     status = 0;
 
- exit:
+exit:
 
     free(tmp);
 
@@ -106,26 +98,21 @@ eval_1dpoly(
 
 int
 eval_1dchebyshev(
-        const int order,
-        const double* const coeff,
-        const size_t ncoord,
-        const size_t axis,
-        const coord_t* const ref,
-        const double k1,
-        const double k2,
-        double* const zfit,
-        stimage_error_t* const error) {
+    const int order, const double *const coeff, const size_t ncoord, const size_t axis,
+    const coord_t *const ref, const double k1, const double k2, double *const zfit,
+    stimage_error_t *const error)
+{
 
-    size_t        i      = 0;
-    int           j      = 0;
-    const double* x      = (double *)ref + axis;
-    double        c1     = 0.0;
-    double        c2     = 0.0;
-    double*       sx     = NULL;
-    double*       pn     = NULL;
-    double*       pnm1   = NULL;
-    double*       pnm2   = NULL;
-    int           status = 1;
+    size_t i = 0;
+    int j = 0;
+    const double *x = (double *) ref + axis;
+    double c1 = 0.0;
+    double c2 = 0.0;
+    double *sx = NULL;
+    double *pn = NULL;
+    double *pnm1 = NULL;
+    double *pnm2 = NULL;
+    int status = 1;
 
     assert(coeff);
     assert(ref);
@@ -143,7 +130,7 @@ eval_1dchebyshev(
     c1 = k2 * coeff[1];
     c2 = c1 * k1 + coeff[0];
     for (i = 0; i < ncoord; ++i) {
-        zfit[i] = x[i<<1] * c1 + c2;
+        zfit[i] = x[i << 1] * c1 + c2;
     }
 
     if (order == 2) {
@@ -151,20 +138,28 @@ eval_1dchebyshev(
     }
 
     sx = malloc_with_error(ncoord * sizeof(double), error);
-    if (sx == NULL) goto exit;
+    if (sx == NULL) {
+        goto exit;
+    }
 
     pn = malloc_with_error(ncoord * sizeof(double), error);
-    if (pn == NULL) goto exit;
+    if (pn == NULL) {
+        goto exit;
+    }
 
     pnm1 = malloc_with_error(ncoord * sizeof(double), error);
-    if (pnm1 == NULL) goto exit;
+    if (pnm1 == NULL) {
+        goto exit;
+    }
 
     pnm2 = malloc_with_error(ncoord * sizeof(double), error);
-    if (pnm2 == NULL) goto exit;
+    if (pnm2 == NULL) {
+        goto exit;
+    }
 
     for (i = 0; i < ncoord; ++i) {
         pnm2[i] = 1.0;
-        pnm1[i] = sx[i] = (x[i<<1] + k1) * k2;
+        pnm1[i] = sx[i] = (x[i << 1] + k1) * k2;
         sx[i] *= 2;
     }
 
@@ -188,7 +183,7 @@ eval_1dchebyshev(
 
     status = 0;
 
- exit:
+exit:
 
     free(sx);
     free(pn);
@@ -200,27 +195,22 @@ eval_1dchebyshev(
 
 int
 eval_1dlegendre(
-        const int order,
-        const double* const coeff,
-        const size_t ncoord,
-        const size_t axis,
-        const coord_t* const ref,
-        const double k1,
-        const double k2,
-        double* const zfit,
-        stimage_error_t* const error) {
+    const int order, const double *const coeff, const size_t ncoord, const size_t axis,
+    const coord_t *const ref, const double k1, const double k2, double *const zfit,
+    stimage_error_t *const error)
+{
 
-    size_t        i      = 0;
-    int           j      = 0;
-    const double* x      = (double *)ref + axis;
-    double        ri     = 0.0;
-    double        ri1    = 0.0;
-    double        ri2    = 0.0;
-    double*       sx     = NULL;
-    double*       pn     = NULL;
-    double*       pnm1   = NULL;
-    double*       pnm2   = NULL;
-    int           status = 1;
+    size_t i = 0;
+    int j = 0;
+    const double *x = (double *) ref + axis;
+    double ri = 0.0;
+    double ri1 = 0.0;
+    double ri2 = 0.0;
+    double *sx = NULL;
+    double *pn = NULL;
+    double *pnm1 = NULL;
+    double *pnm2 = NULL;
+    int status = 1;
 
     assert(coeff);
     assert(ref);
@@ -238,7 +228,7 @@ eval_1dlegendre(
     ri1 = k2 * coeff[1];
     ri2 = ri1 * k1 + coeff[0];
     for (i = 0; i < ncoord; ++i) {
-        zfit[i] = (x[i<<1] * ri1) + ri2;
+        zfit[i] = (x[i << 1] * ri1) + ri2;
     }
 
     if (order == 2) {
@@ -246,24 +236,32 @@ eval_1dlegendre(
     }
 
     sx = malloc_with_error(ncoord * sizeof(double), error);
-    if (sx == NULL) goto exit;
+    if (sx == NULL) {
+        goto exit;
+    }
 
     pn = malloc_with_error(ncoord * sizeof(double), error);
-    if (pn == NULL) goto exit;
+    if (pn == NULL) {
+        goto exit;
+    }
 
     pnm1 = malloc_with_error(ncoord * sizeof(double), error);
-    if (pnm1 == NULL) goto exit;
+    if (pnm1 == NULL) {
+        goto exit;
+    }
 
     pnm2 = malloc_with_error(ncoord * sizeof(double), error);
-    if (pnm2 == NULL) goto exit;
+    if (pnm2 == NULL) {
+        goto exit;
+    }
 
     for (i = 0; i < ncoord; ++i) {
         pnm2[i] = 1.0;
-        pnm1[i] = sx[i] = (x[i<<1] + k1) * k2;
+        pnm1[i] = sx[i] = (x[i << 1] + k1) * k2;
     }
 
     for (j = 2; j < order; ++j) {
-        ri = (double)j + 1.0;
+        ri = (double) j + 1.0;
         ri1 = (2.0 * ri - 3.0) / (ri - 1.0);
         ri2 = -(ri - 2.0) / (ri - 1.0);
 
@@ -287,7 +285,7 @@ eval_1dlegendre(
 
     status = 0;
 
- exit:
+exit:
 
     free(sx);
     free(pn);
@@ -299,19 +297,16 @@ eval_1dlegendre(
 
 int
 basis_poly(
-        const size_t ncoord,
-        const size_t axis,
-        const coord_t* const ref,
-        const int order,
-        const double k1, /* Ignored */
-        const double k2, /* Ignored */
-        double* const basis,
-        stimage_error_t* const error) {
+    const size_t ncoord, const size_t axis, const coord_t *const ref, const int order,
+    const double k1, /* Ignored */
+    const double k2, /* Ignored */
+    double *const basis, stimage_error_t *const error)
+{
 
-    size_t              i  = 0;
-    int                 k  = 0;
-    const double* const x  = (double*)ref + axis;
-    double*             bp = basis;
+    size_t i = 0;
+    int k = 0;
+    const double *const x = (double *) ref + axis;
+    double *bp = basis;
 
     assert(ref);
     assert(basis);
@@ -326,13 +321,13 @@ basis_poly(
             }
         } else if (k == 1) {
             for (i = 0; i < ncoord; ++i) {
-                bp[i] = x[i<<1];
+                bp[i] = x[i << 1];
             }
         } else {
             for (i = 0; i < ncoord; ++i) {
                 assert(((bp - basis) + i - ncoord) > 0);
                 assert(((bp - basis) + i - ncoord) < ncoord * order);
-                bp[i] = x[i<<1] * bp[i - ncoord];
+                bp[i] = x[i << 1] * bp[i - ncoord];
             }
         }
 
@@ -344,19 +339,14 @@ basis_poly(
 
 int
 basis_chebyshev(
-        const size_t ncoord,
-        const size_t axis,
-        const coord_t* const ref,
-        const int order,
-        const double k1,
-        const double k2,
-        double* const basis,
-        stimage_error_t* const error) {
+    const size_t ncoord, const size_t axis, const coord_t *const ref, const int order,
+    const double k1, const double k2, double *const basis, stimage_error_t *const error)
+{
 
-    size_t              i  = 0;
-    int                 k  = 0;
-    const double* const x  = (double*)ref + axis;
-    double*             bp = basis;
+    size_t i = 0;
+    int k = 0;
+    const double *const x = (double *) ref + axis;
+    double *bp = basis;
 
     assert(ref);
     assert(basis);
@@ -369,7 +359,7 @@ basis_chebyshev(
             }
         } else if (k == 1) {
             for (i = 0; i < ncoord; ++i) {
-                bp[i] = (x[i<<1] + k1) * k2;
+                bp[i] = (x[i << 1] + k1) * k2;
             }
         } else {
             for (i = 0; i < ncoord; ++i) {
@@ -377,9 +367,9 @@ basis_chebyshev(
                 assert(((bp - basis) + i - ncoord) < ncoord * order);
                 assert(((bp - basis) + i - (2 * ncoord)) >= 0);
                 assert(((bp - basis) + i - (2 * ncoord)) < ncoord * order);
-                bp[i] = (basis[ncoord+i] * bp[i-ncoord]);
+                bp[i] = (basis[ncoord + i] * bp[i - ncoord]);
                 bp[i] *= 2.0;
-                bp[i] -= bp[i-(2 * ncoord)];
+                bp[i] -= bp[i - (2 * ncoord)];
             }
         }
 
@@ -391,22 +381,17 @@ basis_chebyshev(
 
 int
 basis_legendre(
-        const size_t ncoord,
-        const size_t axis,
-        const coord_t* const ref,
-        const int order,
-        const double k1,
-        const double k2,
-        double* const basis,
-        stimage_error_t* const error) {
+    const size_t ncoord, const size_t axis, const coord_t *const ref, const int order,
+    const double k1, const double k2, double *const basis, stimage_error_t *const error)
+{
 
-    size_t              i   = 0;
-    int                 k   = 0;
-    const double* const x   = (double*)ref + axis;
-    double*             bp  = basis;
-    double              ri  = 0.0;
-    double              ri1 = 0.0;
-    double              ri2 = 0.0;
+    size_t i = 0;
+    int k = 0;
+    const double *const x = (double *) ref + axis;
+    double *bp = basis;
+    double ri = 0.0;
+    double ri1 = 0.0;
+    double ri2 = 0.0;
 
     assert(ref);
     assert(basis);
@@ -419,7 +404,7 @@ basis_legendre(
             }
         } else if (k == 1) {
             for (i = 0; i < ncoord; ++i) {
-                bp[i] = (x[i<<1] + k1) * k2;
+                bp[i] = (x[i << 1] + k1) * k2;
             }
         } else {
             assert(((bp - basis) + i - ncoord) >= 0);
@@ -431,8 +416,8 @@ basis_legendre(
             ri1 = (2.0 * ri - 3.0) / (ri - 1.0);
             ri2 = -(ri - 2.0) / (ri - 1.0);
             for (i = 0; i < ncoord; ++i) {
-                bp[i] = (basis[ncoord+i] * bp[i-ncoord]);
-                bp[i] = bp[i] * ri1 + bp[i-(2 * ncoord)] * ri2;
+                bp[i] = (basis[ncoord + i] * bp[i - ncoord]);
+                bp[i] = bp[i] * ri1 + bp[i - (2 * ncoord)] * ri2;
             }
         }
 
@@ -444,33 +429,25 @@ basis_legendre(
 
 static int
 eval_poly_generic(
-        const int xorder,
-        const int yorder,
-        const double* const coeff,
-        const size_t ncoord,
-        const coord_t* const ref,
-        const xterms_e xterms,
-        const double k1x,
-        const double k2x,
-        const double k1y,
-        const double k2y,
-        basis_function_t basis_function,
-        /* Output */
-        double* const zfit,
-        stimage_error_t* const error) {
+    const int xorder, const int yorder, const double *const coeff, const size_t ncoord,
+    const coord_t *const ref, const xterms_e xterms, const double k1x, const double k2x,
+    const double k1y, const double k2y, basis_function_t basis_function,
+    /* Output */
+    double *const zfit, stimage_error_t *const error)
+{
 
-    size_t       i        = 0;
-    int          j        = 0;
-    int          k        = 0;
-    double*      xb       = NULL;
-    double*      yb       = NULL;
-    double*      accum    = NULL;
-    int          cp       = 0;
+    size_t i = 0;
+    int j = 0;
+    int k = 0;
+    double *xb = NULL;
+    double *yb = NULL;
+    double *accum = NULL;
+    int cp = 0;
     const int maxorder = MAX(xorder + 1, yorder + 1);
-    int          xincr    = 0;
-    double*      xbp      = xb;
-    double*      ybp      = yb;
-    int          status   = 1;
+    int xincr = 0;
+    double *xbp = xb;
+    double *ybp = yb;
+    int status = 1;
 
     assert(coeff);
     assert(ref);
@@ -512,15 +489,25 @@ eval_poly_generic(
     }
 
     xb = malloc_with_error(xorder * ncoord * sizeof(double), error);
-    if (xb == NULL) goto exit;
+    if (xb == NULL) {
+        goto exit;
+    }
     yb = malloc_with_error(yorder * ncoord * sizeof(double), error);
-    if (yb == NULL) goto exit;
+    if (yb == NULL) {
+        goto exit;
+    }
     accum = malloc_with_error(ncoord * sizeof(double), error);
-    if (accum == NULL) goto exit;
+    if (accum == NULL) {
+        goto exit;
+    }
 
     /* Calculate basis functions */
-    if (basis_function(ncoord, 0, ref, xorder, k1x, k2x, xb, error)) goto exit;
-    if (basis_function(ncoord, 1, ref, yorder, k1y, k2y, yb, error)) goto exit;
+    if (basis_function(ncoord, 0, ref, xorder, k1x, k2x, xb, error)) {
+        goto exit;
+    }
+    if (basis_function(ncoord, 1, ref, yorder, k1y, k2y, yb, error)) {
+        goto exit;
+    }
 
     /* Accumulate the output vector */
     for (i = 0; i < ncoord; ++i) {
@@ -537,7 +524,7 @@ eval_poly_generic(
             xbp = xb;
             for (k = 0; k < xincr; ++k) {
                 for (i = 0; i < ncoord; ++i) {
-                    accum[i] += xbp[i] * coeff[cp+k];
+                    accum[i] += xbp[i] * coeff[cp + k];
                 }
             }
             xbp += ncoord;
@@ -568,7 +555,7 @@ eval_poly_generic(
         ybp = yb + ncoord;
         for (k = 0; k < yorder - 1; ++k) {
             for (i = 0; i < ncoord; ++i) {
-                zfit[i] += ybp[i] * coeff[xorder+k];
+                zfit[i] += ybp[i] * coeff[xorder + k];
             }
 
             ybp += ncoord;
@@ -577,7 +564,7 @@ eval_poly_generic(
 
     status = 0;
 
- exit:
+exit:
     free(xb);
     free(yb);
     free(accum);
@@ -587,63 +574,41 @@ eval_poly_generic(
 
 int
 eval_poly(
-        const int xorder,
-        const int yorder,
-        const double* const coeff,
-        const size_t ncoord,
-        const coord_t* const ref,
-        const xterms_e xterms,
-        const double k1x,
-        const double k2x,
-        const double k1y,
-        const double k2y,
-        /* Output */
-        double* const zfit,
-        stimage_error_t* const error) {
+    const int xorder, const int yorder, const double *const coeff, const size_t ncoord,
+    const coord_t *const ref, const xterms_e xterms, const double k1x, const double k2x,
+    const double k1y, const double k2y,
+    /* Output */
+    double *const zfit, stimage_error_t *const error)
+{
 
     return eval_poly_generic(
-            xorder, yorder, coeff, ncoord, ref, xterms, k1x, k2x, k1y, k2y,
-            &basis_poly, zfit, error);
+        xorder, yorder, coeff, ncoord, ref, xterms, k1x, k2x, k1y, k2y, &basis_poly, zfit, error);
 }
 
 int
 eval_chebyshev(
-        const int xorder,
-        const int yorder,
-        const double* const coeff,
-        const size_t ncoord,
-        const coord_t* const ref,
-        const xterms_e xterms,
-        const double k1x,
-        const double k2x,
-        const double k1y,
-        const double k2y,
-        /* Output */
-        double* const zfit,
-        stimage_error_t* const error) {
+    const int xorder, const int yorder, const double *const coeff, const size_t ncoord,
+    const coord_t *const ref, const xterms_e xterms, const double k1x, const double k2x,
+    const double k1y, const double k2y,
+    /* Output */
+    double *const zfit, stimage_error_t *const error)
+{
 
     return eval_poly_generic(
-            xorder, yorder, coeff, ncoord, ref, xterms, k1x, k2x, k1y, k2y,
-            &basis_chebyshev, zfit, error);
+        xorder, yorder, coeff, ncoord, ref, xterms, k1x, k2x, k1y, k2y, &basis_chebyshev, zfit,
+        error);
 }
 
 int
 eval_legendre(
-        const int xorder,
-        const int yorder,
-        const double* const coeff,
-        const size_t ncoord,
-        const coord_t* const ref,
-        const xterms_e xterms,
-        const double k1x,
-        const double k2x,
-        const double k1y,
-        const double k2y,
-        /* Output */
-        double* const zfit,
-        stimage_error_t* const error) {
+    const int xorder, const int yorder, const double *const coeff, const size_t ncoord,
+    const coord_t *const ref, const xterms_e xterms, const double k1x, const double k2x,
+    const double k1y, const double k2y,
+    /* Output */
+    double *const zfit, stimage_error_t *const error)
+{
 
     return eval_poly_generic(
-            xorder, yorder, coeff, ncoord, ref, xterms, k1x, k2x, k1y, k2y,
-            &basis_legendre, zfit, error);
+        xorder, yorder, coeff, ncoord, ref, xterms, k1x, k2x, k1y, k2y, &basis_legendre, zfit,
+        error);
 }

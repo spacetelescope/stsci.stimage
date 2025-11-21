@@ -43,37 +43,32 @@ DAMAGE.
 #include "immatch/lib/tolerance.h"
 
 typedef struct {
-    const coord_t*      ref;
-    const coord_t*      input;
-    size_t              noutput;
-    size_t              outputp;
-    xyxymatch_output_t* output;
+    const coord_t *ref;
+    const coord_t *input;
+    size_t noutput;
+    size_t outputp;
+    xyxymatch_output_t *output;
 } xyxymatch_callback_data_t;
 
 static int
-xyxymatch_callback(
-        void* data,
-        size_t ref_index,
-        size_t input_index,
-        stimage_error_t* error) {
+xyxymatch_callback(void *data, size_t ref_index, size_t input_index, stimage_error_t *error)
+{
 
-    xyxymatch_callback_data_t* state = (xyxymatch_callback_data_t*)data;
-    xyxymatch_output_t* entry;
+    xyxymatch_callback_data_t *state = (xyxymatch_callback_data_t *) data;
+    xyxymatch_output_t *entry;
 
     if (state->outputp >= state->noutput) {
         stimage_error_format_message(
-            error,
-            "Number of output coordinates exceeded allocation (%d)",
-            state->noutput);
+            error, "Number of output coordinates exceeded allocation (%d)", state->noutput);
         return 1;
     }
 
     entry = &(state->output[state->outputp]);
 
-    entry->coord     = state->input[input_index];
-    entry->ref       = state->ref[ref_index];
+    entry->coord = state->input[input_index];
+    entry->ref = state->ref[ref_index];
     entry->coord_idx = input_index;
-    entry->ref_idx   = ref_index;
+    entry->ref_idx = ref_index;
 
     ++(state->outputp);
 
@@ -98,33 +93,30 @@ doubles.
 
 int
 xyxymatch(
-        const size_t ninput, const coord_t* const input /*[ninput]*/,
-        const size_t nref, const coord_t* const ref /*[nref]*/,
-        size_t* noutput, xyxymatch_output_t* const output /*[noutput]*/,
-        const coord_t* origin, /* good default: 0.0, 0.0 */
-        const coord_t* mag, /* good default: 1.0, 1.0 */
-        const coord_t* rotation, /* good default: 0.0, 0.0 */
-        const coord_t* ref_origin, /* good default: 0.0, 0.0 */
-        const xyxymatch_algo_e algorithm,
-        const double tolerance,
-        const double separation, /* good default: 9.0 */
-        const size_t nmatch,
-        const double maxratio,
-        const size_t nreject,
-        stimage_error_t* const error) {
+    const size_t ninput, const coord_t *const input /*[ninput]*/, const size_t nref,
+    const coord_t *const ref /*[nref]*/, size_t *noutput,
+    xyxymatch_output_t *const output /*[noutput]*/,
+    const coord_t *origin,     /* good default: 0.0, 0.0 */
+    const coord_t *mag,        /* good default: 1.0, 1.0 */
+    const coord_t *rotation,   /* good default: 0.0, 0.0 */
+    const coord_t *ref_origin, /* good default: 0.0, 0.0 */
+    const xyxymatch_algo_e algorithm, const double tolerance,
+    const double separation, /* good default: 9.0 */
+    const size_t nmatch, const double maxratio, const size_t nreject, stimage_error_t *const error)
+{
 
-    static const coord_t      DEFAULT_ORIGIN     = {0.0, 0.0};
-    static const coord_t      DEFAULT_MAG        = {1.0, 1.0};
-    static const coord_t      DEFAULT_ROTATION   = {0.0, 0.0};
-    static const coord_t      DEFAULT_REF_ORIGIN = {0.0, 0.0};
-    coord_t*                  input_trans        = NULL;
-    const coord_t**           input_trans_sorted = NULL;
-    size_t                    ninput_unique      = ninput;
-    const coord_t**           ref_sorted         = NULL;
-    size_t                    nref_unique        = nref;
-    lintransform_t            lintransform;
+    static const coord_t DEFAULT_ORIGIN = {0.0, 0.0};
+    static const coord_t DEFAULT_MAG = {1.0, 1.0};
+    static const coord_t DEFAULT_ROTATION = {0.0, 0.0};
+    static const coord_t DEFAULT_REF_ORIGIN = {0.0, 0.0};
+    coord_t *input_trans = NULL;
+    const coord_t **input_trans_sorted = NULL;
+    size_t ninput_unique = ninput;
+    const coord_t **ref_sorted = NULL;
+    size_t nref_unique = nref;
+    lintransform_t lintransform;
     xyxymatch_callback_data_t state;
-    int                       status             = 1;
+    int status = 1;
 
     /****************************************
      CHECK ARGUMENTS
@@ -169,8 +161,10 @@ xyxymatch(
     /****************************************
      PREPARE REFERENCE COORDINATES
     */
-    ref_sorted = malloc_with_error(nref * sizeof(coord_t*), error);
-    if (ref_sorted == NULL) goto exit;
+    ref_sorted = malloc_with_error(nref * sizeof(coord_t *), error);
+    if (ref_sorted == NULL) {
+        goto exit;
+    }
 
     xysort(nref, ref, ref_sorted);
     nref_unique = xycoincide(nref, ref_sorted, ref_sorted, separation);
@@ -184,10 +178,14 @@ xyxymatch(
      PREPARE INPUT COORDINATES
     */
     input_trans = malloc_with_error(ninput * sizeof(coord_t), error);
-    if (input_trans == NULL) goto exit;
+    if (input_trans == NULL) {
+        goto exit;
+    }
 
-    input_trans_sorted = malloc_with_error(ninput * sizeof(coord_t*), error);
-    if (input_trans_sorted == NULL) goto exit;
+    input_trans_sorted = malloc_with_error(ninput * sizeof(coord_t *), error);
+    if (input_trans_sorted == NULL) {
+        goto exit;
+    }
 
     apply_lintransform(&lintransform, ninput, input, input_trans);
     xysort(ninput, input_trans, input_trans_sorted);
@@ -203,28 +201,27 @@ xyxymatch(
     state.output = output;
 
     switch (algorithm) {
-    case xyxymatch_algo_tolerance:
-        if (match_tolerance(
-                nref_unique, ref, ref_sorted,
-                ninput_unique, input_trans, input_trans_sorted,
-                tolerance,
-                xyxymatch_callback, &state,
-                error)) goto exit;
-        *noutput = state.outputp;
-        break;
-    case xyxymatch_algo_triangles:
-        if (match_triangles(
-                nref, nref_unique, ref, ref_sorted,
-                ninput, ninput_unique, input_trans, input_trans_sorted,
-                nmatch, tolerance, maxratio, nreject,
-                &xyxymatch_callback, &state,
-                error)) goto exit;
-        *noutput = state.outputp;
-        break;
-    case xyxymatch_algo_LAST:
-    default:
-        stimage_error_set_message(error, "Invalid algorithm");
-        goto exit;
+        case xyxymatch_algo_tolerance:
+            if (match_tolerance(
+                    nref_unique, ref, ref_sorted, ninput_unique, input_trans, input_trans_sorted,
+                    tolerance, xyxymatch_callback, &state, error)) {
+                goto exit;
+            }
+            *noutput = state.outputp;
+            break;
+        case xyxymatch_algo_triangles:
+            if (match_triangles(
+                    nref, nref_unique, ref, ref_sorted, ninput, ninput_unique, input_trans,
+                    input_trans_sorted, nmatch, tolerance, maxratio, nreject, &xyxymatch_callback,
+                    &state, error)) {
+                goto exit;
+            }
+            *noutput = state.outputp;
+            break;
+        case xyxymatch_algo_LAST:
+        default:
+            stimage_error_set_message(error, "Invalid algorithm");
+            goto exit;
     }
 
     status = 0;
@@ -236,6 +233,3 @@ exit:
     free(input_trans);
     return status;
 }
-
-
-

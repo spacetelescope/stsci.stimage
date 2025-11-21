@@ -6,7 +6,8 @@
 #include "test.h"
 
 void
-print_array(const size_t ncoords, const coord_t* data, const char* name) {
+print_array(const size_t ncoords, const coord_t *data, const char *name)
+{
     size_t i;
 
     printf("%s = [ ", name);
@@ -16,8 +17,10 @@ print_array(const size_t ncoords, const coord_t* data, const char* name) {
     printf("]\n");
 }
 
-int main(int argv, char** argc) {
-    #define ncoords 512
+int
+main(int argv, char **argc)
+{
+#define ncoords 512
     coord_t data[ncoords];
     coord_t data_trans[ncoords];
     lintransform_t transform;
@@ -41,8 +44,7 @@ int main(int argv, char** argc) {
     apply_lintransform(&transform, ncoords, data, data_trans);
 
     for (i = 0; i < ncoords; ++i) {
-        if (data[i].x != data_trans[i].x ||
-            data[i].y != data_trans[i].y) {
+        if (data[i].x != data_trans[i].x || data[i].y != data_trans[i].y) {
             return 1;
         }
     }
@@ -55,8 +57,7 @@ int main(int argv, char** argc) {
     apply_lintransform(&transform, ncoords, data, data_trans);
 
     for (i = 0; i < ncoords; ++i) {
-        if (data[i].x * 2 != data_trans[i].x ||
-            data[i].y * 2 != data_trans[i].y) {
+        if (data[i].x * 2 != data_trans[i].x || data[i].y * 2 != data_trans[i].y) {
             return 1;
         }
     }

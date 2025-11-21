@@ -36,9 +36,9 @@ DAMAGE.
 
 typedef struct {
     coord_t coord;
-    size_t  coord_idx;
+    size_t coord_idx;
     coord_t ref;
-    size_t  ref_idx;
+    size_t ref_idx;
 } xyxymatch_output_t;
 
 typedef enum {
@@ -59,7 +59,7 @@ xyxymatch
 @param ref Array of reference coordinates
 
 @param noutput input: The number of output coordinate pairs allocated
-       output: The numbe of output coordinate pairs found
+       output: The number of output coordinate pairs found
 
 @param output Array of xyxymatch_output_t objects to store the output
        information.  Should be allocated to the same size as the
@@ -141,19 +141,15 @@ triangles pattern matching algorithm.
  */
 int
 xyxymatch(
-    const size_t ninput, const coord_t* const input /*[ninput]*/,
-    const size_t nref, const coord_t* const ref /*[nref]*/,
-    size_t* noutput, xyxymatch_output_t* const output /*[noutput]*/,
-    const coord_t* const origin, /* good default: 0.0, 0.0 */
-    const coord_t* const mag, /* good default: 1.0, 1.0 */
-    const coord_t* const rotation, /* good default: 0.0, 0.0 */
-    const coord_t* const ref_origin, /* good default: 0.0, 0.0 */
-    const xyxymatch_algo_e algorithm,
-    const double tolerance,
+    const size_t ninput, const coord_t *const input /*[ninput]*/, const size_t nref,
+    const coord_t *const ref /*[nref]*/, size_t *noutput,
+    xyxymatch_output_t *const output /*[noutput]*/,
+    const coord_t *const origin,     /* good default: 0.0, 0.0 */
+    const coord_t *const mag,        /* good default: 1.0, 1.0 */
+    const coord_t *const rotation,   /* good default: 0.0, 0.0 */
+    const coord_t *const ref_origin, /* good default: 0.0, 0.0 */
+    const xyxymatch_algo_e algorithm, const double tolerance,
     const double separation, /* good default: 9.0 */
-    const size_t nmatch,
-    const double maxratio,
-    const size_t nreject,
-    stimage_error_t* const error);
+    const size_t nmatch, const double maxratio, const size_t nreject, stimage_error_t *const error);
 
 #endif /* _STIMAGE_XYXYMATCH_H_ */

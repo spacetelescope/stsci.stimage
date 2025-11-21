@@ -39,26 +39,21 @@ DAMAGE.
 
 int
 match_tolerance(
-        const size_t nref,
-        const coord_t* const ref,
-        const coord_t* const * const ref_sorted,
-        const size_t ninput,
-        const coord_t* const input,
-        const coord_t* const * const input_sorted,
-        const double tolerance,
-        coord_match_callback_t* callback,
-        void* callback_data,
-        stimage_error_t* const error) {
+    const size_t nref, const coord_t *const ref, const coord_t *const *const ref_sorted,
+    const size_t ninput, const coord_t *const input, const coord_t *const *const input_sorted,
+    const double tolerance, coord_match_callback_t *callback, void *callback_data,
+    stimage_error_t *const error)
+{
 
-    const double   tolerance2  = tolerance*tolerance;
-    size_t         rp          = 0;
-    size_t         blp         = 0;
-    size_t         lp          = 0;
-    size_t         input_index = 0;
-    size_t         ref_index   = 0;
-    double         dx, dy, rmax2, r2;
-    const coord_t* rmatch;
-    const coord_t* lmatch;
+    const double tolerance2 = tolerance * tolerance;
+    size_t rp = 0;
+    size_t blp = 0;
+    size_t lp = 0;
+    size_t input_index = 0;
+    size_t ref_index = 0;
+    double dx, dy, rmax2, r2;
+    const coord_t *rmatch;
+    const coord_t *lmatch;
 
     assert(ref);
     assert(ref_sorted);
@@ -98,7 +93,7 @@ match_tolerance(
                 break;
             }
             dx = ref_sorted[rp]->x - input_sorted[lp]->x;
-            r2 = dx*dx + dy*dy;
+            r2 = dx * dx + dy * dy;
 
             /* A match has been found */
             if (r2 <= rmax2) {

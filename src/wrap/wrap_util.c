@@ -38,15 +38,13 @@ DAMAGE.
 
 #include "wrap_util.h"
 
-char* SIZE_T_D;
+char *SIZE_T_D;
 
 int
-to_coord_t(
-        const char* const name,
-        PyObject* o,
-        coord_t* const c) {
+to_coord_t(const char *const name, PyObject *o, coord_t *const c)
+{
 
-    PyArrayObject* array = NULL;
+    PyArrayObject *array = NULL;
 
     if (o == NULL || o == Py_None) {
         return 0;
@@ -59,15 +57,12 @@ to_coord_t(
 
     if (PyArray_DIM(array, 0) != 2) {
         Py_DECREF(array);
-        PyErr_Format(
-                PyExc_ValueError,
-                "%s must be a pair",
-                name);
+        PyErr_Format(PyExc_ValueError, "%s must be a pair", name);
         return -1;
     }
 
-    c->x = *((double*)PyArray_GETPTR1(array, 0));
-    c->y = *((double*)PyArray_GETPTR1(array, 1));
+    c->x = *((double *) PyArray_GETPTR1(array, 0));
+    c->y = *((double *) PyArray_GETPTR1(array, 1));
 
     Py_DECREF(array);
 
@@ -75,9 +70,8 @@ to_coord_t(
 }
 
 int
-from_coord_t(
-        const coord_t* const c,
-        PyArrayObject** o) {
+from_coord_t(const coord_t *const c, PyArrayObject **o)
+{
 
     npy_intp dims = 2;
 
@@ -86,20 +80,18 @@ from_coord_t(
         return -1;
     }
 
-    *((double*)PyArray_GETPTR1(*o, 0)) = c->x;
-    *((double*)PyArray_GETPTR1(*o, 1)) = c->y;
+    *((double *) PyArray_GETPTR1(*o, 0)) = c->x;
+    *((double *) PyArray_GETPTR1(*o, 1)) = c->y;
 
     return 0;
 }
 
 int
-to_bbox_t(
-        const char* const name,
-        PyObject* o,
-        bbox_t* const b) {
+to_bbox_t(const char *const name, PyObject *o, bbox_t *const b)
+{
 
-    PyArrayObject* array;
-    double* data;
+    PyArrayObject *array;
+    double *data;
 
     if (o == NULL || o == Py_None) {
         return 0;
@@ -110,19 +102,14 @@ to_bbox_t(
         return -1;
     }
 
-    if ((PyArray_NDIM(array) == 1 &&
-         PyArray_DIM(array, 0) != 4) ||
-        (PyArray_NDIM(array) == 2 &&
-         (PyArray_DIM(array, 0) != 2 || PyArray_DIM(array, 1) != 2))) {
-        PyErr_Format(
-                PyExc_ValueError,
-                "%s must be a length-4 or 2x2 sequence",
-                name);
+    if ((PyArray_NDIM(array) == 1 && PyArray_DIM(array, 0) != 4) ||
+        (PyArray_NDIM(array) == 2 && (PyArray_DIM(array, 0) != 2 || PyArray_DIM(array, 1) != 2))) {
+        PyErr_Format(PyExc_ValueError, "%s must be a length-4 or 2x2 sequence", name);
         Py_DECREF(array);
         return -1;
     }
 
-    data = (double*)PyArray_DATA(array);
+    data = (double *) PyArray_DATA(array);
     b->min.x = data[0];
     b->min.y = data[1];
     b->max.x = data[2];
@@ -134,10 +121,8 @@ to_bbox_t(
 }
 
 int
-to_xyxymatch_algo_e(
-        const char* const name,
-        const char* const s,
-        xyxymatch_algo_e* const e) {
+to_xyxymatch_algo_e(const char *const name, const char *const s, xyxymatch_algo_e *const e)
+{
 
     if (s == NULL) {
         return 0;
@@ -148,10 +133,7 @@ to_xyxymatch_algo_e(
     } else if (strcmp(s, "triangles") == 0) {
         *e = xyxymatch_algo_triangles;
     } else {
-        PyErr_Format(
-                PyExc_ValueError,
-                "%s must be 'tolerance' or 'triangles'",
-                name);
+        PyErr_Format(PyExc_ValueError, "%s must be 'tolerance' or 'triangles'", name);
         return -1;
     }
 
@@ -159,10 +141,8 @@ to_xyxymatch_algo_e(
 }
 
 int
-to_geomap_fit_e(
-        const char* const name,
-        const char* const s,
-        geomap_fit_e* const e) {
+to_geomap_fit_e(const char *const name, const char *const s, geomap_fit_e *const e)
+{
 
     if (s == NULL) {
         return 0;
@@ -191,43 +171,39 @@ to_geomap_fit_e(
     }
 
     PyErr_Format(
-            PyExc_ValueError,
-            "%s must be 'shift', 'xyscale', 'rotate', 'rscale', 'rxyscale' or 'general'",
-            name);
+        PyExc_ValueError,
+        "%s must be 'shift', 'xyscale', 'rotate', 'rscale', 'rxyscale' or 'general'", name);
     return -1;
 }
 
 int
-from_geomap_fit_e(
-        const geomap_fit_e e,
-        PyObject** o) {
+from_geomap_fit_e(const geomap_fit_e e, PyObject **o)
+{
 
-    const char* c;
+    const char *c;
 
     switch (e) {
-    case geomap_fit_rotate:
-        c = "rotate";
-        break;
-    case geomap_fit_rscale:
-        c = "rscale";
-        break;
-    case geomap_fit_rxyscale:
-        c = "rxyscale";
-        break;
-    case geomap_fit_shift:
-        c = "shift";
-        break;
-    case geomap_fit_xyscale:
-        c = "xyscale";
-        break;
-    case geomap_fit_general:
-        c = "general";
-        break;
-    default:
-        PyErr_SetString(
-                PyExc_ValueError,
-                "Unknown geomap_fit_e value");
-        return -1;
+        case geomap_fit_rotate:
+            c = "rotate";
+            break;
+        case geomap_fit_rscale:
+            c = "rscale";
+            break;
+        case geomap_fit_rxyscale:
+            c = "rxyscale";
+            break;
+        case geomap_fit_shift:
+            c = "shift";
+            break;
+        case geomap_fit_xyscale:
+            c = "xyscale";
+            break;
+        case geomap_fit_general:
+            c = "general";
+            break;
+        default:
+            PyErr_SetString(PyExc_ValueError, "Unknown geomap_fit_e value");
+            return -1;
     }
 
 #if PY_MAJOR_VERSION >= 3
@@ -243,10 +219,8 @@ from_geomap_fit_e(
 }
 
 int
-to_surface_type_e(
-        const char* const name,
-        const char* const s,
-        surface_type_e* const e) {
+to_surface_type_e(const char *const name, const char *const s, surface_type_e *const e)
+{
 
     if (s == NULL) {
         return 0;
@@ -263,35 +237,29 @@ to_surface_type_e(
         return 0;
     }
 
-    PyErr_Format(
-            PyExc_ValueError,
-            "%s must be 'polynomial', 'legendre' or 'chebyshev'",
-            name);
+    PyErr_Format(PyExc_ValueError, "%s must be 'polynomial', 'legendre' or 'chebyshev'", name);
     return -1;
 }
 
 int
-from_surface_type_e(
-        const surface_type_e e,
-        PyObject** o) {
+from_surface_type_e(const surface_type_e e, PyObject **o)
+{
 
-    const char* c;
+    const char *c;
 
     switch (e) {
-    case surface_type_polynomial:
-        c = "polynomial";
-        break;
-    case surface_type_legendre:
-        c = "legendre";
-        break;
-    case surface_type_chebyshev:
-        c = "chebyshev";
-        break;
-    default:
-        PyErr_SetString(
-                PyExc_ValueError,
-                "Unknown surface_type_e value");
-        return -1;
+        case surface_type_polynomial:
+            c = "polynomial";
+            break;
+        case surface_type_legendre:
+            c = "legendre";
+            break;
+        case surface_type_chebyshev:
+            c = "chebyshev";
+            break;
+        default:
+            PyErr_SetString(PyExc_ValueError, "Unknown surface_type_e value");
+            return -1;
     }
 
 #if PY_MAJOR_VERSION >= 3
@@ -307,10 +275,8 @@ from_surface_type_e(
 }
 
 int
-to_xterms_e(
-        const char* const name,
-        const char* const s,
-        xterms_e* const e) {
+to_xterms_e(const char *const name, const char *const s, xterms_e *const e)
+{
 
     if (s == NULL) {
         return 0;
@@ -327,35 +293,29 @@ to_xterms_e(
         return 0;
     }
 
-    PyErr_Format(
-            PyExc_ValueError,
-            "%s must be 'none', 'half', or 'full''",
-            name);
+    PyErr_Format(PyExc_ValueError, "%s must be 'none', 'half', or 'full''", name);
     return -1;
 }
 
 int
-from_xterms_e(
-        const xterms_e e,
-        PyObject** o) {
+from_xterms_e(const xterms_e e, PyObject **o)
+{
 
-    const char* c;
+    const char *c;
 
     switch (e) {
-    case xterms_none:
-        c = "none";
-        break;
-    case xterms_half:
-        c = "half";
-        break;
-    case xterms_full:
-        c = "full";
-        break;
-    default:
-        PyErr_SetString(
-                PyExc_ValueError,
-                "Unknown xterms_e value");
-        return -1;
+        case xterms_none:
+            c = "none";
+            break;
+        case xterms_half:
+            c = "half";
+            break;
+        case xterms_full:
+            c = "full";
+            break;
+        default:
+            PyErr_SetString(PyExc_ValueError, "Unknown xterms_e value");
+            return -1;
     }
 
 #if PY_MAJOR_VERSION >= 3

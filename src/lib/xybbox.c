@@ -40,8 +40,8 @@ DAMAGE.
 #include "lib/xybbox.h"
 
 void
-bbox_init(
-        bbox_t* const bbox) {
+bbox_init(bbox_t *const bbox)
+{
 
     double my_nan;
 
@@ -56,23 +56,18 @@ bbox_init(
 }
 
 void
-bbox_print(
-        const bbox_t* const bbox) {
+bbox_print(const bbox_t *const bbox)
+{
 
-    printf("(%f, %f)--(%f, %f)",
-           bbox->min.x, bbox->min.y,
-           bbox->max.x, bbox->max.y);
+    printf("(%f, %f)--(%f, %f)", bbox->min.x, bbox->min.y, bbox->max.x, bbox->max.y);
 }
 
 /* was geo_rdxyd */
 size_t
 limit_to_bbox(
-        size_t ncoord,
-        const coord_t* const input,
-        const coord_t* const ref,
-        const bbox_t* const bbox,
-        coord_t* const input_in_bbox,
-        coord_t* const ref_in_bbox) {
+    size_t ncoord, const coord_t *const input, const coord_t *const ref, const bbox_t *const bbox,
+    coord_t *const input_in_bbox, coord_t *const ref_in_bbox)
+{
 
     size_t i = 0;
     size_t nout = 0;
@@ -100,8 +95,8 @@ limit_to_bbox(
 
         input_in_bbox[nout].x = input[i].x;
         input_in_bbox[nout].y = input[i].y;
-        ref_in_bbox[nout].x   = ref[i].x;
-        ref_in_bbox[nout].y   = ref[i].y;
+        ref_in_bbox[nout].x = ref[i].x;
+        ref_in_bbox[nout].y = ref[i].y;
         ++nout;
 
         assert(nout < ncoord);
@@ -111,10 +106,8 @@ limit_to_bbox(
 }
 
 void
-determine_bbox(
-        size_t n,
-        const coord_t* const a,
-        bbox_t* const bbox) {
+determine_bbox(size_t n, const coord_t *const a, bbox_t *const bbox)
+{
 
     size_t i = 0;
 
@@ -156,8 +149,8 @@ determine_bbox(
 }
 
 void
-bbox_make_nonsingular(
-        bbox_t* const bbox) {
+bbox_make_nonsingular(bbox_t *const bbox)
+{
 
     assert(bbox);
 

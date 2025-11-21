@@ -51,8 +51,7 @@ Returns a list of sorted pointers to coordinates.
  */
 void
 xysort(
-    const size_t ncoords,
-    const coord_t* const coords, /* [ncoords] */
-    const coord_t** const coord_ptr /* [ncoords] */);
+    const size_t ncoords, const coord_t *const coords, /* [ncoords] */
+    const coord_t **const coord_ptr /* [ncoords] */);
 
 #endif /* _STIMAGE_XYSORT_H_ */

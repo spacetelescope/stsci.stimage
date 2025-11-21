@@ -100,28 +100,26 @@ typedef struct {
     coord_t mag;
     coord_t rotation;
     size_t nxcoeff;
-    double* xcoeff;
+    double *xcoeff;
     size_t nycoeff;
-    double* ycoeff;
+    double *ycoeff;
     size_t nx2coeff;
-    double* x2coeff;
+    double *x2coeff;
     size_t ny2coeff;
-    double* y2coeff;
+    double *y2coeff;
 } geomap_result_t;
 
 /**
 Initialize the geomap_result object.
 */
 void
-geomap_result_init(
-        geomap_result_t* const r);
+geomap_result_init(geomap_result_t *const r);
 
 /**
 Free the dynamically allocated arrays in the geomap_result_t object.
 */
 void
-geomap_result_free(
-        geomap_result_t* const r);
+geomap_result_free(geomap_result_t *const r);
 
 /**
 `geomap` computes the transformation required to map the reference
@@ -244,27 +242,17 @@ coordinate system to the input coordinate system.
  */
 int
 geomap(
-        const size_t ninput, const coord_t* const input,
-        const size_t nref, const coord_t* const ref,
-        const bbox_t* const bbox,
-        const geomap_fit_e fit_geometry,
-        const surface_type_e function,
-        const size_t xxorder,
-        const size_t xyorder,
-        const size_t yxorder,
-        const size_t yyorder,
-        const xterms_e xxterms,
-        const xterms_e yxterms,
-        const size_t maxiter,
-        const double reject,
-        /* Input/output */
-        size_t* const noutput,
-        /* Output */
-        geomap_output_t* const output, /* [MAX(ninput, nref)] */
-        geomap_result_t* const result,
-        stimage_error_t* const error);
+    const size_t ninput, const coord_t *const input, const size_t nref, const coord_t *const ref,
+    const bbox_t *const bbox, const geomap_fit_e fit_geometry, const surface_type_e function,
+    const size_t xxorder, const size_t xyorder, const size_t yxorder, const size_t yyorder,
+    const xterms_e xxterms, const xterms_e yxterms, const size_t maxiter, const double reject,
+    /* Input/output */
+    size_t *const noutput,
+    /* Output */
+    geomap_output_t *const output, /* [MAX(ninput, nref)] */
+    geomap_result_t *const result, stimage_error_t *const error);
 
 void
-geomap_result_print(const geomap_result_t* const result);
+geomap_result_print(const geomap_result_t *const result);
 
 #endif /* _STIMAGE_GEOMAP_H_ */

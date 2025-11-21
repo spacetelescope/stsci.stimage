@@ -36,20 +36,18 @@ DAMAGE.
 #include <assert.h>
 #ifdef _MSC_VER
 #ifndef _USE_MATH_DEFINES
-#define _USE_MATH_DEFINES       /* needed for MS Windows to define M_PI */
-#endif  // _USE_MATH_DEFINES
-#endif  // _MSC_VER
+#define _USE_MATH_DEFINES /* needed for MS Windows to define M_PI */
+#endif                    // _USE_MATH_DEFINES
+#endif                    // _MSC_VER
 #include <math.h>
 
 #include "lib/lintransform.h"
 
 void
 compute_lintransform(
-    const coord_t in,
-    const coord_t mag,
-    const coord_t rot,
-    const coord_t out,
-    lintransform_t* coeffs) {
+    const coord_t in, const coord_t mag, const coord_t rot, const coord_t out,
+    lintransform_t *coeffs)
+{
 
     assert(coeffs);
 
@@ -69,10 +67,9 @@ compute_lintransform(
 
 void
 apply_lintransform(
-    const lintransform_t* const coeffs,
-    size_t ncoords,
-    const coord_t* const input, /* [ncoords] */
-    coord_t* output) {
+    const lintransform_t *const coeffs, size_t ncoords, const coord_t *const input, /* [ncoords] */
+    coord_t *output)
+{
 
     size_t i;
     double x, y;

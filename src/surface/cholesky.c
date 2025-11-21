@@ -35,16 +35,13 @@ DAMAGE.
 
 int
 cholesky_factorization(
-        const size_t nbands,
-        const size_t nrows,
-        const double* const matrix,
-        /* Output */
-        double* const matfac,
-        surface_fit_error_e* const error_type,
-        stimage_error_t* const error) {
+    const size_t nbands, const size_t nrows, const double *const matrix,
+    /* Output */
+    double *const matfac, surface_fit_error_e *const error_type, stimage_error_t *const error)
+{
 
-    #define MATRIX(j, i) (matrix[(i)*nbands+(j)])
-    #define MATFAC(j, i) (matfac[(i)*nbands+(j)])
+#define MATRIX(j, i) (matrix[(i) * nbands + (j)])
+#define MATFAC(j, i) (matfac[(i) * nbands + (j)])
 
     size_t i, n, j;
     int imax, jmax;
@@ -72,8 +69,7 @@ cholesky_factorization(
 
     for (n = 0; n < nrows; ++n) {
         /* Test to see if matrix is singular */
-        if (((MATFAC(0, n) + MATRIX(0, n)) - MATRIX(0, n)) <=
-            1000.0 / MAX_DOUBLE) {
+        if (((MATFAC(0, n) + MATRIX(0, n)) - MATRIX(0, n)) <= 1000.0 / MAX_DOUBLE) {
             for (j = 0; j < nbands; ++j) {
                 assert(n < nbands && j < nrows);
                 MATFAC(j, n) = 0.0;
@@ -90,36 +86,33 @@ cholesky_factorization(
         }
 
         jmax = imax;
-        for (i = 0; i < (size_t)imax; ++i) {
-            assert(n < nbands && i+1 < nrows);
-            ratio = MATFAC(i+1, n) * MATFAC(0, n);
-            for (j = 0; j < (size_t)jmax; ++j) {
-                assert(n+i < nbands && j < nrows && j+i < nrows);
-                MATFAC(j, n+i) = MATFAC(j, n+i) - MATFAC(j+i, n) * ratio;
+        for (i = 0; i < (size_t) imax; ++i) {
+            assert(n < nbands && i + 1 < nrows);
+            ratio = MATFAC(i + 1, n) * MATFAC(0, n);
+            for (j = 0; j < (size_t) jmax; ++j) {
+                assert(n + i < nbands && j < nrows && j + i < nrows);
+                MATFAC(j, n + i) = MATFAC(j, n + i) - MATFAC(j + i, n) * ratio;
             }
             --jmax;
-            assert(n < nbands && i+1 < nrows);
-            MATFAC(i+1, n) = ratio;
+            assert(n < nbands && i + 1 < nrows);
+            MATFAC(i + 1, n) = ratio;
         }
     }
 
     return 0;
 
-    #undef MATRIX
-    #undef MATFAC
+#undef MATRIX
+#undef MATFAC
 }
 
 int
 cholesky_solve(
-        const size_t nbands,
-        const size_t nrows,
-        const double* const matfac,
-        const double* const vector,
-        /* Output */
-        double* const coeff,
-        stimage_error_t* const error) {
+    const size_t nbands, const size_t nrows, const double *const matfac, const double *const vector,
+    /* Output */
+    double *const coeff, stimage_error_t *const error)
+{
 
-    #define MATFAC(j, i) (matfac[(i)*nbands+(j)])
+#define MATFAC(j, i) (matfac[(i) * nbands + (j)])
 
     size_t i, j, jmax, nbands_m1;
     int n;
@@ -143,28 +136,27 @@ cholesky_solve(
 
     /* Forward substitution */
     nbands_m1 = nbands - 1;
-    for (n = 0; n < (int)nrows; ++n) {
+    for (n = 0; n < (int) nrows; ++n) {
         jmax = MIN(nbands_m1, nrows - n);
         if (jmax >= 1) {
             for (j = 0; j < jmax; ++j) {
-                coeff[j+n] -= MATFAC(j+1, n) * coeff[n];
+                coeff[j + n] -= MATFAC(j + 1, n) * coeff[n];
             }
         }
     }
 
     /* Back substitution */
-    for (n = (int)nrows - 1; n >= 0; --n) {
+    for (n = (int) nrows - 1; n >= 0; --n) {
         coeff[n] *= MATFAC(0, n);
         jmax = MIN(nbands_m1, nrows - n);
         if (jmax >= 1) {
             for (j = 0; j < jmax; ++j) {
-                coeff[n] -= MATFAC(j+1, n) * coeff[j+n];
+                coeff[n] -= MATFAC(j + 1, n) * coeff[j + n];
             }
         }
     }
 
     return 0;
 
-    #undef MATFAC
+#undef MATFAC
 }
-

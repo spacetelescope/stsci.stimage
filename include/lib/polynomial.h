@@ -57,14 +57,10 @@ Evaluate a 1D polynomial
  */
 int
 eval_1dpoly(
-        const int order,
-        const double* const coeff,
-        const size_t ncoord,
-        const size_t axis,
-        const coord_t* const ref,
-        /* Output */
-        double* const zfit,
-        stimage_error_t* const error);
+    const int order, const double *const coeff, const size_t ncoord, const size_t axis,
+    const coord_t *const ref,
+    /* Output */
+    double *const zfit, stimage_error_t *const error);
 
 /* was tgs_1devcheb */
 
@@ -94,16 +90,10 @@ have been calculated.
  */
 int
 eval_1dchebyshev(
-        const int order,
-        const double* const coeff,
-        const size_t ncoord,
-        const size_t axis,
-        const coord_t* const ref,
-        const double k1,
-        const double k2,
-        /* Output */
-        double* const zfit,
-        stimage_error_t* const error);
+    const int order, const double *const coeff, const size_t ncoord, const size_t axis,
+    const coord_t *const ref, const double k1, const double k2,
+    /* Output */
+    double *const zfit, stimage_error_t *const error);
 
 /**
 Evaluate a 1D Legendre polynomial, assuming that the coefficients
@@ -131,16 +121,10 @@ have been calculated.
  */
 int
 eval_1dlegendre(
-        const int order,
-        const double* const coeff,
-        const size_t ncoord,
-        const size_t axis,
-        const coord_t* const ref,
-        const double k1,
-        const double k2,
-        /* Output */
-        double* const zfit,
-        stimage_error_t* const error);
+    const int order, const double *const coeff, const size_t ncoord, const size_t axis,
+    const coord_t *const ref, const double k1, const double k2,
+    /* Output */
+    double *const zfit, stimage_error_t *const error);
 
 /* was tgs_evpoly */
 
@@ -175,19 +159,11 @@ Evaluate a polynomial.
  */
 int
 eval_poly(
-        const int xorder,
-        const int yorder,
-        const double* const coeff,
-        const size_t ncoord,
-        const coord_t* const ref,
-        const xterms_e xterms,
-        const double k1x,
-        const double k2x,
-        const double k1y,
-        const double k2y,
-        /* Output */
-        double* const zfit,
-        stimage_error_t* const error);
+    const int xorder, const int yorder, const double *const coeff, const size_t ncoord,
+    const coord_t *const ref, const xterms_e xterms, const double k1x, const double k2x,
+    const double k1y, const double k2y,
+    /* Output */
+    double *const zfit, stimage_error_t *const error);
 
 /* was tgs_evcheb */
 
@@ -223,19 +199,11 @@ been calculated.
  */
 int
 eval_chebyshev(
-        const int xorder,
-        const int yorder,
-        const double* const coeff,
-        const size_t ncoord,
-        const coord_t* const ref,
-        const xterms_e xterms,
-        const double k1x,
-        const double k2x,
-        const double k1y,
-        const double k2y,
-        /* Output */
-        double* const zfit,
-        stimage_error_t* const error);
+    const int xorder, const int yorder, const double *const coeff, const size_t ncoord,
+    const coord_t *const ref, const xterms_e xterms, const double k1x, const double k2x,
+    const double k1y, const double k2y,
+    /* Output */
+    double *const zfit, stimage_error_t *const error);
 
 /**
 Evaluate a Legendre polynomial, assuming that the coefficients have
@@ -269,52 +237,25 @@ been calculated.
  */
 int
 eval_legendre(
-        const int xorder,
-        const int yorder,
-        const double* const coeff,
-        const size_t ncoord,
-        const coord_t* const ref,
-        const xterms_e xterms,
-        const double k1x,
-        const double k2x,
-        const double k1y,
-        const double k2y,
-        /* Output */
-        double* const zfit,
-        stimage_error_t* const error);
+    const int xorder, const int yorder, const double *const coeff, const size_t ncoord,
+    const coord_t *const ref, const xterms_e xterms, const double k1x, const double k2x,
+    const double k1y, const double k2y,
+    /* Output */
+    double *const zfit, stimage_error_t *const error);
 
 int
 basis_poly(
-        const size_t ncoord,
-        const size_t axis,
-        const coord_t* const ref,
-        const int order,
-        const double k1,
-        const double k2,
-        double* const basis,
-        stimage_error_t* const error);
+    const size_t ncoord, const size_t axis, const coord_t *const ref, const int order,
+    const double k1, const double k2, double *const basis, stimage_error_t *const error);
 
 int
 basis_chebyshev(
-        const size_t ncoord,
-        const size_t axis,
-        const coord_t* const ref,
-        const int order,
-        const double k1,
-        const double k2,
-        double* const basis,
-        stimage_error_t* const error);
+    const size_t ncoord, const size_t axis, const coord_t *const ref, const int order,
+    const double k1, const double k2, double *const basis, stimage_error_t *const error);
 
 int
 basis_legendre(
-        const size_t ncoord,
-        const size_t axis,
-        const coord_t* const ref,
-        const int order,
-        const double k1,
-        const double k2,
-        double* const basis,
-        stimage_error_t* const error);
+    const size_t ncoord, const size_t axis, const coord_t *const ref, const int order,
+    const double k1, const double k2, double *const basis, stimage_error_t *const error);
 
 #endif
-

@@ -48,23 +48,23 @@ typedef enum {
 } surface_type_e;
 
 typedef struct {
-    surface_type_e   type;
-    size_t           xorder;
-    size_t           yorder;
-    size_t           nxcoeff;
-    size_t           nycoeff;
-    xterms_e         xterms;
-    size_t           ncoeff;
-    double           xrange;
-    double           xmaxmin;
-    double           yrange;
-    double           ymaxmin;
-    bbox_t           bbox;
-    double*          matrix;        /* [ncoeff ** 2] */
-    double*          cholesky_fact; /* [ncoeff ** 2] */
-    double*          vector;        /* [ncoeff] */
-    double*          coeff;         /* [ncoeff] */
-    size_t           npoints;
+    surface_type_e type;
+    size_t xorder;
+    size_t yorder;
+    size_t nxcoeff;
+    size_t nycoeff;
+    xterms_e xterms;
+    size_t ncoeff;
+    double xrange;
+    double xmaxmin;
+    double yrange;
+    double ymaxmin;
+    bbox_t bbox;
+    double *matrix;        /* [ncoeff ** 2] */
+    double *cholesky_fact; /* [ncoeff ** 2] */
+    double *vector;        /* [ncoeff] */
+    double *coeff;         /* [ncoeff] */
+    size_t npoints;
 } surface_t;
 
 /**
@@ -86,36 +86,26 @@ Initialize a surface_t object.
 */
 int
 surface_init(
-        surface_t* const s,
-        const surface_type_e function,
-        const int xorder,
-        const int yorder,
-        const xterms_e xterms,
-        const bbox_t* const bbox,
-        stimage_error_t* const error);
+    surface_t *const s, const surface_type_e function, const int xorder, const int yorder,
+    const xterms_e xterms, const bbox_t *const bbox, stimage_error_t *const error);
 
 /**
  Simply mark a surface object as uninitialized.
 */
 int
-surface_new(
-        surface_t* const s);
+surface_new(surface_t *const s);
 
 /**
 Free the allocated memory in a surface object.
 */
 void
-surface_free(
-        surface_t* const s);
+surface_free(surface_t *const s);
 
 /**
 Copy the surface into a new struct
 */
 int
-surface_copy(
-        const surface_t* const s,
-        surface_t* const d,
-        stimage_error_t* const error);
+surface_copy(const surface_t *const s, surface_t *const d, stimage_error_t *const error);
 
 /**
 Zero the accumulators before doing a new fit in accumulate mode.  The
@@ -124,15 +114,12 @@ inner products of the basis functions are accumulated in the s->ncoeff
 the data ordinates are accumulated in the s->ncoeff vector.
 */
 int
-surface_zero(
-        surface_t* const s,
-        stimage_error_t* const error);
+surface_zero(surface_t *const s, stimage_error_t *const error);
 
 /**
  Print the contents of a surface structure
 */
 void
-surface_print(
-        const surface_t* const s);
+surface_print(const surface_t *const s);
 
 #endif

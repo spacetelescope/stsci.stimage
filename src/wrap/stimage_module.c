@@ -35,37 +35,39 @@ DAMAGE.
 
 #include "wrap_util.h"
 
-PyObject* py_xyxymatch(PyObject*, PyObject*, PyObject*);
-PyObject* py_geomap(PyObject*, PyObject*, PyObject*);
+PyObject *
+py_xyxymatch(PyObject *, PyObject *, PyObject *);
+PyObject *
+py_geomap(PyObject *, PyObject *, PyObject *);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
 static PyMethodDef module_methods[] = {
-    {"xyxymatch", (PyCFunction)py_xyxymatch, METH_VARARGS | METH_KEYWORDS, NULL},
-    {"geomap", (PyCFunction)py_geomap, METH_VARARGS | METH_KEYWORDS, NULL},
-    {NULL}  /* Sentinel */
+    {"xyxymatch", (PyCFunction) py_xyxymatch, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"geomap", (PyCFunction) py_geomap, METH_VARARGS | METH_KEYWORDS, NULL},
+    {NULL} /* Sentinel */
 };
 #pragma clang diagnostic pop
 #pragma GCC diagnostic pop
 
 static struct PyModuleDef moduledef = {
-  PyModuleDef_HEAD_INIT,
-  "_stimage",          /* m_name */
-  "Example module that creates an extension type.",  /* m_doc */
-  -1,                  /* m_size */
-  module_methods,      /* m_methods */
-  NULL,                /* m_reload */
-  NULL,                /* m_traverse */
-  NULL,                /* m_clear */
-  NULL,                /* m_free */
+    PyModuleDef_HEAD_INIT,
+    "_stimage",                                       /* m_name */
+    "Example module that creates an extension type.", /* m_doc */
+    -1,                                               /* m_size */
+    module_methods,                                   /* m_methods */
+    NULL,                                             /* m_reload */
+    NULL,                                             /* m_traverse */
+    NULL,                                             /* m_clear */
+    NULL,                                             /* m_free */
 };
 
 PyMODINIT_FUNC
 PyInit__stimage(void)
 {
-    PyObject* m;
+    PyObject *m;
 
     SIZE_T_D = sizeof(size_t) == 8 ? "u8" : "u4";
     m = PyModule_Create(&moduledef);
@@ -74,7 +76,7 @@ PyInit__stimage(void)
 
     /* Check for errors */
     if (PyErr_Occurred()) {
-      Py_FatalError("can't initialize module cdrizzle");
+        Py_FatalError("can't initialize module cdrizzle");
     }
 
     if (m != NULL && _setup_geomap_results_type(m) < 0) {
@@ -83,6 +85,4 @@ PyInit__stimage(void)
     }
 
     return m;
-  }
-
-
+}

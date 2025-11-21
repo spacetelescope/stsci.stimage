@@ -6,8 +6,9 @@
 #include "test.h"
 
 int
-main(int argc, char** argv) {
-    #define ncoords 64
+main(int argc, char **argv)
+{
+#define ncoords 64
     coord_t ref[ncoords];
     coord_t input[ncoords];
     bbox_t bbox;
@@ -32,17 +33,8 @@ main(int argc, char** argv) {
     }
 
     status = geomap(
-            ncoords, input,
-            ncoords, ref,
-            &bbox,
-            geomap_fit_general,
-            surface_type_polynomial,
-            2, 2, 2, 2,
-            xterms_half, xterms_half,
-            0, 0,
-            &noutput, output,
-            &result,
-            &error);
+        ncoords, input, ncoords, ref, &bbox, geomap_fit_general, surface_type_polynomial, 2, 2, 2,
+        2, xterms_half, xterms_half, 0, 0, &noutput, output, &result, &error);
     geomap_result_print(&result);
     geomap_result_free(&result);
 
@@ -57,17 +49,8 @@ main(int argc, char** argv) {
     }
 
     status = geomap(
-            ncoords, input,
-            ncoords, ref,
-            &bbox,
-            geomap_fit_shift,
-            surface_type_polynomial,
-            2, 2, 2, 2,
-            xterms_none, xterms_none,
-            0, 0,
-            &noutput, output,
-            &result,
-            &error);
+        ncoords, input, ncoords, ref, &bbox, geomap_fit_shift, surface_type_polynomial, 2, 2, 2, 2,
+        xterms_none, xterms_none, 0, 0, &noutput, output, &result, &error);
     geomap_result_print(&result);
     geomap_result_free(&result);
 

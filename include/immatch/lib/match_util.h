@@ -39,6 +39,6 @@ DAMAGE.
 
 #include "lib/util.h"
 
-typedef int (coord_match_callback_t)(void *, size_t, size_t, stimage_error_t*);
+typedef int(coord_match_callback_t)(void *, size_t, size_t, stimage_error_t *);
 
 #endif
