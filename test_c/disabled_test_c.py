@@ -30,11 +30,9 @@ def test_runall(program):
 
     if not os.path.exists(program):
         pytest.skip(
-            "'{}' does not exist. To run the C tests "
+            f"'{program}' does not exist. To run the C tests "
             "execute the following before invoking pytest: "
-            "cmake -S . -B ./build -DENABLE_TESTING=ON && cmake --build ./build".format(
-                program
-            )
+            "cmake -S . -B ./build -DENABLE_TESTING=ON && cmake --build ./build"
         )
     returncode = 0
     try:
