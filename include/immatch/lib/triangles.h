@@ -99,21 +99,12 @@ callback.
  */
 int
 match_triangles(
-        const size_t nref,
-        const size_t nref_unique,
-        const coord_t* const ref,
-        const coord_t* const * const ref_sorted, /*[nref]*/
-        const size_t ninput,
-        const size_t ninput_unique,
-        const coord_t* const input, /*[ninput]*/
-        const coord_t* const * const input_sorted,
-        const size_t nmatch,
-        const double tolerance,
-        const double maxratio,
-        const size_t nreject,
-        coord_match_callback_t* callback,
-        void* callback_data,
-        stimage_error_t* const error);
+    const size_t nref, const size_t nref_unique, const coord_t *const ref,
+    const coord_t *const *const ref_sorted,                                      /*[nref]*/
+    const size_t ninput, const size_t ninput_unique, const coord_t *const input, /*[ninput]*/
+    const coord_t *const *const input_sorted, const size_t nmatch, const double tolerance,
+    const double maxratio, const size_t nreject, coord_match_callback_t *callback,
+    void *callback_data, stimage_error_t *const error);
 
 /********************************************************************************
 BELOW IS THE SECONDARY API -- SUBJECT TO CHANGE
@@ -124,7 +115,7 @@ Stores information about a triangle
 */
 typedef struct {
     /** The vertices of the triangle */
-    const coord_t* vertices[3];
+    const coord_t *vertices[3];
 
     /** The log of the perimeter of the triangle */
     double log_perimeter;
@@ -150,8 +141,8 @@ typedef struct {
 Pointers to a matching pair of triangles.
 */
 typedef struct {
-    const triangle_t* l;
-    const triangle_t* r;
+    const triangle_t *l;
+    const triangle_t *r;
 } triangle_match_t;
 
 /**
@@ -160,10 +151,8 @@ coordinates.
 */
 int
 max_num_triangles(
-        const size_t ncoords,
-        const size_t max_ncoords,
-        size_t* num_triangles,
-        stimage_error_t* const error);
+    const size_t ncoords, const size_t max_ncoords, size_t *num_triangles,
+    stimage_error_t *const error);
 
 /**
 Construct all possible triangles from an input coordinate list.
@@ -197,14 +186,9 @@ side greater than maxratio are rejected.
  */
 int
 find_triangles(
-        const size_t ncoords,
-        const coord_t* const * const coords,
-        size_t* ntriangles,
-        triangle_t* triangles,
-        const size_t maxnpoints,
-        const double tolerance,
-        const double maxratio,
-        stimage_error_t* const error);
+    const size_t ncoords, const coord_t *const *const coords, size_t *ntriangles,
+    triangle_t *triangles, const size_t maxnpoints, const double tolerance, const double maxratio,
+    stimage_error_t *const error);
 
 /**
 Compute the intersection of the two sorted lists of triangles using
@@ -227,13 +211,9 @@ The number of matches found.
 */
 int
 merge_triangles(
-        const size_t nr_triangles,
-        const triangle_t* const r_triangles,
-        const size_t nl_triangles,
-        const triangle_t* const l_triangles,
-        size_t* nmatches,
-        triangle_match_t* const matches,
-        stimage_error_t* const error);
+    const size_t nr_triangles, const triangle_t *const r_triangles, const size_t nl_triangles,
+    const triangle_t *const l_triangles, size_t *nmatches, triangle_match_t *const matches,
+    stimage_error_t *const error);
 
 /**
 Remove false matches from the list of matched triangles.
@@ -248,10 +228,8 @@ Remove false matches from the list of matched triangles.
 */
 int
 reject_triangles(
-        size_t* nmatches,
-        triangle_match_t* const matches,
-        const size_t nreject,
-        stimage_error_t* error);
+    size_t *nmatches, triangle_match_t *const matches, const size_t nreject,
+    stimage_error_t *error);
 
 /**
 Count the number a times a particular pair of coordinates is matched
@@ -280,16 +258,9 @@ inputcoord_matches.
 */
 int
 vote_triangle_matches(
-        const size_t nleft,
-        const coord_t* const left,
-        const size_t nright,
-        const coord_t* const right,
-        const size_t ntriangle_matches,
-        const triangle_match_t* const triangle_matches,
-        size_t* ncoord_matches,
-        const coord_t** const refcoord_matches,
-        const coord_t** const inputcoord_matches,
-        stimage_error_t* const error);
+    const size_t nleft, const coord_t *const left, const size_t nright, const coord_t *const right,
+    const size_t ntriangle_matches, const triangle_match_t *const triangle_matches,
+    size_t *ncoord_matches, const coord_t **const refcoord_matches,
+    const coord_t **const inputcoord_matches, stimage_error_t *const error);
 
 #endif /* _STIMAGE_TRIANGLES_H_ */
-

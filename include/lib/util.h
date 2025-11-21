@@ -47,16 +47,16 @@ DAMAGE.
 #define DEGTORAD(a) (a * (M_PI / 180.0))
 #define RADTODEG(a) (a * (180.0 / M_PI))
 #if !defined(MIN)
-  #define MIN(a, b)  (((a) < (b)) ? (a) : (b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
 #if !defined(MAX)
-  #define MAX(a, b)  (((a) > (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
 #define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #define CLAMP_ABOVE(x, low)  (((x) < low) ? (low) : (x))
-#define CLAMP_BELOW(x, high)  (((x) > high) ? (high) : (x))
+#define CLAMP_BELOW(x, high) (((x) > high) ? (high) : (x))
 
 #define ABS(x) (((x) < 0) ? (-x) : (x))
 
@@ -65,57 +65,65 @@ DAMAGE.
 #define EPS_DOUBLE 2.22e-16
 
 #if defined(_MSC_VER)
-    typedef __int64                  STIMAGE_Int64;
+typedef __int64 STIMAGE_Int64;
 #else
-    #if defined(_ISOC99_SOURCE)
-        typedef int64_t                  STIMAGE_Int64;
-    #else
-        typedef long long                STIMAGE_Int64;
-    #endif
+#if defined(_ISOC99_SOURCE)
+typedef int64_t STIMAGE_Int64;
+#else
+typedef long long STIMAGE_Int64;
+#endif
 #endif
 
 #if !defined(U64)
-    #define U64(u) (* (STIMAGE_Int64 *) &(u) )
+#define U64(u) (*(STIMAGE_Int64 *) &(u))
 #endif /* U64 */
 
 #if !defined(isnan64)
-    #if !defined(_MSC_VER)
-        #define isnan64(u) \
-            ( (( U64(u) & 0x7ff0000000000000LL)  == 0x7ff0000000000000LL)  && ((U64(u) &  0x000fffffffffffffLL) != 0)) ? 1:0
-    #else
-        #define isnan64(u) \
-            ( (( U64(u) & 0x7ff0000000000000i64) == 0x7ff0000000000000i64)  && ((U64(u) & 0x000fffffffffffffi64) != 0)) ? 1:0
-    #endif
+#if !defined(_MSC_VER)
+#define isnan64(u)                                                \
+    (((U64(u) & 0x7ff0000000000000LL) == 0x7ff0000000000000LL) && \
+     ((U64(u) & 0x000fffffffffffffLL) != 0))                      \
+        ? 1                                                       \
+        : 0
+#else
+#define isnan64(u)                                                  \
+    (((U64(u) & 0x7ff0000000000000i64) == 0x7ff0000000000000i64) && \
+     ((U64(u) & 0x000fffffffffffffi64) != 0))                       \
+        ? 1                                                         \
+        : 0
+#endif
 #endif /* isnan64 */
 
 #if !defined(isinf64)
-    #if !defined(_MSC_VER)
-        #define isinf64(u) \
-            ( (( U64(u) & 0x7ff0000000000000LL)  == 0x7ff0000000000000LL)  && ((U64(u) &  0x000fffffffffffffLL) == 0)) ? 1:0
-    #else
-        #define isinf64(u) \
-            ( (( U64(u) & 0x7ff0000000000000i64) == 0x7ff0000000000000i64)  && ((U64(u) & 0x000fffffffffffffi64) == 0)) ? 1:0
-    #endif
+#if !defined(_MSC_VER)
+#define isinf64(u)                                                \
+    (((U64(u) & 0x7ff0000000000000LL) == 0x7ff0000000000000LL) && \
+     ((U64(u) & 0x000fffffffffffffLL) == 0))                      \
+        ? 1                                                       \
+        : 0
+#else
+#define isinf64(u)                                                  \
+    (((U64(u) & 0x7ff0000000000000i64) == 0x7ff0000000000000i64) && \
+     ((U64(u) & 0x000fffffffffffffi64) == 0))                       \
+        ? 1                                                         \
+        : 0
+#endif
 #endif /* isinf64 */
 
 #if !defined(isfinite64)
-    #if !defined(_MSC_VER)
-        #define isfinite64(u) \
-            ( (( U64(u) & 0x7ff0000000000000LL)  != 0x7ff0000000000000LL)) ? 1:0
-    #else
-        #define isfinite64(u) \
-            ( (( U64(u) & 0x7ff0000000000000i64) != 0x7ff0000000000000i64)) ? 1:0
-    #endif
+#if !defined(_MSC_VER)
+#define isfinite64(u) (((U64(u) & 0x7ff0000000000000LL) != 0x7ff0000000000000LL)) ? 1 : 0
+#else
+#define isfinite64(u) (((U64(u) & 0x7ff0000000000000i64) != 0x7ff0000000000000i64)) ? 1 : 0
+#endif
 #endif /* isfinite64 */
 
 #if !defined(notisfinite64)
-    #if !defined(_MSC_VER)
-        #define notisfinite64(u) \
-            ( (( U64(u) & 0x7ff0000000000000LL)  == 0x7ff0000000000000LL)) ? 1:0
-    #else
-        #define notisfinite64(u) \
-            ( (( U64(u) & 0x7ff0000000000000i64) == 0x7ff0000000000000i64)) ? 1:0
-    #endif
+#if !defined(_MSC_VER)
+#define notisfinite64(u) (((U64(u) & 0x7ff0000000000000LL) == 0x7ff0000000000000LL)) ? 1 : 0
+#else
+#define notisfinite64(u) (((U64(u) & 0x7ff0000000000000i64) == 0x7ff0000000000000i64)) ? 1 : 0
+#endif
 #endif /* notisfinite64 */
 
 /********************************************************************************
@@ -127,33 +135,23 @@ typedef struct {
 } coord_t;
 
 typedef struct {
-    const coord_t* l;
-    const coord_t* r;
+    const coord_t *l;
+    const coord_t *r;
 } coord_match_t;
 
-typedef enum {
-    xterms_none,
-    xterms_half,
-    xterms_full,
-    xterms_LAST
-} xterms_e;
+typedef enum { xterms_none, xterms_half, xterms_full, xterms_LAST } xterms_e;
 
 static inline int
-coord_is_finite(
-    const coord_t* const c) {
+coord_is_finite(const coord_t *const c)
+{
     return isfinite(c->x) && isfinite(c->y);
 }
 
 void *
-malloc_with_error(
-        size_t size,
-        stimage_error_t* error);
+malloc_with_error(size_t size, stimage_error_t *error);
 
 void *
-calloc_with_error(
-        size_t nmemb,
-        size_t size,
-        stimage_error_t* error);
+calloc_with_error(size_t nmemb, size_t size, stimage_error_t *error);
 
 /**
 Compute the factorial of n.
@@ -162,8 +160,7 @@ This function will overflow for n >= 21, and it is up to the caller to
 ensure n is in the proper range.
 */
 STIMAGE_Int64
-factorial(
-        size_t n);
+factorial(size_t n);
 
 /**
 Compute the combinatorial function which is defined as
@@ -174,21 +171,18 @@ The result will overflow 32 bits with n == 2346 and ngroup == 3
 much sooner).  It is up to the caller to ensure n is within range
 */
 size_t
-combinatorial(
-        size_t n,
-        size_t ngroup);
+combinatorial(size_t n, size_t ngroup);
 
 /**
 Calculate the square of the Euclidean distance between two points.
 */
 static inline double
-euclid_distance2(
-        const coord_t* const a,
-        const coord_t* const b) {
+euclid_distance2(const coord_t *const a, const coord_t *const b)
+{
     double dx, dy;
     dx = b->x - a->x;
     dy = b->y - a->y;
-    return dx*dx + dy*dy;
+    return dx * dx + dy * dy;
 }
 
 /**
@@ -196,9 +190,9 @@ Sort an array of doubles
 */
 void
 sort_doubles(
-        const size_t n,
-        /* Input/output */
-        double* const a);
+    const size_t n,
+    /* Input/output */
+    double *const a);
 
 /**
 Normalize a double precision number x to the value normx, in the
@@ -208,10 +202,9 @@ range [1-10).  expon is returned such that
 */
 void
 double_normalize(
-        const double x,
-        /* Output */
-        double* const normx,
-        int* const expon);
+    const double x,
+    /* Output */
+    double *const normx, int *const expon);
 
 /**
 Compare two double precision numbers for equality to within the
@@ -222,26 +215,19 @@ compute the machine epsilon (epsilon is the smallest number such that
 1.0 + epsilon > 1.0).
 */
 int
-double_approx_equal(
-        const double x,
-        const double y);
+double_approx_equal(const double x, const double y);
 
 /**
 Compute the mean of an array
 */
 double
-compute_mean(
-        const size_t n,
-        const double* const a);
+compute_mean(const size_t n, const double *const a);
 
 /**
 Compute the mean values of an array of coordinates
 */
 void
-compute_mean_coord(
-        const size_t n,
-        const coord_t* const a,
-        coord_t* const out);
+compute_mean_coord(const size_t n, const coord_t *const a, coord_t *const out);
 
 /**
 Compute the mode of an array.  The mode is found by binning with a bin
@@ -264,11 +250,7 @@ must be sorted.
 */
 double
 compute_mode(
-        const size_t n,
-        const double* const a,
-        const size_t min,
-        const double range,
-        const double bin,
-        const double step);
+    const size_t n, const double *const a, const size_t min, const double range, const double bin,
+    const double step);
 
 #endif /* _STIMAGE_UTIL_H_ */

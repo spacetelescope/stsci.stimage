@@ -40,36 +40,31 @@ DAMAGE.
 
 int
 vote_triangle_matches(
-        const size_t nleft,
-        const coord_t* const left,
-        const size_t nright,
-        const coord_t* const right,
-        const size_t ntriangle_matches,
-        const triangle_match_t* const triangle_matches,
-        size_t* ncoord_matches,
-        const coord_t** const refcoord_matches,
-        const coord_t** const inputcoord_matches,
-        stimage_error_t* const error) {
+    const size_t nleft, const coord_t *const left, const size_t nright, const coord_t *const right,
+    const size_t ntriangle_matches, const triangle_match_t *const triangle_matches,
+    size_t *ncoord_matches, const coord_t **const refcoord_matches,
+    const coord_t **const inputcoord_matches, stimage_error_t *const error)
+{
 
     typedef size_t vote_t;
 
-    vote_t*           votes        = NULL;
-    vote_t            maxvote      = 0;
-    vote_t            half_maxvote = 0;
-    vote_t            row_maxvote  = 0;
-    vote_t            row_2maxvote = 0;
-    vote_t            vote         = 0;
-    const triangle_t* r_tri        = NULL;
-    const triangle_t* l_tri        = NULL;
-    const coord_t*    r_coord      = NULL;
-    const coord_t*    l_coord      = NULL;
-    size_t            li           = 0;
-    size_t            ri           = 0;
-    size_t            ri2          = 0;
-    size_t            ncount       = 0;
-    size_t            i            = 0;
-    size_t            j            = 0;
-    int               status       = 1;
+    vote_t *votes = NULL;
+    vote_t maxvote = 0;
+    vote_t half_maxvote = 0;
+    vote_t row_maxvote = 0;
+    vote_t row_2maxvote = 0;
+    vote_t vote = 0;
+    const triangle_t *r_tri = NULL;
+    const triangle_t *l_tri = NULL;
+    const coord_t *r_coord = NULL;
+    const coord_t *l_coord = NULL;
+    size_t li = 0;
+    size_t ri = 0;
+    size_t ri2 = 0;
+    size_t ncount = 0;
+    size_t i = 0;
+    size_t j = 0;
+    int status = 1;
 
     assert(triangle_matches);
     assert(ncoord_matches);
@@ -81,7 +76,7 @@ vote_triangle_matches(
        map from reference coordinates to a map from input coordinates
        to vote counts. */
 
-    #define VOTE(li, ri) votes[(ri) * nleft + (li)]
+#define VOTE(li, ri) votes[(ri) * nleft + (li)]
 
     votes = (vote_t *) malloc(nleft * nright * sizeof(vote_t));
     if (votes == NULL) {
@@ -144,8 +139,7 @@ vote_triangle_matches(
 
            3. Which only have a single vote if we expect more
         */
-        if (row_maxvote <= half_maxvote ||
-            row_maxvote == row_2maxvote ||
+        if (row_maxvote <= half_maxvote || row_maxvote == row_2maxvote ||
             (row_maxvote == 1 && (maxvote > 1 || ntriangle_matches > 1))) {
             continue;
         }
@@ -157,16 +151,15 @@ vote_triangle_matches(
             VOTE(li, ri) = 0;
         }
 
-        #ifndef NDEBUG
-            if (ncount >= *ncoord_matches) {
-                stimage_error_format_message(
-                    error,
-                    "Found more coordinate matches than was allocated for\n");
-                goto exit;
-            }
-        #endif
+#ifndef NDEBUG
+        if (ncount >= *ncoord_matches) {
+            stimage_error_format_message(
+                error, "Found more coordinate matches than was allocated for\n");
+            goto exit;
+        }
+#endif
 
-        refcoord_matches[ncount]   = l_coord;
+        refcoord_matches[ncount] = l_coord;
         inputcoord_matches[ncount] = r_coord;
         ++ncount;
     }
@@ -175,7 +168,7 @@ vote_triangle_matches(
 
     status = 0;
 
- exit:
+exit:
 
     free(votes);
 

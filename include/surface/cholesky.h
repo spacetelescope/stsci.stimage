@@ -61,13 +61,9 @@ semi-definite banded matrix.
  */
 int
 cholesky_factorization(
-        const size_t nbands,
-        const size_t nrows,
-        const double* const matrix,
-        /* Output */
-        double* const matfac,
-        surface_fit_error_e* const error_type,
-        stimage_error_t* const error);
+    const size_t nbands, const size_t nrows, const double *const matrix,
+    /* Output */
+    double *const matfac, surface_fit_error_e *const error_type, stimage_error_t *const error);
 
 /* was dgschoslv */
 
@@ -91,12 +87,8 @@ cholesky_factorization for the coefficients.
 */
 int
 cholesky_solve(
-        const size_t nbands,
-        const size_t nrows,
-        const double* const matfac,
-        const double* const vector,
-        /* Output */
-        double* const coeff,
-        stimage_error_t* const error);
+    const size_t nbands, const size_t nrows, const double *const matfac, const double *const vector,
+    /* Output */
+    double *const coeff, stimage_error_t *const error);
 
 #endif

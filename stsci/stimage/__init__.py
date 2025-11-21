@@ -28,22 +28,24 @@
 # DAMAGE.
 
 from __future__ import absolute_import
-from ._version import version as __version__
+from ._version import version as __version__  # noqa: F401
 from . import _stimage
 
 
-def xyxymatch(input,
-              ref,
-              origin = (0.0, 0.0),
-              mag = (1.0, 1.0),
-              rotation = (0.0, 0.0),
-              ref_origin = (0.0, 0.0),
-              algorithm = 'tolerance',
-              tolerance = 1.0,
-              separation = 9.0,
-              nmatch = 30,
-              maxratio = 10.0,
-              nreject = 10):
+def xyxymatch(
+    input,
+    ref,
+    origin=(0.0, 0.0),
+    mag=(1.0, 1.0),
+    rotation=(0.0, 0.0),
+    ref_origin=(0.0, 0.0),
+    algorithm="tolerance",
+    tolerance=1.0,
+    separation=9.0,
+    nmatch=30,
+    maxratio=10.0,
+    nreject=10,
+):
     """
     Match pixels coordinate lists using various methods.
 
@@ -86,7 +88,7 @@ def xyxymatch(input,
       simplest case of small *x* and *y* shifts between the input and
       reference coordinate systems.
 
-    - If *algorithm* is "triangles", `xyxymatch` contructs a list of
+    - If *algorithm* is "triangles", `xyxymatch` constructs a list of
       triangles using up to *nmatch* reference coordinates and
       transformed input coordinates, and performs a pattern matching
       operation on the resulting triangle lists. If the number of
@@ -245,22 +247,25 @@ def xyxymatch(input,
         separation,
         nmatch,
         maxratio,
-        nreject)
+        nreject,
+    )
 
 
-def geomap(input,
-           ref,
-           bbox=None,
-           fit_geometry="general",
-           function="polynomial",
-           xxorder=2,
-           xyorder=2,
-           yxorder=2,
-           yyorder=2,
-           xxterms="half",
-           yxterms="half",
-           maxiter=0,
-           reject=0.0):
+def geomap(
+    input,
+    ref,
+    bbox=None,
+    fit_geometry="general",
+    function="polynomial",
+    xxorder=2,
+    xyorder=2,
+    yxorder=2,
+    yyorder=2,
+    xxterms="half",
+    yxterms="half",
+    maxiter=0,
+    reject=0.0,
+):
     """
     `geomap` computes the transformation required to map the reference
     coordinate system to the input coordinate system.
@@ -585,4 +590,5 @@ def geomap(input,
         xxterms,
         yxterms,
         maxiter,
-        reject)
+        reject,
+    )

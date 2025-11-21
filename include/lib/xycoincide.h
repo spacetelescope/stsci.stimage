@@ -55,9 +55,8 @@ input, otherwise must be the same buffer size as input.
  */
 size_t
 xycoincide(
-    const size_t ncoords,
-    const coord_t* const * input, /*[ncoords]*/
-    const coord_t** const  output, /*[ncoords]*/
+    const size_t ncoords, const coord_t *const *input, /*[ncoords]*/
+    const coord_t **const output,                      /*[ncoords]*/
     const double tolerance);
 
 #endif /* _STIMAGE_XYCOINCIDE_H_ */

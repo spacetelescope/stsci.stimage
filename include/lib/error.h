@@ -39,43 +39,43 @@ DAMAGE.
 #define STIMAGE_MAX_ERROR_LEN 512
 
 typedef struct {
-  char message[STIMAGE_MAX_ERROR_LEN];
+    char message[STIMAGE_MAX_ERROR_LEN];
 } stimage_error_t;
 
 /*
  Initialize the error buffer
 */
 void
-stimage_error_init(stimage_error_t* const error);
+stimage_error_init(stimage_error_t *const error);
 
 /**
  Set the message in the error object to the given string.
  */
 void
-stimage_error_set_message(stimage_error_t* error, const char* message);
+stimage_error_set_message(stimage_error_t *error, const char *message);
 
 /**
  Set the message in the error object using printf-style formatting
  */
 void
-stimage_error_format_message(stimage_error_t* error, const char* format, ...);
+stimage_error_format_message(stimage_error_t *error, const char *format, ...);
 
 /**
  Get the current message in the error object
  */
-const char*
-stimage_error_get_message(stimage_error_t* error);
+const char *
+stimage_error_get_message(stimage_error_t *error);
 
 /**
  Returns non-zero if an error message has been set
  */
 int
-stimage_error_is_set(const stimage_error_t* const error);
+stimage_error_is_set(const stimage_error_t *const error);
 
 /**
  Remove the error message from the object
  */
 void
-stimage_error_unset(stimage_error_t* error);
+stimage_error_unset(stimage_error_t *error);
 
 #endif /* _STIMAGE_ERROR_H_ */
