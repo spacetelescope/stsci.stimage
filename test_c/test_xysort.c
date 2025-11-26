@@ -5,10 +5,12 @@
 #include "lib/xysort.h"
 #include "test.h"
 
-int main(int argv, char** argc) {
-    #define ncoords 512
+int
+main(int argv, char **argc)
+{
+#define ncoords 512
     coord_t data[ncoords];
-    const coord_t* ptr[ncoords];
+    const coord_t *ptr[ncoords];
     size_t i = 0;
     double lastx = 0.0;
     double lasty = 0.0;

@@ -50,64 +50,39 @@ DAMAGE.
 #include "lib/util.h"
 #include "lib/xybbox.h"
 
-extern char* SIZE_T_D;
+extern char *SIZE_T_D;
 
 int
-to_coord_t(
-        const char* const name,
-        PyObject* o,
-        coord_t* const c);
+to_coord_t(const char *const name, PyObject *o, coord_t *const c);
 
 int
-from_coord_t(
-        const coord_t* const c,
-        PyArrayObject** o);
+from_coord_t(const coord_t *const c, PyArrayObject **o);
 
 int
-to_bbox_t(
-        const char* const name,
-        PyObject* o,
-        bbox_t* const b);
+to_bbox_t(const char *const name, PyObject *o, bbox_t *const b);
 
 int
-to_xyxymatch_algo_e(
-        const char* const name,
-        const char* const s,
-        xyxymatch_algo_e* const e);
+to_xyxymatch_algo_e(const char *const name, const char *const s, xyxymatch_algo_e *const e);
 
 int
-to_geomap_fit_e(
-        const char* const name,
-        const char* const s,
-        geomap_fit_e* const e);
+to_geomap_fit_e(const char *const name, const char *const s, geomap_fit_e *const e);
 
 int
-from_geomap_fit_e(
-        const geomap_fit_e e,
-        PyObject** o);
+from_geomap_fit_e(const geomap_fit_e e, PyObject **o);
 
 int
-to_surface_type_e(
-        const char* const name,
-        const char* const s,
-        surface_type_e* const e);
+to_surface_type_e(const char *const name, const char *const s, surface_type_e *const e);
 
 int
-from_surface_type_e(
-        const surface_type_e e,
-        PyObject** o);
+from_surface_type_e(const surface_type_e e, PyObject **o);
 
 int
-to_xterms_e(
-        const char* const name,
-        const char* const s,
-        xterms_e* const e);
+to_xterms_e(const char *const name, const char *const s, xterms_e *const e);
 
 int
-from_xterms_e(
-        const xterms_e e,
-        PyObject** o);
+from_xterms_e(const xterms_e e, PyObject **o);
 
-int _setup_geomap_results_type(PyObject* m);
+int
+_setup_geomap_results_type(PyObject *m);
 
 #endif

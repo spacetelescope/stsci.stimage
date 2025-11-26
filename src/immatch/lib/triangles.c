@@ -40,16 +40,13 @@ DAMAGE.
 
 int
 max_num_triangles(
-        const size_t ncoords,
-        const size_t maxnpoints,
-        size_t* num_triangles,
-        stimage_error_t* const error) {
+    const size_t ncoords, const size_t maxnpoints, size_t *num_triangles,
+    stimage_error_t *const error)
+{
 
     size_t n = MIN(ncoords, maxnpoints);
     if (n >= 2346 || n == 0) {
-        stimage_error_set_message(
-            error,
-            "maxnpoints should be a lower number");
+        stimage_error_set_message(error, "maxnpoints should be a lower number");
         return 1;
     }
 
@@ -58,21 +55,15 @@ max_num_triangles(
     return 0;
 }
 
-static const size_t
-sides_def [3][2] = {
-    { 2, 1 },
-    { 1, 0 },
-    { 2, 0 }
-};
+static const size_t sides_def[3][2] = {{2, 1}, {1, 0}, {2, 0}};
 
 /* Uses as a qsort functor */
 static int
-triangle_ratio_compare(
-        const void* ap,
-        const void* bp) {
+triangle_ratio_compare(const void *ap, const void *bp)
+{
 
-    const triangle_t* a = (const triangle_t*)ap;
-    const triangle_t* b = (const triangle_t*)bp;
+    const triangle_t *a = (const triangle_t *) ap;
+    const triangle_t *b = (const triangle_t *) bp;
 
     if (a->ratio < b->ratio) {
         return -1;
@@ -85,19 +76,15 @@ triangle_ratio_compare(
 
 int
 find_triangles(
-        const size_t ncoords,
-        const coord_t* const * const coords,
-        size_t* ntriangles,
-        triangle_t* triangles,
-        const size_t maxnpoints,
-        const double tolerance,
-        const double maxratio,
-        stimage_error_t* const error) {
+    const size_t ncoords, const coord_t *const *const coords, size_t *ntriangles,
+    triangle_t *triangles, const size_t maxnpoints, const double tolerance, const double maxratio,
+    stimage_error_t *const error)
+{
 
     const double tol2 = tolerance * tolerance;
     const size_t nsample = MAX(1, ncoords / maxnpoints);
     const size_t npoints = MIN(ncoords, nsample * maxnpoints);
-    triangle_t* tri = triangles;
+    triangle_t *tri = triangles;
     size_t i, j, k, m;
     size_t ntri = 0;
     double dist_ij, dist_jk, dist_ki;
@@ -112,8 +99,7 @@ find_triangles(
 
     if (maxratio > 10.0 || maxratio < 5.0) {
         stimage_error_format_message(
-            error,
-            "maxratio should be in the range 5.0 - 10.0 (%f)", maxratio);
+            error, "maxratio should be in the range 5.0 - 10.0 (%f)", maxratio);
         return 1;
     }
 
@@ -135,15 +121,13 @@ find_triangles(
                     continue;
                 }
 
-                #ifndef NDEBUG
-                    if (ntri >= *ntriangles) {
-                        stimage_error_format_message(
-                            error,
-                            "Found more triangles than were allocated for (%d)\n",
-                            *ntriangles);
-                        return 1;
-                    }
-                #endif /* NDEBUG */
+#ifndef NDEBUG
+                if (ntri >= *ntriangles) {
+                    stimage_error_format_message(
+                        error, "Found more triangles than were allocated for (%d)\n", *ntriangles);
+                    return 1;
+                }
+#endif /* NDEBUG */
 
                 tri = &triangles[ntri];
                 /* DIFF: The original stores the index of the
@@ -185,11 +169,9 @@ find_triangles(
 
                 /* Compute the lengths of the sides */
                 for (m = 0; m < 3; ++m) {
-                    dx[m] = tri->vertices[sides_def[m][0]]->x -
-                        tri->vertices[sides_def[m][1]]->x;
-                    dy[m] = tri->vertices[sides_def[m][0]]->y -
-                        tri->vertices[sides_def[m][1]]->y;
-                    sides2[m] = dx[m]*dx[m] + dy[m]*dy[m];
+                    dx[m] = tri->vertices[sides_def[m][0]]->x - tri->vertices[sides_def[m][1]]->x;
+                    dy[m] = tri->vertices[sides_def[m][0]]->y - tri->vertices[sides_def[m][1]]->y;
+                    sides2[m] = dx[m] * dx[m] + dy[m] * dy[m];
                     assert(sides2[m] >= 0.0);
                     sides[m] = sqrt(sides2[m]);
                 }
@@ -203,20 +185,19 @@ find_triangles(
 
                 /* Compute the cos, cos ** 2 and sin ** 2 of the angle at
                    vertex 1. */
-                cosc = (dx[2]*dx[1] + dy[2]*dy[1]) / (sides[2]*sides[1]);
-                cosc2 = MAX(0.0, MIN(1.0, cosc*cosc));
+                cosc = (dx[2] * dx[1] + dy[2] * dy[1]) / (sides[2] * sides[1]);
+                cosc2 = MAX(0.0, MIN(1.0, cosc * cosc));
                 sinc2 = MAX(0.0, MIN(1.0, 1.0 - cosc2));
 
                 /* Determine whether the triangles vertices are
                    arranged clockwise or anti-clockwise */
-                tri->sense = ((dx[1]*dy[0] - dy[1]*dx[0]) > 0.0);
+                tri->sense = ((dx[1] * dy[0] - dy[1] * dx[0]) > 0.0);
 
                 /* Compute the tolerances */
-                loctol = (1.0/sides2[2] - cosc/(sides[2]*sides[1]) + 1.0/sides2[1]);
-                tri->ratio_tolerance = 2.0*ratio*ratio*tol2*loctol;
-                tri->cosine_tolerance = \
-                    2.0*sinc2*tol2*loctol +
-                    2.0*cosc2*tol2*tol2*loctol*loctol;
+                loctol = (1.0 / sides2[2] - cosc / (sides[2] * sides[1]) + 1.0 / sides2[1]);
+                tri->ratio_tolerance = 2.0 * ratio * ratio * tol2 * loctol;
+                tri->cosine_tolerance =
+                    2.0 * sinc2 * tol2 * loctol + 2.0 * cosc2 * tol2 * tol2 * loctol * loctol;
 
                 /* Compute the perimeter */
                 tri->log_perimeter = log(sides[0] + sides[1] + sides[2]);
@@ -238,22 +219,19 @@ find_triangles(
 
 int
 merge_triangles(
-        const size_t nr_triangles,
-        const triangle_t* const r_triangles,
-        const size_t nl_triangles,
-        const triangle_t* const l_triangles,
-        size_t* nmatches,
-        triangle_match_t* const matches,
-        stimage_error_t* const error) {
+    const size_t nr_triangles, const triangle_t *const r_triangles, const size_t nl_triangles,
+    const triangle_t *const l_triangles, size_t *nmatches, triangle_match_t *const matches,
+    stimage_error_t *const error)
+{
 
     size_t i;
     size_t match_iter = 0;
     double rmaxtol, lmaxtol, maxtol;
     size_t blp = 0, rp = 0, lp = 0;
     double dratio, dratio2, dcosine, dcosine2, dtratio, dtcosine;
-    const triangle_t* max_tri = NULL;
-    const triangle_t* l_tri = NULL;
-    const triangle_t* r_tri = NULL;
+    const triangle_t *max_tri = NULL;
+    const triangle_t *l_tri = NULL;
+    const triangle_t *r_tri = NULL;
     double max_dratio2, max_dcosine2;
 
     assert(nr_triangles);
@@ -282,7 +260,7 @@ merge_triangles(
 
         /* Move to the first triangle in L that satisfies the ratio
            tolerance requirement */
-        for ( ; blp < nl_triangles; ++blp) {
+        for (; blp < nl_triangles; ++blp) {
             l_tri = l_triangles + blp;
             dratio = r_tri->ratio - l_tri->ratio;
             if (dratio <= maxtol) {
@@ -320,9 +298,9 @@ merge_triangles(
             }
 
             /* Compute the tolerances for the two triangles */
-            dratio2 = dratio*dratio;
+            dratio2 = dratio * dratio;
             dcosine = r_tri->cosine_v1 - l_tri->cosine_v1;
-            dcosine2 = dcosine*dcosine;
+            dcosine2 = dcosine * dcosine;
             dtratio = r_tri->ratio_tolerance + l_tri->ratio_tolerance;
             dtcosine = r_tri->cosine_tolerance + l_tri->cosine_tolerance;
 
@@ -336,14 +314,13 @@ merge_triangles(
         }
 
         if (max_tri != NULL) {
-            #ifndef NDEBUG
-                if (match_iter >= *nmatches) {
-                    stimage_error_set_message(
-                        error,
-                        "Found more triangle matches than were allocated for");
-                    return 1;
-                }
-            #endif /* NDEBUG */
+#ifndef NDEBUG
+            if (match_iter >= *nmatches) {
+                stimage_error_set_message(
+                    error, "Found more triangle matches than were allocated for");
+                return 1;
+            }
+#endif /* NDEBUG */
 
             matches[match_iter].l = max_tri;
             matches[match_iter].r = r_tri;
@@ -358,15 +335,9 @@ merge_triangles(
 
 static int
 reject_triangles_compute_sigma_mode_factor(
-        const size_t nmatches,
-        double* const diffp,
-        const double sum,
-        const double sumsq,
-        const size_t nfalse,
-        const size_t ntrue,
-        double* sigma,
-        double* mode,
-        double* factor) {
+    const size_t nmatches, double *const diffp, const double sum, const double sumsq,
+    const size_t nfalse, const size_t ntrue, double *sigma, double *mode, double *factor)
+{
 
     assert(diffp);
     assert(sigma);
@@ -378,7 +349,7 @@ reject_triangles_compute_sigma_mode_factor(
     if (nmatches == 0) {
         *sigma = 0.0;
     } else {
-        *sigma = (sumsq - (sum / (double)(nmatches)) * sum) / ((double)(nmatches) - 1);
+        *sigma = (sumsq - (sum / (double) (nmatches)) * sum) / ((double) (nmatches) -1);
     }
 
     if (*sigma <= 0.0) {
@@ -405,38 +376,38 @@ reject_triangles_compute_sigma_mode_factor(
 
 int
 reject_triangles(
-        size_t* nmatches,
-        triangle_match_t* const matches,
-        const size_t nreject,
-        stimage_error_t* error) {
+    size_t *nmatches, triangle_match_t *const matches, const size_t nreject, stimage_error_t *error)
+{
 
-    size_t            i            = 0;
-    double            sum          = 0.0;
-    double            sumsq        = 0.0;
-    int               nplus        = 0;
-    int               nminus       = 0;
-    double            diff         = 0.0;
-    int               ntrue        = 0;
-    int               nfalse       = 0;
-    double            sigma        = 0.0;
-    double            mode         = 0.0;
-    double            factor       = 0.0;
-    double            locut        = 0.0;
-    double            hicut        = 0.0;
-    size_t            ncount       = 0;
-    size_t            ncurrmatches = *nmatches;
-    size_t            niter        = 0;
-    const triangle_t* r_tri        = NULL;
-    const triangle_t* l_tri        = NULL;
-    double*           diffp        = NULL;
-    int               status       = 1;
+    size_t i = 0;
+    double sum = 0.0;
+    double sumsq = 0.0;
+    int nplus = 0;
+    int nminus = 0;
+    double diff = 0.0;
+    int ntrue = 0;
+    int nfalse = 0;
+    double sigma = 0.0;
+    double mode = 0.0;
+    double factor = 0.0;
+    double locut = 0.0;
+    double hicut = 0.0;
+    size_t ncount = 0;
+    size_t ncurrmatches = *nmatches;
+    size_t niter = 0;
+    const triangle_t *r_tri = NULL;
+    const triangle_t *l_tri = NULL;
+    double *diffp = NULL;
+    int status = 1;
 
     assert(nmatches);
     assert(matches);
     assert(error);
 
     diffp = malloc_with_error(ncurrmatches * sizeof(double), error);
-    if (diffp == NULL) goto exit;
+    if (diffp == NULL) {
+        goto exit;
+    }
 
     /* Accumulate the number of same-sense and number of
        opposite-sense matches as well as the log perimeter
@@ -448,12 +419,12 @@ reject_triangles(
         diff = r_tri->log_perimeter - l_tri->log_perimeter;
         diffp[i] = diff;
         sum += diff;
-        sumsq += diff*diff;
+        sumsq += diff * diff;
         if (r_tri->sense == l_tri->sense) {
             ++nplus;
         }
     }
-    nminus = (int)ncurrmatches - nplus;
+    nminus = (int) ncurrmatches - nplus;
     ntrue = ABS(nplus - nminus);
     nfalse = ncurrmatches - ntrue;
 
@@ -475,23 +446,22 @@ reject_triangles(
             diff = r_tri->log_perimeter - l_tri->log_perimeter;
             if (diff < locut || diff > hicut) {
                 sum -= diff;
-                sumsq -= diff*diff;
+                sumsq -= diff * diff;
                 if (r_tri->sense == l_tri->sense) {
                     --nplus;
                 } else {
                     --nminus;
                 }
             } else {
-                /* This starts writing non-rejected matches to the
-                   beginning of the list containing all matches */
-                #ifndef NDEBUG
-                    if (ncount >= *nmatches) {
-                        stimage_error_set_message(
-                            error,
-                            "Rejection created more matches than it started with.");
-                        goto exit;
-                    }
-                #endif
+/* This starts writing non-rejected matches to the
+   beginning of the list containing all matches */
+#ifndef NDEBUG
+                if (ncount >= *nmatches) {
+                    stimage_error_set_message(
+                        error, "Rejection created more matches than it started with.");
+                    goto exit;
+                }
+#endif
                 diffp[ncount] = diff;
                 matches[ncount].r = r_tri;
                 matches[ncount].l = l_tri;
@@ -551,7 +521,7 @@ reject_triangles(
 
     status = 0;
 
- exit:
+exit:
 
     free(diffp);
 
@@ -560,36 +530,27 @@ reject_triangles(
 
 static int
 _match_triangles(
-        const size_t nref,
-        const coord_t* const ref,
-        const coord_t* const * const ref_sorted, /*[nref]*/
-        const size_t ninput,
-        const coord_t* const input, /*[ninput]*/
-        const coord_t* const * const input_sorted,
-        size_t* ncoord_matches,
-        const coord_t** refcoord_matches_,
-        const coord_t** inputcoord_matches_,
-        const size_t nmatch,
-        const double tolerance,
-        const double maxratio,
-        const size_t nreject,
-        size_t* nkeep,
-        size_t* nmerge,
-        stimage_error_t* const error) {
+    const size_t nref, const coord_t *const ref, const coord_t *const *const ref_sorted, /*[nref]*/
+    const size_t ninput, const coord_t *const input, /*[ninput]*/
+    const coord_t *const *const input_sorted, size_t *ncoord_matches,
+    const coord_t **refcoord_matches_, const coord_t **inputcoord_matches_, const size_t nmatch,
+    const double tolerance, const double maxratio, const size_t nreject, size_t *nkeep,
+    size_t *nmerge, stimage_error_t *const error)
+{
 
-    const coord_t**   refcoord_matches   = NULL;
-    const coord_t**   inputcoord_matches = NULL;
-    size_t            nleft              = 0;
-    const coord_t*    left               = NULL;
-    size_t            nright             = 0;
-    const coord_t*    right              = NULL;
-    size_t            nref_triangles     = 0;
-    triangle_t*       ref_triangles      = NULL;
-    size_t            ninput_triangles   = 0;
-    triangle_t*       input_triangles    = NULL;
-    size_t            ntriangle_matches  = 0;
-    triangle_match_t* triangle_matches   = NULL;
-    int               status             = 1;
+    const coord_t **refcoord_matches = NULL;
+    const coord_t **inputcoord_matches = NULL;
+    size_t nleft = 0;
+    const coord_t *left = NULL;
+    size_t nright = 0;
+    const coord_t *right = NULL;
+    size_t nref_triangles = 0;
+    triangle_t *ref_triangles = NULL;
+    size_t ninput_triangles = 0;
+    triangle_t *input_triangles = NULL;
+    size_t ntriangle_matches = 0;
+    triangle_match_t *triangle_matches = NULL;
+    int status = 1;
 
     assert(ref);
     assert(ref_sorted);
@@ -603,58 +564,61 @@ _match_triangles(
     assert(error);
 
     if (nref < 3) {
-        stimage_error_set_message(
-            error,
-            "Too few reference coordinates to do triangle matching");
+        stimage_error_set_message(error, "Too few reference coordinates to do triangle matching");
         goto exit;
     }
 
     if (ninput < 3) {
-        stimage_error_set_message(
-            error,
-            "Too few input coordinates to do triangle matching");
+        stimage_error_set_message(error, "Too few input coordinates to do triangle matching");
         goto exit;
     }
 
     /* Find all the reference triangles */
-    if (max_num_triangles(nref, nmatch, &nref_triangles, error)) goto exit;
+    if (max_num_triangles(nref, nmatch, &nref_triangles, error)) {
+        goto exit;
+    }
 
-    ref_triangles = malloc_with_error(
-            nref_triangles * sizeof(triangle_t), error);
-    if (ref_triangles == NULL) goto exit;
+    ref_triangles = malloc_with_error(nref_triangles * sizeof(triangle_t), error);
+    if (ref_triangles == NULL) {
+        goto exit;
+    }
 
-    if (find_triangles(nref, ref_sorted, &nref_triangles, ref_triangles,
-                       nmatch, tolerance, maxratio, error)) goto exit;
+    if (find_triangles(
+            nref, ref_sorted, &nref_triangles, ref_triangles, nmatch, tolerance, maxratio, error)) {
+        goto exit;
+    }
 
     if (nref_triangles == 0) {
-        stimage_error_set_message(
-            error,
-            "No valid reference triangles found.");
+        stimage_error_set_message(error, "No valid reference triangles found.");
         goto exit;
     }
 
     /* Find all the input triangles */
-    if (max_num_triangles(ninput, nmatch, &ninput_triangles, error)) goto exit;
+    if (max_num_triangles(ninput, nmatch, &ninput_triangles, error)) {
+        goto exit;
+    }
 
-    input_triangles = malloc_with_error(
-            ninput_triangles * sizeof(triangle_t), error);
-    if (input_triangles == NULL) goto exit;
+    input_triangles = malloc_with_error(ninput_triangles * sizeof(triangle_t), error);
+    if (input_triangles == NULL) {
+        goto exit;
+    }
 
-    if (find_triangles(ninput, input_sorted, &ninput_triangles,
-                       input_triangles, nmatch, tolerance, maxratio,
-                       error)) goto exit;
+    if (find_triangles(
+            ninput, input_sorted, &ninput_triangles, input_triangles, nmatch, tolerance, maxratio,
+            error)) {
+        goto exit;
+    }
 
     if (ninput_triangles == 0) {
-        stimage_error_set_message(
-            error,
-            "No valid input triangles found.");
+        stimage_error_set_message(error, "No valid input triangles found.");
         goto exit;
     }
 
     ntriangle_matches = MAX(nref_triangles, ninput_triangles);
-    triangle_matches = malloc_with_error(
-        ntriangle_matches * sizeof(triangle_match_t), error);
-    if (triangle_matches == NULL) goto exit;
+    triangle_matches = malloc_with_error(ntriangle_matches * sizeof(triangle_match_t), error);
+    if (triangle_matches == NULL) {
+        goto exit;
+    }
 
     /* Match the triangles in the input list to those in the reference
        list */
@@ -666,10 +630,10 @@ _match_triangles(
         nright = nref;
         right = ref;
         if (merge_triangles(
-                nref_triangles, ref_triangles,
-                ninput_triangles, input_triangles,
-                &ntriangle_matches, triangle_matches,
-                error)) goto exit;
+                nref_triangles, ref_triangles, ninput_triangles, input_triangles,
+                &ntriangle_matches, triangle_matches, error)) {
+            goto exit;
+        }
     } else {
         refcoord_matches = refcoord_matches_;
         inputcoord_matches = inputcoord_matches_;
@@ -678,10 +642,10 @@ _match_triangles(
         nright = ninput;
         right = input;
         if (merge_triangles(
-                ninput_triangles, input_triangles,
-                nref_triangles, ref_triangles,
-                &ntriangle_matches, triangle_matches,
-                error)) goto exit;
+                ninput_triangles, input_triangles, nref_triangles, ref_triangles,
+                &ntriangle_matches, triangle_matches, error)) {
+            goto exit;
+        }
     }
 
     *nmerge = ntriangle_matches;
@@ -692,9 +656,7 @@ _match_triangles(
     }
 
     /* Reject triangles */
-    if (reject_triangles(&ntriangle_matches, triangle_matches,
-                         nreject,
-                         error)) {
+    if (reject_triangles(&ntriangle_matches, triangle_matches, nreject, error)) {
         goto exit;
     }
 
@@ -708,16 +670,14 @@ _match_triangles(
 
     /* Match the coordinates */
     if (vote_triangle_matches(
-                nleft, left, nright, right,
-                ntriangle_matches, triangle_matches,
-                ncoord_matches, refcoord_matches, inputcoord_matches,
-                error)) {
+            nleft, left, nright, right, ntriangle_matches, triangle_matches, ncoord_matches,
+            refcoord_matches, inputcoord_matches, error)) {
         goto exit;
     }
 
     status = 0;
 
- exit:
+exit:
 
     free(ref_triangles);
     free(input_triangles);
@@ -727,48 +687,41 @@ _match_triangles(
 
 int
 match_triangles(
-        const size_t nref,
-        const size_t nref_unique,
-        const coord_t* const ref,
-        const coord_t* const * const ref_sorted, /*[nref]*/
-        const size_t ninput,
-        const size_t ninput_unique,
-        const coord_t* const input, /*[ninput]*/
-        const coord_t* const * const input_sorted,
-        const size_t nmatch,
-        const double tolerance,
-        const double maxratio,
-        const size_t nreject,
-        coord_match_callback_t* callback,
-        void* callback_data,
-        stimage_error_t* const error) {
+    const size_t nref, const size_t nref_unique, const coord_t *const ref,
+    const coord_t *const *const ref_sorted,                                      /*[nref]*/
+    const size_t ninput, const size_t ninput_unique, const coord_t *const input, /*[ninput]*/
+    const coord_t *const *const input_sorted, const size_t nmatch, const double tolerance,
+    const double maxratio, const size_t nreject, coord_match_callback_t *callback,
+    void *callback_data, stimage_error_t *const error)
+{
 
-    size_t          ncoord_matches     = nmatch;
-    const coord_t** refcoord_matches   = NULL;
-    const coord_t** inputcoord_matches = NULL;
-    size_t          nkeep              = 0;
-    size_t          nmerge             = 0;
-    size_t          ncheck             = 0;
-    size_t          ref_idx            = 0;
-    size_t          input_idx          = 0;
-    size_t          i                  = 0;
-    int             status             = 1;
+    size_t ncoord_matches = nmatch;
+    const coord_t **refcoord_matches = NULL;
+    const coord_t **inputcoord_matches = NULL;
+    size_t nkeep = 0;
+    size_t nmerge = 0;
+    size_t ncheck = 0;
+    size_t ref_idx = 0;
+    size_t input_idx = 0;
+    size_t i = 0;
+    int status = 1;
 
-    refcoord_matches = malloc_with_error(
-            ncoord_matches * sizeof(coord_t*), error);
-    if (refcoord_matches == NULL) goto exit;
+    refcoord_matches = malloc_with_error(ncoord_matches * sizeof(coord_t *), error);
+    if (refcoord_matches == NULL) {
+        goto exit;
+    }
 
-    inputcoord_matches = malloc_with_error(
-            ncoord_matches * sizeof(coord_t*), error);
-    if (inputcoord_matches == NULL) goto exit;
+    inputcoord_matches = malloc_with_error(ncoord_matches * sizeof(coord_t *), error);
+    if (inputcoord_matches == NULL) {
+        goto exit;
+    }
 
     if (_match_triangles(
-        nref_unique, ref, ref_sorted,
-        ninput_unique, input, input_sorted,
-        &ncoord_matches, refcoord_matches, inputcoord_matches,
-        nmatch, tolerance, maxratio, nreject,
-        &nkeep, &nmerge,
-        error)) goto exit;
+            nref_unique, ref, ref_sorted, ninput_unique, input, input_sorted, &ncoord_matches,
+            refcoord_matches, inputcoord_matches, nmatch, tolerance, maxratio, nreject, &nkeep,
+            &nmerge, error)) {
+        goto exit;
+    }
 
     if (ncoord_matches == 0 || (ncoord_matches <= 3 && nkeep < nmerge)) {
         status = 0;
@@ -782,11 +735,11 @@ match_triangles(
     if (ncoord_matches < nmatch && ncoord_matches > 2) {
         ncheck = ncoord_matches;
         if (_match_triangles(
-                ncoord_matches, ref, refcoord_matches,
-                ncoord_matches, input, inputcoord_matches,
-                &ncoord_matches, refcoord_matches, inputcoord_matches,
-                nmatch, tolerance, maxratio, nreject,
-                &nkeep, &nmerge, error)) goto exit;
+                ncoord_matches, ref, refcoord_matches, ncoord_matches, input, inputcoord_matches,
+                &ncoord_matches, refcoord_matches, inputcoord_matches, nmatch, tolerance, maxratio,
+                nreject, &nkeep, &nmerge, error)) {
+            goto exit;
+        }
 
         if (ncoord_matches < ncheck) {
             ncoord_matches = 0;
@@ -795,7 +748,7 @@ match_triangles(
 
     status = 0;
 
- exit:
+exit:
 
     if (status == 0) {
         /* Call the callback with all of the matches */
