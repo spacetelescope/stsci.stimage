@@ -45,11 +45,8 @@ Evaluate the fitted surface at an array of points.
 */
 int
 surface_vector(
-        const surface_t* const s,
-        const size_t ncoord,
-        const coord_t* const ref,
-        /* Output */
-        double* const zfit,
-        stimage_error_t* const error);
+    const surface_t *const s, const size_t ncoord, const coord_t *const ref,
+    /* Output */
+    double *const zfit, stimage_error_t *const error);
 
 #endif
