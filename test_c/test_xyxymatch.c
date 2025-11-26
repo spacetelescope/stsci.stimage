@@ -4,8 +4,10 @@
 #include "immatch/xyxymatch.h"
 #include "test.h"
 
-int main(int argc, char** argv) {
-    #define ncoords 512
+int
+main(int argc, char **argv)
+{
+#define ncoords 512
     coord_t ref[ncoords];
     coord_t input[ncoords];
     xyxymatch_output_t output[ncoords];
@@ -32,13 +34,9 @@ int main(int argc, char** argv) {
         ref[i].y = input[i].y = drand48();
     }
 
-    status = xyxymatch(ncoords, input,
-                       ncoords, ref,
-                       &noutput, output,
-                       &origin, &mag, &rot, &ref_origin,
-                       xyxymatch_algo_tolerance,
-                       tolerance, 0.0, 0, 0.0, 0,
-                       &error);
+    status = xyxymatch(
+        ncoords, input, ncoords, ref, &noutput, output, &origin, &mag, &rot, &ref_origin,
+        xyxymatch_algo_tolerance, tolerance, 0.0, 0, 0.0, 0, &error);
 
     if (status) {
         printf("%s", stimage_error_get_message(&error));
@@ -56,13 +54,12 @@ int main(int argc, char** argv) {
         y1 = output[i].ref.y;
         dx = x1 - x0;
         dy = y1 - y0;
-        distance = dx*dx + dy*dy;
-        if (distance > tolerance*tolerance) {
+        distance = dx * dx + dy * dy;
+        if (distance > tolerance * tolerance) {
             printf("Match beyond tolerance\n");
             return 1;
         }
-        if (output[i].coord_idx > ncoords ||
-            output[i].ref_idx > ncoords) {
+        if (output[i].coord_idx > ncoords || output[i].ref_idx > ncoords) {
             printf("Out of range indices\n");
             return 1;
         }
@@ -77,13 +74,9 @@ int main(int argc, char** argv) {
         ref[i].y = drand48();
     }
 
-    status = xyxymatch(ncoords, input,
-                       ncoords, ref,
-                       &noutput, output,
-                       &origin, &mag, &rot, &ref_origin,
-                       xyxymatch_algo_tolerance,
-                       tolerance, 0.0, 0, 0.0, 0,
-                       &error);
+    status = xyxymatch(
+        ncoords, input, ncoords, ref, &noutput, output, &origin, &mag, &rot, &ref_origin,
+        xyxymatch_algo_tolerance, tolerance, 0.0, 0, 0.0, 0, &error);
 
     if (status) {
         printf("%s", stimage_error_get_message(&error));
@@ -101,12 +94,11 @@ int main(int argc, char** argv) {
         y1 = output[i].ref.y;
         dx = x1 - x0;
         dy = y1 - y0;
-        distance = dx*dx + dy*dy;
-        if (distance > tolerance*tolerance) {
+        distance = dx * dx + dy * dy;
+        if (distance > tolerance * tolerance) {
             return 1;
         }
-        if (output[i].coord_idx > ncoords ||
-            output[i].ref_idx > ncoords) {
+        if (output[i].coord_idx > ncoords || output[i].ref_idx > ncoords) {
             printf("Out of range indices\n");
             return 1;
         }

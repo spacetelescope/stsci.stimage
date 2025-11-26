@@ -66,30 +66,34 @@ def magnify_points_np(x, y, mag):
 
 def flip_points_np(x, y):
     """Flip around the X-axis of points."""
-    my = y * -1.
-    return x,my
+    my = y * -1.0
+    return x, my
 
 
 def base_xy_15():
     """Basees to use for comparison before and after transformation."""
 
-    x = [ -303.84609, -246.00600,  420.31010, -407.02170,   47.92501,
-           449.99497,  317.32335,  -78.08896,  345.70714,  150.20207,
-           458.55107, -343.01210, -306.99155, -145.12925,  183.15312,]
-    y = [ -305.98824, -464.58525, -146.35067,  185.79842,  253.11053,
-           300.24990, -262.25222,  235.43031,  320.96704, -139.03478,
-           233.38413, -316.93320,  202.85420, -252.86989,  382.40623,]
+    # fmt: off
+    x = [-303.84609, -246.00600,  420.31010, -407.02170,   47.92501,
+          449.99497,  317.32335,  -78.08896,  345.70714,  150.20207,
+          458.55107, -343.01210, -306.99155, -145.12925,  183.15312,]
+    y = [-305.98824, -464.58525, -146.35067,  185.79842,  253.11053,
+          300.24990, -262.25222,  235.43031,  320.96704, -139.03478,
+          233.38413, -316.93320,  202.85420, -252.86989,  382.40623,]
+    # fmt: on
 
     return x, y
 
 
 def extra_xy_5():
     """Extra points to be tacked on that should probably not be matched."""
-    x1 = [  426.96851, -388.88402,  108.22633,  170.85110,  435.57264,]
-    y1 = [ -423.38909, -447.35147,  255.00272,  -47.67573,  492.17773,]
+    # fmt: off
+    x1 = [ 426.96851, -388.88402,  108.22633,  170.85110,  435.57264,]
+    y1 = [-423.38909, -447.35147,  255.00272,  -47.67573,  492.17773,]
 
-    x2 = [  166.09336, -137.12012,  131.59430,  469.28326,  375.83601,]
-    y2 = [  219.05374,  269.97358, -432.54307,  -53.96007,  341.31046,]
+    x2 = [ 166.09336, -137.12012,  131.59430,  469.28326,  375.83601,]
+    y2 = [ 219.05374,  269.97358, -432.54307,  -53.96007,  341.31046,]
+    # fmt: on
 
     return x1, y1, x2, y2
 
@@ -111,8 +115,10 @@ def get_ndarrays(transform=None, args=None, ttype="triangles"):
     ty = y.copy()
 
     x1, y1, x2, y2 = extra_xy_5()
-    x += x1; y += y1
-    tx += x2; ty += y2
+    x += x1
+    y += y1
+    tx += x2
+    ty += y2
 
     x, y, tx, ty = np.array(x), np.array(y), np.array(tx), np.array(ty)
 
@@ -183,7 +189,7 @@ def test_triangles_15_points_translated():
 
     The input points will be translated by (-12, 21)
     """
-    inp, ref, elen = get_ndarrays("translate", (-12., 21.))
+    inp, ref, elen = get_ndarrays("translate", (-12.0, 21.0))
 
     r = stimage.xyxymatch(inp, ref, algorithm="triangles", tolerance=0.01)
 
@@ -208,7 +214,7 @@ def test_triangles_15_points_flipped():
     assert len(r) == elen
 
 
-@pytest.mark.parametrize("mag", [0.2, 0.5, 10.])
+@pytest.mark.parametrize("mag", [0.2, 0.5, 10.0])
 def test_triangles_15_points_magnified(mag):
     """
     The input and reference lists will have the same first 15 points.
@@ -240,7 +246,7 @@ def test_triangles_15_points_all_transforms():
 
     The input points will be rotated, magnified, flipped, and translated.
     """
-    transforms = {"deg": 150., "mag": 10., "trans": (-12., 21.)}
+    transforms = {"deg": 150.0, "mag": 10.0, "trans": (-12.0, 21.0)}
     inp, ref, elen = get_ndarrays("all", transforms)
 
     r = stimage.xyxymatch(inp, ref, algorithm="triangles", tolerance=0.01)
@@ -268,30 +274,31 @@ def test_tolerance_15_points_rotated(theta_deg):
     ref, inp, elen = get_ndarrays("rotation", theta_deg)
 
     rotation = (theta_deg, theta_deg)
-    r = stimage.xyxymatch(inp, ref,
-            algorithm="tolerance", tolerance=0.01, rotation=rotation)
+    r = stimage.xyxymatch(
+        inp, ref, algorithm="tolerance", tolerance=0.01, rotation=rotation
+    )
 
     # All 15 base points should be matched.  The 5 extra random points should not be.
     assert len(r) == elen
 
 
 def test_tolerance_15_points_translated():
-    ref, inp, elen = get_ndarrays("translate", (-12., 21.))
+    ref, inp, elen = get_ndarrays("translate", (-12.0, 21.0))
 
-    r = stimage.xyxymatch(inp, ref,
-            algorithm="tolerance", tolerance=0.01, ref_origin=(-12., 21.))
+    r = stimage.xyxymatch(
+        inp, ref, algorithm="tolerance", tolerance=0.01, ref_origin=(-12.0, 21.0)
+    )
 
     # All 15 base points should be matched.  The 5 extra random points should not be.
     assert len(r) == elen
 
 
-@pytest.mark.parametrize("mag", [0.2, 0.5, 10.])
+@pytest.mark.parametrize("mag", [0.2, 0.5, 10.0])
 def test_tolerance_15_points_magnified(mag):
     ref, inp, elen = get_ndarrays("magnify", mag)
 
     in_mag = [mag, mag]
-    r = stimage.xyxymatch(inp, ref,
-            algorithm="tolerance", tolerance=0.01, mag=in_mag)
+    r = stimage.xyxymatch(inp, ref, algorithm="tolerance", tolerance=0.01, mag=in_mag)
 
     if mag > 0.3:
         # All 15 base points should be matched.  The 5 extra random points should not be.
@@ -302,15 +309,21 @@ def test_tolerance_15_points_magnified(mag):
 
 
 def test_tolerance_15_points_all_transforms():
-    theta_deg, mag, point = 45., 10., [-12., 21.]
+    theta_deg, mag, point = 45.0, 10.0, [-12.0, 21.0]
     transforms = {"deg": theta_deg, "mag": mag, "trans": point}
     ref, inp, elen = get_ndarrays("all", transforms, ttype="tolerance")
 
     rotation = [theta_deg, theta_deg]
     in_mag = [mag, mag]
-    r = stimage.xyxymatch(inp, ref,
-            algorithm="tolerance", tolerance=0.01,
-            mag=in_mag, rotation=rotation, ref_origin=point)
+    r = stimage.xyxymatch(
+        inp,
+        ref,
+        algorithm="tolerance",
+        tolerance=0.01,
+        mag=in_mag,
+        rotation=rotation,
+        ref_origin=point,
+    )
 
     # All 15 base points should be matched.  The 5 extra random points should not be.
     assert len(r) == elen

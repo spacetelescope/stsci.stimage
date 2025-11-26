@@ -5,7 +5,9 @@
 #include "surface/surface.h"
 #include "test.h"
 
-int main(int argv, char** argc) {
+int
+main(int argv, char **argc)
+{
     surface_t surface;
     surface_t copy;
     bbox_t bbox;
@@ -18,25 +20,29 @@ int main(int argv, char** argc) {
 
     surface_new(&surface);
 
-    status = surface_init(
-            &surface,
-            surface_type_polynomial,
-            2, 2, xterms_half, &bbox, &error);
-    if (status != 0) goto exit;
-    if (surface.matrix == NULL) goto exit;
+    status = surface_init(&surface, surface_type_polynomial, 2, 2, xterms_half, &bbox, &error);
+    if (status != 0) {
+        goto exit;
+    }
+    if (surface.matrix == NULL) {
+        goto exit;
+    }
 
-    status = surface_copy(
-            &surface,
-            &copy,
-            &error);
+    status = surface_copy(&surface, &copy, &error);
 
-    if (status != 0) goto exit;
-    if (copy.matrix == NULL) goto exit;
-    if (copy.matrix == surface.matrix) goto exit;
+    if (status != 0) {
+        goto exit;
+    }
+    if (copy.matrix == NULL) {
+        goto exit;
+    }
+    if (copy.matrix == surface.matrix) {
+        goto exit;
+    }
 
     status = 0;
 
- exit:
+exit:
     surface_free(&surface);
     surface_free(&copy);
 
