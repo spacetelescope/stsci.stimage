@@ -41,8 +41,8 @@ DAMAGE.
 #include "lib/error.h"
 
 void
-stimage_error_init(
-    stimage_error_t* const error) {
+stimage_error_init(stimage_error_t *const error)
+{
 
     size_t i;
 
@@ -52,63 +52,60 @@ stimage_error_init(
 }
 
 void
-stimage_error_set_message(
-    stimage_error_t* error,
-    const char* message) {
+stimage_error_set_message(stimage_error_t *error, const char *message)
+{
 
-  assert(error);
-  assert(message);
+    assert(error);
+    assert(message);
 
-  strncpy(error->message, message, STIMAGE_MAX_ERROR_LEN);
+    strncpy(error->message, message, STIMAGE_MAX_ERROR_LEN);
 
-  #if DEBUG
+#if DEBUG
     printf("ERROR RAISED:\n%s\n", error->message);
     assert(0);
-  #endif
+#endif
 }
 
 void
-stimage_error_format_message(
-    stimage_error_t* error,
-    const char* format,
-    ...) {
+stimage_error_format_message(stimage_error_t *error, const char *format, ...)
+{
 
-  /* See http://c-faq.com/varargs/vprintf.html
-     for an explanation of how all this variable length argument list stuff
-     works. */
-  va_list argp;
+    /* See http://c-faq.com/varargs/vprintf.html
+       for an explanation of how all this variable length argument list stuff
+       works. */
+    va_list argp;
 
-  assert(error);
-  assert(format);
+    assert(error);
+    assert(format);
 
-  va_start(argp, format);
-  (void)vsnprintf(error->message, STIMAGE_MAX_ERROR_LEN, format, argp);
-  va_end(argp);
+    va_start(argp, format);
+    (void) vsnprintf(error->message, STIMAGE_MAX_ERROR_LEN, format, argp);
+    va_end(argp);
 }
 
-const char*
-stimage_error_get_message(
-    stimage_error_t* error) {
+const char *
+stimage_error_get_message(stimage_error_t *error)
+{
 
-  assert(error);
+    assert(error);
 
-  return error->message;
+    return error->message;
 }
 
 int
-stimage_error_is_set(
-    const stimage_error_t* error) {
+stimage_error_is_set(const stimage_error_t *error)
+{
 
-  assert(error);
+    assert(error);
 
-  return error->message[0] != 0;
+    return error->message[0] != 0;
 }
 
 void
-stimage_error_unset(
-    stimage_error_t* error) {
+stimage_error_unset(stimage_error_t *error)
+{
 
-  assert(error);
+    assert(error);
 
-  error->message[0] = 0;
+    error->message[0] = 0;
 }

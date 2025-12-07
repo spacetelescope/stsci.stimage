@@ -62,11 +62,8 @@ Compute linear transformation coefficients.
 */
 void
 compute_lintransform(
-    const coord_t in,
-    const coord_t mag,
-    const coord_t rot,
-    const coord_t out,
-    lintransform_t* coeffs);
+    const coord_t in, const coord_t mag, const coord_t rot, const coord_t out,
+    lintransform_t *coeffs);
 
 /**
 Apply a linear transformation to a list of coordinates.
@@ -81,9 +78,7 @@ Apply a linear transformation to a list of coordinates.
 */
 void
 apply_lintransform(
-    const lintransform_t* const coeffs,
-    size_t ncoords,
-    const coord_t* const input, /* [ncoords] */
-    coord_t* output);
+    const lintransform_t *const coeffs, size_t ncoords, const coord_t *const input, /* [ncoords] */
+    coord_t *output);
 
 #endif /* _STIMAGE_LINTRANSFORM_H_ */

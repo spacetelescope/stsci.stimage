@@ -53,9 +53,10 @@ DAMAGE.
 */
 
 static int
-xysort_compare(const void* ap, const void* bp) {
-    const coord_t* a = *(const coord_t**)ap;
-    const coord_t* b = *(const coord_t**)bp;
+xysort_compare(const void *ap, const void *bp)
+{
+    const coord_t *a = *(const coord_t **) ap;
+    const coord_t *b = *(const coord_t **) bp;
 
     if (a->y < b->y) {
         return -1;
@@ -74,9 +75,9 @@ xysort_compare(const void* ap, const void* bp) {
 
 void
 xysort(
-    const size_t ncoords,
-    const coord_t* const coords /* [ncoords] */,
-    const coord_t** const coords_ptr /* [ncoords] */) {
+    const size_t ncoords, const coord_t *const coords /* [ncoords] */,
+    const coord_t **const coords_ptr /* [ncoords] */)
+{
 
     size_t i;
 
@@ -85,8 +86,8 @@ xysort(
 
     /* Fill the pointer array */
     for (i = 0; i < ncoords; ++i) {
-        coords_ptr[i] = (coord_t*)coords + i;
+        coords_ptr[i] = (coord_t *) coords + i;
     }
 
-    qsort(coords_ptr, ncoords, sizeof(coord_t**), &xysort_compare);
+    qsort(coords_ptr, ncoords, sizeof(coord_t **), &xysort_compare);
 }

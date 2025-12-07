@@ -37,10 +37,8 @@ DAMAGE.
 #include "lib/polynomial.h"
 
 static double
-vector_dot_product(
-    const size_t n,
-    const double* const a,
-    const double* const b) {
+vector_dot_product(const size_t n, const double *const a, const double *const b)
+{
 
     size_t i;
     double sum = 0.0;
@@ -55,27 +53,23 @@ vector_dot_product(
 /* was dgsacpts */
 static int
 surface_fit_add_points(
-        surface_t* const s,
-        const size_t ncoord,
-        const coord_t* const coord,
-        const double* const z,
-        double* const w,
-        const surface_fit_weight_e weight_type,
-        stimage_error_t* const error) {
+    surface_t *const s, const size_t ncoord, const coord_t *const coord, const double *const z,
+    double *const w, const surface_fit_weight_e weight_type, stimage_error_t *const error)
+{
 
     size_t i, j, k, l, ii, jj, ll;
-    double* byw = NULL;
-    double* bw = NULL;
-    double* xbasis = NULL;
-    double* ybasis = NULL;
-    double* vzp;
-    double* mzp;
-    double* bxp;
-    double* byp;
-    double* vindex;
-    double* mindex;
-    double* bbyp;
-    double* bbxp;
+    double *byw = NULL;
+    double *bw = NULL;
+    double *xbasis = NULL;
+    double *ybasis = NULL;
+    double *vzp;
+    double *mzp;
+    double *bxp;
+    double *byp;
+    double *vindex;
+    double *mindex;
+    double *bbyp;
+    double *bbxp;
     int xorder;
     int xxorder;
     int maxorder;
@@ -95,74 +89,84 @@ surface_fit_add_points(
 
     /* Calculate weights */
     switch (weight_type) {
-    case surface_fit_weight_spacing:
-        if (ncoord == 1) {
-            w[0] = 1.0;
-        } else {
-            w[0] = ABS(coord[1].x - coord[0].x);
-        }
+        case surface_fit_weight_spacing:
+            if (ncoord == 1) {
+                w[0] = 1.0;
+            } else {
+                w[0] = ABS(coord[1].x - coord[0].x);
+            }
 
-        for (i = 1; i < ncoord - 1; ++i) {
-            w[i] = ABS(coord[i+1].x - coord[i-1].x);
-        }
+            for (i = 1; i < ncoord - 1; ++i) {
+                w[i] = ABS(coord[i + 1].x - coord[i - 1].x);
+            }
 
-        if (ncoord == 1) {
-            w[ncoord-1] = 1.0;
-        } else {
-            w[ncoord-1] = ABS(coord[ncoord-1].x - coord[ncoord-2].x);
-        }
-        break;
-    case surface_fit_weight_user:
-        /* User supplied-weights: don't touch the w vector */
-        break;
-    default:
-        for (i = 0; i < ncoord; ++i) {
-            w[i] = 1.0;
-        }
-        break;
+            if (ncoord == 1) {
+                w[ncoord - 1] = 1.0;
+            } else {
+                w[ncoord - 1] = ABS(coord[ncoord - 1].x - coord[ncoord - 2].x);
+            }
+            break;
+        case surface_fit_weight_user:
+            /* User supplied-weights: don't touch the w vector */
+            break;
+        default:
+            for (i = 0; i < ncoord; ++i) {
+                w[i] = 1.0;
+            }
+            break;
     }
 
     xbasis = malloc_with_error(ncoord * s->xorder * sizeof(double), error);
-    if (xbasis == NULL) goto exit;
+    if (xbasis == NULL) {
+        goto exit;
+    }
     ybasis = malloc_with_error(ncoord * s->yorder * sizeof(double), error);
-    if (ybasis == NULL) goto exit;
+    if (ybasis == NULL) {
+        goto exit;
+    }
 
     /* Calculate the non-zero basis functions */
     switch (s->type) {
-    case surface_type_polynomial:
-        if (basis_poly(
-                    ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange,
-                    xbasis, error)) goto exit;
-        if (basis_poly(
-                    ncoord, 1, coord, s->yorder, s->ymaxmin, s->yrange,
-                    ybasis, error)) goto exit;
-        break;
-    case surface_type_chebyshev:
-        if (basis_chebyshev(
-                    ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange,
-                    xbasis, error)) goto exit;
-        if (basis_chebyshev(
-                    ncoord, 1, coord, s->yorder, s->ymaxmin, s->yrange,
-                    ybasis, error)) goto exit;
-        break;
-    case surface_type_legendre:
-        if (basis_legendre(
-                    ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange,
-                    xbasis, error)) goto exit;
-        if (basis_legendre(
-                    ncoord, 1, coord, s->yorder, s->ymaxmin, s->yrange,
-                    ybasis, error)) goto exit;
-        break;
-    default:
-        stimage_error_set_message(error, "Illegal curve type");
-        goto exit;
+        case surface_type_polynomial:
+            if (basis_poly(ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange, xbasis, error)) {
+                goto exit;
+            }
+            if (basis_poly(ncoord, 1, coord, s->yorder, s->ymaxmin, s->yrange, ybasis, error)) {
+                goto exit;
+            }
+            break;
+        case surface_type_chebyshev:
+            if (basis_chebyshev(
+                    ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange, xbasis, error)) {
+                goto exit;
+            }
+            if (basis_chebyshev(
+                    ncoord, 1, coord, s->yorder, s->ymaxmin, s->yrange, ybasis, error)) {
+                goto exit;
+            }
+            break;
+        case surface_type_legendre:
+            if (basis_legendre(ncoord, 0, coord, s->xorder, s->xmaxmin, s->xrange, xbasis, error)) {
+                goto exit;
+            }
+            if (basis_legendre(ncoord, 1, coord, s->yorder, s->ymaxmin, s->yrange, ybasis, error)) {
+                goto exit;
+            }
+            break;
+        default:
+            stimage_error_set_message(error, "Illegal curve type");
+            goto exit;
     }
 
     /* Allocate temporary space for matrix accumulation */
     byw = malloc_with_error(ncoord * sizeof(double), error);
-    if (byw == NULL) goto exit;
+    if (byw == NULL) {
+        goto exit;
+    }
     bw = malloc_with_error(ncoord * sizeof(double), error);
-    if (bw == NULL) goto exit;
+    if (bw == NULL) {
+        goto exit;
+    }
 
     vzp = s->vector - 1;
     mzp = s->matrix;
@@ -207,16 +211,16 @@ surface_fit_add_points(
                     bbxp = xbasis;
                     bbyp += ncoord;
                     switch (s->xterms) {
-                    case xterms_none:
-                        xxorder = 1;
-                        break;
-                    case xterms_half:
-                        if ((int) (ll + s->xorder) > maxorder) {
-                            --xxorder;
-                        }
-                        break;
-                    default:
-                        break;
+                        case xterms_none:
+                            xxorder = 1;
+                            break;
+                        case xterms_half:
+                            if ((int) (ll + s->xorder) > maxorder) {
+                                --xxorder;
+                            }
+                            break;
+                        default:
+                            break;
                     }
                 } else {
                     ++jj;
@@ -232,16 +236,16 @@ surface_fit_add_points(
         ntimes += xorder;
 
         switch (s->xterms) {
-        case xterms_none:
-            xorder = 1;
-            break;
-        case xterms_half:
-            if ((int) (l + s->xorder + 1) > maxorder) {
-                --xorder;
-            }
-            break;
-        default:
-            break;
+            case xterms_none:
+                xorder = 1;
+                break;
+            case xterms_half:
+                if ((int) (l + s->xorder + 1) > maxorder) {
+                    --xorder;
+                }
+                break;
+            default:
+                break;
         }
         byp += ncoord;
     }
@@ -250,7 +254,7 @@ surface_fit_add_points(
 
     // surface_print(s);
 
- exit:
+exit:
 
     free(byw);
     free(bw);
@@ -262,10 +266,10 @@ surface_fit_add_points(
 
 static int
 surface_fit_solve(
-        surface_t* const s,
-        /* Output  */
-        surface_fit_error_e* const error_type,
-        stimage_error_t* const error) {
+    surface_t *const s,
+    /* Output  */
+    surface_fit_error_e *const error_type, stimage_error_t *const error)
+{
 
     int nfree;
 
@@ -279,27 +283,29 @@ surface_fit_solve(
 
     *error_type = surface_fit_error_ok;
 
-    nfree = (int)s->npoints - (int)s->ncoeff;
+    nfree = (int) s->npoints - (int) s->ncoeff;
     if (nfree < 0) {
         *error_type = surface_fit_error_no_degrees_of_freedom;
         return 0;
     }
 
     switch (s->type) {
-    case surface_type_polynomial:
-    case surface_type_chebyshev:
-    case surface_type_legendre:
-        if (cholesky_factorization(
-                    s->ncoeff, s->ncoeff, s->matrix, s->cholesky_fact,
-                    error_type, error)) return 1;
-        if (cholesky_solve(
-                    s->ncoeff, s->ncoeff, s->cholesky_fact, s->vector,
-                    s->coeff, error)) return 1;
-        break;
+        case surface_type_polynomial:
+        case surface_type_chebyshev:
+        case surface_type_legendre:
+            if (cholesky_factorization(
+                    s->ncoeff, s->ncoeff, s->matrix, s->cholesky_fact, error_type, error)) {
+                return 1;
+            }
+            if (cholesky_solve(
+                    s->ncoeff, s->ncoeff, s->cholesky_fact, s->vector, s->coeff, error)) {
+                return 1;
+            }
+            break;
 
-    default:
-        stimage_error_set_message(error, "Illegal surface type");
-        return 1;
+        default:
+            stimage_error_set_message(error, "Illegal surface type");
+            return 1;
     }
 
     // surface_print(s);
@@ -309,15 +315,11 @@ surface_fit_solve(
 
 int
 surface_fit(
-        surface_t* const s,
-        const size_t ncoord,
-        const coord_t* const coord,
-        const double* const z,
-        double* const w,
-        const surface_fit_weight_e weight_type,
-        /* Output */
-        surface_fit_error_e* const error_type,
-        stimage_error_t* const error) {
+    surface_t *const s, const size_t ncoord, const coord_t *const coord, const double *const z,
+    double *const w, const surface_fit_weight_e weight_type,
+    /* Output */
+    surface_fit_error_e *const error_type, stimage_error_t *const error)
+{
 
     assert(s);
     assert(coord);
