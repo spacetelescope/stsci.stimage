@@ -5,10 +5,11 @@
 #include "lib/lintransform.h"
 #include "test.h"
 
-int compare(const size_t ncoords,
-            const coord_t* const ref,
-            const coord_t* const input,
-            xyxymatch_output_t* output) {
+int
+compare(
+    const size_t ncoords, const coord_t *const ref, const coord_t *const input,
+    xyxymatch_output_t *output)
+{
     int status;
     const coord_t origin = {0.0, 0.0};
     const coord_t mag = {1.0, 1.0};
@@ -25,13 +26,8 @@ int compare(const size_t ncoords,
     stimage_error_init(&error);
 
     status = xyxymatch(
-            ncoords, input,
-            ncoords, ref,
-            &noutput, output,
-            &origin, &mag, &rot, &ref_origin,
-            xyxymatch_algo_triangles,
-            tolerance, 0.0, max_points, max_ratio, nreject,
-            &error);
+        ncoords, input, ncoords, ref, &noutput, output, &origin, &mag, &rot, &ref_origin,
+        xyxymatch_algo_triangles, tolerance, 0.0, max_points, max_ratio, nreject, &error);
 
     if (status) {
         printf("%s", stimage_error_get_message(&error));
@@ -39,22 +35,23 @@ int compare(const size_t ncoords,
     }
 
     if (noutput != max_points) {
-        printf("Expected %lu pairs, got %lu\n",
-               (unsigned long)max_points,
-               (unsigned long)noutput);
+        printf(
+            "Expected %lu pairs, got %lu\n", (unsigned long) max_points, (unsigned long) noutput);
     }
 
     for (i = 0; i < noutput; ++i) {
         if (output[i].coord_idx != output[i].ref_idx) {
-            printf("Mismatched indicies\n");
+            printf("Mismatched indices\n");
         }
     }
 
     return 0;
 }
 
-int main(int argc, char** argv) {
-    #define ncoords 4098
+int
+main(int argc, char **argv)
+{
+#define ncoords 4098
     coord_t ref[ncoords];
     coord_t input[ncoords];
     xyxymatch_output_t output[ncoords];

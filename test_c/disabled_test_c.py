@@ -6,17 +6,17 @@ import subprocess
 import pytest
 
 
-ROOT = os.path.relpath(os.path.join('build', 'test_c'))
+ROOT = os.path.relpath(os.path.join("build", "test_c"))
 TESTS = [
-    'test_cholesky',
-    'test_geomap',
-    'test_lintransform',
-    'test_surface',
-    'test_triangles',
-    'test_xycoincide',
-    'test_xysort',
-    'test_xyxymatch',
-    'test_xyxymatch_triangles'
+    "test_cholesky",
+    "test_geomap",
+    "test_lintransform",
+    "test_surface",
+    "test_triangles",
+    "test_xycoincide",
+    "test_xysort",
+    "test_xyxymatch",
+    "test_xyxymatch_triangles",
 ]
 
 
@@ -29,9 +29,13 @@ def test_runall(program):
         pytest.skip("'cmake' is not installed")
 
     if not os.path.exists(program):
-        pytest.skip("'{}' does not exist. To run the C tests "
-                    "execute the following before invoking pytest: "
-                    "cmake -S . -B ./build -DENABLE_TESTING=ON && cmake --build ./build".format(program))
+        pytest.skip(
+            "'{}' does not exist. To run the C tests "
+            "execute the following before invoking pytest: "
+            "cmake -S . -B ./build -DENABLE_TESTING=ON && cmake --build ./build".format(
+                program
+            )
+        )
     returncode = 0
     try:
         returncode = subprocess.check_call(program)

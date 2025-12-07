@@ -40,10 +40,9 @@ DAMAGE.
 
 size_t
 xycoincide(
-    const size_t ncoords,
-    const coord_t* const * const input /*[ncoords]*/,
-    const coord_t** const output /*[ncoords]*/,
-    const double tolerance) {
+    const size_t ncoords, const coord_t *const *const input /*[ncoords]*/,
+    const coord_t **const output /*[ncoords]*/, const double tolerance)
+{
 
     double tolerance2 = tolerance * tolerance;
     size_t nunique = ncoords;
@@ -55,7 +54,7 @@ xycoincide(
     assert(input);
     assert(output);
 
-    if ((coord_t **)input != (coord_t **)output) {
+    if ((coord_t **) input != (coord_t **) output) {
         memcpy(output, input, sizeof(coord_t *) * ncoords);
     }
 

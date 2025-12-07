@@ -37,13 +37,9 @@ DAMAGE.
 
 int
 surface_init(
-        surface_t* const s,
-        const surface_type_e function,
-        const int xorder,
-        const int yorder,
-        const xterms_e xterms,
-        const bbox_t* const bbox,
-        stimage_error_t* const error) {
+    surface_t *const s, const surface_type_e function, const int xorder, const int yorder,
+    const xterms_e xterms, const bbox_t *const bbox, stimage_error_t *const error)
+{
 
     int order;
 
@@ -65,79 +61,85 @@ surface_init(
     }
 
     switch (function) {
-    case surface_type_chebyshev:
-    case surface_type_legendre:
-        s->xorder = xorder;
-        s->yorder = yorder;
-        s->nxcoeff = xorder;
-        s->nycoeff = yorder;
-        s->xterms = xterms;
-        switch (xterms) {
-        case xterms_none:
-            s->ncoeff = xorder + yorder - 1;
+        case surface_type_chebyshev:
+        case surface_type_legendre:
+            s->xorder = xorder;
+            s->yorder = yorder;
+            s->nxcoeff = xorder;
+            s->nycoeff = yorder;
+            s->xterms = xterms;
+            switch (xterms) {
+                case xterms_none:
+                    s->ncoeff = xorder + yorder - 1;
+                    break;
+                case xterms_half:
+                    order = MIN(xorder, yorder);
+                    s->ncoeff = xorder * yorder - order * (order - 1) / 2;
+                    break;
+                case xterms_full:
+                    s->ncoeff = xorder * yorder;
+                    break;
+                default:
+                    stimage_error_set_message(error, "Invalid surface xterms value");
+                    goto fail;
+            }
+            s->xrange = 2.0 / (bbox->max.x - bbox->min.x);
+            s->xmaxmin = -(bbox->max.x - bbox->min.x) / 2.0;
+            s->yrange = 2.0 / (bbox->max.y - bbox->min.y);
+            s->ymaxmin = -(bbox->max.y - bbox->min.y) / 2.0;
             break;
-        case xterms_half:
-            order = MIN(xorder, yorder);
-            s->ncoeff = xorder * yorder - order * (order - 1) / 2;
-            break;
-        case xterms_full:
-            s->ncoeff = xorder * yorder;
-            break;
-        default:
-            stimage_error_set_message(error, "Invalid surface xterms value");
-            goto fail;
-        }
-        s->xrange = 2.0 / (bbox->max.x - bbox->min.x);
-        s->xmaxmin = -(bbox->max.x - bbox->min.x) / 2.0;
-        s->yrange = 2.0 / (bbox->max.y - bbox->min.y);
-        s->ymaxmin = -(bbox->max.y - bbox->min.y) / 2.0;
-        break;
 
-    case surface_type_polynomial:
-        s->xorder = xorder;
-        s->yorder = yorder;
-        s->nxcoeff = xorder;
-        s->nycoeff = yorder;
-        s->xterms = xterms;
-        switch (xterms) {
-        case xterms_none:
-            s->ncoeff = xorder + yorder - 1;
+        case surface_type_polynomial:
+            s->xorder = xorder;
+            s->yorder = yorder;
+            s->nxcoeff = xorder;
+            s->nycoeff = yorder;
+            s->xterms = xterms;
+            switch (xterms) {
+                case xterms_none:
+                    s->ncoeff = xorder + yorder - 1;
+                    break;
+                case xterms_half:
+                    order = MIN(xorder, yorder);
+                    s->ncoeff = xorder * yorder - order * (order - 1) / 2;
+                    break;
+                case xterms_full:
+                    s->ncoeff = xorder * yorder;
+                    break;
+                default:
+                    stimage_error_set_message(error, "Invalid surface xterms value");
+                    goto fail;
+            }
+            s->xrange = 1.0;
+            s->xmaxmin = 0.0;
+            s->yrange = 1.0;
+            s->ymaxmin = 0.0;
             break;
-        case xterms_half:
-            order = MIN(xorder, yorder);
-            s->ncoeff = xorder * yorder - order * (order - 1) / 2;
-            break;
-        case xterms_full:
-            s->ncoeff = xorder * yorder;
-            break;
-        default:
-            stimage_error_set_message(error, "Invalid surface xterms value");
-            goto fail;
-        }
-        s->xrange = 1.0;
-        s->xmaxmin = 0.0;
-        s->yrange = 1.0;
-        s->ymaxmin = 0.0;
-        break;
 
-    default:
-        stimage_error_set_message(error, "Unknown surface type");
-        goto fail;
+        default:
+            stimage_error_set_message(error, "Unknown surface type");
+            goto fail;
     }
 
     s->type = function;
     bbox_copy(bbox, &s->bbox);
 
-    s->matrix =
-        malloc_with_error(s->ncoeff * s->ncoeff * sizeof(double), error);
-    if (s->matrix == NULL) goto fail;
-    s->cholesky_fact =
-        malloc_with_error(s->ncoeff * s->ncoeff * sizeof(double), error);
-    if (s->cholesky_fact == NULL) goto fail;
+    s->matrix = malloc_with_error(s->ncoeff * s->ncoeff * sizeof(double), error);
+    if (s->matrix == NULL) {
+        goto fail;
+    }
+    s->cholesky_fact = malloc_with_error(s->ncoeff * s->ncoeff * sizeof(double), error);
+    if (s->cholesky_fact == NULL) {
+        goto fail;
+    }
     s->vector = malloc_with_error(s->ncoeff * sizeof(double), error);
-    if (s->vector == NULL) goto fail;
+    if (s->vector == NULL) {
+        goto fail;
+    }
     s->coeff = malloc_with_error(s->ncoeff * sizeof(double), error);
-    if (s->coeff == NULL) goto fail;
+    if (s->coeff == NULL) {
+        goto fail;
+    }
 
     if (surface_zero(s, error)) {
         return 1;
@@ -147,15 +149,15 @@ surface_init(
 
     return 0;
 
- fail:
+fail:
     surface_free(s);
 
     return 1;
 }
 
 int
-surface_new(
-        surface_t* const s) {
+surface_new(surface_t *const s)
+{
     memset(s, 0, sizeof(surface_t));
 
     surface_free(s);
@@ -164,30 +166,34 @@ surface_new(
 }
 
 void
-surface_free(
-        surface_t* const s) {
+surface_free(surface_t *const s)
+{
 
     assert(s);
 
-    free(s->matrix); s->matrix = NULL;
-    free(s->cholesky_fact); s->cholesky_fact = NULL;
-    free(s->vector); s->vector = NULL;
-    free(s->coeff); s->coeff = NULL;
+    free(s->matrix);
+    s->matrix = NULL;
+    free(s->cholesky_fact);
+    s->cholesky_fact = NULL;
+    free(s->vector);
+    s->vector = NULL;
+    free(s->coeff);
+    s->coeff = NULL;
 }
 
 static int
 surface_copy_vector(
-        const size_t size,
-        const double* const s,
-        double** const d,
-        stimage_error_t* const error) {
+    const size_t size, const double *const s, double **const d, stimage_error_t *const error)
+{
 
     size_t i;
 
     if (s != NULL) {
         free(*d);
         *d = malloc_with_error(size * sizeof(double), error);
-        if (*d == NULL) return 1;
+        if (*d == NULL) {
+            return 1;
+        }
         for (i = 0; i < size; ++i) {
             (*d)[i] = s[i];
         }
@@ -197,10 +203,8 @@ surface_copy_vector(
 }
 
 int
-surface_copy(
-        const surface_t* const s,
-        surface_t* const d,
-        stimage_error_t* const error) {
+surface_copy(const surface_t *const s, surface_t *const d, stimage_error_t *const error)
+{
 
     assert(s);
     assert(d);
@@ -208,44 +212,39 @@ surface_copy(
 
     surface_new(d);
 
-    d->type    = s->type;
-    d->xorder  = s->xorder;
-    d->yorder  = s->yorder;
+    d->type = s->type;
+    d->xorder = s->xorder;
+    d->yorder = s->yorder;
     d->nxcoeff = s->nxcoeff;
     d->nycoeff = s->nycoeff;
-    d->xterms  = s->xterms;
-    d->ncoeff  = s->ncoeff;
-    d->xrange  = s->xrange;
+    d->xterms = s->xterms;
+    d->ncoeff = s->ncoeff;
+    d->xrange = s->xrange;
     d->xmaxmin = s->xmaxmin;
-    d->yrange  = s->yrange;
+    d->yrange = s->yrange;
     d->ymaxmin = s->ymaxmin;
     d->npoints = s->npoints;
 
     bbox_copy(&s->bbox, &d->bbox);
 
-    if (surface_copy_vector(
-                s->ncoeff * s->ncoeff, s->matrix, &d->matrix, error) ||
-        surface_copy_vector(
-                s->ncoeff * s->ncoeff, s->cholesky_fact, &d->cholesky_fact, error) ||
-        surface_copy_vector(
-                s->ncoeff, s->vector, &d->vector, error) ||
-        surface_copy_vector(
-                s->ncoeff, s->coeff, &d->coeff, error)) {
+    if (surface_copy_vector(s->ncoeff * s->ncoeff, s->matrix, &d->matrix, error) ||
+        surface_copy_vector(s->ncoeff * s->ncoeff, s->cholesky_fact, &d->cholesky_fact, error) ||
+        surface_copy_vector(s->ncoeff, s->vector, &d->vector, error) ||
+        surface_copy_vector(s->ncoeff, s->coeff, &d->coeff, error)) {
         goto fail;
     }
 
     return 0;
 
- fail:
+fail:
 
     surface_free(d);
     return 1;
 }
 
 int
-surface_zero(
-        surface_t* const s,
-        stimage_error_t* const error) {
+surface_zero(surface_t *const s, stimage_error_t *const error)
+{
 
     size_t i;
 
@@ -254,80 +253,80 @@ surface_zero(
     assert(s->matrix);
 
     switch (s->type) {
-    case surface_type_legendre:
-    case surface_type_polynomial:
-    case surface_type_chebyshev:
-        /* s->npoints = 0; */
+        case surface_type_legendre:
+        case surface_type_polynomial:
+        case surface_type_chebyshev:
+            /* s->npoints = 0; */
 
-        for (i = 0; i < s->ncoeff; ++i) {
-            s->vector[i] = 0.0;
-        }
+            for (i = 0; i < s->ncoeff; ++i) {
+                s->vector[i] = 0.0;
+            }
 
-        for (i = 0; i < s->ncoeff; ++i) {
-            s->coeff[i] = 0.0;
-        }
+            for (i = 0; i < s->ncoeff; ++i) {
+                s->coeff[i] = 0.0;
+            }
 
-        for (i = 0; i < s->ncoeff * s->ncoeff; ++i) {
-            s->matrix[i] = 0.0;
-        }
+            for (i = 0; i < s->ncoeff * s->ncoeff; ++i) {
+                s->matrix[i] = 0.0;
+            }
 
-        for (i = 0; i < s->ncoeff * s->ncoeff; ++i) {
-            s->cholesky_fact[i] = 0.0;
-        }
+            for (i = 0; i < s->ncoeff * s->ncoeff; ++i) {
+                s->cholesky_fact[i] = 0.0;
+            }
 
-        break;
-    default:
-        stimage_error_set_message(error, "Unknown surface type");
-        return 1;
+            break;
+        default:
+            stimage_error_set_message(error, "Unknown surface type");
+            return 1;
     }
 
     return 0;
 }
 
 void
-surface_print(
-        const surface_t* const s) {
+surface_print(const surface_t *const s)
+{
 
-    char*  type;
-    char*  xterms;
+    char *type;
+    char *xterms;
     size_t i;
 
     assert(s);
 
     switch (s->type) {
-    case surface_type_polynomial:
-        type = "polynomial";
-        break;
+        case surface_type_polynomial:
+            type = "polynomial";
+            break;
 
-    case surface_type_chebyshev:
-        type = "chebyshev";
-        break;
+        case surface_type_chebyshev:
+            type = "chebyshev";
+            break;
 
-    case surface_type_legendre:
-        type = "legendre";
-        break;
+        case surface_type_legendre:
+            type = "legendre";
+            break;
 
-    default:
-        type = "UNKNOWN";
-        break;
+        default:
+            type = "UNKNOWN";
+            break;
     }
 
     switch (s->xterms) {
-    case xterms_none:
-        xterms = "none";
-        break;
+        case xterms_none:
+            xterms = "none";
+            break;
 
-    case xterms_half:
-        xterms = "half";
-        break;
+        case xterms_half:
+            xterms = "half";
+            break;
 
-    case xterms_full:
-        xterms = "full";
-        break;
+        case xterms_full:
+            xterms = "full";
+            break;
 
-    default:
-        xterms = "UNKNOWN";
-        break;
+        default:
+            xterms = "UNKNOWN";
+            break;
     }
 
     printf("SURFACE\n");
