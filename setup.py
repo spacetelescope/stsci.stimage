@@ -34,7 +34,9 @@ INCLUDES = c_includes("include") + c_includes("src") + [numpy_includes()]
 
 cfg = {
     "libraries": [],
-    "define_macros": [],
+    "define_macros": [
+        ("Py_LIMITED_API", 0x03090000),  # PY_VERSION_HEX for 3.9
+    ],
     "extra_compile_args": [],
 }
 
@@ -65,4 +67,5 @@ ext_modules = [
 
 setup(
     ext_modules=ext_modules,
+    options={'bdist_wheel': {'py_limited_api': 'cp39'}},
 )
