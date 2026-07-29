@@ -50,6 +50,9 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+[tool.cibuildwheel]
+test-command = 'python -c "from stsci.stimage import xyxymatch, geomap"'
+
 [tool.codespell]
 ignore-words-list = "Groth"
 
