@@ -58,7 +58,9 @@ typedef struct {
 static PyObject *
 geomap_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    return (PyObject *) type->tp_alloc(type, 0);
+    (void) args;
+    (void) kwds;
+    return PyType_GenericAlloc(type, 0);
 }
 
 static PyArrayObject *
@@ -149,7 +151,12 @@ geomap_dealloc(geomap_object *self)
     Py_XDECREF(self->ycoeff);
     Py_XDECREF(self->x2coeff);
     Py_XDECREF(self->y2coeff);
-    Py_TYPE(self)->tp_free((PyObject *) self);
+    {
+        PyTypeObject *tp = Py_TYPE(self);
+        freefunc tp_free = (freefunc) PyType_GetSlot(tp, Py_tp_free);
+        tp_free((PyObject *) self);
+        Py_DECREF(tp);
+    }
 }
 
 static PyMethodDef geomap_methods[] = {
@@ -172,44 +179,24 @@ static PyMemberDef geomap_members[] = {
     {NULL} /* Sentinel */
 };
 
-static PyTypeObject geomap_class = {
-    PyVarObject_HEAD_INIT(NULL, 0) "py_geomap.GeomapResults", /* tp_name */
-    sizeof(geomap_object),                                    /* tp_basicsize */
-    0,                                                        /* tp_itemsize */
-    (destructor) geomap_dealloc,                              /* tp_dealloc */
-    0,                                                        /* tp_print */
-    0,                                                        /* tp_getattr */
-    0,                                                        /* tp_setattr */
-    0,                                                        /* tp_reserved */
-    0,                                                        /* tp_repr */
-    0,                                                        /* tp_as_number */
-    0,                                                        /* tp_as_sequence */
-    0,                                                        /* tp_as_mapping */
-    0,                                                        /* tp_hash */
-    0,                                                        /* tp_call */
-    0,                                                        /* tp_str */
-    0,                                                        /* tp_getattro */
-    0,                                                        /* tp_setattro */
-    0,                                                        /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,                                       /* tp_flags */
-    "geomap result objects",                                  /* tp_doc */
-    0,                                                        /* tp_traverse */
-    0,                                                        /* tp_clear */
-    0,                                                        /* tp_richcompare */
-    0,                                                        /* tp_weaklistoffset */
-    0,                                                        /* tp_iter */
-    0,                                                        /* tp_iternext */
-    geomap_methods,                                           /* tp_methods */
-    geomap_members,                                           /* tp_members */
-    0,                                                        /* tp_getset */
-    0,                                                        /* tp_base */
-    0,                                                        /* tp_dict */
-    0,                                                        /* tp_descr_get */
-    0,                                                        /* tp_descr_set */
-    0,                                                        /* tp_dictoffset */
-    (initproc) geomap_init,                                   /* tp_init */
-    0,                                                        /* tp_alloc */
-    geomap_new,                                               /* tp_new */
+static PyObject *geomap_class = NULL;
+
+static PyType_Slot geomap_class_slots[] = {
+    {Py_tp_doc, "geomap result objects"},
+    {Py_tp_dealloc, (void *) geomap_dealloc},
+    {Py_tp_methods, geomap_methods},
+    {Py_tp_members, geomap_members},
+    {Py_tp_init, (void *) geomap_init},
+    {Py_tp_new, (void *) geomap_new},
+    {0, NULL},
+};
+
+static PyType_Spec geomap_class_spec = {
+    .name = "py_geomap.GeomapResults",
+    .basicsize = sizeof(geomap_object),
+    .itemsize = 0,
+    .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE,
+    .slots = geomap_class_slots,
 };
 
 PyObject *
@@ -329,7 +316,7 @@ py_geomap(PyObject *self, PyObject *args, PyObject *kwds)
         goto exit;
     }
 
-    fit_obj = geomap_new(&geomap_class, NULL, NULL);
+    fit_obj = geomap_new((PyTypeObject *) geomap_class, NULL, NULL);
 
 #define ADD_ATTR(func, member, name)              \
     if ((func) ((member), &tmp))                  \
@@ -384,10 +371,15 @@ exit:
 int
 _setup_geomap_results_type(PyObject *m)
 {
-    if (PyType_Ready(&geomap_class) < 0) {
+    geomap_class = PyType_FromSpec(&geomap_class_spec);
+    if (geomap_class == NULL) {
         return -1;
     }
-    Py_INCREF(&geomap_class);
-    PyModule_AddObject(m, "GeomapResults", (PyObject *) &geomap_class);
+    Py_INCREF(geomap_class);
+    if (PyModule_AddObject(m, "GeomapResults", geomap_class) < 0) {
+        Py_DECREF(geomap_class);
+        Py_CLEAR(geomap_class);
+        return -1;
+    }
     return 0;
 }
