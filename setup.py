@@ -2,10 +2,13 @@
 
 import os
 import sys
+import sysconfig
 from fnmatch import fnmatch
 
 from numpy import get_include as numpy_includes
-from setuptools import setup, Extension
+from setuptools import Extension, setup
+
+FREE_THREADED_PYTHON = sysconfig.get_config_var("Py_GIL_DISABLED") == 1
 
 
 def c_sources(parent):
@@ -37,6 +40,11 @@ cfg = {
     "define_macros": [],
     "extra_compile_args": [],
 }
+if not FREE_THREADED_PYTHON:
+    cfg["define_macros"].append(
+        ("Py_LIMITED_API", 0x03090000)  # PY_VERSION_HEX for 3.9
+    )
+    cfg["py_limited_api"] = True
 
 if sys.platform == "win32":
     cfg["define_macros"].append(("__STDC__", 1))
@@ -63,6 +71,11 @@ ext_modules = [
     ),
 ]
 
+SETUPTOOLS_OPTIONS = {}
+if not FREE_THREADED_PYTHON:
+    SETUPTOOLS_OPTIONS["bdist_wheel"] = {"py_limited_api": "cp39"}
+
 setup(
     ext_modules=ext_modules,
+    options=SETUPTOOLS_OPTIONS,
 )
