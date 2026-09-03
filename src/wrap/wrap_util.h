@@ -45,6 +45,9 @@ DAMAGE.
 #endif
 #include <numpy/arrayobject.h>
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "immatch/xyxymatch.h"
 #include "immatch/geomap.h"
 #include "lib/util.h"
