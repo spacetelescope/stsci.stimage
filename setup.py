@@ -73,7 +73,7 @@ ext_modules = [
 
 SETUPTOOLS_OPTIONS = {}
 if not FREE_THREADED_PYTHON:
-    SETUPTOOLS_OPTIONS["bdist_wheel"] = {"py_limited_api": "cp39"}
+    SETUPTOOLS_OPTIONS["bdist_wheel"] = {"py_limited_api": "cp311"}
 
 setup(
     ext_modules=ext_modules,
