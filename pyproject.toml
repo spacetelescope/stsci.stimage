@@ -51,10 +51,13 @@ build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
 build = [
-    "cp311-*",  # build for CPython 3.9 Stable API
+    "cp311-*",  # build for CPython 3.11 Stable API
     "cp3*t-*",  # build for free-threaded Python
 ]
 test-command = 'python -c "from stsci.stimage import xyxymatch, geomap"'
+
+[tool.cibuildwheel.macos]
+archs = ["arm64", "x86_64"]
 
 [tool.codespell]
 ignore-words-list = "Groth"
