@@ -1,0 +1,24 @@
+{
+  "template": "https://github.com/spacetelescope/stsci-package-template",
+  "commit": "e9df785e23884c9ba118e8f7a792e3dbbad3bfcb",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "project_name": "stsci.stimage",
+      "package_name": "stsci.stimage",
+      "repository_url": "https://github.com/spacetelescope/stsci.stimage",
+      "git_username": "spacetelescope/stsci.stimage-maintainers",
+      "project_description": "Various image processing functions",
+      "manage_changelog_with_towncrier": false,
+      "publish_docs_to": "readthedocs.io",
+      "task_runner": "tox",
+      "python_version": ">=3.11",
+      "python_c_extensions": true,
+      "python_build_backend": "setuptools",
+      "crds_observatory": "none",
+      "_template": "https://github.com/spacetelescope/stsci-package-template",
+      "_commit": "e9df785e23884c9ba118e8f7a792e3dbbad3bfcb"
+    }
+  },
+  "directory": "python-package"
+}
