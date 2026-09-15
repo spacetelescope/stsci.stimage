@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.17.0)
 project(libstimage C)
 
-set(STIMAGE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(XY_COORD_MATCH_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(ASAN_FLAGS -fsanitize=address)
 set(LSAN_FLAGS -fsanitize=leak)
 

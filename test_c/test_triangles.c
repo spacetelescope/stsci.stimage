@@ -31,14 +31,14 @@ main(int argc, char **argv)
     const size_t nreject = 10;
     const double tol2 = tolerance * tolerance;
     double dist[3];
-    stimage_error_t error;
+    xy_coord_match_error_t error;
     double last_ratio;
     int status = 1;
 
     size_t i = 0;
     size_t j = 0;
 
-    stimage_error_init(&error);
+    xy_coord_match_error_init(&error);
 
     srand48(0);
 
@@ -198,7 +198,7 @@ exit:
 
     if (status) {
         if (error.message[0]) {
-            printf("%s", stimage_error_get_message(&error));
+            printf("%s", xy_coord_match_error_get_message(&error));
         }
     }
 

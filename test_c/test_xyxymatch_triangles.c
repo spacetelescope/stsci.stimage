@@ -5,7 +5,7 @@
 #include "lib/lintransform.h"
 #include "test.h"
 
-int
+static int
 compare(
     const size_t ncoords, const coord_t *const ref, const coord_t *const input,
     xyxymatch_output_t *output)
@@ -20,17 +20,17 @@ compare(
     const size_t max_points = 40;
     const size_t nreject = 10;
     size_t noutput = ncoords;
-    stimage_error_t error;
+    xy_coord_match_error_t error;
     size_t i = 0;
 
-    stimage_error_init(&error);
+    xy_coord_match_error_init(&error);
 
     status = xyxymatch(
         ncoords, input, ncoords, ref, &noutput, output, &origin, &mag, &rot, &ref_origin,
         xyxymatch_algo_triangles, tolerance, 0.0, max_points, max_ratio, nreject, &error);
 
     if (status) {
-        printf("%s", stimage_error_get_message(&error));
+        printf("%s", xy_coord_match_error_get_message(&error));
         return status;
     }
 

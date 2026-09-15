@@ -1,5 +1,5 @@
-#ifndef STSCI_STIMAGE_TEST_H
-#define STSCI_STIMAGE_TEST_H
+#ifndef XY_COORD_MATCH_TEST_H
+#define XY_COORD_MATCH_TEST_H
 
 #ifdef _WIN32
 
@@ -15,4 +15,4 @@
 
 #endif // _WIN32
 
-#endif // STSCI_STIMAGE_TEST_H
+#endif // XY_COORD_MATCH_TEST_H

@@ -33,8 +33,8 @@ DAMAGE.
  Author: Michael Droettboom
 */
 
-#ifndef _STIMAGE_TRIANGLES_H_
-#define _STIMAGE_TRIANGLES_H_
+#ifndef _XY_COORD_MATCH_TRIANGLES_H_
+#define _XY_COORD_MATCH_TRIANGLES_H_
 
 #include "lib/util.h"
 #include "immatch/lib/match_util.h"
@@ -104,7 +104,7 @@ match_triangles(
     const size_t ninput, const size_t ninput_unique, const coord_t *const input, /*[ninput]*/
     const coord_t *const *const input_sorted, const size_t nmatch, const double tolerance,
     const double maxratio, const size_t nreject, coord_match_callback_t *callback,
-    void *callback_data, stimage_error_t *const error);
+    void *callback_data, xy_coord_match_error_t *const error);
 
 /********************************************************************************
 BELOW IS THE SECONDARY API -- SUBJECT TO CHANGE
@@ -152,7 +152,7 @@ coordinates.
 int
 max_num_triangles(
     const size_t ncoords, const size_t max_ncoords, size_t *num_triangles,
-    stimage_error_t *const error);
+    xy_coord_match_error_t *const error);
 
 /**
 Construct all possible triangles from an input coordinate list.
@@ -188,7 +188,7 @@ int
 find_triangles(
     const size_t ncoords, const coord_t *const *const coords, size_t *ntriangles,
     triangle_t *triangles, const size_t maxnpoints, const double tolerance, const double maxratio,
-    stimage_error_t *const error);
+    xy_coord_match_error_t *const error);
 
 /**
 Compute the intersection of the two sorted lists of triangles using
@@ -213,7 +213,7 @@ int
 merge_triangles(
     const size_t nr_triangles, const triangle_t *const r_triangles, const size_t nl_triangles,
     const triangle_t *const l_triangles, size_t *nmatches, triangle_match_t *const matches,
-    stimage_error_t *const error);
+    xy_coord_match_error_t *const error);
 
 /**
 Remove false matches from the list of matched triangles.
@@ -229,7 +229,7 @@ Remove false matches from the list of matched triangles.
 int
 reject_triangles(
     size_t *nmatches, triangle_match_t *const matches, const size_t nreject,
-    stimage_error_t *error);
+    xy_coord_match_error_t *error);
 
 /**
 Count the number a times a particular pair of coordinates is matched
@@ -261,6 +261,6 @@ vote_triangle_matches(
     const size_t nleft, const coord_t *const left, const size_t nright, const coord_t *const right,
     const size_t ntriangle_matches, const triangle_match_t *const triangle_matches,
     size_t *ncoord_matches, const coord_t **const refcoord_matches,
-    const coord_t **const inputcoord_matches, stimage_error_t *const error);
+    const coord_t **const inputcoord_matches, xy_coord_match_error_t *const error);
 
-#endif /* _STIMAGE_TRIANGLES_H_ */
+#endif /* _XY_COORD_MATCH_TRIANGLES_H_ */

@@ -29,8 +29,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */
 
-#ifndef _STIMAGE_XYXYMATCH_H_
-#define _STIMAGE_XYXYMATCH_H_
+#ifndef _XY_COORD_MATCH_XYXYMATCH_H_
+#define _XY_COORD_MATCH_XYXYMATCH_H_
 
 #include "lib/util.h"
 
@@ -150,6 +150,6 @@ xyxymatch(
     const coord_t *const ref_origin, /* good default: 0.0, 0.0 */
     const xyxymatch_algo_e algorithm, const double tolerance,
     const double separation, /* good default: 9.0 */
-    const size_t nmatch, const double maxratio, const size_t nreject, stimage_error_t *const error);
+    const size_t nmatch, const double maxratio, const size_t nreject, xy_coord_match_error_t *const error);
 
-#endif /* _STIMAGE_XYXYMATCH_H_ */
+#endif /* _XY_COORD_MATCH_XYXYMATCH_H_ */
