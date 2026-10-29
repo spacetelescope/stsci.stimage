@@ -240,13 +240,14 @@ coordinate system to the input coordinate system.
 
 @return Non-zero on error
  */
+
 int
 geomap(
-    const size_t ninput, const coord_t *const input, const size_t nref, const coord_t *const ref,
-    const bbox_t *const bbox, const geomap_fit_e fit_geometry, const surface_type_e function,
-    const size_t xxorder, const size_t xyorder, const size_t yxorder, const size_t yyorder,
-    const xterms_e xxterms, const xterms_e yxterms, const size_t maxiter, const double reject,
-    /* Input/output */
+    size_t ninput, coord_t *input, size_t nref, coord_t *ref, const bbox_t *bbox,
+    geomap_fit_e fit_geometry, surface_type_e function, size_t xxorder, size_t xyorder,
+    size_t yxorder, size_t yyorder, xterms_e xxterms, xterms_e yxterms, size_t maxiter,
+    double reject,
+    /* Input/Output */
     size_t *const noutput,
     /* Output */
     geomap_output_t *const output, /* [MAX(ninput, nref)] */

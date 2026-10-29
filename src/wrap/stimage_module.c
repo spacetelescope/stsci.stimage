@@ -35,11 +35,6 @@ DAMAGE.
 
 #include "wrap_util.h"
 
-PyObject *
-py_xyxymatch(PyObject *, PyObject *, PyObject *);
-PyObject *
-py_geomap(PyObject *, PyObject *, PyObject *);
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #pragma clang diagnostic push
@@ -65,11 +60,14 @@ static struct PyModuleDef moduledef = {
 };
 
 PyMODINIT_FUNC
+PyInit__stimage(void);
+
+PyMODINIT_FUNC
 PyInit__stimage(void)
 {
     PyObject *m;
 
-    SIZE_T_D = sizeof(size_t) == 8 ? "u8" : "u4";
+    // SIZE_T_D = sizeof(size_t) == 8 ? "u8" : "u4";
     m = PyModule_Create(&moduledef);
 
     import_array();

@@ -43,7 +43,19 @@ DAMAGE.
 #ifndef NPY_NO_DEPRECATED_API
 #define NPY_NO_DEPRECATED_API NPY_1_10_API_VERSION
 #endif
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#pragma GCC diagnostic ignored "-Wundef"
+#endif
+
 #include <numpy/arrayobject.h>
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -54,6 +66,11 @@ DAMAGE.
 #include "lib/xybbox.h"
 
 extern char *SIZE_T_D;
+
+PyObject *
+py_xyxymatch(PyObject *, PyObject *, PyObject *);
+PyObject *
+py_geomap(PyObject *, PyObject *, PyObject *);
 
 int
 to_coord_t(const char *const name, PyObject *o, coord_t *const c);

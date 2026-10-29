@@ -98,8 +98,8 @@ find_triangles(
     assert(error);
 
     if (maxratio > 10.0 || maxratio < 5.0) {
-        stimage_error_format_message(
-            error, "maxratio should be in the range 5.0 - 10.0 (%f)", maxratio);
+        // stimage_error_format_message(
+        //     error, "maxratio should be in the range 5.0 - 10.0 (%f)", maxratio);
         return 1;
     }
 
@@ -123,8 +123,9 @@ find_triangles(
 
 #ifndef NDEBUG
                 if (ntri >= *ntriangles) {
-                    stimage_error_format_message(
-                        error, "Found more triangles than were allocated for (%d)\n", *ntriangles);
+                    // stimage_error_format_message(
+                    //     error, "Found more triangles than were allocated for (%d)\n",
+                    //     *ntriangles);
                     return 1;
                 }
 #endif /* NDEBUG */
@@ -228,7 +229,8 @@ merge_triangles(
     size_t match_iter = 0;
     double rmaxtol, lmaxtol, maxtol;
     size_t blp = 0, rp = 0, lp = 0;
-    double dratio, dratio2, dcosine, dcosine2, dtratio, dtcosine;
+    double dratio = 0.0, dratio2; // TODO: Not clear what initial value should be
+    double dcosine, dcosine2, dtratio, dtcosine;
     const triangle_t *max_tri = NULL;
     const triangle_t *l_tri = NULL;
     const triangle_t *r_tri = NULL;
@@ -365,7 +367,7 @@ reject_triangles_compute_sigma_mode_factor(
 
     if (nfalse > ntrue) {
         *factor = 1.0;
-    } else if ((0.1 * ntrue) > nfalse) {
+    } else if (ntrue > 10 * nfalse) {
         *factor = 3.0;
     } else {
         *factor = 2.0;
@@ -426,10 +428,11 @@ reject_triangles(
     }
     nminus = (int) ncurrmatches - nplus;
     ntrue = ABS(nplus - nminus);
-    nfalse = ncurrmatches - ntrue;
+    nfalse = (int) ncurrmatches - ntrue;
 
     if (reject_triangles_compute_sigma_mode_factor(
-            ncurrmatches, diffp, sum, sumsq, nfalse, ntrue, &sigma, &mode, &factor)) {
+            ncurrmatches, diffp, sum, sumsq, (size_t) nfalse, (size_t) ntrue, &sigma, &mode,
+            &factor)) {
         status = 0;
         goto exit;
     }
@@ -483,7 +486,8 @@ reject_triangles(
         /* Recompute sigma, mode and factor based on only non-rejected
            values */
         if (reject_triangles_compute_sigma_mode_factor(
-                ncurrmatches, diffp, sum, sumsq, nfalse, ntrue, &sigma, &mode, &factor)) {
+                ncurrmatches, diffp, sum, sumsq, (size_t) nfalse, (size_t) ntrue, &sigma, &mode,
+                &factor)) {
             break;
         }
     };
@@ -753,8 +757,8 @@ exit:
     if (status == 0) {
         /* Call the callback with all of the matches */
         for (i = 0; i < ncoord_matches; ++i) {
-            ref_idx = refcoord_matches[i] - ref;
-            input_idx = inputcoord_matches[i] - input;
+            ref_idx = (size_t) (refcoord_matches[i] - ref);
+            input_idx = (size_t) (inputcoord_matches[i] - input);
 
             assert(ref_idx < nref);
             assert(input_idx < ninput);

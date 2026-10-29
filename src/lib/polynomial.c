@@ -41,12 +41,12 @@ typedef int (*basis_function_t)(
 int
 eval_1dpoly(
     const int order, const double *const coeff, const size_t ncoord, const size_t axis,
-    const coord_t *const ref, double *const zfit, stimage_error_t *const error)
+    const coord_t *ref, double *const zfit, stimage_error_t *const error)
 {
 
     size_t i = 0;
     int j = 0;
-    const double *x = (double *) ref + axis;
+    const double *x = (const double *) (ref) + axis;
     double *tmp = NULL;
     int status = 1;
 
@@ -99,13 +99,13 @@ exit:
 int
 eval_1dchebyshev(
     const int order, const double *const coeff, const size_t ncoord, const size_t axis,
-    const coord_t *const ref, const double k1, const double k2, double *const zfit,
+    const coord_t *ref, const double k1, const double k2, double *const zfit,
     stimage_error_t *const error)
 {
 
     size_t i = 0;
     int j = 0;
-    const double *x = (double *) ref + axis;
+    const double *const x = (const double *) ref + axis;
     double c1 = 0.0;
     double c2 = 0.0;
     double *sx = NULL;
@@ -202,7 +202,7 @@ eval_1dlegendre(
 
     size_t i = 0;
     int j = 0;
-    const double *x = (double *) ref + axis;
+    const double *const x = (const double *) ref + axis;
     double ri = 0.0;
     double ri1 = 0.0;
     double ri2 = 0.0;
@@ -305,7 +305,7 @@ basis_poly(
 
     size_t i = 0;
     int k = 0;
-    const double *const x = (double *) ref + axis;
+    const double *const x = (const double *) ref + axis;
     double *bp = basis;
 
     assert(ref);
@@ -345,7 +345,7 @@ basis_chebyshev(
 
     size_t i = 0;
     int k = 0;
-    const double *const x = (double *) ref + axis;
+    const double *const x = (const double *) ref + axis;
     double *bp = basis;
 
     assert(ref);
@@ -387,7 +387,7 @@ basis_legendre(
 
     size_t i = 0;
     int k = 0;
-    const double *const x = (double *) ref + axis;
+    const double *const x = (const double *) ref + axis;
     double *bp = basis;
     double ri = 0.0;
     double ri1 = 0.0;
@@ -488,11 +488,11 @@ eval_poly_generic(
         return 0;
     }
 
-    xb = malloc_with_error(xorder * ncoord * sizeof(double), error);
+    xb = malloc_with_error((size_t) xorder * ncoord * sizeof(double), error);
     if (xb == NULL) {
         goto exit;
     }
-    yb = malloc_with_error(yorder * ncoord * sizeof(double), error);
+    yb = malloc_with_error((size_t) yorder * ncoord * sizeof(double), error);
     if (yb == NULL) {
         goto exit;
     }

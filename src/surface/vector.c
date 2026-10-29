@@ -51,41 +51,41 @@ surface_vector(
     switch (s->type) {
         case surface_type_polynomial:
             if (s->xorder == 1) {
-                status = eval_1dpoly(s->yorder, s->coeff, ncoord, 1, ref, zfit, error);
+                status = eval_1dpoly((int) s->yorder, s->coeff, ncoord, 1, ref, zfit, error);
             } else if (s->yorder == 1) {
-                status = eval_1dpoly(s->xorder, s->coeff, ncoord, 0, ref, zfit, error);
+                status = eval_1dpoly((int) s->xorder, s->coeff, ncoord, 0, ref, zfit, error);
             } else {
                 status = eval_poly(
-                    s->xorder, s->yorder, s->coeff, ncoord, ref, s->xterms, s->xmaxmin, s->xrange,
-                    s->ymaxmin, s->yrange, zfit, error);
+                    (int) s->xorder, (int) s->yorder, s->coeff, ncoord, ref, s->xterms, s->xmaxmin,
+                    s->xrange, s->ymaxmin, s->yrange, zfit, error);
             }
             break;
 
         case surface_type_chebyshev:
             if (s->xorder == 1) {
                 status = eval_1dchebyshev(
-                    s->yorder, s->coeff, ncoord, 1, ref, s->ymaxmin, s->yrange, zfit, error);
+                    (int) s->yorder, s->coeff, ncoord, 1, ref, s->ymaxmin, s->yrange, zfit, error);
             } else if (s->yorder == 1) {
                 status = eval_1dchebyshev(
-                    s->xorder, s->coeff, ncoord, 0, ref, s->xmaxmin, s->xrange, zfit, error);
+                    (int) s->xorder, s->coeff, ncoord, 0, ref, s->xmaxmin, s->xrange, zfit, error);
             } else {
                 status = eval_chebyshev(
-                    s->xorder, s->yorder, s->coeff, ncoord, ref, s->xterms, s->xmaxmin, s->xrange,
-                    s->ymaxmin, s->yrange, zfit, error);
+                    (int) s->xorder, (int) s->yorder, s->coeff, ncoord, ref, s->xterms, s->xmaxmin,
+                    s->xrange, s->ymaxmin, s->yrange, zfit, error);
             }
             break;
 
         case surface_type_legendre:
             if (s->xorder == 1) {
                 status = eval_1dlegendre(
-                    s->yorder, s->coeff, ncoord, 1, ref, s->ymaxmin, s->yrange, zfit, error);
+                    (int) s->yorder, s->coeff, ncoord, 1, ref, s->ymaxmin, s->yrange, zfit, error);
             } else if (s->yorder == 1) {
                 status = eval_1dlegendre(
-                    s->xorder, s->coeff, ncoord, 0, ref, s->xmaxmin, s->xrange, zfit, error);
+                    (int) s->xorder, s->coeff, ncoord, 0, ref, s->xmaxmin, s->xrange, zfit, error);
             } else {
                 status = eval_legendre(
-                    s->xorder, s->yorder, s->coeff, ncoord, ref, s->xterms, s->xmaxmin, s->xrange,
-                    s->ymaxmin, s->yrange, zfit, error);
+                    (int) s->xorder, (int) s->yorder, s->coeff, ncoord, ref, s->xterms, s->xmaxmin,
+                    s->xrange, s->ymaxmin, s->yrange, zfit, error);
             }
             break;
 

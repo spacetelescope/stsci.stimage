@@ -95,10 +95,10 @@ vote_triangle_matches(
         for (j = 0; j < 3; ++j) {
             l_coord = l_tri->vertices[j];
             r_coord = r_tri->vertices[j];
-            li = l_coord - left;
-            assert(li >= 0 && li < nleft);
-            ri = r_coord - right;
-            assert(ri >= 0 && ri < nright);
+            li = (size_t) (l_coord - left);
+            assert(li < nleft);
+            ri = (size_t) (r_coord - right);
+            assert(ri < nright);
             vote = ++VOTE(li, ri);
             if (maxvote < vote) {
                 maxvote = vote;
@@ -147,7 +147,7 @@ vote_triangle_matches(
         /* Remove all future matches involving the input coord, so it
            won't be matched twice. */
         for (ri2 = ri; ri2 < nright; ++ri2) {
-            li = l_coord - left;
+            li = (size_t) (l_coord - left);
             VOTE(li, ri) = 0;
         }
 
@@ -155,6 +155,9 @@ vote_triangle_matches(
         if (ncount >= *ncoord_matches) {
             stimage_error_format_message(
                 error, "Found more coordinate matches than was allocated for\n");
+            // snprintf(
+            //     error->message, STIMAGE_MAX_ERROR_LEN - 1,
+            //     "Found more coordinate matches than was allocated for\n");
             goto exit;
         }
 #endif

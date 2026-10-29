@@ -37,11 +37,11 @@ DAMAGE.
 
 int
 surface_init(
-    surface_t *const s, const surface_type_e function, const int xorder, const int yorder,
-    const xterms_e xterms, const bbox_t *const bbox, stimage_error_t *const error)
+    surface_t *const s, const surface_type_e function, size_t xorder, size_t yorder,
+    xterms_e xterms, const bbox_t *const bbox, stimage_error_t *const error)
 {
 
-    int order;
+    size_t order;
 
     assert(s);
     assert(bbox);
@@ -74,7 +74,7 @@ surface_init(
                     break;
                 case xterms_half:
                     order = MIN(xorder, yorder);
-                    s->ncoeff = xorder * yorder - order * (order - 1) / 2;
+                    s->ncoeff = xorder * yorder - (size_t) order * (order - 1) / 2;
                     break;
                 case xterms_full:
                     s->ncoeff = xorder * yorder;
@@ -287,8 +287,8 @@ void
 surface_print(const surface_t *const s)
 {
 
-    char *type;
-    char *xterms;
+    const char *type;
+    const char *xterms;
     size_t i;
 
     assert(s);

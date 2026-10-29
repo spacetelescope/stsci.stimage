@@ -43,12 +43,9 @@ DAMAGE.
 void
 stimage_error_init(stimage_error_t *const error)
 {
-
-    size_t i;
-
-    for (i = 0; i < STIMAGE_MAX_ERROR_LEN; ++i) {
-        error->message[i] = '\0';
-    }
+    /* No need to zero out the entire array, just set
+       the first character to '\0' */
+    error->message[0] = '\0';
 }
 
 void
@@ -58,9 +55,9 @@ stimage_error_set_message(stimage_error_t *error, const char *message)
     assert(error);
     assert(message);
 
-    strncpy(error->message, message, STIMAGE_MAX_ERROR_LEN);
+    strncpy(error->message, message, STIMAGE_MAX_ERROR_LEN - 1);
 
-#if DEBUG
+#ifndef NDEBUG
     printf("ERROR RAISED:\n%s\n", error->message);
     assert(0);
 #endif
@@ -73,13 +70,30 @@ stimage_error_format_message(stimage_error_t *error, const char *format, ...)
     /* See http://c-faq.com/varargs/vprintf.html
        for an explanation of how all this variable length argument list stuff
        works. */
+
     va_list argp;
 
     assert(error);
     assert(format);
 
     va_start(argp, format);
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#elif defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#endif
+
     (void) vsnprintf(error->message, STIMAGE_MAX_ERROR_LEN, format, argp);
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#elif defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+
     va_end(argp);
 }
 

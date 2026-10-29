@@ -110,16 +110,16 @@ py_xyxymatch(PyObject *self, PyObject *args, PyObject *kwds)
         goto exit;
     }
 
-    noutput = PyArray_DIM(input_array, 0);
+    noutput = (size_t) PyArray_DIM(input_array, 0);
     output = malloc(noutput * sizeof(xyxymatch_output_t));
     if (output == NULL) {
         result = PyErr_NoMemory();
         goto exit;
     }
     if (xyxymatch(
-            PyArray_DIM(input_array, 0), (coord_t *) PyArray_DATA(input_array),
-            PyArray_DIM(ref_array, 0), (coord_t *) PyArray_DATA(ref_array), &noutput, output,
-            &origin, &mag, &rotation, &ref_origin, algorithm, tolerance, separation, nmatch,
+            (size_t) PyArray_DIM(input_array, 0), (coord_t *) PyArray_DATA(input_array),
+            (size_t) PyArray_DIM(ref_array, 0), (coord_t *) PyArray_DATA(ref_array), &noutput,
+            output, &origin, &mag, &rotation, &ref_origin, algorithm, tolerance, separation, nmatch,
             maxratio, nreject, &error)) {
         PyErr_SetString(PyExc_RuntimeError, stimage_error_get_message(&error));
         goto exit;
@@ -142,8 +142,8 @@ py_xyxymatch(PyObject *self, PyObject *args, PyObject *kwds)
     result = Py_BuildValue("N", result_arr);
 
 exit:
-    Py_XDECREF(input_array);
-    Py_XDECREF(ref_array);
+    Py_XDECREF((PyObject *) input_array);
+    Py_XDECREF((PyObject *) ref_array);
     if (result == NULL) {
         free(output);
     }
