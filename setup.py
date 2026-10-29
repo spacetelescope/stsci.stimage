@@ -7,6 +7,7 @@ from fnmatch import fnmatch
 
 from numpy import get_include as numpy_includes
 from setuptools import Extension, setup
+import setuptools_scm
 
 FREE_THREADED_PYTHON = sysconfig.get_config_var("Py_GIL_DISABLED") == 1
 
@@ -32,8 +33,8 @@ def c_includes(parent, depth=1):
     return includes
 
 
-SOURCES = c_sources("src")
-INCLUDES = c_includes("include") + c_includes("src") + [numpy_includes()]
+SOURCES = c_sources("src/extension")
+INCLUDES = c_includes("include") + c_includes("src/extension/wrap") + [numpy_includes()]
 
 cfg = {
     "libraries": [],
@@ -64,7 +65,7 @@ else:
 # when adding new modules here, make sure to add them to the `test_command` entry there
 ext_modules = [
     Extension(
-        "stsci.stimage._stimage",
+        "xy_coord_match._c_xy_coord_match",
         sources=SOURCES,
         include_dirs=INCLUDES,
         **cfg,
@@ -76,6 +77,7 @@ if not FREE_THREADED_PYTHON:
     SETUPTOOLS_OPTIONS["bdist_wheel"] = {"py_limited_api": "cp311"}
 
 setup(
+    use_scm_version=True,
     ext_modules=ext_modules,
     options=SETUPTOOLS_OPTIONS,
 )

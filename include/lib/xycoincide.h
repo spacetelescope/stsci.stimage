@@ -33,8 +33,8 @@ DAMAGE.
  Author: Michael Droettboom
 */
 
-#ifndef _STIMAGE_XYCOINCIDE_H_
-#define _STIMAGE_XYCOINCIDE_H_
+#ifndef _XY_COORD_MATCH_XYCOINCIDE_H_
+#define _XY_COORD_MATCH_XYCOINCIDE_H_
 
 #include "lib/util.h"
 
@@ -59,4 +59,4 @@ xycoincide(
     const coord_t **const output,                      /*[ncoords]*/
     const double tolerance);
 
-#endif /* _STIMAGE_XYCOINCIDE_H_ */
+#endif /* _XY_COORD_MATCH_XYCOINCIDE_H_ */

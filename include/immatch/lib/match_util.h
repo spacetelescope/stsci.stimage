@@ -34,11 +34,11 @@ DAMAGE.
          help@stsci.edu
 */
 
-#ifndef _STIMAGE_MATCH_UTIL_H_
-#define _STIMAGE_MATCH_UTIL_H_
+#ifndef _XY_COORD_MATCH_MATCH_UTIL_H_
+#define _XY_COORD_MATCH_MATCH_UTIL_H_
 
 #include "lib/util.h"
 
-typedef int(coord_match_callback_t)(void *, size_t, size_t, stimage_error_t *);
+typedef int(coord_match_callback_t)(void *, size_t, size_t, xy_coord_match_error_t *);
 
 #endif

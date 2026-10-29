@@ -5,7 +5,7 @@
 #include "lib/lintransform.h"
 #include "test.h"
 
-void
+static void
 print_array(const size_t ncoords, const coord_t *data, const char *name)
 {
     size_t i;

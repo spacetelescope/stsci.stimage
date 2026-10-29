@@ -16,7 +16,7 @@ main(int argc, char **argv)
     coord_t mag = {1.0, 1.0};
     coord_t rot = {0.0, 0.0};
     coord_t ref_origin = {0.0, 0.0};
-    stimage_error_t error;
+    xy_coord_match_error_t error;
     double x0, y0, x1, y1;
     double dx, dy;
     double distance;
@@ -25,7 +25,7 @@ main(int argc, char **argv)
 
     size_t i = 0;
 
-    stimage_error_init(&error);
+    xy_coord_match_error_init(&error);
 
     srand48(0);
 
@@ -39,7 +39,7 @@ main(int argc, char **argv)
         xyxymatch_algo_tolerance, tolerance, 0.0, 0, 0.0, 0, &error);
 
     if (status) {
-        printf("%s", stimage_error_get_message(&error));
+        printf("%s", xy_coord_match_error_get_message(&error));
         return status;
     }
 
@@ -79,7 +79,7 @@ main(int argc, char **argv)
         xyxymatch_algo_tolerance, tolerance, 0.0, 0, 0.0, 0, &error);
 
     if (status) {
-        printf("%s", stimage_error_get_message(&error));
+        printf("%s", xy_coord_match_error_get_message(&error));
         return status;
     }
 

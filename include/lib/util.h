@@ -33,8 +33,8 @@ DAMAGE.
  Author: Michael Droettboom
 */
 
-#ifndef _STIMAGE_UTIL_H_
-#define _STIMAGE_UTIL_H_
+#ifndef _XY_COORD_MATCH_UTIL_H_
+#define _XY_COORD_MATCH_UTIL_H_
 
 #include <math.h>
 #include <stdlib.h>
@@ -65,17 +65,17 @@ DAMAGE.
 #define EPS_DOUBLE 2.22e-16
 
 #if defined(_MSC_VER)
-typedef __int64 STIMAGE_Int64;
+typedef __int64 XY_COORD_MATCH_Int64;
 #else
 #if defined(_ISOC99_SOURCE)
-typedef int64_t STIMAGE_Int64;
+typedef int64_t XY_COORD_MATCH_Int64;
 #else
-typedef long long STIMAGE_Int64;
+typedef long long XY_COORD_MATCH_Int64;
 #endif
 #endif
 
 #if !defined(U64)
-#define U64(u) (*(STIMAGE_Int64 *) &(u))
+#define U64(u) (*(XY_COORD_MATCH_Int64 *) &(u))
 #endif /* U64 */
 
 #if !defined(isnan64)
@@ -148,19 +148,7 @@ coord_is_finite(const coord_t *const c)
 }
 
 void *
-malloc_with_error(size_t size, stimage_error_t *error);
-
-void *
-calloc_with_error(size_t nmemb, size_t size, stimage_error_t *error);
-
-/**
-Compute the factorial of n.
-
-This function will overflow for n >= 21, and it is up to the caller to
-ensure n is in the proper range.
-*/
-STIMAGE_Int64
-factorial(size_t n);
+malloc_with_error(size_t size, xy_coord_match_error_t *error);
 
 /**
 Compute the combinatorial function which is defined as
@@ -195,41 +183,6 @@ sort_doubles(
     double *const a);
 
 /**
-Normalize a double precision number x to the value normx, in the
-range [1-10).  expon is returned such that
-
-    x = normx * (10.0d0 ** expon).
-*/
-void
-double_normalize(
-    const double x,
-    /* Output */
-    double *const normx, int *const expon);
-
-/**
-Compare two double precision numbers for equality to within the
-machine precision for doubles.  A simple comparison of the difference
-of the two numbers with the machine epsilon does not suffice unless
-the numbers are first normalized to near 1.0, the constant used to
-compute the machine epsilon (epsilon is the smallest number such that
-1.0 + epsilon > 1.0).
-*/
-int
-double_approx_equal(const double x, const double y);
-
-/**
-Compute the mean of an array
-*/
-double
-compute_mean(const size_t n, const double *const a);
-
-/**
-Compute the mean values of an array of coordinates
-*/
-void
-compute_mean_coord(const size_t n, const coord_t *const a, coord_t *const out);
-
-/**
 Compute the mode of an array.  The mode is found by binning with a bin
 size based on the data range over a fraction of the pixels about the
 median and a bin step which may be smaller than the bin size.  If
@@ -253,4 +206,4 @@ compute_mode(
     const size_t n, const double *const a, const size_t min, const double range, const double bin,
     const double step);
 
-#endif /* _STIMAGE_UTIL_H_ */
+#endif /* _XY_COORD_MATCH_UTIL_H_ */

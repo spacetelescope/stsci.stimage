@@ -26,7 +26,7 @@ env:
 
 jobs:
   test_devdeps:
-    if: (github.repository == 'spacetelescope/stsci.stimage' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run devdeps tests')))
+    if: (github.repository == 'spacetelescope/stsci.xy_coord_match' && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run devdeps tests')))
     name: tests (Python ${{ matrix.python }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:

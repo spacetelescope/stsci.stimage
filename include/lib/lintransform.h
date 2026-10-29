@@ -33,8 +33,8 @@ DAMAGE.
  Author: Michael Droettboom
 */
 
-#ifndef _STIMAGE_LINTRANSFORM_H_
-#define _STIMAGE_LINTRANSFORM_H_
+#ifndef _XY_COORD_MATCH_LINTRANSFORM_H_
+#define _XY_COORD_MATCH_LINTRANSFORM_H_
 
 #include "lib/util.h"
 
@@ -81,4 +81,4 @@ apply_lintransform(
     const lintransform_t *const coeffs, size_t ncoords, const coord_t *const input, /* [ncoords] */
     coord_t *output);
 
-#endif /* _STIMAGE_LINTRANSFORM_H_ */
+#endif /* _XY_COORD_MATCH_LINTRANSFORM_H_ */

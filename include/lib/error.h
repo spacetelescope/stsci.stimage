@@ -33,49 +33,49 @@ DAMAGE.
  Author: Michael Droettboom
 */
 
-#ifndef _STIMAGE_ERROR_H_
-#define _STIMAGE_ERROR_H_
+#ifndef _XY_COORD_MATCH_ERROR_H_
+#define _XY_COORD_MATCH_ERROR_H_
 
-#define STIMAGE_MAX_ERROR_LEN 512
+#define XY_COORD_MATCH_MAX_ERROR_LEN 512
 
 typedef struct {
-    char message[STIMAGE_MAX_ERROR_LEN];
-} stimage_error_t;
+    char message[XY_COORD_MATCH_MAX_ERROR_LEN];
+} xy_coord_match_error_t;
 
 /*
  Initialize the error buffer
 */
 void
-stimage_error_init(stimage_error_t *const error);
+xy_coord_match_error_init(xy_coord_match_error_t *const error);
 
 /**
  Set the message in the error object to the given string.
  */
 void
-stimage_error_set_message(stimage_error_t *error, const char *message);
+xy_coord_match_error_set_message(xy_coord_match_error_t *error, const char *message);
 
 /**
  Set the message in the error object using printf-style formatting
  */
 void
-stimage_error_format_message(stimage_error_t *error, const char *format, ...);
+xy_coord_match_error_format_message(xy_coord_match_error_t *error, const char *format, ...);
 
 /**
  Get the current message in the error object
  */
 const char *
-stimage_error_get_message(stimage_error_t *error);
+xy_coord_match_error_get_message(xy_coord_match_error_t *error);
 
 /**
  Returns non-zero if an error message has been set
  */
 int
-stimage_error_is_set(const stimage_error_t *const error);
+xy_coord_match_error_is_set(const xy_coord_match_error_t *const error);
 
 /**
  Remove the error message from the object
  */
 void
-stimage_error_unset(stimage_error_t *error);
+xy_coord_match_error_unset(xy_coord_match_error_t *error);
 
-#endif /* _STIMAGE_ERROR_H_ */
+#endif /* _XY_COORD_MATCH_ERROR_H_ */

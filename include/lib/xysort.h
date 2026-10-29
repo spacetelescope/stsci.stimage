@@ -33,8 +33,8 @@ DAMAGE.
  Author: Michael Droettboom
 */
 
-#ifndef _STIMAGE_XYSORT_H_
-#define _STIMAGE_XYSORT_H_
+#ifndef _XY_COORD_MATCH_XYSORT_H_
+#define _XY_COORD_MATCH_XYSORT_H_
 
 #include "lib/util.h"
 
@@ -54,4 +54,4 @@ xysort(
     const size_t ncoords, const coord_t *const coords, /* [ncoords] */
     const coord_t **const coord_ptr /* [ncoords] */);
 
-#endif /* _STIMAGE_XYSORT_H_ */
+#endif /* _XY_COORD_MATCH_XYSORT_H_ */
