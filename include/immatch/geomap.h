@@ -243,7 +243,7 @@ coordinate system to the input coordinate system.
 
 int
 geomap(
-    size_t ninput, coord_t *input, size_t nref, coord_t *ref, const bbox_t *bbox,
+    size_t ninput, const coord_t *input, size_t nref, const coord_t *ref, const bbox_t *bbox,
     geomap_fit_e fit_geometry, surface_type_e function, size_t xxorder, size_t xyorder,
     size_t yxorder, size_t yyorder, xterms_e xxterms, xterms_e yxterms, size_t maxiter,
     double reject,

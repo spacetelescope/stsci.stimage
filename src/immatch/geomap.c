@@ -1473,7 +1473,7 @@ exit:
 
 int
 geomap(
-    size_t ninput, coord_t *input, size_t nref, coord_t *ref, const bbox_t *bbox,
+    size_t ninput, const coord_t *input, size_t nref, const coord_t *ref, const bbox_t *bbox,
     geomap_fit_e fit_geometry, surface_type_e function, size_t xxorder, size_t xyorder,
     size_t yxorder, size_t yyorder, xterms_e xxterms, xterms_e yxterms, size_t maxiter,
     double reject,
@@ -1488,8 +1488,11 @@ geomap(
     bbox_t tbbox;
     size_t ninput_in_bbox = ninput;
     size_t nref_in_bbox = nref;
-    coord_t *input_in_bbox = NULL;
-    coord_t *ref_in_bbox = NULL;
+    const coord_t *input_in_bbox = input;
+    const coord_t *ref_in_bbox = ref;
+    coord_t *input_buf = NULL;
+    coord_t *ref_buf = NULL;
+
     double *xfit = NULL;
     double *yfit = NULL;
     double *weights = NULL;
@@ -1538,19 +1541,22 @@ geomap(
         ninput_in_bbox = ninput;
         nref_in_bbox = nref;
     } else {
-        input_in_bbox = malloc_with_error(ninput * sizeof(coord_t), error);
-        if (input_in_bbox == NULL) {
+
+        input_buf = malloc_with_error(ninput * sizeof(coord_t), error);
+        if (input_buf == NULL) {
             goto exit;
         }
 
-        ref_in_bbox = malloc_with_error(nref * sizeof(coord_t), error);
-        if (ref_in_bbox == NULL) {
+        ref_buf = malloc_with_error(nref * sizeof(coord_t), error);
+        if (ref_buf == NULL) {
             goto exit;
         }
 
         /* Reduce data to only those in the bbox */
         ninput_in_bbox = nref_in_bbox =
-            limit_to_bbox(ninput, input, ref, &tbbox, input_in_bbox, ref_in_bbox);
+            limit_to_bbox(ninput, input, ref, &tbbox, input_buf, ref_buf);
+        input_in_bbox = input_buf;
+        ref_in_bbox = ref_buf;
     }
 
     /* Compute the mean of the reference and input coordinates */
@@ -1647,12 +1653,8 @@ geomap(
 
 exit:
 
-    if (input_in_bbox != input) {
-        free(input_in_bbox);
-    }
-    if (ref_in_bbox != ref) {
-        free(ref_in_bbox);
-    }
+    free(input_buf);
+    free(ref_buf);
     free(weights);
     free(xfit);
     free(yfit);
