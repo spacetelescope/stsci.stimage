@@ -98,8 +98,8 @@ find_triangles(
     assert(error);
 
     if (maxratio > 10.0 || maxratio < 5.0) {
-        // stimage_error_format_message(
-        //     error, "maxratio should be in the range 5.0 - 10.0 (%f)", maxratio);
+        stimage_error_format_message(
+            error, "maxratio should be in the range 5.0 - 10.0 (%f)", maxratio);
         return 1;
     }
 
@@ -123,9 +123,8 @@ find_triangles(
 
 #ifndef NDEBUG
                 if (ntri >= *ntriangles) {
-                    // stimage_error_format_message(
-                    //     error, "Found more triangles than were allocated for (%d)\n",
-                    //     *ntriangles);
+                    stimage_error_format_message(
+                        error, "Found more triangles than were allocated for (%d)\n", *ntriangles);
                     return 1;
                 }
 #endif /* NDEBUG */

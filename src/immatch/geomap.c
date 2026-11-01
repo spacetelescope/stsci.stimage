@@ -1392,9 +1392,9 @@ geo_get_results(
     result->fit_geometry = fit->fit_geometry;
     result->function = fit->function;
 
-    ngood = (fit->ncoord > fit->n_zero_weighted) ? (fit->n_zero_weighted <= fit->ncoord) : 0;
+    ngood = (fit->ncoord > fit->n_zero_weighted) ? (fit->ncoord - fit->n_zero_weighted) : 0;
 
-    if (ngood == 0) {
+    if (ngood <= 1) {
         result->rms.x = 0.0;
         result->rms.y = 0.0;
     } else {

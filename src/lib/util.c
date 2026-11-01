@@ -49,7 +49,7 @@ malloc_with_error(size_t size, stimage_error_t *error)
 
     result = malloc(size);
     if (result == NULL) {
-        // stimage_error_format_message(error, "Error allocating %u bytes", size);
+        stimage_error_format_message(error, "Error allocating %u bytes", size);
     }
     return result;
 }
@@ -64,7 +64,7 @@ calloc_with_error(size_t nmemb, size_t size, stimage_error_t *error)
 
     result = calloc(nmemb, size);
     if (result == NULL) {
-        // stimage_error_format_message(error, "Error allocating %u bytes", size);
+        stimage_error_format_message(error, "Error allocating %u bytes", size);
     }
     return result;
 }
