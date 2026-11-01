@@ -196,15 +196,20 @@ static PyMemberDef geomap_members[] = {
 
 static PyObject *geomap_class = NULL;
 
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#pragma clang diagnostic ignored "-Wcast-qual"
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
+#elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #pragma GCC diagnostic ignored "-Wcast-qual"
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
+#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
 #endif
 
 static PyType_Slot geomap_class_slots[] = {
-    {Py_tp_doc, PyDoc_STR("geomap result objects")},
+    {Py_tp_doc, (void *) PyDoc_STR("geomap result objects")},
     {Py_tp_dealloc, (void *) geomap_dealloc},
     {Py_tp_methods, geomap_methods},
     {Py_tp_members, geomap_members},
@@ -213,7 +218,9 @@ static PyType_Slot geomap_class_slots[] = {
     {0, NULL},
 };
 
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
 

@@ -771,7 +771,7 @@ geo_fit_xy(
 
     bbox_t bbox;
     double *zfit = NULL;
-    const double *const z = (const double *) (input + (xfit ? 0 : 1));
+    const double *const z = xfit ? &input->x : &input->y;
     surface_t savefit;
     surface_fit_error_e fit_error = surface_fit_error_ok;
     size_t i = 0;
@@ -1392,7 +1392,7 @@ geo_get_results(
     result->fit_geometry = fit->fit_geometry;
     result->function = fit->function;
 
-    ngood = (fit->n_zero_weighted <= fit->ncoord) ? 0 : fit->ncoord;
+    ngood = (fit->ncoord > fit->n_zero_weighted) ? (fit->n_zero_weighted <= fit->ncoord) : 0;
 
     if (ngood == 0) {
         result->rms.x = 0.0;
