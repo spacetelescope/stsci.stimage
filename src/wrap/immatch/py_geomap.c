@@ -37,6 +37,7 @@ DAMAGE.
 #define NO_IMPORT_ARRAY
 
 #include "wrap_util.h"
+
 #include "immatch/geomap.h"
 #include <structmember.h>
 
@@ -69,7 +70,19 @@ geomap_array_init(void)
     PyArrayObject *o = NULL;
     npy_intp dims = 1;
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
     o = (PyArrayObject *) PyArray_SimpleNew(1, &dims, NPY_DOUBLE);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
     if (o != NULL) {
         *((double *) PyArray_GETPTR1(o, 0)) = 0.0;
     }
@@ -136,6 +149,16 @@ geomap_init(geomap_object *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma GCC diagnostic ignored "-Wpedantic"
+#elif defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+#pragma clang diagnostic ignored "-Wpedantic"
+#endif
+
 static void
 geomap_dealloc(geomap_object *self)
 {
@@ -158,14 +181,6 @@ geomap_dealloc(geomap_object *self)
         Py_DECREF(tp);
     }
 }
-
-#if defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#elif defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-#endif
 
 /* Table of functions callable from python */
 static PyMethodDef geomap_methods[] = {
@@ -288,7 +303,14 @@ py_geomap(PyObject *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
     input_array = (PyArrayObject *) PyArray_ContiguousFromAny(input_obj, NPY_DOUBLE, 2, 2);
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
     if (input_array == NULL) {
         goto exit;
     }
@@ -297,7 +319,20 @@ py_geomap(PyObject *self, PyObject *args, PyObject *kwds)
         goto exit;
     }
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
     ref_array = (PyArrayObject *) PyArray_ContiguousFromAny(ref_obj, NPY_DOUBLE, 2, 2);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
     if (ref_array == NULL) {
         goto exit;
     }
@@ -338,13 +373,27 @@ py_geomap(PyObject *self, PyObject *args, PyObject *kwds)
     if (dtype_list == NULL) {
         goto exit;
     }
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
     if (!PyArray_DescrConverter(dtype_list, &dtype)) {
         goto exit;
     }
     Py_DECREF(dtype_list);
     dims = (npy_intp) noutput;
+
     output_array = (PyArrayObject *) PyArray_NewFromDescr(
         &PyArray_Type, dtype, 1, &dims, NULL, output, NPY_ARRAY_OWNDATA, NULL);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
     if (output_array == NULL) {
         goto exit;
     }
@@ -381,10 +430,23 @@ py_geomap(PyObject *self, PyObject *args, PyObject *kwds)
     ADD_ARR_ATTR(from_coord_t, &fit.shift, "shift");
     ADD_ARR_ATTR(from_coord_t, &fit.mag, "mag");
     ADD_ARR_ATTR(from_coord_t, &fit.rotation, "rotation");
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
     ADD_ARRAY((int) fit.nxcoeff, fit.xcoeff, "xcoeff");
     ADD_ARRAY((int) fit.nycoeff, fit.ycoeff, "ycoeff");
     ADD_ARRAY((int) fit.nx2coeff, fit.x2coeff, "x2coeff");
     ADD_ARRAY((int) fit.ny2coeff, fit.y2coeff, "y2coeff");
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
     result = Py_BuildValue("OO", fit_obj, output_array);
 

@@ -65,7 +65,7 @@ DAMAGE.
 #include "lib/util.h"
 #include "lib/xybbox.h"
 
-extern char *SIZE_T_D;
+extern const char *SIZE_T_D;
 
 PyObject *
 py_xyxymatch(PyObject *, PyObject *, PyObject *);
