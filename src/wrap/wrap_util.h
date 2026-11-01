@@ -39,7 +39,11 @@ DAMAGE.
 
 #define PY_ARRAY_UNIQUE_SYMBOL pywcs_numpy_api
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wundef"
 #include <Python.h>
+#pragma GCC diagnostic pop
+
 #ifndef NPY_NO_DEPRECATED_API
 #define NPY_NO_DEPRECATED_API NPY_1_10_API_VERSION
 #endif
