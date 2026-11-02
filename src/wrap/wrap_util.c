@@ -38,8 +38,6 @@ DAMAGE.
 
 #include "wrap_util.h"
 
-char *SIZE_T_D;
-
 int
 to_coord_t(const char *const name, PyObject *o, coord_t *const c)
 {
@@ -50,7 +48,19 @@ to_coord_t(const char *const name, PyObject *o, coord_t *const c)
         return 0;
     }
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
     array = (PyArrayObject *) PyArray_FromObject(o, NPY_DOUBLE, 1, 1);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
     if (array == NULL) {
         return -1;
     }
@@ -75,7 +85,19 @@ from_coord_t(const coord_t *const c, PyArrayObject **o)
 
     npy_intp dims = 2;
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
     *o = (PyArrayObject *) PyArray_SimpleNew(1, &dims, NPY_DOUBLE);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
     if (*o == NULL) {
         return -1;
     }
@@ -97,7 +119,19 @@ to_bbox_t(const char *const name, PyObject *o, bbox_t *const b)
         return 0;
     }
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpedantic"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
     array = (PyArrayObject *) PyArray_ContiguousFromAny(o, NPY_DOUBLE, 1, 2);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
     if (array == NULL) {
         return -1;
     }

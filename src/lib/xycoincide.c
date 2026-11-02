@@ -54,7 +54,7 @@ xycoincide(
     assert(input);
     assert(output);
 
-    if ((coord_t **) input != (coord_t **) output) {
+    if ((const coord_t *const *const) input != (const coord_t *const *const) output) {
         memcpy(output, input, sizeof(coord_t *) * ncoords);
     }
 

@@ -35,22 +35,26 @@ DAMAGE.
 
 #include "wrap_util.h"
 
-PyObject *
-py_xyxymatch(PyObject *, PyObject *, PyObject *);
-PyObject *
-py_geomap(PyObject *, PyObject *, PyObject *);
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+#pragma clang diagnostic ignored "-Wpedantic"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
 static PyMethodDef module_methods[] = {
     {"xyxymatch", (PyCFunction) py_xyxymatch, METH_VARARGS | METH_KEYWORDS, NULL},
     {"geomap", (PyCFunction) py_geomap, METH_VARARGS | METH_KEYWORDS, NULL},
-    {NULL} /* Sentinel */
+    {NULL, NULL, 0, NULL} /* Sentinel */
 };
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#elif defined(__GNUC__)
 #pragma GCC diagnostic pop
+#endif
 
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
@@ -63,6 +67,11 @@ static struct PyModuleDef moduledef = {
     NULL,                                             /* m_clear */
     NULL,                                             /* m_free */
 };
+
+PyMODINIT_FUNC
+PyInit__stimage(void);
+
+const char *SIZE_T_D;
 
 PyMODINIT_FUNC
 PyInit__stimage(void)

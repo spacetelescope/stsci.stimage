@@ -70,7 +70,7 @@ typedef struct {
     size_t maxiter;
     double reject;
     size_t nreject;
-    int *rej;
+    size_t *rej;
 
     coord_t oref;
     coord_t oin;
@@ -771,7 +771,7 @@ geo_fit_xy(
 
     bbox_t bbox;
     double *zfit = NULL;
-    const double *const z = (double *) input + (xfit ? 0 : 1);
+    const double *const z = xfit ? &input->x : &input->y;
     surface_t savefit;
     surface_fit_error_e fit_error = surface_fit_error_ok;
     size_t i = 0;
@@ -1379,7 +1379,7 @@ geo_get_results(
     geomap_result_t *const result, stimage_error_t *const error)
 {
 
-    long ngood = 0;
+    size_t ngood = 0;
     size_t i = 0;
     int status = 1;
 
@@ -1392,7 +1392,7 @@ geo_get_results(
     result->fit_geometry = fit->fit_geometry;
     result->function = fit->function;
 
-    ngood = MAX(0, fit->ncoord - fit->n_zero_weighted);
+    ngood = (fit->ncoord > fit->n_zero_weighted) ? (fit->ncoord - fit->n_zero_weighted) : 0;
 
     if (ngood <= 1) {
         result->rms.x = 0.0;
@@ -1473,10 +1473,10 @@ exit:
 
 int
 geomap(
-    const size_t ninput, const coord_t *const input, const size_t nref, const coord_t *const ref,
-    const bbox_t *const bbox, const geomap_fit_e fit_geometry, const surface_type_e function,
-    const size_t xxorder, const size_t xyorder, const size_t yxorder, const size_t yyorder,
-    const xterms_e xxterms, const xterms_e yxterms, const size_t maxiter, const double reject,
+    size_t ninput, const coord_t *input, size_t nref, const coord_t *ref, const bbox_t *bbox,
+    geomap_fit_e fit_geometry, surface_type_e function, size_t xxorder, size_t xyorder,
+    size_t yxorder, size_t yyorder, xterms_e xxterms, xterms_e yxterms, size_t maxiter,
+    double reject,
     /* Input/Output */
     size_t *const noutput,
     /* Output */
@@ -1488,8 +1488,11 @@ geomap(
     bbox_t tbbox;
     size_t ninput_in_bbox = ninput;
     size_t nref_in_bbox = nref;
-    coord_t *input_in_bbox = NULL;
-    coord_t *ref_in_bbox = NULL;
+    const coord_t *input_in_bbox = input;
+    const coord_t *ref_in_bbox = ref;
+    coord_t *input_buf = NULL;
+    coord_t *ref_buf = NULL;
+
     double *xfit = NULL;
     double *yfit = NULL;
     double *weights = NULL;
@@ -1533,24 +1536,27 @@ geomap(
     if (bbox == NULL || (!isfinite(tbbox.min.x) && !isfinite(tbbox.min.y) &&
                          !isfinite(tbbox.max.x) && !isfinite(tbbox.max.y))) {
         /* If we have no bbox, we don't need to allocate and copy */
-        input_in_bbox = (coord_t *) input;
-        ref_in_bbox = (coord_t *) ref;
+        input_in_bbox = input;
+        ref_in_bbox = ref;
         ninput_in_bbox = ninput;
         nref_in_bbox = nref;
     } else {
-        input_in_bbox = malloc_with_error(ninput * sizeof(coord_t), error);
-        if (input_in_bbox == NULL) {
+
+        input_buf = malloc_with_error(ninput * sizeof(coord_t), error);
+        if (input_buf == NULL) {
             goto exit;
         }
 
-        ref_in_bbox = malloc_with_error(nref * sizeof(coord_t), error);
-        if (ref_in_bbox == NULL) {
+        ref_buf = malloc_with_error(nref * sizeof(coord_t), error);
+        if (ref_buf == NULL) {
             goto exit;
         }
 
         /* Reduce data to only those in the bbox */
         ninput_in_bbox = nref_in_bbox =
-            limit_to_bbox(ninput, input, ref, &tbbox, input_in_bbox, ref_in_bbox);
+            limit_to_bbox(ninput, input, ref, &tbbox, input_buf, ref_buf);
+        input_in_bbox = input_buf;
+        ref_in_bbox = ref_buf;
     }
 
     /* Compute the mean of the reference and input coordinates */
@@ -1647,12 +1653,8 @@ geomap(
 
 exit:
 
-    if (input_in_bbox != input) {
-        free(input_in_bbox);
-    }
-    if (ref_in_bbox != ref) {
-        free(ref_in_bbox);
-    }
+    free(input_buf);
+    free(ref_buf);
     free(weights);
     free(xfit);
     free(yfit);
@@ -1693,8 +1695,8 @@ void
 geomap_result_print(const geomap_result_t *const r)
 {
 
-    char *fit_geometry;
-    char *function;
+    const char *fit_geometry;
+    const char *function;
     size_t i;
 
     assert(r);

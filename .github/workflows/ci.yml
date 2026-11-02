@@ -50,6 +50,7 @@ jobs:
           - '3.12'
           - '3.13'
           - '3.14'
+          - '3.15'
     name: test (Python ${{ matrix.python }}, ${{ matrix.os }})
     needs: [test_c]
     runs-on: ${{ matrix.os }}
@@ -75,5 +76,6 @@ jobs:
         CRDS_CLIENT_RETRY_DELAY_SECONDS: 20
       envs: |
         - linux: jwst
-          python-version: '3.13'
+          python-version: '3.14'
         - linux: tweakwcs
+          python-version: '3.15'

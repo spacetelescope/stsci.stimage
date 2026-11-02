@@ -86,7 +86,7 @@ Initialize a surface_t object.
 */
 int
 surface_init(
-    surface_t *const s, const surface_type_e function, const int xorder, const int yorder,
+    surface_t *const s, const surface_type_e function, const size_t xorder, const size_t yorder,
     const xterms_e xterms, const bbox_t *const bbox, stimage_error_t *const error);
 
 /**

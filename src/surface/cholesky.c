@@ -80,7 +80,7 @@ cholesky_factorization(
 
         assert(MATFAC(0, n) != 0.0);
         MATFAC(0, n) = 1.0 / MATFAC(0, n);
-        imax = MIN(nbands - 1, nrows - n);
+        imax = MIN((int) nbands - 1, (int) nrows - (int) n);
         if (imax < 0) {
             continue;
         }
@@ -114,8 +114,7 @@ cholesky_solve(
 
 #define MATFAC(j, i) (matfac[(i) * nbands + (j)])
 
-    size_t i, j, jmax, nbands_m1;
-    int n;
+    size_t i, j, n, jmax, nbands_m1;
 
     assert(matfac);
     assert(vector);
@@ -136,8 +135,8 @@ cholesky_solve(
 
     /* Forward substitution */
     nbands_m1 = nbands - 1;
-    for (n = 0; n < (int) nrows; ++n) {
-        jmax = MIN(nbands_m1, nrows - n);
+    for (n = 0; n < nrows; ++n) {
+        jmax = MIN(nbands_m1, nrows - (size_t) n);
         if (jmax >= 1) {
             for (j = 0; j < jmax; ++j) {
                 coeff[j + n] -= MATFAC(j + 1, n) * coeff[n];
@@ -146,9 +145,9 @@ cholesky_solve(
     }
 
     /* Back substitution */
-    for (n = (int) nrows - 1; n >= 0; --n) {
+    for (n = nrows - 1; n < nrows; --n) {
         coeff[n] *= MATFAC(0, n);
-        jmax = MIN(nbands_m1, nrows - n);
+        jmax = MIN(nbands_m1, nrows - (size_t) n);
         if (jmax >= 1) {
             for (j = 0; j < jmax; ++j) {
                 coeff[n] -= MATFAC(j + 1, n) * coeff[j + n];

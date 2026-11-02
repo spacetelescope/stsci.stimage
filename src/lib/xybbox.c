@@ -65,7 +65,7 @@ bbox_print(const bbox_t *const bbox)
 /* was geo_rdxyd */
 size_t
 limit_to_bbox(
-    size_t ncoord, const coord_t *const input, const coord_t *const ref, const bbox_t *const bbox,
+    size_t ncoord, const coord_t *input, const coord_t *ref, const bbox_t *bbox,
     coord_t *const input_in_bbox, coord_t *const ref_in_bbox)
 {
 

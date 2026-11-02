@@ -57,7 +57,7 @@ Evaluate a 1D polynomial
  */
 int
 eval_1dpoly(
-    const int order, const double *const coeff, const size_t ncoord, const size_t axis,
+    const int order, const double *coeff, const size_t ncoord, const size_t axis,
     const coord_t *const ref,
     /* Output */
     double *const zfit, stimage_error_t *const error);
@@ -91,7 +91,7 @@ have been calculated.
 int
 eval_1dchebyshev(
     const int order, const double *const coeff, const size_t ncoord, const size_t axis,
-    const coord_t *const ref, const double k1, const double k2,
+    const coord_t *ref, const double k1, const double k2,
     /* Output */
     double *const zfit, stimage_error_t *const error);
 

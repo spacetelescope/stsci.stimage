@@ -51,7 +51,8 @@ match_tolerance(
     size_t lp = 0;
     size_t input_index = 0;
     size_t ref_index = 0;
-    double dx, dy, rmax2, r2;
+    double dx, dy = -2.0 * tolerance; // TODO: not clear what initial dy should be; maybe 0.0?
+    double rmax2, r2;
     const coord_t *rmatch;
     const coord_t *lmatch;
 
@@ -105,8 +106,8 @@ match_tolerance(
 
         /* A match was found, so write the results to the output array */
         if (rmatch != NULL && lmatch != NULL) {
-            ref_index = rmatch - ref;
-            input_index = lmatch - input;
+            ref_index = (size_t) (rmatch - ref);
+            input_index = (size_t) (lmatch - input);
 
             if (callback(callback_data, ref_index, input_index, error)) {
                 return 1;

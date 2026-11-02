@@ -34,6 +34,7 @@ DAMAGE.
 */
 
 #include <assert.h>
+#include <math.h>
 #include <stdlib.h>
 
 #include "lib/util.h"
@@ -75,7 +76,7 @@ factorial(size_t n)
     STIMAGE_Int64 fac = 1;
 
     while (n > 0) {
-        fac *= n--;
+        fac *= (STIMAGE_Int64) n--;
     }
 
     return fac;
@@ -219,7 +220,7 @@ compute_mode(
 {
 
     int x1, x2, x3, nmax;
-    double y1, y2, mode;
+    double y1, y2, mode = NAN;
 
     assert(a);
 
