@@ -1,3 +1,7 @@
+<a href="https://stsci.edu">
+  <img src="doc/source/_static/stsci_pri_combo_mark_horizonal_white_bkgd.png" alt="Space Telescope Science Institute" width="83%" style="margin-left: auto;"/>
+</a>
+
 # stsci.stimage
 
 [![Documentation Status](https://readthedocs.org/projects/stscistimage/badge/?version=latest)](https://stscistimage.readthedocs.io/en/latest/?badge=latest)
