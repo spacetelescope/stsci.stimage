@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-latest, ubuntu-26.04-arm, macos-latest, windows-latest ]
         build_type: [ Debug, RelWithDebInfo, Release ]
     name: test (C, ${{ matrix.build_type }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -43,6 +43,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
+          - ubuntu-26.04-arm
           - macos-latest
           - windows-latest
         python:
